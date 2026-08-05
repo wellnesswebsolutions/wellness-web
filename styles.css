@@ -85,10 +85,10 @@
     /* the object is centred in .col-art, so a shorter band = less air around it */
     /* stop stretching the art row to fill the viewport: give it a fixed
        height just larger than the object, and let the block size to content */
-    .cols{top:25vh;bottom:auto;grid-template-rows:auto auto;gap:6px}
-    .col-art{height:140px}
-    /* sits just under the steps instead of at the foot of the viewport */
-    .hint{top:54vh;bottom:auto}
+    .cols{top:26vh;bottom:auto;grid-template-rows:auto auto;gap:6px}
+    .col-art{height:176px}
+    /* back down at the foot of the hero box */
+    .hint{top:auto;bottom:14px}
     /* the hero content ends around 60vh, so crop the empty tail of the
        screen rather than leaving it above the next section */
     /* static, not sticky: the canvas then scrolls away with its own section
