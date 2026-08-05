@@ -85,7 +85,9 @@
   .sec-head p{color:var(--muted);font-size:17px}
 
   /* live website demos */
-  .work{display:grid;grid-template-columns:repeat(2,1fr);gap:34px}
+  .work{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  /* screenshot fallback for sites that refuse to be framed (X-Frame-Options) */
+  .frame img.shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
   .demo{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
     box-shadow:0 14px 40px rgba(43,38,32,.07);display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
   .demo:hover{transform:translateY(-4px);box-shadow:0 26px 60px rgba(43,38,32,.13)}
@@ -144,6 +146,7 @@
 
   .work-note{text-align:center;margin-top:38px;color:var(--muted);font-size:15px}
   .work-note a{color:var(--accent);text-decoration:none;font-weight:600}
+  @media(max-width:1100px){.work{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:900px){.work{grid-template-columns:1fr;gap:26px}}
 
   .band{text-align:center;max-width:640px;margin:0 auto}
