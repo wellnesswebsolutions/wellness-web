@@ -391,7 +391,11 @@ function init(){
     objs.push({grp,pivot,base,mats,rot:0,vel:0,...MOTION[i]});
   });
 
-  resize(); window.addEventListener('resize',resize);
+  resize(); window.addEventListener('resize',onResize);
+  // scroll speed feeds the spin, so everything turns together as you move
+  addEventListener('scroll',()=>{
+    const y=scrollY; scrollKick=Math.min(14,scrollKick+Math.abs(y-lastScrollY)*0.09); lastScrollY=y;
+  },{passive:true});
   // re-measure once webfonts land, since they change the text block height
   window.addEventListener('load',layout);
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(layout);
@@ -408,16 +412,29 @@ function layout(){
     const art=cols[i] && cols[i].querySelector('.col-art');
     if(!art) return;
     const r=art.getBoundingClientRect();
-    const cx=r.left+r.width/2, cy=r.top+r.height/2;
-    o.pivot.position.x=(cx/innerWidth-0.5)*vw;
-    o.pivot.position.y=(0.5-cy/innerHeight)*vh;
+    // measured against the canvas, not the window: on mobile the URL bar
+    // changes innerHeight mid-scroll, which made the objects jump
+    const cr=canvas.getBoundingClientRect();
+    const cx=r.left+r.width/2-cr.left, cy=r.top+r.height/2-cr.top;
+    o.pivot.position.x=(cx/cr.width-0.5)*vw;
+    o.pivot.position.y=(0.5-cy/cr.height)*vh;
     // keep each object inside its column
-    o.fit=Math.min(1, (r.width/innerWidth*vw)/2.2);
+    o.fit=Math.min(1, (r.width/cr.width*vw)/2.2);
   });
 }
 
+let scrollKick=0, lastScrollY=0, lastW=0, lastH=0;
+// phones fire resize constantly as the URL bar slides; only react to real changes
+function onResize(){
+  const pin=document.getElementById('pin');
+  const w=pin.clientWidth, h=pin.clientHeight;
+  if(w===lastW && Math.abs(h-lastH)<120) return;
+  lastW=w; lastH=h; resize();
+}
+
 function resize(){
-  const w=innerWidth,h=innerHeight;
+  const pin=document.getElementById('pin');
+  const w=pin.clientWidth||innerWidth, h=pin.clientHeight||innerHeight;
   renderer.setSize(w,h);
   camera.aspect=w/h;
   camera.position.z = w/h<0.85 ? 12 : 9;
@@ -458,6 +475,7 @@ function loop(){
   const FADE=0.24;
   const DIM=new THREE.Color(0xe0d6c2);
   const isPinned=pinned();
+  scrollKick *= 0.92;                                     // spin eases off once you stop
   objs.forEach((o,i)=>{
     const d=Math.abs(stage-i);
     let on=Math.max(0,Math.min(1,(0.5+FADE/2-d)/FADE));   // crossfade centred at the handover
@@ -466,8 +484,8 @@ function loop(){
     const hot = hoverIdx===i;
     const hi = Math.max(on, hot?1:0);                     // hovering fully lights it too
 
-    // spin: a slow idle drift, accelerating while hovered
-    o.vel += ((hot?2.6:0.22)*o.spin-o.vel)*0.08;
+    // spin: a slow idle drift, accelerating while hovered or while scrolling
+    o.vel += ((hot?2.6:0.22)*o.spin + scrollKick*o.spin - o.vel)*0.08;
     o.rot += o.vel*dt;
     o.pivot.rotation.y=o.rot;
     o.pivot.rotation.z=Math.sin(t*0.5+i)*0.03*o.wobble;

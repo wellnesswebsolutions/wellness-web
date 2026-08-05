@@ -91,7 +91,10 @@
     .hint{top:54vh;bottom:auto}
     /* the hero content ends around 60vh, so crop the empty tail of the
        screen rather than leaving it above the next section */
+    /* static, not sticky: the canvas then scrolls away with its own section
+       instead of hanging behind the content that scrolls past it */
     #stage,#pin{height:66vh}
+    #pin{position:static}
     #why{padding-top:30px}
     .col .num{font-size:19px}
     .col h2{font-size:clamp(13px,3.4vw,18px)}
