@@ -89,6 +89,10 @@
     .col-art{height:140px}
     /* sits just under the steps instead of at the foot of the viewport */
     .hint{top:54vh;bottom:auto}
+    /* the hero content ends around 60vh, so crop the empty tail of the
+       screen rather than leaving it above the next section */
+    #stage,#pin{height:66vh}
+    #why{padding-top:30px}
     .col .num{font-size:19px}
     .col h2{font-size:clamp(13px,3.4vw,18px)}
   }
