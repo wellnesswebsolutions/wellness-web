@@ -313,48 +313,51 @@ function makeDryer(body,accent,dark){
 
   return g;
 }
-// round salon brush: barrel + radiating bristles + tapered handle
-function makeBrush(handleMat,barrelMat,bristleMat){
+// tail comb: flat spine, a run of fine teeth, and a long pintail
+function makeComb(handleMat,spineMat,toothMat){
   const g=new THREE.Group();
-  const R=0.30, TOP=1.55, BOT=0.30;      // barrel radius and extent along Y
+  const W=0.16, SPINE_H=0.26, LEN=2.05;          // comb body: thin slab along Y
+  const TOP=1.00, BOT=TOP-LEN;
 
-  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(R,R,TOP-BOT,32),barrelMat);
-  barrel.position.y=(TOP+BOT)/2; g.add(barrel);
+  // spine — the solid back the teeth hang off
+  const spine=new THREE.Mesh(new THREE.BoxGeometry(SPINE_H,LEN,W),spineMat);
+  spine.position.y=(TOP+BOT)/2;
+  g.add(spine);
+  // rounded shoulder at each end so it doesn't read as a raw block
   [TOP,BOT].forEach(y=>{
-    const cap=new THREE.Mesh(new THREE.SphereGeometry(R,28,20),barrelMat);
-    cap.scale.y=0.5; cap.position.y=y; g.add(cap);
+    const cap=new THREE.Mesh(new THREE.CylinderGeometry(SPINE_H/2,SPINE_H/2,W,20),spineMat);
+    cap.rotation.x=Math.PI/2; cap.position.set(0,y,0); g.add(cap);
   });
 
-  // bristles as one instanced mesh — hundreds of them stay cheap
-  const RINGS=13, PER=16, LEN=0.34;
-  const bg=new THREE.CylinderGeometry(0.021,0.011,LEN,5);
-  bg.translate(0,LEN/2,0);                                  // pivot at the root
-  const inst=new THREE.InstancedMesh(bg,bristleMat,RINGS*PER);
+  // teeth — one instanced mesh, fine ones at the top, wider set below
+  const FINE=42, WIDE=20, GAP=0.055, TL_FINE=0.62, TL_WIDE=0.72;
+  const geo=new THREE.CylinderGeometry(0.016,0.009,1,6);
+  geo.translate(0,0.5,0);                                   // pivot at the root
+  const inst=new THREE.InstancedMesh(geo,toothMat,FINE+WIDE);
   const m=new THREE.Matrix4(), q=new THREE.Quaternion();
-  const up=new THREE.Vector3(0,1,0), dir=new THREE.Vector3(), pos=new THREE.Vector3();
-  const one=new THREE.Vector3(1,1,1);
+  const up=new THREE.Vector3(0,1,0), out=new THREE.Vector3(-1,0,0);
+  const pos=new THREE.Vector3(), scl=new THREE.Vector3();
+  q.setFromUnitVectors(up,out);                             // teeth point -X
   let n=0;
-  for(let r=0;r<RINGS;r++){
-    const y=BOT+(TOP-BOT)*(r/(RINGS-1));
-    for(let a=0;a<PER;a++){
-      const th=(a/PER)*Math.PI*2 + r*0.22;                  // stagger each ring
-      dir.set(Math.cos(th),0,Math.sin(th)).normalize();
-      q.setFromUnitVectors(up,dir);
-      pos.copy(dir).multiplyScalar(R*0.92).setY(y);
-      inst.setMatrixAt(n++,m.compose(pos,q,one));
-    }
+  for(let i=0;i<FINE;i++){
+    const y=TOP-0.12-i*GAP;
+    pos.set(-SPINE_H/2,y,0); scl.set(1,TL_FINE,1);
+    inst.setMatrixAt(n++,m.compose(pos,q,scl));
+  }
+  for(let i=0;i<WIDE;i++){
+    const y=TOP-0.12-FINE*GAP-i*(GAP*1.9);
+    pos.set(-SPINE_H/2,y,0); scl.set(1.25,TL_WIDE,1.25);
+    inst.setMatrixAt(n++,m.compose(pos,q,scl));
   }
   inst.instanceMatrix.needsUpdate=true; g.add(inst);
 
-  // ferrule and handle
-  const fer=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.20,0.22,26),barrelMat);
-  fer.position.y=0.12; g.add(fer);
-  const grip=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.115,1.30,26),handleMat);
-  grip.position.y=-0.60; g.add(grip);
-  const knob=new THREE.Mesh(new THREE.SphereGeometry(0.125,22,16),handleMat);
-  knob.position.y=-1.26; g.add(knob);
-  const loop=new THREE.Mesh(new THREE.TorusGeometry(0.075,0.022,10,24),barrelMat);
-  loop.position.y=-1.42; g.add(loop);
+  // pintail — the long tapered handle a tail comb is known for
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.012,1.15,18),handleMat);
+  tail.position.y=BOT-0.55; g.add(tail);
+  const tip=new THREE.Mesh(new THREE.SphereGeometry(0.014,12,10),handleMat);
+  tip.position.y=BOT-1.13; g.add(tip);
+  const collar=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.07,20),spineMat);
+  collar.position.y=BOT-0.02; g.add(collar);
   return g;
 }
 
@@ -393,7 +396,7 @@ function init(){
   const brist=new THREE.MeshStandardMaterial({color:0xe8dcc6,metalness:0.0,roughness:0.7,envMapIntensity:0.9});
 
   // per-object motion: spin rate, how much it sways, and a resting tilt.
-  // The brush turns slowly and barely sways, so it reads as pivoting on its own axis.
+  // The comb turns slowly and barely sways, so it reads as pivoting on its own axis.
   const MOTION=[
     {spin:1.0, wobble:1.0, tilt:0},
     {spin:1.0, wobble:1.0, tilt:0},
@@ -401,7 +404,7 @@ function init(){
   ];
 
   // one object per column, each on its own pivot so it can spin independently
-  [makeScissors(steel,gold), makeDryer(cream,blush,dark), makeBrush(wood,shell,brist)].forEach((grp,i)=>{
+  [makeScissors(steel,gold), makeDryer(cream,blush,dark), makeComb(wood,shell,brist)].forEach((grp,i)=>{
     const base=centerAndScale(grp,1.9);
     const pivot=new THREE.Group(); pivot.rotation.x=-0.05; pivot.add(grp); scene.add(pivot);
     const mats=matsOf(grp).map(m=>({m,col:m.color.clone(),env:m.envMapIntensity}));
