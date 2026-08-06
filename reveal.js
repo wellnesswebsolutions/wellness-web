@@ -51,4 +51,16 @@
   }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
 
   seen.forEach(function (el) { io.observe(el); });
+
+  // anything already on screen at load reveals together, so a block never
+  // sits mid-animation over the one below it
+  requestAnimationFrame(function () {
+    seen.forEach(function (el) {
+      if (el.getBoundingClientRect().top < innerHeight) {
+        el.style.transitionDelay = '0ms';
+        el.classList.add('in');
+        io.unobserve(el);
+      }
+    });
+  });
 })();
