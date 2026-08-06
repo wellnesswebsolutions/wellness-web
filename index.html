@@ -313,54 +313,43 @@ function makeDryer(body,accent,dark){
 
   return g;
 }
-// tail comb, moulded as one piece: tapered spine, two banks of rounded
-// teeth, and a pintail drawn out of the same body
+// handle comb: the body and flared handle are one extruded silhouette,
+// with a single bank of teeth along the top two thirds
 function makeComb(bodyMat,edgeMat,_unused){
   const g=new THREE.Group();
-  const THK=0.075;                        // a comb is thin — this reads as moulded plastic
-  const SPINE_X=0.115;                    // half-depth of the solid back
-  const TOP=1.02, BOT=-0.72, LEN=TOP-BOT;
+  const TOP=1.30, TEETH_BOT=0.02, BACK=0.17;   // spine runs TOP -> TEETH_BOT, BACK = depth of the solid back
 
-  // spine: slightly deeper at the top edge, thinning towards the teeth
-  const spine=new THREE.Mesh(new THREE.BoxGeometry(SPINE_X*2,LEN,THK),bodyMat);
-  spine.position.y=(TOP+BOT)/2; g.add(spine);
-  // a rounded bead along the back edge, and rounded ends
-  const bead=new THREE.Mesh(new THREE.CylinderGeometry(THK/2,THK/2,LEN,16),bodyMat);
-  bead.position.set(SPINE_X,(TOP+BOT)/2,0); g.add(bead);
-  [TOP,BOT].forEach(y=>{
-    const cap=new THREE.Mesh(new THREE.CylinderGeometry(SPINE_X,SPINE_X,THK,20),bodyMat);
-    cap.rotation.x=Math.PI/2; cap.position.set(0,y,0); g.add(cap);
-  });
+  // one 2D outline: straight spine that flares into a rounded paddle handle
+  const s=new THREE.Shape();
+  s.moveTo(0,TOP);
+  s.lineTo(BACK,TOP);
+  s.lineTo(BACK,0.10);
+  s.bezierCurveTo(0.30,-0.10, 0.42,-0.30, 0.42,-0.72);   // flare out into the handle
+  s.bezierCurveTo(0.42,-1.06, 0.30,-1.24, 0.12,-1.26);   // rounded end
+  s.bezierCurveTo(-0.04,-1.24,-0.09,-1.05,-0.08,-0.72);
+  s.bezierCurveTo(-0.08,-0.34,-0.03,-0.12, 0,0.10);
+  s.lineTo(0,TOP);
 
-  // teeth: capsules so the tips are rounded like a real comb, roots buried
-  // in the spine. fine bank up top, coarse bank below, with a gap between.
-  const FINE={n:34,gap:0.049,len:0.60,r:0.0125}, COARSE={n:15,gap:0.086,len:0.70,r:0.017};
-  const mk=(spec,y0,count)=>{
-    const geo=new THREE.CapsuleGeometry(spec.r,spec.len,4,8);
-    geo.translate(0,spec.len/2,0);
-    const inst=new THREE.InstancedMesh(geo,bodyMat,count);
-    const m=new THREE.Matrix4(), q=new THREE.Quaternion();
-    const up=new THREE.Vector3(0,1,0), out=new THREE.Vector3(-1,0,0);
-    const pos=new THREE.Vector3(), one=new THREE.Vector3(1,1,1);
-    q.setFromUnitVectors(up,out);
-    for(let i=0;i<count;i++){
-      pos.set(-SPINE_X+0.05, y0-i*spec.gap, 0);       // root sunk into the spine
-      inst.setMatrixAt(i,m.compose(pos,q,one));
-    }
-    inst.instanceMatrix.needsUpdate=true; return inst;
-  };
-  const fineTop=TOP-0.10;
-  g.add(mk(FINE,fineTop,FINE.n));
-  g.add(mk(COARSE,fineTop-FINE.n*FINE.gap-0.09,COARSE.n));
+  const body=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{
+    depth:0.085, bevelEnabled:true, bevelThickness:0.022, bevelSize:0.022, bevelSegments:3, curveSegments:24
+  }),bodyMat);
+  body.position.z=-0.0425;                    // centre the extrusion on z
+  g.add(body);
 
-  // pintail: drawn out of the bottom of the body, tapering to a fine point
-  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.052,0.010,1.24,16),bodyMat);
-  tail.position.y=BOT-0.60; g.add(tail);
-  const tip=new THREE.Mesh(new THREE.SphereGeometry(0.010,10,8),bodyMat);
-  tip.position.y=BOT-1.22; g.add(tip);
-  // faint seam where the tail leaves the body, so the join reads as moulded
-  const seam=new THREE.Mesh(new THREE.CylinderGeometry(0.058,0.058,0.035,18),edgeMat);
-  seam.position.y=BOT-0.02; g.add(seam);
+  // teeth: one uniform bank, slightly tapered with rounded tips
+  const N=30, GAP=0.0415, LEN=0.66, R=0.0135;
+  const geo=new THREE.CapsuleGeometry(R,LEN,4,8);
+  geo.translate(0,LEN/2,0);
+  const inst=new THREE.InstancedMesh(geo,bodyMat,N);
+  const m=new THREE.Matrix4(), q=new THREE.Quaternion();
+  const up=new THREE.Vector3(0,1,0), out=new THREE.Vector3(-1,0,0);
+  const pos=new THREE.Vector3(), one=new THREE.Vector3(1,1,1);
+  q.setFromUnitVectors(up,out);
+  for(let i=0;i<N;i++){
+    pos.set(0.02, TOP-0.10-i*GAP, 0);         // roots buried in the spine
+    inst.setMatrixAt(i,m.compose(pos,q,one));
+  }
+  inst.instanceMatrix.needsUpdate=true; g.add(inst);
   return g;
 }
 
@@ -397,6 +386,7 @@ function init(){
   const wood =new THREE.MeshStandardMaterial({color:0xb08356,metalness:0.05,roughness:0.55,envMapIntensity:0.9});
   const shell=new THREE.MeshStandardMaterial({color:0x9c8a72,metalness:0.5,roughness:0.35,envMapIntensity:1.2});
   const brist=new THREE.MeshStandardMaterial({color:0xe8dcc6,metalness:0.0,roughness:0.7,envMapIntensity:0.9});
+  const horn =new THREE.MeshStandardMaterial({color:0x231f1c,metalness:0.15,roughness:0.3,envMapIntensity:1.1});
 
   // per-object motion: spin rate, how much it sways, and a resting tilt.
   // The comb turns slowly and barely sways, so it reads as pivoting on its own axis.
@@ -407,7 +397,7 @@ function init(){
   ];
 
   // one object per column, each on its own pivot so it can spin independently
-  [makeScissors(steel,gold), makeDryer(cream,blush,dark), makeComb(wood,shell,brist)].forEach((grp,i)=>{
+  [makeScissors(steel,gold), makeDryer(cream,blush,dark), makeComb(horn,shell,brist)].forEach((grp,i)=>{
     const base=centerAndScale(grp,1.9);
     const pivot=new THREE.Group(); pivot.rotation.x=-0.05; pivot.add(grp); scene.add(pivot);
     const mats=matsOf(grp).map(m=>({m,col:m.color.clone(),env:m.envMapIntensity}));
