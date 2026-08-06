@@ -400,11 +400,12 @@ function init(){
   const horn =new THREE.MeshStandardMaterial({color:0xab9a84,metalness:0.1,roughness:0.38,envMapIntensity:1.2});
 
   // per-object motion: spin rate, how much it sways, and a resting tilt.
-  // The comb turns slowly and barely sways, so it reads as pivoting on its own axis.
+  // All three turn at the same rate; the comb just sways less, since it is flat
+  // and a big sway reads as a wobble rather than a turn.
   const MOTION=[
     {spin:1.0, wobble:1.0, tilt:0},
     {spin:1.0, wobble:1.0, tilt:0},
-    {spin:0.35,wobble:0.25,tilt:0.20},
+    {spin:1.0, wobble:0.25,tilt:0.20},
   ];
 
   // one object per column, each on its own pivot so it can spin independently
