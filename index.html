@@ -313,51 +313,54 @@ function makeDryer(body,accent,dark){
 
   return g;
 }
-// tail comb: flat spine, a run of fine teeth, and a long pintail
-function makeComb(handleMat,spineMat,toothMat){
+// tail comb, moulded as one piece: tapered spine, two banks of rounded
+// teeth, and a pintail drawn out of the same body
+function makeComb(bodyMat,edgeMat,_unused){
   const g=new THREE.Group();
-  const W=0.16, SPINE_H=0.26, LEN=2.05;          // comb body: thin slab along Y
-  const TOP=1.00, BOT=TOP-LEN;
+  const THK=0.075;                        // a comb is thin — this reads as moulded plastic
+  const SPINE_X=0.115;                    // half-depth of the solid back
+  const TOP=1.02, BOT=-0.72, LEN=TOP-BOT;
 
-  // spine — the solid back the teeth hang off
-  const spine=new THREE.Mesh(new THREE.BoxGeometry(SPINE_H,LEN,W),spineMat);
-  spine.position.y=(TOP+BOT)/2;
-  g.add(spine);
-  // rounded shoulder at each end so it doesn't read as a raw block
+  // spine: slightly deeper at the top edge, thinning towards the teeth
+  const spine=new THREE.Mesh(new THREE.BoxGeometry(SPINE_X*2,LEN,THK),bodyMat);
+  spine.position.y=(TOP+BOT)/2; g.add(spine);
+  // a rounded bead along the back edge, and rounded ends
+  const bead=new THREE.Mesh(new THREE.CylinderGeometry(THK/2,THK/2,LEN,16),bodyMat);
+  bead.position.set(SPINE_X,(TOP+BOT)/2,0); g.add(bead);
   [TOP,BOT].forEach(y=>{
-    const cap=new THREE.Mesh(new THREE.CylinderGeometry(SPINE_H/2,SPINE_H/2,W,20),spineMat);
+    const cap=new THREE.Mesh(new THREE.CylinderGeometry(SPINE_X,SPINE_X,THK,20),bodyMat);
     cap.rotation.x=Math.PI/2; cap.position.set(0,y,0); g.add(cap);
   });
 
-  // teeth — one instanced mesh, fine ones at the top, wider set below
-  const FINE=42, WIDE=20, GAP=0.055, TL_FINE=0.62, TL_WIDE=0.72;
-  const geo=new THREE.CylinderGeometry(0.016,0.009,1,6);
-  geo.translate(0,0.5,0);                                   // pivot at the root
-  const inst=new THREE.InstancedMesh(geo,toothMat,FINE+WIDE);
-  const m=new THREE.Matrix4(), q=new THREE.Quaternion();
-  const up=new THREE.Vector3(0,1,0), out=new THREE.Vector3(-1,0,0);
-  const pos=new THREE.Vector3(), scl=new THREE.Vector3();
-  q.setFromUnitVectors(up,out);                             // teeth point -X
-  let n=0;
-  for(let i=0;i<FINE;i++){
-    const y=TOP-0.12-i*GAP;
-    pos.set(-SPINE_H/2,y,0); scl.set(1,TL_FINE,1);
-    inst.setMatrixAt(n++,m.compose(pos,q,scl));
-  }
-  for(let i=0;i<WIDE;i++){
-    const y=TOP-0.12-FINE*GAP-i*(GAP*1.9);
-    pos.set(-SPINE_H/2,y,0); scl.set(1.25,TL_WIDE,1.25);
-    inst.setMatrixAt(n++,m.compose(pos,q,scl));
-  }
-  inst.instanceMatrix.needsUpdate=true; g.add(inst);
+  // teeth: capsules so the tips are rounded like a real comb, roots buried
+  // in the spine. fine bank up top, coarse bank below, with a gap between.
+  const FINE={n:34,gap:0.049,len:0.60,r:0.0125}, COARSE={n:15,gap:0.086,len:0.70,r:0.017};
+  const mk=(spec,y0,count)=>{
+    const geo=new THREE.CapsuleGeometry(spec.r,spec.len,4,8);
+    geo.translate(0,spec.len/2,0);
+    const inst=new THREE.InstancedMesh(geo,bodyMat,count);
+    const m=new THREE.Matrix4(), q=new THREE.Quaternion();
+    const up=new THREE.Vector3(0,1,0), out=new THREE.Vector3(-1,0,0);
+    const pos=new THREE.Vector3(), one=new THREE.Vector3(1,1,1);
+    q.setFromUnitVectors(up,out);
+    for(let i=0;i<count;i++){
+      pos.set(-SPINE_X+0.05, y0-i*spec.gap, 0);       // root sunk into the spine
+      inst.setMatrixAt(i,m.compose(pos,q,one));
+    }
+    inst.instanceMatrix.needsUpdate=true; return inst;
+  };
+  const fineTop=TOP-0.10;
+  g.add(mk(FINE,fineTop,FINE.n));
+  g.add(mk(COARSE,fineTop-FINE.n*FINE.gap-0.09,COARSE.n));
 
-  // pintail — the long tapered handle a tail comb is known for
-  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.012,1.15,18),handleMat);
-  tail.position.y=BOT-0.55; g.add(tail);
-  const tip=new THREE.Mesh(new THREE.SphereGeometry(0.014,12,10),handleMat);
-  tip.position.y=BOT-1.13; g.add(tip);
-  const collar=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.07,20),spineMat);
-  collar.position.y=BOT-0.02; g.add(collar);
+  // pintail: drawn out of the bottom of the body, tapering to a fine point
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.052,0.010,1.24,16),bodyMat);
+  tail.position.y=BOT-0.60; g.add(tail);
+  const tip=new THREE.Mesh(new THREE.SphereGeometry(0.010,10,8),bodyMat);
+  tip.position.y=BOT-1.22; g.add(tip);
+  // faint seam where the tail leaves the body, so the join reads as moulded
+  const seam=new THREE.Mesh(new THREE.CylinderGeometry(0.058,0.058,0.035,18),edgeMat);
+  seam.position.y=BOT-0.02; g.add(seam);
   return g;
 }
 
