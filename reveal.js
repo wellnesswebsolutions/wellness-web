@@ -15,6 +15,7 @@
     ['.founder', 0],
     ['.compare div', 90],
     ['.missed-band', 0],
+    ['.missed-stats > div', 90],
     ['.missed-list div', 90],
     ['.missed-foot', 0],
     ['.demo', 110],
