@@ -12,6 +12,12 @@
 <link rel="apple-touch-icon" href="favicon.svg">
 <meta name="theme-color" content="#efe7d9">
 <link rel="stylesheet" href="styles.css">
+<style>
+  /* compact the page-top clearance and hero bottom gap so both build cards land above the fold */
+  .page{padding-top:clamp(60px,7.5vh,90px)}
+  .page-hero{margin-bottom:0}
+  .page-hero h1{margin-bottom:12px}
+</style>
 <script src="reveal.js" defer></script>
 </head>
 <body>
@@ -27,7 +33,7 @@
 </div>
 
 <div class="after page">
-  <section style="padding-top:0">
+  <section style="padding-top:0;padding-bottom:28px">
     <div class="wrap">
       <div class="page-hero">
         <div class="eyebrow">Pricing</div>
