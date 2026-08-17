@@ -1,4 +1,12 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.wellnessweb.co.uk" }],
+      "destination": "https://wellnessweb.co.uk/:path*",
+      "permanent": true
+    }
+  ]
 }
