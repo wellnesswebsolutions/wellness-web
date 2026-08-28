@@ -334,18 +334,33 @@
   /* hero: two flawed options either side, arrows into the AI-built centre.
      sized entirely in vh/vw so the whole thing sits inside one screen, no scroll. */
   .hero-conv{min-height:100svh;display:flex;align-items:center;padding:clamp(64px,13svh,96px) 20px clamp(20px,4svh,40px);
-    background:radial-gradient(60% 55% at 50% 0%, rgba(255,251,243,.9), rgba(239,231,217,0) 68%), var(--bg)}
-  .hero-conv-wrap{width:100%}
+    position:relative;overflow:hidden;
+    background:radial-gradient(46% 60% at 18% 8%, rgba(185,138,78,.16), rgba(239,231,217,0) 62%),
+      radial-gradient(46% 60% at 82% 8%, rgba(176,116,92,.14), rgba(239,231,217,0) 62%),
+      radial-gradient(60% 55% at 50% 0%, rgba(255,251,243,.9), rgba(239,231,217,0) 68%), var(--bg)}
+  .hero-conv-wrap{width:100%;position:relative;z-index:1}
   .hero-conv-head{max-width:680px;margin:0 auto clamp(28px,6.5svh,60px);text-align:center}
   .hero-conv-head .eyebrow{font-size:clamp(11px,1.4vw,13px);letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:clamp(10px,2svh,18px)}
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,5vw,54px);line-height:1.12}
   .conv-row{display:flex;align-items:flex-start;justify-content:center;gap:clamp(10px,2.6vw,28px);max-width:1120px;margin:0 auto}
-  .conv-col{flex:1 1 0;min-width:0;max-width:270px;text-align:center}
+  .conv-col{flex:1 1 0;min-width:0;max-width:270px;text-align:center;position:relative}
   .conv-col-ai{max-width:290px}
-  .conv-icon{font-size:clamp(26px,3.4vw,40px);line-height:1;margin-bottom:clamp(6px,1.4svh,12px)}
-  .conv-icon-ai{color:var(--accent)}
+  .conv-col-old,.conv-col-new{padding-top:clamp(8px,1.6svh,16px)}
+  .conv-col-old:after,.conv-col-new:after{content:"";position:absolute;top:0;bottom:6%;width:1px;
+    background:linear-gradient(to bottom, rgba(43,38,32,0), var(--line) 22%, var(--line) 78%, rgba(43,38,32,0))}
+  .conv-col-old:after{right:clamp(-8px,-1.4vw,-14px)}
+  .conv-col-new:after{left:clamp(-8px,-1.4vw,-14px)}
+  .conv-icon-wrap{width:clamp(52px,5.6vw,68px);height:clamp(52px,5.6vw,68px);margin:0 auto clamp(10px,2svh,16px);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.9), rgba(255,255,255,.15) 70%), rgba(255,255,255,.5);
+    box-shadow:0 10px 24px rgba(43,38,32,.08), inset 0 0 0 1px rgba(255,255,255,.6)}
+  .conv-icon-wrap-ai{background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), var(--gold) 78%);
+    box-shadow:0 14px 30px rgba(176,116,92,.4), inset 0 0 0 1px rgba(255,255,255,.7)}
+  .conv-icon{font-size:clamp(24px,2.8vw,32px);line-height:1}
+  .conv-icon-ai{color:var(--accent);font-weight:700}
   .conv-col h4{font-family:var(--display);font-size:clamp(16px,2vw,23px);font-weight:600;margin-bottom:4px}
-  .conv-col-ai h4{color:var(--accent)}
+  .conv-badge{display:inline-block;font-family:var(--display);font-size:clamp(16px,2vw,23px);font-weight:700;
+    color:var(--accent);margin-bottom:clamp(6px,1.2svh,10px)}
   .conv-price{font-size:clamp(12px,1.2vw,14px);color:var(--muted);font-weight:600;margin-bottom:clamp(10px,2svh,18px)}
   .conv-mini{list-style:none;display:inline-flex;flex-direction:column;gap:clamp(8px,1.8svh,14px);text-align:left;margin:0 auto}
   .conv-mini li{display:flex;align-items:center;gap:8px;font-size:clamp(12.5px,1.3vw,15.5px);line-height:1.3;color:var(--ink);white-space:nowrap}
@@ -353,9 +368,9 @@
   .conv-mini-pos li{font-weight:600}
   .conv-cta{display:inline-block;margin-top:clamp(16px,3svh,26px);background:var(--accent);color:#fff;text-decoration:none;
     padding:11px 24px;border-radius:999px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
-    transition:transform .15s,box-shadow .15s;white-space:nowrap}
-  .conv-cta:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(176,116,92,.32)}
-  .conv-arrow{align-self:center;flex:none;display:flex;align-items:center;justify-content:center;color:var(--accent);opacity:.6;margin-top:clamp(16px,3.2svh,26px)}
+    transition:transform .15s,box-shadow .15s;white-space:nowrap;box-shadow:0 10px 24px rgba(176,116,92,.28)}
+  .conv-cta:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(176,116,92,.36)}
+  .conv-arrow{align-self:center;flex:none;display:flex;align-items:center;justify-content:center;color:var(--accent);opacity:.65;margin-top:clamp(26px,4.4svh,40px)}
   .conv-arrow svg{width:clamp(26px,3.2vw,38px);height:auto}
   .conv-arrow-l svg{animation:conv-pulse-l 2.2s ease-in-out infinite}
   .conv-arrow-r svg{animation:conv-pulse-r 2.2s ease-in-out infinite .3s}
@@ -366,8 +381,10 @@
     .conv-row{gap:4px}
     .conv-col{max-width:120px}
     .conv-col-ai{max-width:132px}
+    .conv-col-old:after,.conv-col-new:after{content:none}
     .conv-mini li{white-space:normal}
     .conv-arrow svg{width:16px}
+    .conv-arrow{margin-top:clamp(20px,4svh,30px)}
   }
 
   /* terms & privacy page */
