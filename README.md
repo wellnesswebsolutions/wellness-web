@@ -1,6 +1,6 @@
 # wellness-web
 
-Wellness Web — brand websites that fill your diary
+Aesthetic Intelligence — brand websites that fill your diary
 
 Live: https://wellnessweb.vercel.app
 
