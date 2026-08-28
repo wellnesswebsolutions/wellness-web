@@ -5,6 +5,11 @@
 
   // [selector, stagger step in ms] — groups share a parent, so siblings stagger
   var TARGETS = [
+    ['.hero-conv .eyebrow', 0],
+    ['.hero-conv h1', 0],
+    ['.hero-conv-head p', 0],
+    ['.conv-side', 140],
+    ['.conv-center', 90],
     ['.sec-head .eyebrow', 0],
     ['.sec-head h3', 0],
     ['.sec-head p', 0],
