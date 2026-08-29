@@ -357,7 +357,7 @@
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,5vw,54px);line-height:1.12}
 
   @property --halo-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-  .quick-lead-halo{position:relative;max-width:440px;margin:clamp(20px,4svh,32px) auto 0;border-radius:999px}
+  .quick-lead-halo{position:relative;max-width:440px;margin:clamp(6px,1.2svh,12px) auto 0;border-radius:999px}
   .quick-lead-halo:before{content:"";position:absolute;inset:-2px;border-radius:999px;z-index:0;
     background:conic-gradient(from var(--halo-angle), var(--accent), var(--gold), transparent 35%, transparent 65%, var(--accent));
     filter:blur(2px);opacity:.85;animation:halo-spin 3.2s linear infinite}
