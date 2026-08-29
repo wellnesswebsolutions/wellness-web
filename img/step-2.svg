@@ -1,31 +1,29 @@
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bgGrad2" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1c1a17"/>
-      <stop offset="100%" stop-color="#100f0d"/>
-    </linearGradient>
     <linearGradient id="accentGrad2" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#b0745c"/>
-      <stop offset="100%" stop-color="#b98a4e"/>
+      <stop offset="0%" stop-color="#123F3D"/>
+      <stop offset="100%" stop-color="#C98B63"/>
     </linearGradient>
   </defs>
 
-  <rect width="800" height="600" fill="url(#bgGrad2)"/>
+  <rect width="800" height="600" fill="#F6F4EF"/>
 
   <!-- window chrome -->
-  <rect x="0" y="0" width="800" height="44" fill="#221f1b"/>
-  <circle cx="26" cy="22" r="6" fill="#e0a89a"/>
-  <circle cx="46" cy="22" r="6" fill="#e3c9a0"/>
-  <circle cx="66" cy="22" r="6" fill="#c3cdb6"/>
-  <rect x="290" y="12" width="220" height="20" rx="10" fill="#2c2822"/>
-  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#8a8074" text-anchor="middle">dashboard.aestheticintelligence.co.uk</text>
+  <rect x="0" y="0" width="800" height="44" fill="#FFFFFF"/>
+  <line x1="0" y1="44" x2="800" y2="44" stroke="#E4E0D5" stroke-width="1"/>
+  <circle cx="26" cy="22" r="6" fill="#e9b0a0"/>
+  <circle cx="46" cy="22" r="6" fill="#e9d19c"/>
+  <circle cx="66" cy="22" r="6" fill="#a8c9a0"/>
+  <rect x="290" y="12" width="220" height="20" rx="10" fill="#F6F4EF"/>
+  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#5b6663" text-anchor="middle">dashboard.aestheticintelligence.co.uk</text>
 
   <!-- left nav -->
-  <rect x="0" y="44" width="180" height="556" fill="#191713"/>
-  <text x="26" y="84" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#e8e2d6">Your website</text>
-  <g font-family="Manrope, sans-serif" font-size="12" fill="#9c9284">
-    <rect x="16" y="106" width="148" height="34" rx="8" fill="#2c2822"/>
-    <text x="30" y="127" fill="#e8e2d6">Overview</text>
+  <rect x="0" y="44" width="180" height="556" fill="#FFFFFF"/>
+  <line x1="180" y1="44" x2="180" y2="600" stroke="#E4E0D5" stroke-width="1"/>
+  <text x="26" y="84" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#17201F">Your website</text>
+  <g font-family="Manrope, sans-serif" font-size="12" fill="#5b6663">
+    <rect x="16" y="106" width="148" height="34" rx="8" fill="#F6F4EF"/>
+    <text x="30" y="127" fill="#123F3D" font-weight="700">Overview</text>
     <text x="30" y="167">Hosting</text>
     <text x="30" y="203">SEO</text>
     <text x="30" y="239">Content</text>
@@ -33,38 +31,38 @@
   </g>
 
   <!-- hosting status card -->
-  <rect x="200" y="72" width="270" height="130" rx="14" fill="#221f1b" stroke="#332e28"/>
-  <text x="222" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#e8e2d6">Hosting status</text>
-  <circle cx="222" cy="122" r="5" fill="#8fd08f"/>
-  <text x="236" y="126" font-family="Manrope, sans-serif" font-size="12" fill="#c9bfae">Live — 100% uptime</text>
-  <text x="222" y="152" font-family="Manrope, sans-serif" font-size="11" fill="#8a8074">SSL secured</text>
-  <text x="222" y="172" font-family="Manrope, sans-serif" font-size="11" fill="#8a8074">Auto-backed up daily</text>
+  <rect x="200" y="72" width="270" height="130" rx="14" fill="#FFFFFF" stroke="#E4E0D5"/>
+  <text x="222" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#17201F">Hosting status</text>
+  <circle cx="222" cy="122" r="5" fill="#7fb37a"/>
+  <text x="236" y="126" font-family="Manrope, sans-serif" font-size="12" fill="#17201F">Live — 100% uptime</text>
+  <text x="222" y="152" font-family="Manrope, sans-serif" font-size="11" fill="#8a938f">SSL secured</text>
+  <text x="222" y="172" font-family="Manrope, sans-serif" font-size="11" fill="#8a938f">Auto-backed up daily</text>
 
   <!-- SEO card -->
-  <rect x="490" y="72" width="290" height="130" rx="14" fill="#221f1b" stroke="#332e28"/>
-  <text x="512" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#e8e2d6">SEO ranking</text>
+  <rect x="490" y="72" width="290" height="130" rx="14" fill="#FFFFFF" stroke="#E4E0D5"/>
+  <text x="512" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#17201F">SEO ranking</text>
   <text x="512" y="150" font-family="Manrope, sans-serif" font-size="30" font-weight="700" fill="url(#accentGrad2)">#2</text>
-  <text x="560" y="150" font-family="Manrope, sans-serif" font-size="11" fill="#8a8074">on Google for</text>
-  <text x="560" y="164" font-family="Manrope, sans-serif" font-size="11" fill="#8a8074">"hair salon Marlbury"</text>
-  <path d="M512 178 l14 -10 l10 6 l16 -14" stroke="#8fd08f" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="560" y="150" font-family="Manrope, sans-serif" font-size="11" fill="#8a938f">on Google for</text>
+  <text x="560" y="164" font-family="Manrope, sans-serif" font-size="11" fill="#8a938f">"hair salon Marlbury"</text>
+  <path d="M512 178 l14 -10 l10 6 l16 -14" stroke="#7fb37a" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 
   <!-- traffic graph -->
-  <rect x="200" y="220" width="580" height="220" rx="14" fill="#221f1b" stroke="#332e28"/>
-  <text x="222" y="250" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#e8e2d6">Site visits — last 6 months</text>
+  <rect x="200" y="220" width="580" height="220" rx="14" fill="#FFFFFF" stroke="#E4E0D5"/>
+  <text x="222" y="250" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#17201F">Site visits — last 6 months</text>
   <polyline points="222,400 300,380 380,360 460,320 540,270 620,240 700,208 758,190"
             fill="none" stroke="url(#accentGrad2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <polygon points="222,400 300,380 380,360 460,320 540,270 620,240 700,208 758,190 758,420 222,420" fill="url(#accentGrad2)" opacity="0.12"/>
-  <g fill="#5c554c" font-family="Manrope, sans-serif" font-size="10">
+  <polygon points="222,400 300,380 380,360 460,320 540,270 620,240 700,208 758,190 758,420 222,420" fill="url(#accentGrad2)" opacity="0.10"/>
+  <g fill="#8a938f" font-family="Manrope, sans-serif" font-size="10">
     <text x="222" y="434">Mar</text><text x="330" y="434">Apr</text><text x="438" y="434">May</text>
     <text x="546" y="434">Jun</text><text x="654" y="434">Jul</text><text x="740" y="434">Aug</text>
   </g>
 
   <!-- update pill -->
-  <rect x="200" y="466" width="580" height="60" rx="14" fill="#221f1b" stroke="#332e28"/>
-  <circle cx="228" cy="496" r="5" fill="#8fd08f"><animate attributeName="opacity" values="1;.3;1" dur="1.4s" repeatCount="indefinite"/></circle>
-  <text x="244" y="500" font-family="Manrope, sans-serif" font-size="12" fill="#c9bfae">New opening hours published — live in 8 seconds</text>
+  <rect x="200" y="466" width="580" height="60" rx="14" fill="#FFFFFF" stroke="#E4E0D5"/>
+  <circle cx="228" cy="496" r="5" fill="#7fb37a"><animate attributeName="opacity" values="1;.3;1" dur="1.4s" repeatCount="indefinite"/></circle>
+  <text x="244" y="500" font-family="Manrope, sans-serif" font-size="12" fill="#17201F">New opening hours published — live in 8 seconds</text>
   <rect x="660" y="480" width="100" height="30" rx="15" fill="url(#accentGrad2)"/>
   <text x="710" y="500" font-family="Manrope, sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">Managed</text>
 
-  <text x="200" y="560" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a8074">Hosting, updates and SEO — handled for you, every day.</text>
+  <text x="200" y="560" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a938f">Hosting, updates and SEO — handled for you, every day.</text>
 </svg>
