@@ -379,6 +379,7 @@
   .conv-icon{font-size:clamp(24px,2.8vw,32px);line-height:1}
   .conv-icon-ai{color:var(--accent);font-weight:700}
   .conv-col h4{font-family:var(--display);font-size:clamp(16px,2vw,23px);font-weight:600;margin-bottom:4px}
+  .conv-col-new h4{font-size:clamp(13px,1.5vw,17px);white-space:nowrap}
   .conv-badge{display:inline-block;font-family:var(--display);font-size:clamp(16px,2vw,23px);font-weight:700;
     color:var(--accent);margin-bottom:clamp(6px,1.2svh,10px)}
   .conv-price{font-size:clamp(12px,1.2vw,14px);color:var(--muted);font-weight:600;margin-bottom:clamp(10px,2svh,18px)}
@@ -405,6 +406,7 @@
     .conv-row{gap:4px}
     .conv-col{max-width:120px}
     .conv-col-ai{max-width:132px}
+    .conv-col-new h4{white-space:normal;font-size:clamp(12px,3vw,14px)}
     .conv-col-old:after,.conv-col-new:after{content:none}
     .conv-mini li{white-space:normal}
     .conv-arrow svg{width:16px}
