@@ -11,6 +11,7 @@
     ['.sec-head .eyebrow', 0],
     ['.sec-head h3', 0],
     ['.sec-head p', 0],
+    ['.step3', 100],
     ['.page-hero .eyebrow', 0],
     ['.page-hero h1', 0],
     ['.page-hero p', 0],
