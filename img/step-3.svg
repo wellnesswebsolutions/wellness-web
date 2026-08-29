@@ -1,69 +1,66 @@
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bgGrad3" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1c1a17"/>
-      <stop offset="100%" stop-color="#100f0d"/>
-    </linearGradient>
     <linearGradient id="accentGrad3" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#b0745c"/>
-      <stop offset="100%" stop-color="#b98a4e"/>
+      <stop offset="0%" stop-color="#5B3A73"/>
+      <stop offset="100%" stop-color="#B98FC9"/>
     </linearGradient>
     <linearGradient id="barGrad" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="#b0745c"/>
-      <stop offset="100%" stop-color="#e8b98f"/>
+      <stop offset="0%" stop-color="#5B3A73"/>
+      <stop offset="100%" stop-color="#B98FC9"/>
     </linearGradient>
   </defs>
 
-  <rect width="800" height="600" fill="url(#bgGrad3)"/>
+  <rect width="800" height="600" fill="#F7F2EC"/>
 
   <!-- window chrome: the live salon site -->
-  <rect x="0" y="0" width="800" height="44" fill="#221f1b"/>
-  <circle cx="26" cy="22" r="6" fill="#e0a89a"/>
-  <circle cx="46" cy="22" r="6" fill="#e3c9a0"/>
-  <circle cx="66" cy="22" r="6" fill="#c3cdb6"/>
-  <rect x="300" y="12" width="200" height="20" rx="10" fill="#2c2822"/>
-  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#8a8074" text-anchor="middle">harlow-hair-studio.co.uk/bookings</text>
+  <rect x="0" y="0" width="800" height="44" fill="#FFFFFF"/>
+  <line x1="0" y1="44" x2="800" y2="44" stroke="#E7DED2" stroke-width="1"/>
+  <circle cx="26" cy="22" r="6" fill="#e9b0a0"/>
+  <circle cx="46" cy="22" r="6" fill="#e9d19c"/>
+  <circle cx="66" cy="22" r="6" fill="#a8c9a0"/>
+  <rect x="300" y="12" width="200" height="20" rx="10" fill="#F7F2EC"/>
+  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#7a6d81" text-anchor="middle">harlow-hair-studio.co.uk/bookings</text>
 
   <!-- headline stat -->
-  <text x="60" y="100" font-family="Manrope, sans-serif" font-size="13" fill="#9c9284">This month's bookings</text>
-  <text x="58" y="160" font-family="Georgia, serif" font-size="64" font-weight="700" fill="#e8e2d6">312</text>
+  <text x="60" y="100" font-family="Manrope, sans-serif" font-size="13" fill="#7a6d81">This month's bookings</text>
+  <text x="58" y="160" font-family="Georgia, serif" font-size="64" font-weight="700" fill="#241B2E">312</text>
   <g transform="translate(230,132)">
-    <rect width="86" height="30" rx="15" fill="rgba(143,208,143,.16)"/>
-    <path d="M14 20 l8 -12 l7 6 l10 -14" stroke="#8fd08f" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="46" y="21" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#8fd08f" text-anchor="middle">+64%</text>
+    <rect width="86" height="30" rx="15" fill="rgba(127,179,122,.16)"/>
+    <path d="M14 20 l8 -12 l7 6 l10 -14" stroke="#4f8a49" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="46" y="21" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#4f8a49" text-anchor="middle">+64%</text>
   </g>
-  <text x="60" y="184" font-family="Manrope, sans-serif" font-size="11.5" fill="#8a8074">vs 190 before the new website went live</text>
+  <text x="60" y="184" font-family="Manrope, sans-serif" font-size="11.5" fill="#8a7f8f">vs 190 before the new website went live</text>
 
   <!-- bar chart trending up -->
   <g>
-    <rect x="60" y="420" width="60" height="80" rx="6" fill="#332e28"/>
-    <rect x="140" y="392" width="60" height="108" rx="6" fill="#332e28"/>
-    <rect x="220" y="360" width="60" height="140" rx="6" fill="#443d34"/>
+    <rect x="60" y="420" width="60" height="80" rx="6" fill="#E7DED2"/>
+    <rect x="140" y="392" width="60" height="108" rx="6" fill="#E7DED2"/>
+    <rect x="220" y="360" width="60" height="140" rx="6" fill="#D8CDDD"/>
     <rect x="300" y="322" width="60" height="178" rx="6" fill="url(#barGrad)"/>
     <rect x="380" y="284" width="60" height="216" rx="6" fill="url(#barGrad)"/>
     <rect x="460" y="240" width="60" height="260" rx="6" fill="url(#barGrad)"/>
-    <g fill="#5c554c" font-family="Manrope, sans-serif" font-size="11" text-anchor="middle">
+    <g fill="#8a7f8f" font-family="Manrope, sans-serif" font-size="11" text-anchor="middle">
       <text x="90" y="518">Feb</text><text x="170" y="518">Mar</text><text x="250" y="518">Apr</text>
       <text x="330" y="518">May</text><text x="410" y="518">Jun</text><text x="490" y="518">Jul</text>
     </g>
-    <text x="490" y="222" font-family="Manrope, sans-serif" font-size="11" font-weight="700" fill="#e8b98f" text-anchor="middle">New site launched →</text>
+    <text x="490" y="222" font-family="Manrope, sans-serif" font-size="11" font-weight="700" fill="#8a5f9e" text-anchor="middle">New site launched →</text>
   </g>
 
   <!-- side panel: live booking notifications -->
-  <rect x="560" y="72" width="200" height="460" rx="16" fill="#221f1b" stroke="#332e28"/>
-  <text x="580" y="102" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#e8e2d6">Live bookings</text>
-  <circle cx="748" cy="98" r="4" fill="#8fd08f"><animate attributeName="opacity" values="1;.3;1" dur="1.2s" repeatCount="indefinite"/></circle>
+  <rect x="560" y="72" width="200" height="460" rx="16" fill="#FFFFFF" stroke="#E7DED2"/>
+  <text x="580" y="102" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#241B2E">Live bookings</text>
+  <circle cx="748" cy="98" r="4" fill="#7fb37a"><animate attributeName="opacity" values="1;.3;1" dur="1.2s" repeatCount="indefinite"/></circle>
 
   <g font-family="Manrope, sans-serif">
-    <rect x="578" y="122" width="164" height="66" rx="10" fill="#2c2822"/>
-    <text x="592" y="144" font-size="12" font-weight="700" fill="#e8e2d6">Sophie R.</text>
-    <text x="592" y="160" font-size="10.5" fill="#9c9284">Colour &amp; cut · Thu 2pm</text>
-    <circle cx="592" cy="176" r="3" fill="#8fd08f"/><text x="602" y="180" font-size="9.5" fill="#8fd08f">Confirmed</text>
+    <rect x="578" y="122" width="164" height="66" rx="10" fill="#F7F2EC"/>
+    <text x="592" y="144" font-size="12" font-weight="700" fill="#241B2E">Sophie R.</text>
+    <text x="592" y="160" font-size="10.5" fill="#8a7f8f">Colour &amp; cut · Thu 2pm</text>
+    <circle cx="592" cy="176" r="3" fill="#4f8a49"/><text x="602" y="180" font-size="9.5" fill="#4f8a49">Confirmed</text>
 
-    <rect x="578" y="200" width="164" height="66" rx="10" fill="#2c2822"/>
-    <text x="592" y="222" font-size="12" font-weight="700" fill="#e8e2d6">Amara J.</text>
-    <text x="592" y="238" font-size="10.5" fill="#9c9284">Balayage · Fri 11am</text>
-    <circle cx="592" cy="254" r="3" fill="#8fd08f"/><text x="602" y="258" font-size="9.5" fill="#8fd08f">Confirmed</text>
+    <rect x="578" y="200" width="164" height="66" rx="10" fill="#F7F2EC"/>
+    <text x="592" y="222" font-size="12" font-weight="700" fill="#241B2E">Amara J.</text>
+    <text x="592" y="238" font-size="10.5" fill="#8a7f8f">Balayage · Fri 11am</text>
+    <circle cx="592" cy="254" r="3" fill="#4f8a49"/><text x="602" y="258" font-size="9.5" fill="#4f8a49">Confirmed</text>
 
     <rect x="578" y="278" width="164" height="66" rx="10" fill="url(#accentGrad3)"/>
     <text x="592" y="300" font-size="12" font-weight="700" fill="#fff">Priya M.</text>
@@ -71,5 +68,5 @@
     <text x="592" y="334" font-size="9.5" font-weight="700" fill="#fff">New booking</text>
   </g>
 
-  <text x="60" y="558" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a8074">Booking overlay built in — every enquiry captured, none missed.</text>
+  <text x="60" y="558" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a7f8f">Booking overlay built in — every enquiry captured, none missed.</text>
 </svg>
