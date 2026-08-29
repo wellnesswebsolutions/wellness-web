@@ -18,10 +18,39 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('quickLead');
   const status = document.getElementById('quickLeadStatus');
+  const wizGrid = document.getElementById('wizGrid');
+  const convRow = document.getElementById('convRow');
+  const bizNameInput = document.getElementById('bizName');
+  const bizAbout = document.getElementById('bizAbout');
+  const previewName = document.getElementById('previewName');
+  const previewAbout = document.getElementById('previewAbout');
+  const previewUrl = document.getElementById('previewUrl');
+  const sendBtn = document.getElementById('wizSend');
   if (!form) return;
-  form.addEventListener('submit', async (e) => {
+
+  // step 1: submitting the business name slides the box over, collapses the
+  // comparison cards, and opens the "about your business" step with a live preview.
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const business_name = form.business_name.value.trim();
+    const name = bizNameInput.value.trim();
+    if (!name) return;
+    wizGrid.classList.add('active');
+    convRow.classList.add('collapsed');
+    previewName.textContent = name;
+    previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
+    bizAbout.focus();
+  });
+
+  // live preview updates as they describe the business
+  bizAbout.addEventListener('input', () => {
+    previewAbout.textContent = bizAbout.value.trim() || 'Tell us about your business and watch your homepage take shape.';
+  });
+
+  // step 2: send the full lead (name + about) once they're happy
+  sendBtn.addEventListener('click', async () => {
+    const business_name = bizNameInput.value.trim();
+    const about = bizAbout.value.trim();
+    if (!business_name) return;
     status.textContent = 'Sending...';
     status.className = 'quick-lead-status';
     try {
@@ -33,12 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
           'Authorization': 'Bearer sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ business_name, created_at: new Date().toISOString() })
+        body: JSON.stringify({ business_name, details: about, created_at: new Date().toISOString() })
       });
       if (!res.ok) throw new Error(await res.text());
       status.textContent = "Thanks! We'll be in touch within 24 hours.";
       status.className = 'quick-lead-status ok';
-      form.reset();
     } catch (err) {
       status.textContent = 'Something went wrong — please try again.';
       status.className = 'quick-lead-status err';
@@ -64,15 +92,41 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="wrap hero-conv-wrap">
     <div class="hero-conv-head">
       <h1>Built by humans, powered by AI</h1>
-      <div class="quick-lead-halo">
-        <form id="quickLead" class="quick-lead">
-          <input type="text" name="business_name" placeholder="Your business name" required>
-          <button type="submit">Build</button>
-        </form>
-      </div>
-      <div id="quickLeadStatus" class="quick-lead-status"></div>
     </div>
-    <div class="conv-row">
+
+    <div class="wiz-grid" id="wizGrid">
+      <div class="wiz-left">
+        <div class="quick-lead-halo" id="haloWrap">
+          <form id="quickLead" class="quick-lead">
+            <input type="text" id="bizName" name="business_name" placeholder="Your business name" required>
+            <button type="submit">Build</button>
+          </form>
+        </div>
+
+        <div class="wiz-about" id="wizAbout">
+          <label for="bizAbout">Tell us about your business</label>
+          <textarea id="bizAbout" placeholder="Services, style, who your customers are, what makes you different…"></textarea>
+          <button type="button" id="wizSend" class="btn-send">Get my free demo →</button>
+          <div id="quickLeadStatus" class="quick-lead-status"></div>
+        </div>
+      </div>
+
+      <div class="wiz-preview" id="wizPreview">
+        <div class="bwin">
+          <div class="bwin-bar"><i></i><i></i><i></i><span class="url" id="previewUrl">your-business.co.uk</span></div>
+          <div class="bwin-body">
+            <div class="wiz-hero">
+              <div class="wiz-hero-badge">Now booking</div>
+              <h2 id="previewName">Your Business Name</h2>
+              <p id="previewAbout">Tell us about your business and watch your homepage take shape.</p>
+              <div class="wiz-hero-cta">Book now →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="conv-row" id="convRow">
       <div class="conv-col conv-col-old">
         <div class="conv-icon-wrap" style="visibility:hidden" aria-hidden="true"><div class="conv-icon">•</div></div>
         <h4>Custom-built</h4>
