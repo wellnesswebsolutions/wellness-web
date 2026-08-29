@@ -14,6 +14,38 @@
 <link rel="canonical" href="https://wellnessweb.co.uk/">
 <link rel="stylesheet" href="styles.css">
 <script src="reveal.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('quickLead');
+  const status = document.getElementById('quickLeadStatus');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const business_name = form.business_name.value.trim();
+    status.textContent = 'Sending...';
+    status.className = 'quick-lead-status';
+    try {
+      const res = await fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
+          'Authorization': 'Bearer sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ business_name, created_at: new Date().toISOString() })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      status.textContent = "Thanks! We'll be in touch within 24 hours.";
+      status.className = 'quick-lead-status ok';
+      form.reset();
+    } catch (err) {
+      status.textContent = 'Something went wrong — please try again.';
+      status.className = 'quick-lead-status err';
+    }
+  });
+});
+</script>
 </head>
 <body>
 <div class="bar" id="bar"></div>
@@ -33,6 +65,11 @@
     <div class="hero-conv-head">
       <div class="eyebrow">The two ways to get a website</div>
       <h1>Both have a flaw. We built the middle.</h1>
+      <form id="quickLead" class="quick-lead">
+        <input type="text" name="business_name" placeholder="Your business name" required>
+        <button type="submit">Get my free demo</button>
+      </form>
+      <div id="quickLeadStatus" class="quick-lead-status"></div>
     </div>
     <div class="conv-row">
       <div class="conv-col conv-col-old">
