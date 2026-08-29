@@ -1,8 +1,8 @@
   :root{
     --bg:#efe7d9; --ink:#2b2620; --muted:#7c7264; --line:#e0d5c4;
     --accent:#b0745c; --gold:#b98a4e; --card:#ffffff;
-    --display:'Cormorant Garamond', Georgia, serif;
-    --body:'Manrope','Helvetica Neue', Arial, sans-serif;
+    --display:'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --body:'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
