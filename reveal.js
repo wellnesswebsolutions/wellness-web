@@ -5,20 +5,6 @@
 
   // [selector, stagger step in ms] — groups share a parent, so siblings stagger
   var TARGETS = [
-    ['.hz .eyebrow-pill', 0],
-    ['.hz h1', 0],
-    ['.hz .sub', 0],
-    ['.hz-ctas', 0],
-    ['.hz-preview', 0],
-    ['.tri-card', 110],
-    ['.tri-arrow', 0],
-    ['.ai-sec', 0],
-    ['.step4', 90],
-    ['.folio-item', 120],
-    ['.hai > *', 70],
-    ['.price-card', 0],
-    ['.price-more', 0],
-    ['.fcta', 0],
     ['.hero-conv .eyebrow', 0],
     ['.hero-conv h1', 0],
     ['.conv-col', 110],
