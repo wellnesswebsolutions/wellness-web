@@ -347,8 +347,9 @@
      sized entirely in vh/vw so the whole thing sits inside one screen, no scroll. */
   .hero-conv{min-height:100svh;display:flex;align-items:center;padding:clamp(64px,13svh,96px) 20px clamp(20px,4svh,40px);
     position:relative;overflow:hidden;
-    background:radial-gradient(46% 60% at 18% 8%, rgba(185,143,201,.16), rgba(247,242,236,0) 62%),
-      radial-gradient(46% 60% at 82% 8%, rgba(91,58,115,.14), rgba(247,242,236,0) 62%),
+    background:radial-gradient(52% 66% at 18% 6%, rgba(185,143,201,.38), rgba(247,242,236,0) 68%),
+      radial-gradient(52% 66% at 82% 6%, rgba(91,58,115,.34), rgba(247,242,236,0) 68%),
+      radial-gradient(65% 60% at 50% 0%, rgba(185,143,201,.3), rgba(247,242,236,0) 72%),
       radial-gradient(60% 55% at 50% 0%, rgba(255,251,243,.9), rgba(247,242,236,0) 68%), var(--bg)}
   .hero-conv-wrap{width:100%;position:relative;z-index:1}
   .hero-conv-head{max-width:680px;margin:0 auto clamp(28px,6.5svh,60px);text-align:center}
