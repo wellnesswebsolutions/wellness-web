@@ -355,7 +355,17 @@
   .hero-conv-head .eyebrow{font-size:clamp(11px,1.4vw,13px);letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:clamp(10px,2svh,18px)}
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,5vw,54px);line-height:1.12}
 
-  .quick-lead{display:flex;gap:10px;max-width:440px;margin:clamp(20px,4svh,32px) auto 0;
+  @property --halo-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
+  .quick-lead-halo{position:relative;max-width:440px;margin:clamp(20px,4svh,32px) auto 0;border-radius:999px}
+  .quick-lead-halo:before{content:"";position:absolute;inset:-2px;border-radius:999px;z-index:0;
+    background:conic-gradient(from var(--halo-angle), var(--accent), var(--gold), transparent 35%, transparent 65%, var(--accent));
+    filter:blur(2px);opacity:.85;animation:halo-spin 3.2s linear infinite}
+  .quick-lead-halo:after{content:"";position:absolute;inset:-1px;border-radius:999px;z-index:0;
+    background:conic-gradient(from var(--halo-angle), var(--accent), var(--gold), transparent 35%, transparent 65%, var(--accent));
+    animation:halo-spin 3.2s linear infinite}
+  @keyframes halo-spin{to{--halo-angle:360deg}}
+  @media(prefers-reduced-motion:reduce){.quick-lead-halo:before,.quick-lead-halo:after{animation:none}}
+  .quick-lead{position:relative;z-index:1;display:flex;gap:10px;
     background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 20px;
     box-shadow:0 10px 30px rgba(43,38,32,.08)}
   .quick-lead input{flex:1;border:none;background:transparent;font-family:var(--body);font-size:14.5px;
@@ -365,6 +375,8 @@
     font-size:13px;font-weight:700;letter-spacing:.02em;cursor:pointer;white-space:nowrap;transition:opacity .15s,transform .15s}
   .quick-lead button:hover{opacity:.9;transform:translateY(-1px)}
   @media(max-width:520px){
+    .quick-lead-halo{border-radius:20px}
+    .quick-lead-halo:before,.quick-lead-halo:after{border-radius:20px}
     .quick-lead{flex-direction:column;border-radius:20px;padding:14px}
     .quick-lead input{padding:8px 4px}
     .quick-lead button{width:100%}

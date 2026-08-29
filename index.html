@@ -64,10 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="wrap hero-conv-wrap">
     <div class="hero-conv-head">
       <h1>Built by humans, powered by AI</h1>
-      <form id="quickLead" class="quick-lead">
-        <input type="text" name="business_name" placeholder="Your business name" required>
-        <button type="submit">Build</button>
-      </form>
+      <div class="quick-lead-halo">
+        <form id="quickLead" class="quick-lead">
+          <input type="text" name="business_name" placeholder="Your business name" required>
+          <button type="submit">Build</button>
+        </form>
+      </div>
       <div id="quickLeadStatus" class="quick-lead-status"></div>
     </div>
     <div class="conv-row">
