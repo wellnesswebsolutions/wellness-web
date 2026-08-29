@@ -1,81 +1,86 @@
 <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c1a17"/>
+      <stop offset="100%" stop-color="#100f0d"/>
+    </linearGradient>
     <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#123F3D"/>
-      <stop offset="100%" stop-color="#C98B63"/>
+      <stop offset="0%" stop-color="#b0745c"/>
+      <stop offset="100%" stop-color="#b98a4e"/>
     </linearGradient>
   </defs>
 
-  <rect width="800" height="600" fill="#F6F4EF"/>
+  <rect width="800" height="600" fill="url(#bgGrad)"/>
 
   <!-- window chrome -->
-  <rect x="0" y="0" width="800" height="44" fill="#FFFFFF"/>
-  <line x1="0" y1="44" x2="800" y2="44" stroke="#E4E0D5" stroke-width="1"/>
-  <circle cx="26" cy="22" r="6" fill="#e9b0a0"/>
-  <circle cx="46" cy="22" r="6" fill="#e9d19c"/>
-  <circle cx="66" cy="22" r="6" fill="#a8c9a0"/>
-  <rect x="300" y="12" width="200" height="20" rx="10" fill="#F6F4EF"/>
-  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#5b6663" text-anchor="middle">index.html — your-business.co.uk</text>
+  <rect x="0" y="0" width="800" height="44" fill="#221f1b"/>
+  <circle cx="26" cy="22" r="6" fill="#e0a89a"/>
+  <circle cx="46" cy="22" r="6" fill="#e3c9a0"/>
+  <circle cx="66" cy="22" r="6" fill="#c3cdb6"/>
+  <rect x="300" y="12" width="200" height="20" rx="10" fill="#2c2822"/>
+  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#8a8074" text-anchor="middle">index.html — your-business.co.uk</text>
 
-  <!-- left: code editor panel -->
-  <rect x="0" y="44" width="500" height="556" fill="#FFFFFF"/>
-  <g font-family="'SF Mono', Menlo, monospace" font-size="13" fill="#b8b2a4">
+  <!-- left: line numbers -->
+  <g font-family="'SF Mono', Menlo, monospace" font-size="13" fill="#5c554c">
     <text x="22" y="80">1</text><text x="22" y="104">2</text><text x="22" y="128">3</text>
     <text x="22" y="152">4</text><text x="22" y="176">5</text><text x="22" y="200">6</text>
     <text x="22" y="224">7</text><text x="22" y="248">8</text><text x="22" y="272">9</text>
-    <text x="18" y="296">10</text><text x="18" y="320">11</text>
+    <text x="18" y="296">10</text><text x="18" y="320">11</text><text x="18" y="344">12</text>
+    <text x="18" y="368">13</text><text x="18" y="392">14</text><text x="18" y="416">15</text>
   </g>
+
+  <!-- code lines (abstracted colour blocks reading as syntax-highlighted code) -->
   <g font-family="'SF Mono', Menlo, monospace" font-size="13.5">
-    <text x="50" y="80"><tspan fill="#C98B63">&lt;section</tspan><tspan fill="#17201F"> class=</tspan><tspan fill="#123F3D">"hero"</tspan><tspan fill="#C98B63">&gt;</tspan></text>
-    <text x="70" y="104"><tspan fill="#C98B63">&lt;h1&gt;</tspan><tspan fill="#17201F">Boutique hair salon</tspan></text>
-    <text x="70" y="128"><tspan fill="#17201F">in Marlbury</tspan><tspan fill="#C98B63">&lt;/h1&gt;</tspan></text>
-    <text x="70" y="152"><tspan fill="#C98B63">&lt;p&gt;</tspan><tspan fill="#5b6663">Book your appointment</tspan></text>
-    <text x="70" y="176"><tspan fill="#5b6663">in seconds</tspan><tspan fill="#C98B63">&lt;/p&gt;</tspan></text>
-    <text x="50" y="200"><tspan fill="#C98B63">&lt;/section&gt;</tspan></text>
-    <text x="50" y="248"><tspan fill="#123F3D">.hero{</tspan></text>
-    <text x="70" y="272"><tspan fill="#a9764f">background</tspan><tspan fill="#17201F">: </tspan><tspan fill="#123F3D">var(--accent)</tspan><tspan fill="#17201F">;</tspan></text>
-    <text x="70" y="296"><tspan fill="#a9764f">border-radius</tspan><tspan fill="#17201F">: </tspan><tspan fill="#123F3D">24px</tspan><tspan fill="#17201F">;</tspan></text>
-    <text x="50" y="320"><tspan fill="#123F3D">}</tspan></text>
+    <text x="50" y="80"><tspan fill="#e39a8a">&lt;section</tspan><tspan fill="#c9bfae"> class=</tspan><tspan fill="#b0d89a">"hero"</tspan><tspan fill="#e39a8a">&gt;</tspan></text>
+    <text x="70" y="104"><tspan fill="#e39a8a">&lt;h1&gt;</tspan><tspan fill="#e8e2d6">Boutique hair salon</tspan></text>
+    <text x="70" y="128"><tspan fill="#e8e2d6">in Marlbury</tspan><tspan fill="#e39a8a">&lt;/h1&gt;</tspan></text>
+    <text x="70" y="152"><tspan fill="#e39a8a">&lt;p&gt;</tspan><tspan fill="#9c9284">Book your appointment</tspan></text>
+    <text x="70" y="176"><tspan fill="#9c9284">in seconds</tspan><tspan fill="#e39a8a">&lt;/p&gt;</tspan></text>
+    <text x="50" y="200"><tspan fill="#e39a8a">&lt;/section&gt;</tspan></text>
+    <text x="50" y="248"><tspan fill="#8fbf9a">.hero{</tspan></text>
+    <text x="70" y="272"><tspan fill="#d0a06a">background</tspan><tspan fill="#c9bfae">: </tspan><tspan fill="#e8b98f">var(--accent)</tspan><tspan fill="#c9bfae">;</tspan></text>
+    <text x="70" y="296"><tspan fill="#d0a06a">border-radius</tspan><tspan fill="#c9bfae">: </tspan><tspan fill="#e8b98f">24px</tspan><tspan fill="#c9bfae">;</tspan></text>
+    <text x="50" y="320"><tspan fill="#8fbf9a">}</tspan></text>
   </g>
-  <rect x="50" y="336" width="140" height="14" rx="3" fill="#EFEBE0">
+  <rect x="50" y="336" width="140" height="14" rx="3" fill="#2a2620">
     <animate attributeName="opacity" values="1;0.3;1" dur="1.4s" repeatCount="indefinite"/>
   </rect>
 
   <!-- right panel: AI assistant chat -->
-  <rect x="524" y="68" width="252" height="464" rx="16" fill="#FFFFFF" stroke="#E4E0D5"/>
-  <text x="546" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#17201F">Aesthetic Intelligence</text>
-  <circle cx="756" cy="95" r="4" fill="#7fb37a"/>
+  <rect x="500" y="56" width="270" height="500" rx="14" fill="#221f1b" stroke="#332e28"/>
+  <text x="522" y="88" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#e8e2d6">Aesthetic Intelligence</text>
+  <circle cx="758" cy="83" r="4" fill="#8fd08f"/>
 
   <!-- user message -->
-  <rect x="586" y="124" width="164" height="50" rx="12" fill="#F6F4EF"/>
-  <text x="602" y="144" font-family="Manrope, sans-serif" font-size="11" fill="#17201F">Build me a modern</text>
-  <text x="602" y="160" font-family="Manrope, sans-serif" font-size="11" fill="#17201F">salon website</text>
+  <rect x="560" y="112" width="188" height="50" rx="12" fill="#2c2822"/>
+  <text x="580" y="132" font-family="Manrope, sans-serif" font-size="11" fill="#c9bfae">Build me a modern</text>
+  <text x="580" y="148" font-family="Manrope, sans-serif" font-size="11" fill="#c9bfae">salon website</text>
 
   <!-- AI response bubble -->
-  <rect x="546" y="190" width="204" height="112" rx="12" fill="url(#accentGrad)"/>
-  <text x="564" y="214" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">On it — drafting your</text>
-  <text x="564" y="230" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">hero, services and</text>
-  <text x="564" y="246" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">booking flow now.</text>
-  <rect x="564" y="264" width="168" height="8" rx="4" fill="rgba(255,255,255,.4)"/>
-  <rect x="564" y="278" width="110" height="8" rx="4" fill="rgba(255,255,255,.4)"/>
+  <rect x="522" y="178" width="220" height="112" rx="12" fill="url(#accentGrad)"/>
+  <text x="540" y="202" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">On it — drafting your</text>
+  <text x="540" y="218" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">hero, services and</text>
+  <text x="540" y="234" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">booking flow now.</text>
+  <rect x="540" y="252" width="184" height="8" rx="4" fill="rgba(255,255,255,.35)"/>
+  <rect x="540" y="266" width="120" height="8" rx="4" fill="rgba(255,255,255,.35)"/>
 
   <!-- typing indicator -->
   <g>
-    <circle cx="564" cy="324" r="4" fill="#123F3D"><animate attributeName="opacity" values="1;.25;1" dur="1s" repeatCount="indefinite"/></circle>
-    <circle cx="580" cy="324" r="4" fill="#123F3D"><animate attributeName="opacity" values="1;.25;1" dur="1s" begin="0.2s" repeatCount="indefinite"/></circle>
-    <circle cx="596" cy="324" r="4" fill="#123F3D"><animate attributeName="opacity" values="1;.25;1" dur="1s" begin="0.4s" repeatCount="indefinite"/></circle>
+    <circle cx="540" cy="312" r="4" fill="#c9bfae"><animate attributeName="opacity" values="1;.2;1" dur="1s" repeatCount="indefinite"/></circle>
+    <circle cx="556" cy="312" r="4" fill="#c9bfae"><animate attributeName="opacity" values="1;.2;1" dur="1s" begin="0.2s" repeatCount="indefinite"/></circle>
+    <circle cx="572" cy="312" r="4" fill="#c9bfae"><animate attributeName="opacity" values="1;.2;1" dur="1s" begin="0.4s" repeatCount="indefinite"/></circle>
   </g>
 
   <!-- small live preview thumbnail inside the panel -->
-  <rect x="546" y="348" width="204" height="146" rx="10" fill="#F6F4EF" stroke="#E4E0D5"/>
-  <rect x="546" y="348" width="204" height="26" rx="10" fill="#FFFFFF"/>
-  <circle cx="560" cy="361" r="3" fill="#e9b0a0"/>
-  <circle cx="572" cy="361" r="3" fill="#e9d19c"/>
-  <circle cx="584" cy="361" r="3" fill="#a8c9a0"/>
-  <rect x="564" y="388" width="80" height="10" rx="2" fill="#17201F"/>
-  <rect x="564" y="406" width="140" height="6" rx="2" fill="#8a938f"/>
-  <rect x="564" y="420" width="110" height="6" rx="2" fill="#8a938f"/>
-  <rect x="564" y="442" width="70" height="24" rx="12" fill="url(#accentGrad)"/>
+  <rect x="522" y="336" width="226" height="150" rx="10" fill="#1a1815" stroke="#332e28"/>
+  <rect x="522" y="336" width="226" height="26" rx="10" fill="#2c2822"/>
+  <circle cx="536" cy="349" r="3" fill="#e0a89a"/>
+  <circle cx="548" cy="349" r="3" fill="#e3c9a0"/>
+  <circle cx="560" cy="349" r="3" fill="#c3cdb6"/>
+  <rect x="540" y="378" width="80" height="10" rx="2" fill="#e8e2d6"/>
+  <rect x="540" y="396" width="150" height="6" rx="2" fill="#9c9284"/>
+  <rect x="540" y="410" width="120" height="6" rx="2" fill="#9c9284"/>
+  <rect x="540" y="432" width="70" height="24" rx="12" fill="url(#accentGrad)"/>
 
-  <text x="546" y="524" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a938f">Every line finished and checked by a real designer.</text>
+  <text x="522" y="512" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a8074">Every line finished and checked by a real designer.</text>
 </svg>
