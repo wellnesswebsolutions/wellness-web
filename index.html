@@ -21,15 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const wizGrid = document.getElementById('wizGrid');
   const convRow = document.getElementById('convRow');
   const bizNameInput = document.getElementById('bizName');
+  const bizTagline = document.getElementById('bizTagline');
+  const bizLocation = document.getElementById('bizLocation');
+  const bizServices = document.getElementById('bizServices');
+  const bizGoal = document.getElementById('bizGoal');
+  const bizStyle = document.getElementById('bizStyle');
+  const bizColours = document.getElementById('bizColours');
   const bizAbout = document.getElementById('bizAbout');
   const previewName = document.getElementById('previewName');
-  const previewAbout = document.getElementById('previewAbout');
+  const previewEyebrow = document.getElementById('previewEyebrow');
+  const previewTagline = document.getElementById('previewTagline');
+  const previewTags = document.getElementById('previewTags');
+  const previewCta = document.querySelector('.wiz-hero-cta');
   const previewUrl = document.getElementById('previewUrl');
   const sendBtn = document.getElementById('wizSend');
   if (!form) return;
 
   // step 1: submitting the business name slides the box over, collapses the
-  // comparison cards, and opens the "about your business" step with a live preview.
+  // comparison cards, and opens the questions step with a live preview.
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = bizNameInput.value.trim();
@@ -38,19 +47,44 @@ document.addEventListener('DOMContentLoaded', () => {
     convRow.classList.add('collapsed');
     previewName.textContent = name;
     previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
-    bizAbout.focus();
+    bizTagline.focus();
   });
 
-  // live preview updates as they describe the business
-  bizAbout.addEventListener('input', () => {
-    previewAbout.textContent = bizAbout.value.trim() || 'Tell us about your business and watch your homepage take shape.';
+  // live preview updates as they answer each question
+  bizTagline.addEventListener('input', () => {
+    previewTagline.textContent = bizTagline.value.trim() || 'Tell us about your business and watch your homepage take shape.';
+  });
+  bizLocation.addEventListener('input', () => {
+    previewEyebrow.textContent = bizLocation.value.trim() ? 'Based in ' + bizLocation.value.trim() : 'Now booking';
+  });
+  bizServices.addEventListener('input', () => {
+    const tags = bizServices.value.split(',').map(s => s.trim()).filter(Boolean);
+    previewTags.innerHTML = tags.map(t => `<span>${t.replace(/</g, '&lt;')}</span>`).join('');
+  });
+  bizGoal.addEventListener('change', () => {
+    previewCta.textContent = bizGoal.value + ' →';
   });
 
-  // step 2: send the full lead (name + about) once they're happy
+  // step 2: send the full lead once they're happy
   sendBtn.addEventListener('click', async () => {
     const business_name = bizNameInput.value.trim();
+    const tagline = bizTagline.value.trim();
+    const location = bizLocation.value.trim();
+    const services = bizServices.value.trim();
+    const goal = bizGoal.value;
+    const style = bizStyle.value;
+    const colours = bizColours.value.trim();
     const about = bizAbout.value.trim();
     if (!business_name) return;
+    const detailParts = [];
+    if (tagline) detailParts.push('What they do: ' + tagline);
+    if (location) detailParts.push('Based in: ' + location);
+    if (services) detailParts.push('Services: ' + services);
+    if (goal) detailParts.push('Wants customers to: ' + goal);
+    if (style) detailParts.push('Style: ' + style);
+    if (colours) detailParts.push('Colours: ' + colours);
+    if (about) detailParts.push(about);
+    const details = detailParts.join('\n');
     status.textContent = 'Sending...';
     status.className = 'quick-lead-status';
     try {
@@ -62,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'Authorization': 'Bearer sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ business_name, details: about, created_at: new Date().toISOString() })
+        body: JSON.stringify({ business_name, details, created_at: new Date().toISOString() })
       });
       if (!res.ok) throw new Error(await res.text());
       status.textContent = "Thanks! We'll be in touch within 24 hours.";
@@ -104,8 +138,42 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="wiz-about" id="wizAbout">
-          <label for="bizAbout">Tell us about your business</label>
-          <textarea id="bizAbout" placeholder="Services, style, who your customers are, what makes you different…"></textarea>
+
+          <div class="wiz-step-tag">1. Business</div>
+          <label for="bizTagline">What does your business do?</label>
+          <input type="text" id="bizTagline" placeholder="e.g. Boutique hair salon">
+
+          <label for="bizLocation">Where are you based?</label>
+          <input type="text" id="bizLocation" placeholder="e.g. Marlbury">
+
+          <div class="wiz-step-tag">2. Website</div>
+          <label for="bizServices">What services do you offer?</label>
+          <input type="text" id="bizServices" placeholder="e.g. Colour, Cuts, Balayage">
+
+          <label for="bizGoal">What do you want customers to do?</label>
+          <select id="bizGoal">
+            <option value="Call now">Call</option>
+            <option value="Book now">Book</option>
+            <option value="Get a quote">Get a Quote</option>
+            <option value="Message us">Message</option>
+          </select>
+
+          <div class="wiz-step-tag">3. Style</div>
+          <label for="bizStyle">What style do you like?</label>
+          <select id="bizStyle">
+            <option value="">You choose</option>
+            <option value="Modern">Modern</option>
+            <option value="Luxury">Luxury</option>
+            <option value="Professional">Professional</option>
+            <option value="Simple">Simple</option>
+          </select>
+
+          <label for="bizColours">Any colours you want?</label>
+          <input type="text" id="bizColours" placeholder="e.g. Navy and gold, or leave it to us">
+
+          <label for="bizAbout">Anything else you'd like on the website?</label>
+          <textarea id="bizAbout" placeholder="Anything else that would help us get it right…"></textarea>
+
           <button type="button" id="wizSend" class="btn-send">Get my free demo →</button>
           <div id="quickLeadStatus" class="quick-lead-status"></div>
         </div>
@@ -116,10 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="bwin-bar"><i></i><i></i><i></i><span class="url" id="previewUrl">your-business.co.uk</span></div>
           <div class="bwin-body">
             <div class="wiz-hero">
-              <div class="wiz-hero-badge">Now booking</div>
-              <h2 id="previewName">Your Business Name</h2>
-              <p id="previewAbout">Tell us about your business and watch your homepage take shape.</p>
-              <div class="wiz-hero-cta">Book now →</div>
+              <div class="wiz-hero-inner">
+                <span class="wiz-hero-eyebrow" id="previewEyebrow">Now booking</span>
+                <h2 id="previewName">Your Business Name</h2>
+                <p id="previewTagline">Tell us about your business and watch your homepage take shape.</p>
+                <div class="wiz-hero-cta">Book now →</div>
+                <div class="wiz-hero-tags" id="previewTags"></div>
+              </div>
             </div>
           </div>
         </div>
