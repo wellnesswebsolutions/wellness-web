@@ -402,7 +402,7 @@
   .conv-icon-wrap-ai{background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), var(--gold) 78%);
     box-shadow:0 14px 30px rgba(91,58,115,.4), inset 0 0 0 1px rgba(255,255,255,.7)}
   .conv-icon{font-size:clamp(24px,2.8vw,32px);line-height:1}
-  .conv-icon-ai{color:var(--accent);font-weight:700}
+  .conv-icon-ai{color:var(--accent);font-weight:800;font-size:clamp(16px,1.9vw,20px);letter-spacing:.02em;font-family:var(--display)}
   .conv-col h4{font-family:var(--display);font-size:clamp(16px,2vw,23px);font-weight:600;margin-bottom:4px}
   .conv-col-new{max-width:340px}
   .conv-col-new h4{white-space:nowrap}
