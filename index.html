@@ -32,8 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewEyebrow = document.getElementById('previewEyebrow');
   const previewTagline = document.getElementById('previewTagline');
   const previewTags = document.getElementById('previewTags');
-  const previewCta = document.querySelector('.wiz-hero-cta');
+  const previewCtas = document.querySelectorAll('.wiz-hero-cta');
   const previewUrl = document.getElementById('previewUrl');
+  const previewWelcomeEyebrow = document.getElementById('previewWelcomeEyebrow');
+  const previewWelcomeTitle = document.getElementById('previewWelcomeTitle');
+  const previewWelcomeLede = document.getElementById('previewWelcomeLede');
+  const previewCards = document.getElementById('previewCards');
+  const previewBandTitle = document.getElementById('previewBandTitle');
   const sendBtn = document.getElementById('wizSend');
   if (!form) return;
 
@@ -47,12 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
     convRow.classList.add('collapsed');
     previewName.textContent = name;
     previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
+    previewWelcomeEyebrow.textContent = 'Welcome to ' + name;
+    previewBandTitle.textContent = 'Ready to visit ' + name + '?';
     bizTagline.focus();
   });
 
   // live preview updates as they answer each question
   bizTagline.addEventListener('input', () => {
-    previewTagline.textContent = bizTagline.value.trim() || 'Tell us about your business and watch your homepage take shape.';
+    const v = bizTagline.value.trim();
+    previewTagline.textContent = v || 'Tell us about your business and watch your homepage take shape.';
+    previewWelcomeTitle.textContent = v ? v.charAt(0).toUpperCase() + v.slice(1) : 'Everything you need, in one place';
   });
   bizLocation.addEventListener('input', () => {
     previewEyebrow.textContent = bizLocation.value.trim() ? 'Based in ' + bizLocation.value.trim() : 'Now booking';
@@ -60,9 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
   bizServices.addEventListener('input', () => {
     const tags = bizServices.value.split(',').map(s => s.trim()).filter(Boolean);
     previewTags.innerHTML = tags.map(t => `<span>${t.replace(/</g, '&lt;')}</span>`).join('');
+    previewCards.innerHTML = tags.slice(0, 3).map(t => `<div class="wiz-card"><h4>${t.replace(/</g, '&lt;')}</h4><p>Ask about our ${t.toLowerCase()} — booked in minutes online.</p></div>`).join('');
   });
   bizGoal.addEventListener('change', () => {
-    previewCta.textContent = bizGoal.value + ' →';
+    previewCtas.forEach(el => el.textContent = bizGoal.value + ' →');
+  });
+  bizAbout.addEventListener('input', () => {
+    previewWelcomeLede.textContent = bizAbout.value.trim() || 'Fill in the questions on the left and this will describe your business.';
   });
 
   // step 2: send the full lead once they're happy
@@ -182,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="wiz-preview" id="wizPreview">
         <div class="bwin">
           <div class="bwin-bar"><i></i><i></i><i></i><span class="url" id="previewUrl">your-business.co.uk</span></div>
-          <div class="bwin-body">
+          <div class="bwin-body" id="previewScroll">
             <div class="wiz-hero">
               <div class="wiz-hero-inner">
                 <span class="wiz-hero-eyebrow" id="previewEyebrow">Now booking</span>
@@ -191,6 +204,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="wiz-hero-cta">Book now →</div>
                 <div class="wiz-hero-tags" id="previewTags"></div>
               </div>
+            </div>
+
+            <div class="wiz-welcome">
+              <span class="wiz-welcome-eyebrow" id="previewWelcomeEyebrow">Welcome</span>
+              <h3 id="previewWelcomeTitle">Everything you need, in one place</h3>
+              <p id="previewWelcomeLede">Fill in the questions on the left and this will describe your business.</p>
+              <div class="wiz-cards" id="previewCards"></div>
+            </div>
+
+            <div class="wiz-band">
+              <span class="wiz-band-eyebrow">Ready when you are</span>
+              <h3 id="previewBandTitle">Get in touch</h3>
+              <div class="wiz-hero-cta" id="previewBandCta">Book now →</div>
             </div>
           </div>
         </div>
