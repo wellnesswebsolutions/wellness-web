@@ -42,7 +42,122 @@ document.addEventListener('DOMContentLoaded', () => {
   const sendBtn = document.getElementById('wizSend');
   const wizHero = document.querySelector('.wiz-hero');
   const wizBand = document.querySelector('.wiz-band');
+  const wizHeroScene = document.getElementById('wizHeroScene');
   if (!form) return;
+
+  // ---- business types: label, wall-scene category, and 3 typical services ----
+  const BUSINESS_TYPES = [
+    { label: 'Hair Salon', cat: 'salon', services: ['Cuts & styling', 'Colour & balayage', 'Blow-dry'] },
+    { label: 'Barber Shop', cat: 'salon', services: ['Haircuts', 'Beard trim', 'Hot towel shave'] },
+    { label: 'Nail Salon', cat: 'salon', services: ['Manicure', 'Pedicure', 'Gel extensions'] },
+    { label: 'Beauty Salon', cat: 'salon', services: ['Facials', 'Waxing', 'Lash & brow'] },
+    { label: 'Automotive Repair', cat: 'auto', services: ['MOT testing', 'Servicing', 'Diagnostics'] },
+    { label: 'Tyre & Exhaust', cat: 'auto', services: ['Tyre fitting', 'Exhaust repair', 'Wheel alignment'] },
+    { label: 'Car Valeting', cat: 'auto', services: ['Full valet', 'Interior detail', 'Paint correction'] },
+    { label: 'Plumbing', cat: 'trade', services: ['Emergency call-outs', 'Boiler repair', 'Bathroom fitting'] },
+    { label: 'Electrician', cat: 'trade', services: ['Rewiring', 'Fuse box upgrades', 'PAT testing'] },
+    { label: 'Locksmith', cat: 'trade', services: ['Lock changes', 'Emergency lockout', 'Key cutting'] },
+    { label: 'Building & Construction', cat: 'trade', services: ['Extensions', 'Renovations', 'Groundwork'] },
+    { label: 'Landscaping & Gardening', cat: 'trade', services: ['Garden design', 'Lawn care', 'Tree surgery'] },
+    { label: 'Cleaning Services', cat: 'trade', services: ['Domestic cleaning', 'End of tenancy', 'Carpet cleaning'] },
+    { label: 'Bakery & Cafe', cat: 'food', services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes'] },
+    { label: 'Restaurant', cat: 'food', services: ['A la carte dining', 'Takeaway', 'Private events'] },
+    { label: 'Personal Training', cat: 'fitness', services: ['1-to-1 training', 'Group classes', 'Nutrition plans'] },
+    { label: 'Dentist', cat: 'fitness', services: ['Check-ups', 'Teeth whitening', 'Emergency dental'] },
+    { label: 'Physiotherapy', cat: 'fitness', services: ['Sports injury', 'Massage therapy', 'Rehab plans'] },
+    { label: 'Pet Grooming', cat: 'pet', services: ['Full groom', 'Nail trim', 'Bath & brush'] },
+    { label: 'Photography', cat: 'office', services: ['Portraits', 'Weddings', 'Commercial shoots'] },
+    { label: 'Accounting & Bookkeeping', cat: 'office', services: ['Tax returns', 'Payroll', 'Bookkeeping'] },
+    { label: 'Real Estate', cat: 'office', services: ['Property sales', 'Lettings', 'Valuations'] }
+  ];
+  BUSINESS_TYPES.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.label;
+    opt.textContent = t.label;
+    bizTagline.appendChild(opt);
+  });
+  function typeInfo(label) { return BUSINESS_TYPES.find(t => t.label === label); }
+
+  // ---- wall-scene illustration behind the hero copy, per business category ----
+  function sceneSVG(cat, tones) {
+    const wallDark = (tones && tones.dark) || '#8a6d72';
+    const wallBase = (tones && tones.base) || '#a3878b';
+    const propsByCategory = {
+      salon: `
+        <ellipse cx="640" cy="150" rx="70" ry="90" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="6"/>
+        <ellipse cx="640" cy="150" rx="70" ry="90" fill="rgba(255,255,255,.06)"/>
+        <path d="M60 420 q0 -110 40 -110 q40 0 40 110 z" fill="rgba(0,0,0,.18)"/>
+        <path d="M80 320 q-30 -40 0 -70 q30 30 0 70 z" fill="rgba(0,0,0,.22)"/>
+        <path d="M60 300 q-30 -40 0 -70 q30 30 0 70 z" fill="rgba(0,0,0,.22)"/>
+        <path d="M100 300 q-30 -40 0 -70 q30 30 0 70 z" fill="rgba(0,0,0,.22)"/>`,
+      auto: `
+        <g opacity=".16">
+          ${Array.from({length: 6}).map((_, r) => Array.from({length: 12}).map((_, c) =>
+            `<rect x="${c * 70 - (r % 2 ? 35 : 0)}" y="${r * 34}" width="62" height="26" fill="none" stroke="#000" stroke-width="2"/>`).join('')).join('')}
+        </g>
+        <circle cx="120" cy="380" r="70" fill="rgba(0,0,0,.28)"/>
+        <circle cx="120" cy="380" r="70" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="10"/>
+        <circle cx="120" cy="380" r="26" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="8"/>`,
+      trade: `
+        <g opacity=".14">
+          ${Array.from({length: 20}).map((_, i) => `<circle cx="${(i % 10) * 76 + 40}" cy="${Math.floor(i / 10) * 90 + 60}" r="3" fill="#000"/>`).join('')}
+        </g>
+        <rect x="50" y="330" width="130" height="90" rx="6" fill="rgba(0,0,0,.24)"/>
+        <rect x="50" y="330" width="130" height="18" rx="6" fill="rgba(0,0,0,.32)"/>
+        <path d="M600 90 l30 30 -100 100 -30 -30 z" fill="rgba(0,0,0,.22)"/>
+        <circle cx="612" cy="102" r="16" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="6"/>`,
+      food: `
+        <rect x="520" y="60" width="180" height="10" fill="rgba(0,0,0,.22)"/>
+        <rect x="540" y="72" width="40" height="46" rx="4" fill="rgba(0,0,0,.2)"/>
+        <rect x="600" y="72" width="40" height="46" rx="4" fill="rgba(0,0,0,.2)"/>
+        <path d="M70 300 h120 v90 a60 60 0 0 1 -120 0 z" fill="rgba(0,0,0,.2)"/>
+        <ellipse cx="130" cy="300" rx="60" ry="14" fill="rgba(0,0,0,.26)"/>`,
+      fitness: `
+        <g fill="rgba(0,0,0,.24)">
+          <rect x="60" y="360" width="30" height="60" rx="6"/>
+          <rect x="220" y="360" width="30" height="60" rx="6"/>
+          <rect x="80" y="380" width="150" height="20" rx="10"/>
+        </g>
+        <g fill="rgba(0,0,0,.16)">
+          <rect x="600" y="70" width="70" height="20" rx="4"/>
+          <rect x="625" y="45" width="20" height="70" rx="4"/>
+        </g>`,
+      pet: `
+        <g fill="rgba(0,0,0,.2)">
+          <circle cx="120" cy="330" r="16"/>
+          <circle cx="150" cy="310" r="10"/>
+          <circle cx="90" cy="310" r="10"/>
+          <circle cx="105" cy="285" r="8"/>
+          <circle cx="135" cy="285" r="8"/>
+          <circle cx="560" cy="120" r="16"/>
+          <circle cx="590" cy="100" r="10"/>
+          <circle cx="530" cy="100" r="10"/>
+          <circle cx="545" cy="75" r="8"/>
+          <circle cx="575" cy="75" r="8"/>
+        </g>`,
+      office: `
+        <rect x="580" y="60" width="120" height="90" rx="4" fill="none" stroke="rgba(0,0,0,.24)" stroke-width="6"/>
+        <rect x="592" y="72" width="96" height="66" fill="rgba(0,0,0,.1)"/>
+        <path d="M60 420 q0 -110 40 -110 q40 0 40 110 z" fill="rgba(0,0,0,.18)"/>`
+    };
+    const props = propsByCategory[cat] || propsByCategory.office;
+    return `<svg viewBox="0 0 800 460" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%">
+      <rect width="800" height="460" fill="${wallDark}"/>
+      <rect width="800" height="460" fill="url(#wallGrad)"/>
+      <defs><linearGradient id="wallGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${wallBase}" stop-opacity=".5"/>
+        <stop offset="100%" stop-color="${wallDark}" stop-opacity="0"/>
+      </linearGradient></defs>
+      <rect x="0" y="400" width="800" height="60" fill="rgba(0,0,0,.32)"/>
+      ${props}
+    </svg>`;
+  }
+  function renderScene() {
+    if (!wizHeroScene) return;
+    const info = typeInfo(bizTagline.value);
+    const cat = info ? info.cat : 'office';
+    wizHeroScene.innerHTML = sceneSVG(cat, currentTones);
+  }
 
   // ---- colour picker: turn one chosen swatch into a light/base/dark trio ----
   function hexToHsl(hex) {
@@ -82,10 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
   bizColours.addEventListener('change', () => {
     const hex = bizColours.value;
     currentTones = hex ? tonesFromHex(hex) : null;
-    const heroGrad = currentTones ? `linear-gradient(155deg,${currentTones.dark},${currentTones.light})` : '';
     const bandGrad = currentTones ? `linear-gradient(160deg,${currentTones.dark} 0%,${currentTones.base} 55%,${currentTones.light} 100%)` : '';
-    if (wizHero) wizHero.style.background = heroGrad;
     if (wizBand) wizBand.style.background = bandGrad;
+    renderScene();
   });
 
   // step 1: submitting the business name slides the box over, collapses the
@@ -100,23 +214,32 @@ document.addEventListener('DOMContentLoaded', () => {
     previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
     previewWelcomeEyebrow.textContent = 'Welcome to ' + name;
     previewBandTitle.textContent = 'Ready to visit ' + name + '?';
+    renderScene();
     bizTagline.focus();
   });
 
+  function refreshServiceDisplay() {
+    const tags = bizServices.value.split(',').map(s => s.trim()).filter(Boolean);
+    previewTags.innerHTML = tags.map(t => `<span>${t.replace(/</g, '&lt;')}</span>`).join('');
+    previewCards.innerHTML = tags.slice(0, 3).map(t => `<div class="wiz-card"><h4>${t.replace(/</g, '&lt;')}</h4><p>Ask about our ${t.toLowerCase()} — booked in minutes online.</p></div>`).join('');
+  }
+
   // live preview updates as they answer each question
-  bizTagline.addEventListener('input', () => {
-    const v = bizTagline.value.trim();
+  bizTagline.addEventListener('change', () => {
+    const v = bizTagline.value;
     previewTagline.textContent = v || 'Tell us about your business and watch your homepage take shape.';
-    previewWelcomeTitle.textContent = v ? v.charAt(0).toUpperCase() + v.slice(1) : 'Everything you need, in one place';
+    previewWelcomeTitle.textContent = v || 'Everything you need, in one place';
+    const info = typeInfo(v);
+    if (info) {
+      bizServices.value = info.services.join(', ');
+      refreshServiceDisplay();
+    }
+    renderScene();
   });
   bizLocation.addEventListener('input', () => {
     previewEyebrow.textContent = bizLocation.value.trim() ? 'Based in ' + bizLocation.value.trim() : 'Now booking';
   });
-  bizServices.addEventListener('input', () => {
-    const tags = bizServices.value.split(',').map(s => s.trim()).filter(Boolean);
-    previewTags.innerHTML = tags.map(t => `<span>${t.replace(/</g, '&lt;')}</span>`).join('');
-    previewCards.innerHTML = tags.slice(0, 3).map(t => `<div class="wiz-card"><h4>${t.replace(/</g, '&lt;')}</h4><p>Ask about our ${t.toLowerCase()} — booked in minutes online.</p></div>`).join('');
-  });
+  bizServices.addEventListener('input', refreshServiceDisplay);
   bizGoal.addEventListener('change', () => {
     previewCtas.forEach(el => el.textContent = bizGoal.value + ' →');
   });
@@ -145,6 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
           background:linear-gradient(${135 + i * 20}deg,${t.dark},${t.light})">Add your photos</figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
     const heroSub = d.tagline || 'Tell us what makes you different — this line introduces your business.';
+    const info = typeInfo(d.tagline);
+    const sceneMarkup = d.heroImage ? '' : sceneSVG(info ? info.cat : 'office', t);
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
       : `linear-gradient(155deg,${t.dark},${t.light})`;
@@ -263,6 +388,7 @@ p{margin:0 0 1.1em}
 </header>
 
 <section class="hero">
+  ${sceneMarkup}
   <div class="hero-copy">
     <div class="inner">
       <span class="eyebrow">${esc(eyebrowLoc)}</span>
@@ -359,13 +485,17 @@ p{margin:0 0 1.1em}
     if (bizHeroImg.files.length) {
       bizHeroMake.checked = false;
       const url = await readFileAsDataURL(bizHeroImg.files[0]);
-      if (wizHero && url) { wizHero.style.background = `url('${url}') center/cover no-repeat`; }
+      if (wizHero && url) {
+        wizHero.style.background = `url('${url}') center/cover no-repeat`;
+        if (wizHeroScene) wizHeroScene.style.display = 'none';
+      }
     }
   });
   bizHeroMake.addEventListener('change', () => {
     if (bizHeroMake.checked) {
       bizHeroImg.value = '';
-      if (wizHero) wizHero.style.background = currentTones ? `linear-gradient(155deg,${currentTones.dark},${currentTones.light})` : '';
+      if (wizHero) wizHero.style.background = '';
+      if (wizHeroScene) { wizHeroScene.style.display = ''; renderScene(); }
     }
   });
 
@@ -476,14 +606,17 @@ p{margin:0 0 1.1em}
 
           <div class="wiz-step-tag">1. Business</div>
           <label for="bizTagline">What does your business do?</label>
-          <input type="text" id="bizTagline" placeholder="e.g. Boutique hair salon">
+          <select id="bizTagline">
+            <option value="">Select your type of business</option>
+          </select>
 
           <label for="bizLocation">Where are you based?</label>
           <input type="text" id="bizLocation" placeholder="e.g. Marlbury">
 
           <div class="wiz-step-tag">2. Website</div>
           <label for="bizServices">What services do you offer?</label>
-          <input type="text" id="bizServices" placeholder="e.g. Colour, Cuts, Balayage">
+          <input type="text" id="bizServices" placeholder="Auto-filled once you pick a business type — edit if you like">
+          <div class="wiz-hint">Filled in automatically from your business type — feel free to change it.</div>
 
           <label for="bizGoal">What do you want customers to do?</label>
           <select id="bizGoal">
@@ -542,7 +675,8 @@ p{margin:0 0 1.1em}
         <div class="bwin">
           <div class="bwin-bar"><i></i><i></i><i></i><span class="url" id="previewUrl">your-business.co.uk</span></div>
           <div class="bwin-body" id="previewScroll">
-            <div class="wiz-hero">
+            <div class="wiz-hero" id="wizHeroWrap">
+              <div class="wiz-hero-scene" id="wizHeroScene"></div>
               <div class="wiz-hero-inner">
                 <span class="wiz-hero-eyebrow" id="previewEyebrow">Now booking</span>
                 <h2 id="previewName">Your Business Name</h2>

@@ -412,6 +412,7 @@
     padding:14px 16px;font-family:var(--body);font-size:14px;color:var(--ink);background:var(--card);outline:none}
   .wiz-about input[type="text"]:focus,.wiz-about select:focus,.wiz-about textarea:focus{border-color:var(--accent)}
   .wiz-about input::placeholder,.wiz-about textarea::placeholder{color:var(--muted)}
+  .wiz-hint{font-size:11px;color:var(--muted);margin-top:6px}
   .wiz-upload-row{display:flex;flex-direction:column;gap:8px}
   .wiz-about input[type="file"]{width:100%;font-size:12.5px;color:var(--muted);
     border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:var(--card)}
@@ -436,11 +437,12 @@
     border-radius:999px;padding:6px 14px;font-size:12px;color:var(--muted);text-align:center}
   .wiz-preview .bwin-body{position:relative;height:460px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
   /* placeholder full-bleed "photo" — swap for a real image later */
-  .wiz-hero{position:relative;min-height:230px;display:flex;align-items:flex-end;
+  .wiz-hero{position:relative;min-height:230px;display:flex;align-items:flex-end;overflow:hidden;
     background:linear-gradient(155deg,var(--accent),var(--gold))}
-  .wiz-hero:before{content:"";position:absolute;inset:0;
+  .wiz-hero-scene{position:absolute;inset:0;z-index:0;pointer-events:none}
+  .wiz-hero:before{content:"";position:absolute;inset:0;z-index:1;
     background:linear-gradient(0deg, rgba(23,20,26,.72) 0%, rgba(23,20,26,.28) 46%, transparent 72%)}
-  .wiz-hero-inner{position:relative;z-index:1;color:#fff;max-width:78%;padding:22px}
+  .wiz-hero-inner{position:relative;z-index:2;color:#fff;max-width:78%;padding:22px}
   .wiz-hero-eyebrow{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
     color:rgba(255,255,255,.85);margin-bottom:8px}
   .wiz-hero h2{font-family:var(--display);font-weight:800;font-size:clamp(19px,2.2vw,26px);line-height:1.12;margin-bottom:8px;
