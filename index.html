@@ -40,7 +40,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewCards = document.getElementById('previewCards');
   const previewBandTitle = document.getElementById('previewBandTitle');
   const sendBtn = document.getElementById('wizSend');
+  const wizHero = document.querySelector('.wiz-hero');
+  const wizBand = document.querySelector('.wiz-band');
   if (!form) return;
+
+  // ---- colour picker: turn one chosen swatch into a light/base/dark trio ----
+  function hexToHsl(hex) {
+    const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) { h = s = 0; }
+    else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        default: h = (r - g) / d + 4;
+      }
+      h /= 6;
+    }
+    return [h * 360, s * 100, l * 100];
+  }
+  function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+  }
+  function tonesFromHex(hex) {
+    const [h, s] = hexToHsl(hex);
+    return {
+      light: hslToHex(h, Math.max(s - 10, 20), 78),
+      base: hex,
+      dark: hslToHex(h, Math.min(s + 6, 90), 24)
+    };
+  }
+  let currentTones = null;
+  bizColours.addEventListener('change', () => {
+    const hex = bizColours.value;
+    currentTones = hex ? tonesFromHex(hex) : null;
+    const heroGrad = currentTones ? `linear-gradient(155deg,${currentTones.dark},${currentTones.light})` : '';
+    const bandGrad = currentTones ? `linear-gradient(160deg,${currentTones.dark} 0%,${currentTones.base} 55%,${currentTones.light} 100%)` : '';
+    if (wizHero) wizHero.style.background = heroGrad;
+    if (wizBand) wizBand.style.background = bandGrad;
+  });
 
   // step 1: submitting the business name slides the box over, collapses the
   // comparison cards, and opens the questions step with a live preview.
@@ -92,12 +138,19 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="card-cta">Learn more</span>
         </a>`).join('');
     const tags = services.map(s => `<span>${esc(s)}</span>`).join('');
+    const t = d.tones || { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' };
     const gallery = Array.from({length: 6}).map((_, i) => `
         <figure style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);
           font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-          background:linear-gradient(${135 + i * 20}deg,#8a6d72,#d9cdc1)">Add your photos</figure>`).join('');
+          background:linear-gradient(${135 + i * 20}deg,${t.dark},${t.light})">Add your photos</figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
     const heroSub = d.tagline || 'Tell us what makes you different — this line introduces your business.';
+    const heroBg = d.heroImage
+      ? `url('${d.heroImage}') center/cover no-repeat`
+      : `linear-gradient(155deg,${t.dark},${t.light})`;
+    const brandMark = d.logo
+      ? `<img src="${d.logo}" alt="${esc(d.name)} logo" style="height:38px;width:auto;display:block">`
+      : esc(d.name);
     return `<!DOCTYPE html>
 <html lang="en-GB">
 <head>
@@ -109,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--champagne:#f6efe9;--champagne-2:#efe4db;--taupe:#d9cdc1;--rose:#a3878b;--rose-dark:#8a6d72;--line:rgba(28,24,21,.12);--radius:2px;--shadow:0 18px 50px rgba(28,24,21,.10)}
+:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--champagne:#f6efe9;--champagne-2:#efe4db;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--line:rgba(28,24,21,.12);--radius:2px;--shadow:0 18px 50px rgba(28,24,21,.10)}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px}
 body{margin:0;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased}
@@ -148,7 +201,7 @@ p{margin:0 0 1.1em}
 .nav a.btn{padding:11px 20px;color:#fff}
 .nav a.btn:hover{background:transparent;color:var(--ink)}
 @media(max-width:760px){.nav{display:none}}
-.hero{position:relative;margin-top:74px;background:linear-gradient(155deg,#8a6d72,#d9cdc1);display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
+.hero{position:relative;margin-top:74px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(28,24,21,.55) 0%,rgba(28,24,21,.28) 34%,rgba(28,24,21,0) 62%),linear-gradient(to top,rgba(28,24,21,.8) 0%,rgba(28,24,21,.6) 26%,rgba(28,24,21,.24) 54%,rgba(28,24,21,0) 82%)}
 .hero .hero-copy{position:relative;z-index:2;width:100%;padding:0 0 3.4em}
 .hero .inner{max-width:1140px;margin:0 auto;padding:0 22px}
@@ -183,7 +236,7 @@ p{margin:0 0 1.1em}
 @media(max-width:760px){.gallery{grid-template-columns:repeat(2,1fr);gap:10px}}
 .gallery figure{margin:0;aspect-ratio:1/1;overflow:hidden}
 .find{display:grid;grid-template-columns:1fr;gap:26px;max-width:640px;margin:0 auto;text-align:center}
-.band{background:linear-gradient(160deg,#2c2523 0%,#4a3c3b 55%,#7d666a 100%);color:#fff;text-align:center}
+.band{background:linear-gradient(160deg,#2c2523 0%,${t.dark} 60%,${t.base} 100%);color:#fff;text-align:center}
 .band h2,.band .eyebrow{color:#fff}
 .band .eyebrow{color:rgba(255,255,255,.8)}
 .band p{color:rgba(255,255,255,.88);max-width:56ch;margin-left:auto;margin-right:auto}
@@ -199,7 +252,7 @@ p{margin:0 0 1.1em}
 
 <header class="site-header">
   <div class="container">
-    <a class="brand" href="#">${esc(d.name)}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</a>
+    <a class="brand" href="#">${brandMark}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</a>
     <nav class="nav">
       <a href="#">Home</a>
       <a href="#services">Services</a>
@@ -286,6 +339,36 @@ p{margin:0 0 1.1em}
 </html>`;
   }
 
+  // logo/hero upload fields: picking a file unchecks "we'll design one"
+  function readFileAsDataURL(file) {
+    return new Promise((resolve) => {
+      if (!file) return resolve(null);
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+  const bizLogo = document.getElementById('bizLogo');
+  const bizLogoMake = document.getElementById('bizLogoMake');
+  const bizHeroImg = document.getElementById('bizHeroImg');
+  const bizHeroMake = document.getElementById('bizHeroMake');
+  bizLogo.addEventListener('change', () => { if (bizLogo.files.length) bizLogoMake.checked = false; });
+  bizLogoMake.addEventListener('change', () => { if (bizLogoMake.checked) { bizLogo.value = ''; } });
+  bizHeroImg.addEventListener('change', async () => {
+    if (bizHeroImg.files.length) {
+      bizHeroMake.checked = false;
+      const url = await readFileAsDataURL(bizHeroImg.files[0]);
+      if (wizHero && url) { wizHero.style.background = `url('${url}') center/cover no-repeat`; }
+    }
+  });
+  bizHeroMake.addEventListener('change', () => {
+    if (bizHeroMake.checked) {
+      bizHeroImg.value = '';
+      if (wizHero) wizHero.style.background = currentTones ? `linear-gradient(155deg,${currentTones.dark},${currentTones.light})` : '';
+    }
+  });
+
   // step 2: send the full lead once they're happy
   sendBtn.addEventListener('click', async () => {
     const business_name = bizNameInput.value.trim();
@@ -294,9 +377,14 @@ p{margin:0 0 1.1em}
     const services = bizServices.value.trim();
     const goal = bizGoal.value;
     const style = bizStyle.value;
-    const colours = bizColours.value.trim();
+    const coloursName = bizColours.selectedIndex > 0 ? bizColours.options[bizColours.selectedIndex].textContent : '';
     const about = bizAbout.value.trim();
     if (!business_name) return;
+
+    const logoDataUrl = await readFileAsDataURL(bizLogo.files[0]);
+    const heroDataUrl = await readFileAsDataURL(bizHeroImg.files[0]);
+    const logoNote = logoDataUrl ? 'Logo: uploaded' : (bizLogoMake.checked ? 'Logo: please design one' : 'Logo: none');
+    const heroNote = heroDataUrl ? 'Hero photo: uploaded' : (bizHeroMake.checked ? 'Hero photo: please design one' : 'Hero photo: none');
 
     // generate the full demo homepage and open it right away — no need to
     // wait on the network request below.
@@ -306,7 +394,10 @@ p{margin:0 0 1.1em}
       location,
       services: services.split(',').map(s => s.trim()).filter(Boolean),
       goal,
-      about
+      about,
+      tones: currentTones,
+      logo: logoDataUrl,
+      heroImage: heroDataUrl
     });
     const blob = new Blob([demoHTML], { type: 'text/html' });
     const demoUrl = URL.createObjectURL(blob);
@@ -324,7 +415,9 @@ p{margin:0 0 1.1em}
     if (services) detailParts.push('Services: ' + services);
     if (goal) detailParts.push('Wants customers to: ' + goal);
     if (style) detailParts.push('Style: ' + style);
-    if (colours) detailParts.push('Colours: ' + colours);
+    if (coloursName) detailParts.push('Colours: ' + coloursName);
+    detailParts.push(logoNote);
+    detailParts.push(heroNote);
     if (about) detailParts.push(about);
     const details = detailParts.join('\n');
     status.textContent = 'Sending...';
@@ -411,7 +504,31 @@ p{margin:0 0 1.1em}
           </select>
 
           <label for="bizColours">Any colours you want?</label>
-          <input type="text" id="bizColours" placeholder="e.g. Navy and gold, or leave it to us">
+          <select id="bizColours">
+            <option value="">You choose</option>
+            <option value="#a3878b">Rose</option>
+            <option value="#b0745c">Terracotta</option>
+            <option value="#6b8f71">Sage green</option>
+            <option value="#2c3e6b">Navy</option>
+            <option value="#3a3330">Charcoal</option>
+            <option value="#b98a4e">Gold</option>
+            <option value="#c98b9e">Blush pink</option>
+            <option value="#123f3d">Teal</option>
+            <option value="#5b3a73">Plum</option>
+            <option value="#7a2e34">Burgundy</option>
+          </select>
+
+          <label for="bizLogo">Have a logo?</label>
+          <div class="wiz-upload-row">
+            <input type="file" id="bizLogo" accept="image/*">
+            <label class="wiz-check"><input type="checkbox" id="bizLogoMake">We'll design one for you</label>
+          </div>
+
+          <label for="bizHeroImg">Have a photo for your homepage?</label>
+          <div class="wiz-upload-row">
+            <input type="file" id="bizHeroImg" accept="image/*">
+            <label class="wiz-check"><input type="checkbox" id="bizHeroMake" checked>We'll design one for you</label>
+          </div>
 
           <label for="bizAbout">Anything else you'd like on the website?</label>
           <textarea id="bizAbout" placeholder="Anything else that would help us get it right…"></textarea>

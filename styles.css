@@ -398,7 +398,7 @@
 
   .wiz-about{max-height:0;opacity:0;overflow:hidden;
     transition:max-height .55s cubic-bezier(.22,.7,.3,1),opacity .4s ease .1s,margin .55s cubic-bezier(.22,.7,.3,1)}
-  .wiz-grid.active .wiz-about{max-height:1200px;opacity:1;margin-top:16px}
+  .wiz-grid.active .wiz-about{max-height:1500px;opacity:1;margin-top:16px}
   .wiz-step-tag{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
     margin-top:22px;margin-bottom:6px}
   .wiz-step-tag:first-child{margin-top:0}
@@ -412,6 +412,12 @@
     padding:14px 16px;font-family:var(--body);font-size:14px;color:var(--ink);background:var(--card);outline:none}
   .wiz-about input[type="text"]:focus,.wiz-about select:focus,.wiz-about textarea:focus{border-color:var(--accent)}
   .wiz-about input::placeholder,.wiz-about textarea::placeholder{color:var(--muted)}
+  .wiz-upload-row{display:flex;flex-direction:column;gap:8px}
+  .wiz-about input[type="file"]{width:100%;font-size:12.5px;color:var(--muted);
+    border:1px dashed var(--line);border-radius:12px;padding:10px 12px;background:var(--card)}
+  .wiz-check{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--ink);
+    margin:0!important;cursor:pointer}
+  .wiz-check input{width:auto!important}
   .btn-send{display:block;width:100%;margin-top:12px;background:var(--accent);color:#fff;border:none;
     border-radius:999px;padding:13px 22px;font-size:13.5px;font-weight:700;cursor:pointer;transition:opacity .15s,transform .15s}
   .btn-send:hover{opacity:.9;transform:translateY(-1px)}
@@ -472,7 +478,7 @@
 
   .conv-row{transition:max-height .5s cubic-bezier(.22,.7,.3,1),opacity .4s ease,margin .5s ease;overflow:hidden;max-height:900px}
   .conv-row.collapsed{max-height:0;opacity:0;margin-top:0}
-  .conv-row{display:flex;align-items:flex-start;justify-content:center;gap:clamp(10px,2.6vw,28px);max-width:1120px;margin:0 auto}
+  .conv-row{display:flex;align-items:flex-start;justify-content:center;gap:clamp(10px,2.6vw,28px);max-width:1120px;margin:clamp(52px,8svh,84px) auto 0}
   .conv-col{flex:1 1 0;min-width:0;max-width:270px;text-align:center;position:relative}
   .conv-col-ai{max-width:290px}
   .conv-col-old,.conv-col-new{padding-top:clamp(8px,1.6svh,16px)}
