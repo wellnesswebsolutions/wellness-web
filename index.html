@@ -382,16 +382,36 @@ document.addEventListener('DOMContentLoaded', () => {
       s => `${esc(s)}, done properly, every time. Get in touch to check availability.`,
       s => `Popular with regulars. Get in touch and we'll talk you through ${esc(s.toLowerCase())}.`
     ];
-    const cardHooks = ['Fan favourite', 'Client favourite', 'Ask about this one'];
-    const cards = services.map((s, i) => `
-        <a class="card card-link" href="#" data-nav="contact">
-          <span class="num">${i === 0 ? 'Most Popular · ' : ''}${esc(s)}</span>
+    // 3 tile cards for the homepage "most popular" teaser
+    const popularCards = services.slice(0, 3).map((s, i) => `
+        <a class="card card-link" href="#" data-nav="services">
+          <span class="num">Most Popular · ${esc(s)}</span>
           <h3>${esc(s)}${prices[i] ? `<span class="card-price">${esc(prices[i])}</span>` : ''}</h3>
-          <span class="card-hook">${cardHooks[i % cardHooks.length]}</span>
           <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
           <span class="card-cta">Learn more</span>
         </a>`).join('');
+    // every service as a neat list row for the dedicated Services page
+    const serviceRows = services.map((s, i) => `
+        <div class="service-row">
+          <div class="service-row-main">
+            <h3>${esc(s)}</h3>
+            <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
+          </div>
+          ${prices[i] ? `<span class="service-row-price">${esc(prices[i])}</span>` : ''}
+        </div>`).join('');
     const tags = services.slice(0, 4).map(s => `<span>${esc(s)}</span>`).join('');
+    // fake but plausible contact details for the demo — Ofcom reserves
+    // 07700 900xxx for fictional use, so it's never a real number.
+    const nameSeed = d.name.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+    const fakePhone = '07700 900' + String(100 + (nameSeed % 900)).padStart(3, '0');
+    const emailSlug = d.name.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'business';
+    const fakeEmail = `hello@${emailSlug}.co.uk`;
+    const fakeStreetNum = 1 + (nameSeed % 98);
+    const streetNames = ['High Street', 'Market Street', 'Church Lane', 'Victoria Road', 'Mill Lane'];
+    const fakeStreet = streetNames[nameSeed % streetNames.length];
+    const fakeAddress = `${fakeStreetNum} ${fakeStreet}`;
+    const fakePostcode = String.fromCharCode(65 + (nameSeed % 26)) + String.fromCharCode(65 + ((nameSeed >> 3) % 26))
+      + (1 + (nameSeed % 9)) + ' ' + (1 + ((nameSeed >> 2) % 9)) + String.fromCharCode(65 + ((nameSeed >> 5) % 26)) + String.fromCharCode(65 + ((nameSeed >> 7) % 26));
     const t = d.tones || { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' };
     const gallery = Array.from({length: 6}).map((_, i) => `
         <figure style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);
@@ -524,6 +544,12 @@ p{margin:0 0 1.1em}
 .card p:last-child{margin-bottom:0}
 .card-link{display:block;text-decoration:none;color:inherit}
 .card-cta{display:inline-flex;align-items:center;gap:8px;margin-top:1.2em;font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-dark)}
+.service-list{border-top:1px solid var(--line)}
+.service-row{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;padding:28px 0;border-bottom:1px solid var(--line)}
+.service-row-main h3{font-size:1.08rem;margin-bottom:.35em}
+.service-row-main p{margin:0;color:var(--muted);font-size:.92rem;max-width:56ch}
+.service-row-price{flex:none;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.95rem;color:var(--rose-dark);white-space:nowrap}
+@media(max-width:600px){.service-row{flex-direction:column;gap:8px}}
 .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:760px){.gallery{grid-template-columns:repeat(2,1fr);gap:10px}}
 .gallery figure{margin:0;aspect-ratio:1/1;overflow:hidden}
@@ -590,9 +616,10 @@ p{margin:0 0 1.1em}
         <span class="eyebrow">Welcome to ${esc(d.name)}</span>
         <h2>${esc(heroHook) || 'Everything you need, in one place'}</h2>
         <p class="lede center">${esc(d.about) || esc(defaultDesc)}</p>
-        <div class="btn-row" style="justify-content:center">
-          <a class="btn btn--ghost" href="#" data-nav="services">View Services</a>
-        </div>
+      </div>
+      <div class="grid grid-3" style="gap:20px">${popularCards}</div>
+      <div class="btn-row" style="justify-content:center;margin-top:2.2em">
+        <a class="btn btn--ghost" href="#" data-nav="services">View All Services</a>
       </div>
     </div>
   </section>
@@ -630,7 +657,7 @@ p{margin:0 0 1.1em}
   </section>
   <section class="section" style="padding-top:0">
     <div class="container">
-      <div class="grid grid-3" style="gap:20px">${cards}</div>
+      <div class="service-list">${serviceRows}</div>
     </div>
   </section>
 </div>
@@ -648,13 +675,13 @@ p{margin:0 0 1.1em}
       <div class="grid grid-2" style="gap:20px">
         <div class="info-card">
           <span class="eyebrow">Phone</span>
-          <h3>Add your number</h3>
+          <h3>${fakePhone}</h3>
           <p>Call or text — we'll reply as soon as we can</p>
         </div>
         <div class="info-card">
           <span class="eyebrow">Location</span>
-          <h3>${d.location ? esc(d.location) : 'Add your address'}</h3>
-          <p>${d.location ? `In and around ${esc(d.location)}` : 'Let visitors know where to find you'}</p>
+          <h3>${esc(fakeAddress)}</h3>
+          <p>${d.location ? `${esc(d.location)}, ${fakePostcode}` : fakePostcode}</p>
         </div>
         <div class="info-card">
           <span class="eyebrow">Booking</span>
@@ -682,7 +709,7 @@ p{margin:0 0 1.1em}
         <div>
           <span class="eyebrow">Find Us</span>
           <h2>${esc(d.location)}</h2>
-          <p class="lede">In and around ${esc(d.location)}. Get in touch for directions if you need them.</p>
+          <p class="lede">${esc(fakeAddress)}, ${esc(d.location)}, ${fakePostcode}</p>
           <div class="btn-row">
             <a class="btn" href="https://www.google.com/maps?q=${encodeURIComponent(d.location)}" target="_blank" rel="noopener">Get Directions</a>
             <a class="btn btn--ghost" href="#">${esc(goalLabel)}</a>
@@ -898,9 +925,9 @@ showPage('home');
   });
 
   // step 3: order summary — confirms exactly what they're buying, then
-  // sends the final order through so we can follow up to arrange payment.
+  // emails it through to the developer to build out.
   wizOrderSend.addEventListener('click', async () => {
-    wizOrderStatus.textContent = 'Sending...';
+    wizOrderStatus.textContent = 'Sending to developer...';
     wizOrderStatus.className = 'quick-lead-status';
     try {
       await postLead(bizNameInput.value.trim(), 'ORDER CONFIRMED — £199 one-off + £20/mo management\n' + compileOrderDetails());
@@ -1025,13 +1052,13 @@ showPage('home');
             </ul>
           </div>
           <p class="wiz-extra-note">Then £20/month for hosting, updates &amp; ongoing management — cancel any time.</p>
-          <button type="button" id="wizOrderSend" class="btn-send">Order my website — £199 →</button>
+          <button type="button" id="wizOrderSend" class="btn-send">Send to developer →</button>
           <div id="wizOrderStatus" class="quick-lead-status"></div>
         </div>
 
         <div class="wiz-panel" id="wizThanks">
           <div class="wiz-step-tag">You're all set</div>
-          <p class="wiz-extra-note">Thanks — your order's with us. We'll be in touch within 24 hours to confirm details and arrange secure payment.</p>
+          <p class="wiz-extra-note">We've emailed the developer — they'll finish building your site and send you a live demo within a few hours.</p>
         </div>
 
         <div class="wiz-panel" id="wizExtra">
