@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const bizLocation = document.getElementById('bizLocation');
   const bizServices = document.getElementById('bizServices');
   const bizGoal = document.getElementById('bizGoal');
-  const bizStyle = document.getElementById('bizStyle');
   const bizColours = document.getElementById('bizColours');
   const bizAbout = document.getElementById('bizAbout');
   const previewUrl = document.getElementById('previewUrl');
@@ -497,7 +496,6 @@ p{margin:0 0 1.1em}
     const location = data.location;
     const services = bizServices.value.trim();
     const goal = data.goal;
-    const style = bizStyle.value;
     const coloursName = bizColours.selectedIndex > 0 ? bizColours.options[bizColours.selectedIndex].textContent : '';
     const about = data.about;
     const logoNote = logoDataUrl ? 'Logo: uploaded' : (bizLogoMake.checked ? 'Logo: please design one' : 'Logo: none');
@@ -519,7 +517,6 @@ p{margin:0 0 1.1em}
     if (location) detailParts.push('Based in: ' + location);
     if (services) detailParts.push('Services: ' + services);
     if (goal) detailParts.push('Wants customers to: ' + goal);
-    if (style) detailParts.push('Style: ' + style);
     if (coloursName) detailParts.push('Colours: ' + coloursName);
     detailParts.push(logoNote);
     detailParts.push(heroNote);
@@ -579,66 +576,67 @@ p{margin:0 0 1.1em}
 
         <div class="wiz-about" id="wizAbout">
 
-          <div class="wiz-step-tag">1. Business</div>
-          <label for="bizTagline">What does your business do?</label>
-          <select id="bizTagline">
-            <option value="">Select your type of business</option>
-          </select>
-
-          <label for="bizLocation">Where are you based?</label>
-          <input type="text" id="bizLocation" placeholder="e.g. Marlbury">
+          <div class="wiz-step-tag">1. Your business</div>
+          <div class="wiz-row">
+            <div>
+              <label for="bizTagline">Type of business</label>
+              <select id="bizTagline">
+                <option value="">Choose one</option>
+              </select>
+            </div>
+            <div>
+              <label for="bizLocation">Where are you based?</label>
+              <input type="text" id="bizLocation" placeholder="e.g. Marlbury">
+            </div>
+          </div>
 
           <div class="wiz-step-tag">2. Website</div>
-          <label for="bizServices">What services do you offer?</label>
-          <input type="text" id="bizServices" placeholder="Auto-filled once you pick a business type — edit if you like">
-          <div class="wiz-hint">Filled in automatically from your business type — feel free to change it.</div>
+          <label for="bizServices">Services <span class="wiz-hint-inline">auto-filled — edit if you like</span></label>
+          <input type="text" id="bizServices" placeholder="e.g. Colour, Cuts, Balayage">
 
-          <label for="bizGoal">What do you want customers to do?</label>
-          <select id="bizGoal">
-            <option value="Call now">Call</option>
-            <option value="Book now">Book</option>
-            <option value="Get a quote">Get a Quote</option>
-            <option value="Message us">Message</option>
-          </select>
-
-          <div class="wiz-step-tag">3. Style</div>
-          <label for="bizStyle">What style do you like?</label>
-          <select id="bizStyle">
-            <option value="">You choose</option>
-            <option value="Modern">Modern</option>
-            <option value="Luxury">Luxury</option>
-            <option value="Professional">Professional</option>
-            <option value="Simple">Simple</option>
-          </select>
-
-          <label for="bizColours">Any colours you want?</label>
-          <select id="bizColours">
-            <option value="">You choose</option>
-            <option value="#a3878b">Rose</option>
-            <option value="#b0745c">Terracotta</option>
-            <option value="#6b8f71">Sage green</option>
-            <option value="#2c3e6b">Navy</option>
-            <option value="#3a3330">Charcoal</option>
-            <option value="#b98a4e">Gold</option>
-            <option value="#c98b9e">Blush pink</option>
-            <option value="#123f3d">Teal</option>
-            <option value="#5b3a73">Plum</option>
-            <option value="#7a2e34">Burgundy</option>
-          </select>
-
-          <label for="bizLogo">Have a logo?</label>
-          <div class="wiz-upload-row">
-            <input type="file" id="bizLogo" accept="image/*">
-            <label class="wiz-check"><input type="checkbox" id="bizLogoMake">We'll design one for you</label>
+          <div class="wiz-row">
+            <div>
+              <label for="bizGoal">Customers should…</label>
+              <select id="bizGoal">
+                <option value="Call now">Call</option>
+                <option value="Book now">Book</option>
+                <option value="Get a quote">Get a Quote</option>
+                <option value="Message us">Message</option>
+              </select>
+            </div>
+            <div>
+              <label for="bizColours">Colour scheme</label>
+              <select id="bizColours">
+                <option value="">You choose</option>
+                <option value="#a3878b">Rose</option>
+                <option value="#b0745c">Terracotta</option>
+                <option value="#6b8f71">Sage green</option>
+                <option value="#2c3e6b">Navy</option>
+                <option value="#3a3330">Charcoal</option>
+                <option value="#b98a4e">Gold</option>
+                <option value="#c98b9e">Blush pink</option>
+                <option value="#123f3d">Teal</option>
+                <option value="#5b3a73">Plum</option>
+                <option value="#7a2e34">Burgundy</option>
+              </select>
+            </div>
           </div>
 
-          <label for="bizHeroImg">Have a photo for your homepage?</label>
-          <div class="wiz-upload-row">
-            <input type="file" id="bizHeroImg" accept="image/*">
-            <label class="wiz-check"><input type="checkbox" id="bizHeroMake" checked>We'll design one for you</label>
+          <div class="wiz-step-tag">3. Photos <span class="wiz-step-optional">optional</span></div>
+          <div class="wiz-row">
+            <div class="wiz-upload-card">
+              <label for="bizLogo">Logo</label>
+              <input type="file" id="bizLogo" accept="image/*">
+              <label class="wiz-check"><input type="checkbox" id="bizLogoMake">Design one for me</label>
+            </div>
+            <div class="wiz-upload-card">
+              <label for="bizHeroImg">Homepage photo</label>
+              <input type="file" id="bizHeroImg" accept="image/*">
+              <label class="wiz-check"><input type="checkbox" id="bizHeroMake" checked>Design one for me</label>
+            </div>
           </div>
 
-          <label for="bizAbout">Anything else you'd like on the website?</label>
+          <label for="bizAbout">Anything else? <span class="wiz-step-optional">optional</span></label>
           <textarea id="bizAbout" placeholder="Anything else that would help us get it right…"></textarea>
 
           <button type="button" id="wizSend" class="btn-send">Get my free demo →</button>
