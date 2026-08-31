@@ -273,7 +273,7 @@ p{margin:0 0 1.1em}
 .btn--outline-light:hover{background:#fff;color:var(--ink);border-color:#fff}
 .btn-row{display:flex;flex-wrap:wrap;gap:12px}
 .center .btn-row{justify-content:center}
-.site-header{position:fixed;inset:0 0 auto 0;z-index:50;background:var(--champagne);border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
+.site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:var(--champagne);border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
 .brand{display:flex;flex-direction:column;line-height:1.1;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
 .brand span{font-size:.55rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-top:2px}
@@ -283,7 +283,7 @@ p{margin:0 0 1.1em}
 .nav a.btn{padding:11px 20px;color:#fff}
 .nav a.btn:hover{background:transparent;color:var(--ink)}
 @media(max-width:760px){.nav{display:none}}
-.hero{position:relative;margin-top:74px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
+.hero{position:relative;margin-top:111px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(28,24,21,.55) 0%,rgba(28,24,21,.28) 34%,rgba(28,24,21,0) 62%),linear-gradient(to top,rgba(28,24,21,.8) 0%,rgba(28,24,21,.6) 26%,rgba(28,24,21,.24) 54%,rgba(28,24,21,0) 82%)}
 .hero .hero-copy{position:relative;z-index:2;width:100%;padding:0 0 3.4em}
 .hero .inner{max-width:1140px;margin:0 auto;padding:0 22px}
@@ -293,7 +293,8 @@ p{margin:0 0 1.1em}
 .hero .eyebrow{color:rgba(255,255,255,.85)}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
 @media(max-width:900px){
-  .hero{min-height:0;display:block;background:var(--champagne)}
+  .site-header{top:64px}
+  .hero{min-height:0;display:block;background:var(--champagne);margin-top:138px}
   .hero::after{display:none}
   .hero .hero-copy{padding:2.6em 0;text-align:center}
   .hero .inner{display:flex;flex-direction:column;align-items:center}
@@ -440,30 +441,16 @@ p{margin:0 0 1.1em}
     });
   }
   const bizLogo = document.getElementById('bizLogo');
-  const bizLogoMake = document.getElementById('bizLogoMake');
   const bizHeroImg = document.getElementById('bizHeroImg');
-  const bizHeroMake = document.getElementById('bizHeroMake');
   let logoDataUrl = null;
   let heroDataUrl = null;
   bizLogo.addEventListener('change', async () => {
-    if (bizLogo.files.length) {
-      bizLogoMake.checked = false;
-      logoDataUrl = await readFileAsDataURL(bizLogo.files[0]);
-      refreshPreview();
-    }
-  });
-  bizLogoMake.addEventListener('change', () => {
-    if (bizLogoMake.checked) { bizLogo.value = ''; logoDataUrl = null; refreshPreview(); }
+    logoDataUrl = bizLogo.files.length ? await readFileAsDataURL(bizLogo.files[0]) : null;
+    refreshPreview();
   });
   bizHeroImg.addEventListener('change', async () => {
-    if (bizHeroImg.files.length) {
-      bizHeroMake.checked = false;
-      heroDataUrl = await readFileAsDataURL(bizHeroImg.files[0]);
-      refreshPreview();
-    }
-  });
-  bizHeroMake.addEventListener('change', () => {
-    if (bizHeroMake.checked) { bizHeroImg.value = ''; heroDataUrl = null; refreshPreview(); }
+    heroDataUrl = bizHeroImg.files.length ? await readFileAsDataURL(bizHeroImg.files[0]) : null;
+    refreshPreview();
   });
 
   // gather every answer into the exact shape buildDemoHTML expects — used to
@@ -498,8 +485,8 @@ p{margin:0 0 1.1em}
     const goal = data.goal;
     const coloursName = bizColours.selectedIndex > 0 ? bizColours.options[bizColours.selectedIndex].textContent : '';
     const about = data.about;
-    const logoNote = logoDataUrl ? 'Logo: uploaded' : (bizLogoMake.checked ? 'Logo: please design one' : 'Logo: none');
-    const heroNote = heroDataUrl ? 'Hero photo: uploaded' : (bizHeroMake.checked ? 'Hero photo: please design one' : 'Hero photo: none');
+    const logoNote = logoDataUrl ? 'Logo: uploaded' : 'Logo: please design one';
+    const heroNote = heroDataUrl ? 'Hero photo: uploaded' : 'Hero photo: please design one';
 
     const demoHTML = buildDemoHTML(data);
     const blob = new Blob([demoHTML], { type: 'text/html' });
@@ -627,12 +614,12 @@ p{margin:0 0 1.1em}
             <div class="wiz-upload-card">
               <label for="bizLogo">Logo</label>
               <input type="file" id="bizLogo" accept="image/*">
-              <label class="wiz-check"><input type="checkbox" id="bizLogoMake">Design one for me</label>
+              <div class="wiz-upload-note">Leave blank and we'll design one for you</div>
             </div>
             <div class="wiz-upload-card">
               <label for="bizHeroImg">Homepage photo</label>
               <input type="file" id="bizHeroImg" accept="image/*">
-              <label class="wiz-check"><input type="checkbox" id="bizHeroMake" checked>Design one for me</label>
+              <div class="wiz-upload-note">Leave blank and we'll design one for you</div>
             </div>
           </div>
 

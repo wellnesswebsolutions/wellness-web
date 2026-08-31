@@ -432,6 +432,7 @@
   .wiz-check{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--ink);
     margin:10px 0 0!important;cursor:pointer}
   .wiz-check input{width:auto!important}
+  .wiz-upload-note{font-size:11px;color:var(--muted);margin-top:8px}
   .btn-send{display:block;width:100%;margin-top:12px;background:var(--accent);color:#fff;border:none;
     border-radius:999px;padding:13px 22px;font-size:13.5px;font-weight:700;cursor:pointer;transition:opacity .15s,transform .15s}
   .btn-send:hover{opacity:.9;transform:translateY(-1px)}
