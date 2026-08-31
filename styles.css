@@ -529,7 +529,7 @@
      scaled down via JS — scaling the iframe directly would make Chromium
      resolve its `width=device-width` viewport meta against the scaled
      size, silently triggering the site's own mobile CSS inside "desktop" */
-  .wiz-preview .bwin-body .frame-scale{position:absolute;top:0;left:0;width:1300px;height:2200px;transform-origin:top left}
+  .wiz-preview .bwin-body .frame-scale{position:absolute;top:0;left:0;width:1300px;height:800px;transform-origin:top left}
   .wiz-preview .bwin-body iframe{display:block;width:100%;height:100%;border:0;background:var(--card)}
   @media(max-width:820px){.wiz-preview .bwin-body{min-height:460px}}
 

@@ -741,23 +741,35 @@ showPage('home');
   // transform sits on the iframe element, silently tripping the site's
   // mobile CSS breakpoint inside the "desktop" preview. Scaling an
   // ancestor instead leaves the iframe's own viewport unaffected.
+  // the preview is a fixed browser-window-sized "viewport" (like a real
+  // desktop/mobile screen), not the whole scaled-down page — so it stays
+  // compact and locked at the top of the panel, and the extra page
+  // content scrolls WITHIN it (like an embedded site) instead of
+  // stretching the preview panel down the page.
   const DESKTOP_RENDER_WIDTH = 1300;
+  const DESKTOP_RENDER_HEIGHT = 800;
   const MOBILE_RENDER_WIDTH = 390;
+  const MOBILE_RENDER_HEIGHT = 780;
   let previewDevice = 'desktop';
   const frameScale = document.getElementById('frameScale');
   const viewDesktopBtn = document.getElementById('viewDesktop');
   const viewMobileBtn = document.getElementById('viewMobile');
   const viewFullscreenBtn = document.getElementById('viewFullscreen');
 
-  function renderWidth() { return previewDevice === 'mobile' ? MOBILE_RENDER_WIDTH : DESKTOP_RENDER_WIDTH; }
+  function renderSize() {
+    return previewDevice === 'mobile'
+      ? { w: MOBILE_RENDER_WIDTH, h: MOBILE_RENDER_HEIGHT }
+      : { w: DESKTOP_RENDER_WIDTH, h: DESKTOP_RENDER_HEIGHT };
+  }
   function scalePreviewFrame() {
     if (!frameScale || !frameScale.parentElement) return;
-    const w = renderWidth();
+    const { w, h } = renderSize();
     frameScale.style.width = w + 'px';
-    // bwin-body's own height is derived from its width via this ratio —
-    // frame-scale is position:absolute so its real 1300x2200 size never
-    // reaches bwin-body's layout sizing at all (see styles.css).
-    frameScale.parentElement.style.aspectRatio = `${w} / 2200`;
+    frameScale.style.height = h + 'px';
+    // bwin-body's own height is derived from its width via this fixed
+    // viewport ratio — frame-scale is position:absolute so its real
+    // size never reaches bwin-body's layout sizing at all (see styles.css).
+    frameScale.parentElement.style.aspectRatio = `${w} / ${h}`;
     const containerWidth = frameScale.parentElement.clientWidth;
     if (!containerWidth) return;
     frameScale.style.transform = `scale(${containerWidth / w})`;
