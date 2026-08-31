@@ -281,10 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // conversational step 1: one question at a time. The business name is
-  // asked on its own, big glowing box first; answering it reveals the live
-  // preview immediately, then each further question (type, location)
-  // glows in turn while everything already answered collapses to a small
-  // ✓ pill. Every answer updates the preview instantly.
+  // asked on its own, big glowing box first; answering it asks the type,
+  // then the location, each glowing in turn while everything already
+  // answered collapses to a small ✓ pill. Only once all three are answered
+  // does the personalised loading screen run, revealing the finished,
+  // live preview right after.
   const qaFlow = document.getElementById('qaFlow');
   const qaType = document.getElementById('qaType');
   const qaLocation = document.getElementById('qaLocation');
@@ -301,20 +302,14 @@ document.addEventListener('DOMContentLoaded', () => {
     qaFlow.insertBefore(pill, qaFlow.firstChild);
   }
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = bizNameInput.value.trim();
     if (!name) return;
     previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
 
-    await runCreatingAnimation(name.toUpperCase());
-
     form.classList.add('answered');
     addNamePill(name);
-    wizGrid.classList.add('active');
-    convRow.classList.add('collapsed');
-    refreshPreview();
-    setTimeout(scalePreviewFrame, 650); // re-measure once the reveal transition finishes
 
     qaType.dataset.state = 'active';
     setTimeout(() => bizTagline.focus(), 400);
@@ -326,22 +321,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (info) bizServices.value = info.services.join(', ');
     qaTypePillText.textContent = bizTagline.value;
     qaType.dataset.state = 'done';
-    refreshPreview();
 
     qaLocation.dataset.state = 'active';
     setTimeout(() => bizLocation.focus(), 400);
   });
 
-  function finishLocation() {
+  async function finishLocation() {
     const loc = bizLocation.value.trim();
     if (!loc) return;
     qaLocationPillText.textContent = loc;
     qaLocation.dataset.state = 'done';
+
+    const name = bizNameInput.value.trim();
+    await runCreatingAnimation(name.toUpperCase());
+
+    wizGrid.classList.add('active');
+    convRow.classList.add('collapsed');
     refreshPreview();
+    setTimeout(scalePreviewFrame, 650); // re-measure once the reveal transition finishes
     wizLikeIt.classList.add('active');
     wizLikeIt.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-    postLead(bizNameInput.value.trim(), 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
+    postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
   }
   bizLocation.addEventListener('input', () => {
     qaLocationNext.classList.toggle('visible', !!bizLocation.value.trim());
