@@ -63,68 +63,149 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!form) return;
 
   // ---- business types: label, wall-scene category, and 3 typical services ----
+  // each business type's services are organised into ~6 groups of 5 (30
+  // total), matching a real treatment-menu/price-list page. `services`/
+  // `prices` (used for hidden auto-fill + homepage teaser tiles) are
+  // derived from the groups by flattenGroups() below.
+  function G(name, items) { return { name, items }; } // items: [label, price] pairs
   const BUSINESS_TYPES = [
-    { label: '💇 Hair & Beauty', cat: 'hairbeauty', photo: 'hair-beauty-hero.jpg',
-      services: ['Cuts & styling', 'Colour & balayage', 'Manicure & pedicure', 'Facials', 'Waxing & brows'],
-      prices: ['From £32', 'From £68', 'From £28', 'From £45', 'From £15'],
+    { label: 'Hair & Beauty', cat: 'hairbeauty', photo: 'hair-beauty-hero.jpg',
       tagline: 'Hair and beauty, done properly',
-      desc: '{name} is a friendly, modern salon where every visit starts with a proper consultation, not a rushed guess. Whatever you’re after, our team takes the time to get it right.' },
-    { label: '✨ Aesthetics', cat: 'aesthetics', photo: 'aesthetics-hero.jpg',
-      services: ['Anti-wrinkle treatments', 'Dermal fillers', 'Skin peels', 'Laser treatments', 'Consultations'],
-      prices: ['From £150', 'From £180', 'From £65', 'From £45', 'Free'],
+      desc: '{name} is a friendly, modern salon where every visit starts with a proper consultation, not a rushed guess. Whatever you’re after, our team takes the time to get it right.',
+      groups: [
+        G('Hair', [['Cuts & styling', 'From £32'], ['Colour & balayage', 'From £68'], ['Blow-dry', 'From £22'], ['Keratin treatment', 'From £85'], ['Hair extensions', 'From £150']]),
+        G('Nails', [['Manicure', 'From £22'], ['Pedicure', 'From £28'], ['Gel extensions', 'From £38'], ['Nail art', 'From £8'], ['Acrylic infills', 'From £25']]),
+        G('Facials & Skin', [['Classic facial', 'From £35'], ['Deep cleanse facial', 'From £45'], ['Micro-needling', 'From £90'], ['Chemical peel', 'From £65'], ['LED light therapy', 'From £30']]),
+        G('Waxing', [['Full leg wax', 'From £25'], ['Underarm wax', 'From £10'], ['Bikini wax', 'From £18'], ['Facial wax', 'From £8'], ['Back & chest wax', 'From £22']]),
+        G('Brows & Lashes', [['Brow shape & tint', 'From £15'], ['Lash lift', 'From £35'], ['Classic lashes', 'From £45'], ['Russian volume lashes', 'From £60'], ['Lash tint', 'From £12']]),
+        G('Makeup & Tanning', [['Occasion makeup', 'From £35'], ['Bridal makeup', 'From £85'], ['Spray tan', 'From £25'], ['Makeup lesson', 'From £45'], ['Party makeup', 'From £30']])
+      ] },
+    { label: 'Aesthetics', cat: 'aesthetics', photo: 'aesthetics-hero.jpg',
       tagline: 'Advanced treatments, honest advice',
-      desc: '{name} offers professional-grade aesthetic treatments in a private, clinical setting. Every treatment starts with a proper consultation, so you know exactly what to expect.' },
-    { label: '💆 Health & Wellness', cat: 'health',
-      services: ['Massage therapy', 'Physiotherapy', 'Acupuncture', 'Reflexology', 'Wellness consultations'],
-      prices: ['From £45', 'From £55', 'From £40', 'From £35', 'From £30'],
+      desc: '{name} offers professional-grade aesthetic treatments in a private, clinical setting. Every treatment starts with a proper consultation, so you know exactly what to expect.',
+      groups: [
+        G('Injectables', [['Anti-wrinkle treatment', 'From £150'], ['Dermal fillers', 'From £180'], ['Lip filler', 'From £160'], ['Jaw filler', 'From £250'], ['Profhilo', 'From £220']]),
+        G('Skin Treatments', [['Chemical peel', 'From £65'], ['Microneedling', 'From £90'], ['Dermaplaning', 'From £45'], ['HydraFacial', 'From £75'], ['LED light therapy', 'From £30']]),
+        G('Laser', [['Laser hair removal', 'From £35'], ['Skin resurfacing', 'From £120'], ['Pigmentation removal', 'From £80'], ['Thread vein removal', 'From £60'], ['Tattoo removal', 'From £50/session']]),
+        G('Body', [['Fat dissolving injections', 'From £180'], ['Body contouring', 'From £150'], ['Cellulite treatment', 'From £90'], ['Skin tightening', 'From £120'], ['Body wrap', 'From £55']]),
+        G('Advanced Facials', [['CACI facial', 'From £55'], ['Oxygen facial', 'From £60'], ['Radiofrequency facial', 'From £85'], ['Vitamin C facial', 'From £50'], ['Anti-ageing facial', 'From £70']]),
+        G('Consultations', [['Skin consultation', 'Free'], ['Patch test', 'Free'], ['Treatment planning', 'Free'], ['Follow-up review', 'From £20'], ['Virtual consultation', 'Free']])
+      ] },
+    { label: 'Health & Wellness', cat: 'health',
       tagline: 'Feel better, move better',
-      desc: '{name} helps you feel and move better, with treatments built around what your body actually needs — not a generic routine.' },
-    { label: '🏋️ Fitness', cat: 'fitness', photo: 'fitness-hero.jpg',
-      services: ['1-to-1 training', 'Group classes', 'Nutrition plans', 'Online coaching', 'Body composition scan'],
-      prices: ['From £45', 'From £12', 'From £80', 'From £60/mo', 'From £25'],
+      desc: '{name} helps you feel and move better, with treatments built around what your body actually needs — not a generic routine.',
+      groups: [
+        G('Massage', [['Swedish massage', 'From £45'], ['Deep tissue massage', 'From £55'], ['Sports massage', 'From £50'], ['Hot stone massage', 'From £60'], ['Pregnancy massage', 'From £50']]),
+        G('Physiotherapy', [['Initial assessment', 'From £55'], ['Sports injury treatment', 'From £50'], ['Rehab programme', 'Get a quote'], ['Postural assessment', 'From £40'], ['Follow-up session', 'From £40']]),
+        G('Alternative Therapies', [['Acupuncture', 'From £40'], ['Reflexology', 'From £35'], ['Reiki', 'From £40'], ['Cupping therapy', 'From £45'], ['Aromatherapy', 'From £40']]),
+        G('Mental Wellness', [['Counselling session', 'From £50'], ['Mindfulness coaching', 'From £45'], ['Stress management', 'From £45'], ['Life coaching', 'From £60'], ['Group therapy', 'From £25']]),
+        G('Nutrition', [['Nutrition consultation', 'From £45'], ['Meal planning', 'From £35'], ['Weight management', 'From £40'], ['Food intolerance testing', 'From £75'], ['Follow-up review', 'From £30']]),
+        G('Clinics', [['Health screening', 'From £60'], ['Blood pressure check', 'From £15'], ['Vaccination', 'From £25'], ['Travel clinic', 'From £35'], ['General consultation', 'From £40']])
+      ] },
+    { label: 'Fitness', cat: 'fitness', photo: 'fitness-hero.jpg',
       tagline: 'Training plans built around real life',
-      desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.' },
-    { label: '🚗 Automotive', cat: 'automotive', photo: 'automotive-hero.jpg',
-      services: ['MOT testing', 'Servicing', 'Diagnostics', 'Tyre fitting', 'Full valet'],
-      prices: ['From £45', 'From £120', 'From £60', 'From £25', 'From £60'],
+      desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.',
+      groups: [
+        G('Personal Training', [['1-to-1 training', 'From £45'], ['Couples training', 'From £65'], ['Small group training', 'From £20'], ['Online coaching', 'From £60/mo'], ['Assessment session', 'From £25']]),
+        G('Classes', [['HIIT class', 'From £12'], ['Yoga class', 'From £10'], ['Spin class', 'From £12'], ['Pilates class', 'From £12'], ['Boxing class', 'From £14']]),
+        G('Nutrition & Body', [['Nutrition plan', 'From £80'], ['Body composition scan', 'From £25'], ['Meal prep guidance', 'From £40'], ['Supplement advice', 'Free'], ['Progress review', 'From £20']]),
+        G('Memberships', [['Monthly membership', 'From £35/mo'], ['Annual membership', 'From £350/yr'], ['Day pass', 'From £10'], ['Class pack (10)', 'From £90'], ['Student membership', 'From £25/mo']]),
+        G('Recovery', [['Sports massage', 'From £45'], ['Stretching session', 'From £25'], ['Recovery room access', 'From £15'], ['Ice bath', 'From £15'], ['Cryotherapy', 'From £35']]),
+        G('Specialist', [['Pre/post-natal training', 'From £45'], ['Youth training', 'From £30'], ['Senior fitness', 'From £30'], ['Rehab training', 'From £45'], ['Sports-specific training', 'From £50']])
+      ] },
+    { label: 'Automotive', cat: 'automotive', photo: 'automotive-hero.jpg',
       tagline: 'Honest, no-nonsense car care',
-      desc: '{name} is your local garage for honest, no-nonsense car care. Our qualified team explains what your car actually needs — and nothing it doesn’t.' },
-    { label: '🔨 Trades', cat: 'trades', photo: 'trades-hero.jpg',
-      services: ['Emergency call-outs', 'Boiler repair', 'Rewiring', 'Extensions', 'Bathroom fitting'],
-      prices: ['From £75', 'From £150', 'Get a quote', 'Get a quote', 'Get a quote'],
+      desc: '{name} is your local garage for honest, no-nonsense car care. Our qualified team explains what your car actually needs — and nothing it doesn’t.',
+      groups: [
+        G('Servicing', [['Full service', 'From £120'], ['Interim service', 'From £80'], ['MOT testing', 'From £45'], ['Diagnostics', 'From £60'], ['Oil change', 'From £45']]),
+        G('Repairs', [['Brake repair', 'From £150'], ['Clutch replacement', 'From £350'], ['Suspension repair', 'From £120'], ['Exhaust repair', 'From £80'], ['Engine repair', 'Get a quote']]),
+        G('Tyres & Wheels', [['Tyre fitting', 'From £25'], ['Wheel alignment', 'From £45'], ['Wheel balancing', 'From £20'], ['Puncture repair', 'From £15'], ['Tyre pressure check', 'Free']]),
+        G('Valeting', [['Full valet', 'From £60'], ['Interior detail', 'From £80'], ['Exterior wash', 'From £15'], ['Engine bay clean', 'From £30'], ['Ceramic coating', 'From £250']]),
+        G('Air Con & Electrics', [['Air con regas', 'From £50'], ['Battery replacement', 'From £80'], ['Electrical diagnostics', 'From £45'], ['Alternator repair', 'From £150'], ['Starter motor repair', 'From £150']]),
+        G('Bodywork', [['Dent removal', 'From £60'], ['Scratch repair', 'From £50'], ['Paint correction', 'From £150'], ['Bumper repair', 'From £120'], ['Alloy wheel refurb', 'From £45']])
+      ] },
+    { label: 'Trades', cat: 'trades', photo: 'trades-hero.jpg',
       tagline: 'Fast, fully qualified tradework',
-      desc: '{name} is on call for the jobs that can’t wait, and the projects that can. Fully qualified, fully insured, and always upfront about pricing before we start.' },
-    { label: '🌿 Home & Garden', cat: 'homegarden', photo: 'home-garden-hero.jpg',
-      services: ['Garden design', 'Lawn care', 'Tree surgery', 'Fencing', 'Patio & decking'],
-      prices: ['Get a quote', 'From £35', 'From £150', 'From £45/m', 'Get a quote'],
+      desc: '{name} is on call for the jobs that can’t wait, and the projects that can. Fully qualified, fully insured, and always upfront about pricing before we start.',
+      groups: [
+        G('Plumbing', [['Emergency call-out', 'From £75'], ['Boiler repair', 'From £150'], ['Boiler installation', 'Get a quote'], ['Leak detection', 'From £65'], ['Tap & toilet repair', 'From £55']]),
+        G('Electrical', [['Rewiring', 'Get a quote'], ['Fuse box upgrade', 'From £350'], ['Socket & switch fitting', 'From £45'], ['PAT testing', 'From £3 per item'], ['EV charger install', 'From £650']]),
+        G('Building', [['Extensions', 'Get a quote'], ['Loft conversions', 'Get a quote'], ['Renovations', 'Get a quote'], ['Groundwork', 'Get a quote'], ['Plastering', 'From £250']]),
+        G('Roofing', [['Roof repair', 'From £150'], ['Re-roofing', 'Get a quote'], ['Guttering', 'From £120'], ['Flat roof repair', 'From £180'], ['Chimney repair', 'From £200']]),
+        G('Locksmith & Security', [['Lock changes', 'From £65'], ['Emergency lockout', 'From £85'], ['Key cutting', 'From £5'], ['Security upgrades', 'Get a quote'], ['uPVC door repair', 'From £75']]),
+        G('Cleaning', [['Domestic cleaning', 'From £15/hr'], ['End of tenancy clean', 'From £120'], ['Carpet cleaning', 'From £45'], ['Window cleaning', 'From £15'], ['Office cleaning', 'From £18/hr']])
+      ] },
+    { label: 'Home & Garden', cat: 'homegarden', photo: 'home-garden-hero.jpg',
       tagline: 'Spaces people love spending time in',
-      desc: '{name} designs and maintains outdoor spaces people actually want to spend time in. From a one-off tidy-up to a full redesign, we work with your space, not against it.' },
-    { label: '☕ Food & Drink', cat: 'fooddrink', photo: 'food-drink-hero.jpg',
-      services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes', 'A la carte dining', 'Takeaway'],
-      prices: ['From £3.50', 'From £4.50', 'From £35', 'From £18', 'From £12'],
+      desc: '{name} designs and maintains outdoor spaces people actually want to spend time in. From a one-off tidy-up to a full redesign, we work with your space, not against it.',
+      groups: [
+        G('Garden Design', [['Design consultation', 'From £75'], ['Planting plan', 'From £120'], ['Landscape design', 'Get a quote'], ['Patio design', 'From £90'], ['3D garden visual', 'From £150']]),
+        G('Maintenance', [['Lawn care', 'From £35'], ['Hedge trimming', 'From £45'], ['Weeding & tidy-up', 'From £40'], ['Seasonal clean-up', 'From £80'], ['Regular maintenance visit', 'From £30']]),
+        G('Landscaping', [['Tree surgery', 'From £150'], ['Fencing', 'From £45/m'], ['Patio & decking', 'Get a quote'], ['Turfing', 'From £25/m²'], ['Drainage work', 'Get a quote']]),
+        G('Interior', [['Interior design consultation', 'From £85'], ['Home staging', 'Get a quote'], ['Curtains & blinds', 'From £120'], ['Furniture assembly', 'From £40'], ['Room makeover', 'Get a quote']]),
+        G('Renovation', [['Kitchen fitting', 'Get a quote'], ['Bathroom renovation', 'Get a quote'], ['Painting & decorating', 'From £200'], ['Flooring', 'From £25/m²'], ['Plastering', 'From £250']]),
+        G('Outdoor Living', [['Garden building install', 'Get a quote'], ['Outdoor lighting', 'From £150'], ['Water features', 'From £250'], ['BBQ area build', 'Get a quote'], ['Furniture assembly', 'From £45']])
+      ] },
+    { label: 'Food & Drink', cat: 'fooddrink', photo: 'food-drink-hero.jpg',
       tagline: 'Made properly, every time',
-      desc: '{name} makes everything properly, with ingredients that matter. A spot for people who care about what they’re eating and drinking.' },
-    { label: '💼 Professional Services', cat: 'professional', photo: 'professional-services-hero.jpg',
-      services: ['Tax returns', 'Bookkeeping', 'Property sales', 'Valuations', 'Business advice'],
-      prices: ['From £150', 'From £40/mo', 'Get a quote', 'Free valuation', 'From £75/hr'],
+      desc: '{name} makes everything properly, with ingredients that matter. A spot for people who care about what they’re eating and drinking.',
+      groups: [
+        G('Bakery', [['Fresh bread', 'From £3.50'], ['Pastries', 'From £2.80'], ['Custom cakes', 'From £35'], ['Cupcakes', 'From £2.50'], ['Celebration cakes', 'From £55']]),
+        G('Cafe', [['Coffee & drinks', 'From £3'], ['Breakfast & brunch', 'From £6.50'], ['Sandwiches & light bites', 'From £5.50'], ['Afternoon tea', 'From £18'], ['Loyalty card', 'Free']]),
+        G('Dining', [['A la carte dining', 'From £18'], ['Set menu', 'From £25'], ['Sunday roast', 'From £16'], ['Tasting menu', 'From £45'], ['Private dining', 'Get a quote']]),
+        G('Takeaway & Delivery', [['Takeaway', 'From £12'], ['Delivery', 'From £14'], ['Click & collect', 'From £10'], ['Meal deals', 'From £15'], ['Party platters', 'From £35']]),
+        G('Events & Catering', [['Private events', 'Get a quote'], ['Wedding catering', 'Get a quote'], ['Corporate catering', 'Get a quote'], ['Buffet catering', 'From £12/head'], ['Drinks packages', 'Get a quote']]),
+        G('Drinks', [['Cocktails', 'From £9'], ['Wine list', 'From £24/bottle'], ['Craft beer', 'From £5'], ['Coffee subscription', 'From £15/mo'], ['Tasting sessions', 'From £25']])
+      ] },
+    { label: 'Professional Services', cat: 'professional', photo: 'professional-services-hero.jpg',
       tagline: 'Clear advice, no jargon',
-      desc: '{name} keeps things straightforward, with clear advice and deadlines that never sneak up on you. One trusted team, from start to finish.' },
-    { label: '📸 Creative', cat: 'creative', photo: 'creative-hero.jpg',
-      services: ['Portraits', 'Weddings', 'Commercial shoots', 'Product photography', 'Family sessions'],
-      prices: ['From £120', 'From £950', 'Get a quote', 'From £200', 'From £150'],
+      desc: '{name} keeps things straightforward, with clear advice and deadlines that never sneak up on you. One trusted team, from start to finish.',
+      groups: [
+        G('Accounting', [['Tax returns', 'From £150'], ['Bookkeeping', 'From £40/mo'], ['VAT returns', 'From £60'], ['Payroll', 'From £25/mo'], ['Annual accounts', 'From £250']]),
+        G('Business Advice', [['Business planning', 'From £150'], ['Start-up advice', 'From £75'], ['Growth strategy', 'Get a quote'], ['Financial forecasting', 'From £120'], ['Advisory session', 'From £75/hr']]),
+        G('Legal', [['Contract review', 'From £120'], ['Will writing', 'From £150'], ['Conveyancing', 'Get a quote'], ['Legal consultation', 'From £60'], ['Dispute resolution', 'Get a quote']]),
+        G('Property', [['Property sales', 'Get a quote'], ['Lettings', 'Get a quote'], ['Valuations', 'Free valuation'], ['Property management', 'Get a quote'], ['Land & new build', 'Get a quote']]),
+        G('Financial', [['Mortgage advice', 'Free'], ['Pension advice', 'From £150'], ['Investment advice', 'Get a quote'], ['Insurance advice', 'Free'], ['Financial planning', 'From £200']]),
+        G('Consulting', [['Strategy consulting', 'Get a quote'], ['IT consulting', 'From £85/hr'], ['HR consulting', 'From £75/hr'], ['Marketing consulting', 'From £75/hr'], ['Project management', 'Get a quote']])
+      ] },
+    { label: 'Creative', cat: 'creative', photo: 'creative-hero.jpg',
       tagline: 'The moments that actually matter',
-      desc: '{name} captures the moments that actually matter. A relaxed, professional approach that means natural results every time.' },
-    { label: '🐕 Pets', cat: 'pets', photo: 'pets-hero.jpg',
-      services: ['Full groom', 'Nail trim', 'Bath & brush', 'De-shedding treatment', 'Puppy introduction groom'],
-      prices: ['From £35', 'From £10', 'From £20', 'From £15', 'From £18'],
+      desc: '{name} captures the moments that actually matter. A relaxed, professional approach that means natural results every time.',
+      groups: [
+        G('Photography', [['Portraits', 'From £120'], ['Family sessions', 'From £150'], ['Weddings', 'From £950'], ['Newborn photography', 'From £180'], ['Event photography', 'From £250']]),
+        G('Commercial', [['Product photography', 'From £200'], ['Commercial shoots', 'Get a quote'], ['Branding photography', 'From £250'], ['Real estate photography', 'From £120'], ['Food photography', 'From £180']]),
+        G('Video', [['Wedding videography', 'From £850'], ['Promotional video', 'Get a quote'], ['Event videography', 'From £300'], ['Drone footage', 'From £150'], ['Video editing', 'From £50/hr']]),
+        G('Design', [['Logo design', 'From £250'], ['Brand identity', 'From £600'], ['Print design', 'From £120'], ['Web design', 'Get a quote'], ['Social media graphics', 'From £80']]),
+        G('Editing & Retouching', [['Photo editing', 'From £5/image'], ['Retouching', 'From £15/image'], ['Album design', 'From £150'], ['Colour grading', 'From £80'], ['Video editing', 'From £50/hr']]),
+        G('Prints & Products', [['Framed prints', 'From £35'], ['Photo books', 'From £65'], ['Canvas prints', 'From £45'], ['Digital downloads', 'From £10'], ['Prop hire', 'From £20']])
+      ] },
+    { label: 'Pets', cat: 'pets', photo: 'pets-hero.jpg',
       tagline: 'Calm, gentle care for your pet',
-      desc: '{name} gives your pet a calm, gentle experience from start to finish. Always handled with patience and care.' },
+      desc: '{name} gives your pet a calm, gentle experience from start to finish. Always handled with patience and care.',
+      groups: [
+        G('Grooming', [['Full groom', 'From £35'], ['Bath & brush', 'From £20'], ['Nail trim', 'From £10'], ['De-shedding treatment', 'From £15'], ['Puppy introduction groom', 'From £18']]),
+        G('Styling', [['Breed-specific trim', 'From £40'], ['Hand stripping', 'From £45'], ['Teeth cleaning', 'From £15'], ['Ear cleaning', 'From £8'], ['Creative grooming', 'From £25']]),
+        G('Health & Care', [['Flea treatment', 'From £12'], ['Anal gland expression', 'From £10'], ['Skin & coat treatment', 'From £15'], ['Health check', 'From £20'], ['Microchipping', 'From £20']]),
+        G('Boarding & Daycare', [['Dog boarding', 'From £25/night'], ['Cat boarding', 'From £18/night'], ['Doggy daycare', 'From £20/day'], ['Dog walking', 'From £12'], ['Pet sitting', 'From £15/visit']]),
+        G('Training', [['Puppy training', 'From £45'], ['Obedience training', 'From £40'], ['Behaviour consultation', 'From £65'], ['Group classes', 'From £15'], ['1-to-1 training', 'From £50']]),
+        G('Extras', [['Pet taxi', 'From £15'], ['Photography session', 'From £45'], ['Spa treatment', 'From £30'], ['Pawdicure', 'From £8'], ['Aromatherapy', 'From £12']])
+      ] },
     { label: 'Other', cat: 'other',
-      services: ['Consultation', 'Custom service', 'Ongoing support', 'One-off project', 'Callout'],
-      prices: ['Free', 'Get a quote', 'Get a quote', 'Get a quote', 'Get a quote'],
       tagline: 'Tell us what makes you different',
-      desc: '{name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.' }
+      desc: '{name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.',
+      groups: [
+        G('General Services', [['Consultation', 'Free'], ['Custom service', 'Get a quote'], ['Callout', 'Get a quote'], ['One-off project', 'Get a quote'], ['Assessment', 'From £25']]),
+        G('Ongoing', [['Ongoing support', 'Get a quote'], ['Maintenance plan', 'Get a quote'], ['Subscription service', 'Get a quote'], ['Regular visit', 'Get a quote'], ['Membership', 'Get a quote']]),
+        G('Specialist', [['Specialist service', 'Get a quote'], ['Advanced service', 'Get a quote'], ['Premium service', 'Get a quote'], ['Bespoke service', 'Get a quote'], ['Priority service', 'Get a quote']]),
+        G('Add-ons', [['Add-on service', 'Get a quote'], ['Upgrade', 'Get a quote'], ['Extra', 'Get a quote'], ['Enhancement', 'Get a quote'], ['Extension', 'Get a quote']]),
+        G('Consultation', [['Initial consultation', 'Free'], ['Follow-up', 'Get a quote'], ['Review session', 'Get a quote'], ['Planning session', 'Get a quote'], ['Assessment', 'Get a quote']]),
+        G('Custom', [['Bespoke project', 'Get a quote'], ['Custom order', 'Get a quote'], ['Special request', 'Get a quote'], ['Tailored package', 'Get a quote'], ['Made to measure', 'Get a quote']])
+      ] }
   ];
+  function flattenGroups(t) {
+    const items = t.groups.reduce((all, g) => all.concat(g.items), []);
+    return { services: items.map(i => i[0]), prices: items.map(i => i[1]) };
+  }
   BUSINESS_TYPES.forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.label;
@@ -286,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bizTagline.addEventListener('change', () => {
     if (!bizTagline.value) return;
     const info = typeInfo(bizTagline.value);
-    if (info) { bizServices.value = info.services.join(', '); bizPrices.value = info.prices.join(', '); }
+    if (info) { const flat = flattenGroups(info); bizServices.value = flat.services.join(', '); bizPrices.value = flat.prices.join(', '); }
     qaTypePillText.textContent = bizTagline.value;
     qaType.dataset.state = 'done';
     setProgressStep(3);
@@ -328,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // populated with the answers, and open it in a new tab.
   function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   function buildDemoHTML(d) {
+    const info = typeInfo(d.tagline);
     const services = d.services.length ? d.services : ['Service one', 'Service two', 'Service three'];
     const prices = d.prices || [];
     const goalLabel = d.goal || 'Book now';
@@ -336,7 +418,8 @@ document.addEventListener('DOMContentLoaded', () => {
       s => `${esc(s)}, done properly, every time. Get in touch to check availability.`,
       s => `Popular with regulars. Get in touch and we'll talk you through ${esc(s.toLowerCase())}.`
     ];
-    // 3 tile cards for the homepage "most popular" teaser
+    // 3 tile cards for the homepage "most popular" teaser — always the
+    // first 3 items of the first group (or the flat list as a fallback)
     const popularCards = services.slice(0, 3).map((s, i) => `
         <a class="card card-link" href="#" data-nav="services">
           <span class="num">Most Popular · ${esc(s)}</span>
@@ -344,15 +427,25 @@ document.addEventListener('DOMContentLoaded', () => {
           <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
           <span class="card-cta">Learn more</span>
         </a>`).join('');
-    // every service as a neat list row for the dedicated Services page
-    const serviceRows = services.map((s, i) => `
+    // Services page: grouped sections (Bayar-style treatment menu) when
+    // the type has groups, otherwise a flat list of whatever's in d.services
+    function serviceRowsFor(items, offset) {
+      return items.map(([s, price], i) => `
         <div class="service-row">
           <div class="service-row-main">
             <h3>${esc(s)}</h3>
-            <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
+            <p>${cardBlurbs[(offset + i) % cardBlurbs.length](s)}</p>
           </div>
-          ${prices[i] ? `<span class="service-row-price">${esc(prices[i])}</span>` : ''}
+          ${price ? `<span class="service-row-price">${esc(price)}</span>` : ''}
         </div>`).join('');
+    }
+    const serviceGroups = info && info.groups
+      ? info.groups.map(g => `
+        <div class="service-group">
+          <h3 class="service-group-title">${esc(g.name)}</h3>
+          <div class="service-list">${serviceRowsFor(g.items, 0)}</div>
+        </div>`).join('')
+      : `<div class="service-list">${serviceRowsFor(services.map((s, i) => [s, prices[i]]), 0)}</div>`;
     const tags = services.slice(0, 4).map(s => `<span>${esc(s)}</span>`).join('');
     // fake but plausible contact details for the demo — Ofcom reserves
     // 07700 900xxx for fictional use, so it's never a real number.
@@ -372,7 +465,6 @@ document.addEventListener('DOMContentLoaded', () => {
           font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
           background:linear-gradient(${135 + i * 20}deg,${t.dark},${t.light})">Add your photos</figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
-    const info = typeInfo(d.tagline);
     const cat = info ? info.cat : 'office';
     const defaultDesc = info ? info.desc.replace(/\{name\}/g, d.name) : `${d.name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.`;
     const heroHook = info ? info.tagline : (d.tagline || 'Tell us what makes you different — this line introduces your business.');
@@ -481,6 +573,9 @@ p{margin:0 0 1.1em}
 .card p:last-child{margin-bottom:0}
 .card-link{display:block;text-decoration:none;color:inherit}
 .card-cta{display:inline-flex;align-items:center;gap:8px;margin-top:1.2em;font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-dark)}
+.service-group{margin-bottom:2.4em}
+.service-group:last-child{margin-bottom:0}
+.service-group-title{font-family:'Montserrat',sans-serif;font-weight:600;font-size:1.3rem;color:var(--rose-dark);margin-bottom:.4em}
 .service-list{border-top:1px solid var(--line)}
 .service-row{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;padding:28px 0;border-bottom:1px solid var(--line)}
 .service-row-main h3{font-size:1.08rem;margin-bottom:.35em}
@@ -593,7 +688,7 @@ p{margin:0 0 1.1em}
   </section>
   <section class="section" style="padding-top:0">
     <div class="container">
-      <div class="service-list">${serviceRows}</div>
+      ${serviceGroups}
     </div>
   </section>
 </div>
