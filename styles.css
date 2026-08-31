@@ -363,12 +363,11 @@
      this is a soft ambient bloom that pulses gently — even on any shape. */
   .glow-box{position:relative;border-radius:20px;border:1px solid rgba(91,58,115,.18);
     background:var(--card);
-    box-shadow:0 0 30px -4px rgba(185,143,201,.55), 0 0 60px -12px rgba(91,58,115,.4),
-      0 20px 50px -18px rgba(91,58,115,.3);
+    box-shadow:0 0 24px 0 rgba(185,143,201,.55), 0 0 48px 0 rgba(91,58,115,.4), 0 0 90px 0 rgba(91,58,115,.22);
     animation:glow-pulse 2.6s ease-in-out infinite}
   .glow-box > *{position:relative;z-index:2}
-  @keyframes glow-pulse{0%,100%{box-shadow:0 0 30px -4px rgba(185,143,201,.55), 0 0 60px -12px rgba(91,58,115,.4), 0 20px 50px -18px rgba(91,58,115,.3)}
-    50%{box-shadow:0 0 40px -2px rgba(185,143,201,.75), 0 0 80px -10px rgba(91,58,115,.55), 0 20px 50px -18px rgba(91,58,115,.3)}}
+  @keyframes glow-pulse{0%,100%{box-shadow:0 0 24px 0 rgba(185,143,201,.55), 0 0 48px 0 rgba(91,58,115,.4), 0 0 90px 0 rgba(91,58,115,.22)}
+    50%{box-shadow:0 0 32px 2px rgba(185,143,201,.75), 0 0 64px 4px rgba(91,58,115,.55), 0 0 110px 6px rgba(91,58,115,.3)}}
   @media(prefers-reduced-motion:reduce){.glow-box{animation:none}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
