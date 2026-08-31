@@ -361,8 +361,8 @@
   @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
   .glow-box{position:relative;border-radius:20px}
   .glow-box:before{content:"";position:absolute;inset:-2px;border-radius:22px;z-index:0;
-    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), transparent 30%, transparent 70%, var(--accent));
-    filter:blur(3px);opacity:.75;animation:glow-spin 4s linear infinite}
+    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
+    filter:blur(3px);opacity:.8;animation:glow-spin 4s linear infinite}
   .glow-box:after{content:"";position:absolute;inset:0;border-radius:20px;z-index:1;background:var(--card)}
   .glow-box > *{position:relative;z-index:2}
   @keyframes glow-spin{to{--glow-angle:360deg}}
