@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('quickLead');
   const status = document.getElementById('quickLeadStatus');
   const wizGrid = document.getElementById('wizGrid');
+  const wizPreview = document.getElementById('wizPreview');
   const convRow = document.getElementById('convRow');
   const bizNameInput = document.getElementById('bizName');
   const bizTagline = document.getElementById('bizTagline');
@@ -549,15 +550,25 @@ p{margin:0 0 1.1em}
       heroImage: heroDataUrl
     };
   }
-  // the iframe always renders at a fixed desktop width (1300px, matching
-  // buildDemoHTML's real output) and is scaled down to fit the panel, so the
-  // preview never triggers different "mobile" CSS to the actual download.
-  const DEMO_RENDER_WIDTH = 1300;
+  // the iframe always renders at a fixed real-world width (matching
+  // buildDemoHTML's real output at that breakpoint) and is scaled down to
+  // fit the panel, so the preview never triggers CSS breakpoints the actual
+  // download wouldn't hit at that same device width.
+  const DESKTOP_RENDER_WIDTH = 1300;
+  const MOBILE_RENDER_WIDTH = 390;
+  let previewDevice = 'desktop';
+  const viewDesktopBtn = document.getElementById('viewDesktop');
+  const viewMobileBtn = document.getElementById('viewMobile');
+  const viewFullscreenBtn = document.getElementById('viewFullscreen');
+
+  function renderWidth() { return previewDevice === 'mobile' ? MOBILE_RENDER_WIDTH : DESKTOP_RENDER_WIDTH; }
   function scalePreviewFrame() {
     if (!previewFrame || !previewFrame.parentElement) return;
+    const w = renderWidth();
+    previewFrame.style.width = w + 'px';
     const containerWidth = previewFrame.parentElement.clientWidth;
     if (!containerWidth) return;
-    previewFrame.style.transform = `scale(${containerWidth / DEMO_RENDER_WIDTH})`;
+    previewFrame.style.transform = `scale(${containerWidth / w})`;
   }
   window.addEventListener('resize', scalePreviewFrame);
   function refreshPreview() {
@@ -565,6 +576,30 @@ p{margin:0 0 1.1em}
     previewFrame.srcdoc = buildDemoHTML(gatherData());
     scalePreviewFrame();
   }
+
+  function setPreviewDevice(device) {
+    previewDevice = device;
+    viewDesktopBtn.classList.toggle('active', device === 'desktop');
+    viewMobileBtn.classList.toggle('active', device === 'mobile');
+    wizPreview.classList.toggle('mobile', device === 'mobile');
+    scalePreviewFrame();
+  }
+  viewDesktopBtn.addEventListener('click', () => setPreviewDevice('desktop'));
+  viewMobileBtn.addEventListener('click', () => setPreviewDevice('mobile'));
+  viewFullscreenBtn.addEventListener('click', () => {
+    wizPreview.classList.toggle('fullscreen');
+    viewFullscreenBtn.textContent = wizPreview.classList.contains('fullscreen') ? '✕' : '⛶';
+    viewFullscreenBtn.title = wizPreview.classList.contains('fullscreen') ? 'Exit full screen' : 'Full screen preview';
+    scalePreviewFrame();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && wizPreview.classList.contains('fullscreen')) {
+      wizPreview.classList.remove('fullscreen');
+      viewFullscreenBtn.textContent = '⛶';
+      viewFullscreenBtn.title = 'Full screen preview';
+      scalePreviewFrame();
+    }
+  });
 
   async function postLead(business_name, details) {
     const res = await fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
@@ -753,7 +788,14 @@ p{margin:0 0 1.1em}
 
       <div class="wiz-preview" id="wizPreview">
         <div class="bwin">
-          <div class="bwin-bar"><i></i><i></i><i></i><span class="url" id="previewUrl">your-business.co.uk</span></div>
+          <div class="bwin-bar">
+            <i></i><i></i><i></i><span class="url" id="previewUrl">your-business.co.uk</span>
+            <div class="bwin-tools">
+              <button type="button" class="bwin-btn active" id="viewDesktop" aria-label="Desktop view" title="Desktop view">🖥️</button>
+              <button type="button" class="bwin-btn" id="viewMobile" aria-label="Mobile view" title="Mobile view">📱</button>
+              <button type="button" class="bwin-btn" id="viewFullscreen" aria-label="Full screen preview" title="Full screen preview">⛶</button>
+            </div>
+          </div>
           <div class="bwin-body" id="previewScroll">
             <iframe id="previewFrame" title="Live preview of your homepage" scrolling="yes"></iframe>
           </div>

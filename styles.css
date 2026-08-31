@@ -452,14 +452,29 @@
   .wiz-preview .bwin-bar i:nth-child(1){background:#e9b0a0}
   .wiz-preview .bwin-bar i:nth-child(2){background:#e9d19c}
   .wiz-preview .bwin-bar i:nth-child(3){background:#a8c9a0}
-  .wiz-preview .bwin-bar .url{flex:1;margin-left:6px;background:var(--card);border:1px solid var(--line);
-    border-radius:999px;padding:6px 14px;font-size:12px;color:var(--muted);text-align:center}
-  .wiz-preview .bwin-body{position:relative;flex:1;min-height:340px;overflow:hidden}
-  /* rendered at a fixed desktop width and scaled down via JS, so the preview
-     always matches the real desktop output instead of triggering mobile CSS */
+  .wiz-preview .bwin-bar .url{flex:1;min-width:0;margin-left:6px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:6px 14px;font-size:12px;color:var(--muted);text-align:center;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wiz-preview .bwin-tools{display:flex;align-items:center;gap:4px;flex:none;margin-left:6px}
+  .wiz-preview .bwin-btn{width:28px;height:28px;border-radius:8px;border:1px solid transparent;background:transparent;
+    font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.55;
+    transition:opacity .15s ease,background .15s ease,border-color .15s ease}
+  .wiz-preview .bwin-btn:hover{opacity:.85}
+  .wiz-preview .bwin-btn.active{opacity:1;background:var(--card);border-color:var(--line)}
+  .wiz-preview .bwin-body{position:relative;flex:1;min-height:340px;overflow:hidden;display:flex;justify-content:center}
+  /* rendered at a fixed device width and scaled down via JS, so the preview
+     always matches the real desktop/mobile output instead of mismatched CSS */
   .wiz-preview .bwin-body iframe{display:block;width:1300px;height:2200px;border:0;background:var(--card);
-    transform-origin:top left}
+    transform-origin:top center}
   @media(max-width:820px){.wiz-preview .bwin-body{min-height:460px}}
+
+  .wiz-preview.mobile .bwin{max-width:420px;margin:0 auto}
+
+  .wiz-preview.fullscreen{position:fixed;inset:0;z-index:999;max-height:none;opacity:1;transform:none;
+    background:rgba(36,27,46,.55);padding:clamp(16px,4vh,48px) clamp(16px,4vw,64px);backdrop-filter:blur(4px)}
+  .wiz-preview.fullscreen .bwin{height:100%;box-shadow:0 40px 120px -30px rgba(0,0,0,.5)}
+  .wiz-preview.fullscreen.mobile .bwin{max-width:420px;margin:0 auto}
+  .wiz-preview.fullscreen .bwin-body{min-height:0}
   /* placeholder full-bleed "photo" — swap for a real image later */
   .wiz-hero{position:relative;min-height:230px;display:flex;align-items:flex-end;overflow:hidden;
     background:linear-gradient(155deg,var(--accent),var(--gold))}
