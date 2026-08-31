@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const wizOrderSend = document.getElementById('wizOrderSend');
   const wizOrderStatus = document.getElementById('wizOrderStatus');
   const wizThanks = document.getElementById('wizThanks');
+  const wizExtra = document.getElementById('wizExtra');
+  const wizExtraSend = document.getElementById('wizExtraSend');
+  const wizExtraStatus = document.getElementById('wizExtraStatus');
 
   const creatingOverlay = document.getElementById('creatingOverlay');
   const creatingVerb = document.getElementById('creatingVerb');
@@ -866,10 +869,26 @@ showPage('home');
       await postLead(bizNameInput.value.trim(), 'ORDER CONFIRMED — £199 one-off + £20/mo management\n' + compileOrderDetails());
       wizOrder.classList.remove('active');
       wizThanks.classList.add('active');
+      wizExtra.classList.add('active');
       wizThanks.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
       wizOrderStatus.textContent = 'Something went wrong — please try again.';
       wizOrderStatus.className = 'quick-lead-status err';
+    }
+  });
+
+  // after the order's placed: everything else is optional and can be sent
+  // whenever — nothing here blocks getting started.
+  wizExtraSend.addEventListener('click', async () => {
+    wizExtraStatus.textContent = 'Sending...';
+    wizExtraStatus.className = 'quick-lead-status';
+    try {
+      await postLead(bizNameInput.value.trim(), 'Extra details\n' + compileOrderDetails());
+      wizExtraStatus.textContent = "Thanks — we've got it.";
+      wizExtraStatus.className = 'quick-lead-status ok';
+    } catch (err) {
+      wizExtraStatus.textContent = 'Something went wrong — please try again.';
+      wizExtraStatus.className = 'quick-lead-status err';
     }
   });
 });
@@ -944,22 +963,51 @@ showPage('home');
 
         <div class="wiz-panel" id="wizAbout">
           <div class="wiz-step-tag">Let's get your website ready</div>
-          <p class="wiz-extra-note">Your demo is already created — we just need a few details to build the final version.</p>
+          <p class="wiz-extra-note">Just need a few details to place your order — everything else can come after.</p>
+
+          <label for="custName">Full name</label>
+          <input type="text" id="custName" placeholder="Your name" required>
+          <div class="wiz-row">
+            <div><label for="custEmail">Email address</label><input type="email" id="custEmail" placeholder="you@business.co.uk" required></div>
+            <div><label for="custPhone">Phone number</label><input type="tel" id="custPhone" placeholder="07…" required></div>
+          </div>
+
+          <button type="button" id="wizAboutSend" class="btn-send">Continue to order →</button>
+          <div id="wizAboutStatus" class="quick-lead-status"></div>
+        </div>
+
+        <div class="wiz-panel" id="wizOrder">
+          <div class="wiz-step-tag">Your website</div>
+          <div class="wiz-order-card">
+            <div class="wiz-order-row"><span>Custom website</span><span class="wiz-order-price">£199</span></div>
+            <ul class="wiz-order-list">
+              <li>A modern, custom design built around your business</li>
+              <li>SEO optimisation</li>
+              <li>Optimised to increase bookings</li>
+              <li>First month of management free</li>
+            </ul>
+          </div>
+          <p class="wiz-extra-note">Then £20/month for hosting, updates &amp; ongoing management — cancel any time.</p>
+          <button type="button" id="wizOrderSend" class="btn-send">Order my website — £199 →</button>
+          <div id="wizOrderStatus" class="quick-lead-status"></div>
+        </div>
+
+        <div class="wiz-panel" id="wizThanks">
+          <div class="wiz-step-tag">You're all set</div>
+          <p class="wiz-extra-note">Thanks — your order's with us. We'll be in touch within 24 hours to confirm details and arrange secure payment.</p>
+        </div>
+
+        <div class="wiz-panel" id="wizExtra">
+          <div class="wiz-step-tag">A few more details <span class="wiz-step-optional">optional, send whenever</span></div>
+          <p class="wiz-extra-note">Fill in what you can now — nothing here is needed to get started, and you can always send the rest later.</p>
 
           <div class="wiz-row">
-            <div><label for="custName">Full name</label><input type="text" id="custName" placeholder="Your name" required></div>
-            <div><label for="custEmail">Email address</label><input type="email" id="custEmail" placeholder="you@business.co.uk" required></div>
-          </div>
-          <div class="wiz-row">
-            <div><label for="custPhone">Phone number</label><input type="tel" id="custPhone" placeholder="07…" required></div>
             <div><label for="custDomain">Existing website / domain</label><input type="text" id="custDomain" placeholder="If you have one"></div>
+            <div><label for="custBooking">Booking system</label><input type="text" id="custBooking" placeholder="e.g. Fresha, Treatwell, phone only"></div>
           </div>
           <label for="custServices">Services you'd like listed</label>
           <textarea id="custServices" placeholder="What should the site cover?"></textarea>
-          <label for="custBooking">Booking system</label>
-          <input type="text" id="custBooking" placeholder="e.g. Fresha, Treatwell, phone only — if relevant">
 
-          <div class="wiz-step-tag" style="margin-top:24px">Optional extras <span class="wiz-step-optional">send later if easier</span></div>
           <div class="wiz-row">
             <div><label for="bizSocial">Instagram</label><input type="text" id="bizSocial" placeholder="@yourbusiness"></div>
             <div><label for="bizFacebook">Facebook</label><input type="text" id="bizFacebook" placeholder="Facebook page link"></div>
@@ -995,29 +1043,8 @@ showPage('home');
           <label for="bizAbout">Anything you'd like changed from the demo?</label>
           <textarea id="bizAbout" placeholder="Notes, extra info, anything that helps…"></textarea>
 
-          <button type="button" id="wizAboutSend" class="btn-send">Continue to order →</button>
-          <div id="wizAboutStatus" class="quick-lead-status"></div>
-        </div>
-
-        <div class="wiz-panel" id="wizOrder">
-          <div class="wiz-step-tag">Your website</div>
-          <div class="wiz-order-card">
-            <div class="wiz-order-row"><span>Custom website</span><span class="wiz-order-price">£199</span></div>
-            <ul class="wiz-order-list">
-              <li>A modern, custom design built around your business</li>
-              <li>SEO optimisation</li>
-              <li>Optimised to increase bookings</li>
-              <li>First month of management free</li>
-            </ul>
-          </div>
-          <p class="wiz-extra-note">Then £20/month for hosting, updates &amp; ongoing management — cancel any time.</p>
-          <button type="button" id="wizOrderSend" class="btn-send">Order my website — £199 →</button>
-          <div id="wizOrderStatus" class="quick-lead-status"></div>
-        </div>
-
-        <div class="wiz-panel" id="wizThanks">
-          <div class="wiz-step-tag">You're all set</div>
-          <p class="wiz-extra-note">Thanks — your order's with us. We'll be in touch within 24 hours to confirm details and arrange secure payment.</p>
+          <button type="button" id="wizExtraSend" class="btn-send">Send details →</button>
+          <div id="wizExtraStatus" class="quick-lead-status"></div>
         </div>
       </div>
 
