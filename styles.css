@@ -352,55 +352,54 @@
       radial-gradient(65% 60% at 50% 0%, rgba(185,143,201,.3), rgba(247,242,236,0) 72%),
       radial-gradient(60% 55% at 50% 0%, rgba(255,251,243,.9), rgba(247,242,236,0) 68%), var(--bg)}
   .hero-conv-wrap{width:100%;position:relative;z-index:1}
-  .hero-conv-head{max-width:680px;margin:0 auto clamp(28px,6.5svh,60px);text-align:center}
+  .hero-conv-head{max-width:680px;margin:0 auto clamp(20px,4.5svh,40px);text-align:center}
   .hero-conv-head .eyebrow{font-size:clamp(11px,1.4vw,13px);letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:clamp(10px,2svh,18px)}
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,5vw,54px);line-height:1.12}
+  .hero-conv-sub{font-size:clamp(14px,1.6vw,17px);color:var(--muted);margin-top:12px}
 
-  @property --halo-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-  .quick-lead-halo{position:relative;width:100%;max-width:760px;margin:clamp(6px,1.2svh,12px) auto 0;border-radius:999px}
-  .quick-lead-halo:before{content:"";position:absolute;inset:-2px;border-radius:999px;z-index:0;
-    background:conic-gradient(from var(--halo-angle), var(--accent), var(--gold), transparent 35%, transparent 65%, var(--accent));
-    filter:blur(2px);opacity:.85;animation:halo-spin 3.2s linear infinite}
-  .quick-lead-halo:after{content:"";position:absolute;inset:-1px;border-radius:999px;z-index:0;
-    background:conic-gradient(from var(--halo-angle), var(--accent), var(--gold), transparent 35%, transparent 65%, var(--accent));
-    animation:halo-spin 3.2s linear infinite}
-  @keyframes halo-spin{to{--halo-angle:360deg}}
-  @media(prefers-reduced-motion:reduce){.quick-lead-halo:before,.quick-lead-halo:after{animation:none}}
-  .quick-lead{position:relative;z-index:1;display:flex;gap:10px;
-    background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 20px;
-    box-shadow:0 10px 30px rgba(23,32,31,.08)}
-  .quick-lead input{flex:1;border:none;background:transparent;font-family:var(--body);font-size:14.5px;
-    color:var(--ink);outline:none;min-width:0}
-  .quick-lead input::placeholder{color:var(--muted)}
-  .quick-lead button{background:var(--accent);color:#fff;border:none;border-radius:999px;padding:12px 22px;
-    font-size:13px;font-weight:700;letter-spacing:.02em;cursor:pointer;white-space:nowrap;transition:opacity .15s,transform .15s}
-  .quick-lead button:hover{opacity:.9;transform:translateY(-1px)}
-  @media(max-width:520px){
-    .quick-lead-halo{border-radius:20px}
-    .quick-lead-halo:before,.quick-lead-halo:after{border-radius:20px}
-    .quick-lead{flex-direction:column;border-radius:20px;padding:14px}
-    .quick-lead input{padding:8px 4px}
-    .quick-lead button{width:100%}
-  }
-  .quick-lead-tag{text-align:center;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--muted);margin-top:12px;font-weight:600}
+  /* ---- step 1: business name / type / location, in one simple card ---- */
+  .step1-card{position:relative;width:100%;max-width:560px;margin:clamp(20px,3svh,32px) auto 0;
+    background:var(--card);border:1px solid var(--line);border-radius:24px;padding:28px 28px 22px;
+    box-shadow:0 10px 30px rgba(23,32,31,.08), 0 0 0 1px rgba(91,58,115,.04)}
+  .step1-field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px}
+  .step1-card input[type="text"],.step1-card select{width:100%;border:1px solid var(--line);border-radius:12px;
+    padding:13px 14px;font-family:var(--body);font-size:14.5px;color:var(--ink);background:var(--bg);outline:none;appearance:none}
+  .step1-card select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237a6d81' stroke-width='2'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px}
+  .step1-card input::placeholder{color:var(--muted)}
+  .step1-card input:focus,.step1-card select:focus{border-color:var(--accent)}
+  .step1-card .wiz-row{margin-top:16px}
+  .step1-reassure{text-align:center;font-size:11.5px;letter-spacing:.04em;color:var(--muted);margin-top:12px}
   .quick-lead-status{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;min-height:18px}
   .quick-lead-status.ok{color:var(--accent);font-weight:600}
   .quick-lead-status.err{color:#b23b2c}
 
-  /* ---- interactive builder: business name -> about -> live preview ---- */
-  .wiz-grid{display:grid;grid-template-columns:1fr;max-width:760px;margin:0 auto;
+  /* ---- interactive builder: step 1 -> creation animation -> live preview -> order ---- */
+  .wiz-grid{display:grid;grid-template-columns:1fr;max-width:560px;margin:0 auto;
     transition:max-width .6s cubic-bezier(.22,.7,.3,1),gap .6s cubic-bezier(.22,.7,.3,1);gap:0}
   .wiz-grid.active{max-width:1080px;grid-template-columns:minmax(300px,420px) 1fr;align-items:stretch;gap:32px;text-align:left}
   .wiz-left{min-width:0;display:flex;flex-direction:column}
-  .wiz-grid .quick-lead-halo{transition:margin .6s cubic-bezier(.22,.7,.3,1)}
-  .wiz-grid.active .quick-lead-halo{margin-left:0;margin-right:0}
 
-  .wiz-about{max-height:0;opacity:0;overflow:hidden;position:relative;border-radius:20px;
+  /* generic reveal panel used for the "like what you see", order/onboarding
+     form, order summary and thank-you steps — each toggled independently
+     via JS, not tied to the preview being active */
+  .wiz-panel{max-height:0;opacity:0;overflow:hidden;position:relative;border-radius:20px;
     transition:max-height .55s cubic-bezier(.22,.7,.3,1),opacity .4s ease .1s,margin .55s cubic-bezier(.22,.7,.3,1)}
-  .wiz-grid.active .wiz-about{max-height:1600px;opacity:1;margin-top:16px;padding:24px;
+  .wiz-panel.active{max-height:2400px;opacity:1;margin-top:16px;padding:24px;
     background:var(--card);border:1px solid var(--line);
     box-shadow:0 0 0 1px rgba(91,58,115,.06), 0 30px 70px -30px rgba(91,58,115,.35), 0 0 60px -10px rgba(185,143,201,.35)}
+  .wiz-likeit{text-align:center}
+  .wiz-likeit-q{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+  .wiz-likeit h4{font-family:var(--display);font-size:19px;font-weight:800;color:var(--ink);margin:0 0 10px}
+  .wiz-likeit-price{font-family:var(--display);font-size:26px;font-weight:700;color:var(--ink);margin-bottom:14px}
+  .wiz-order-card{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .wiz-order-row{display:flex;align-items:baseline;justify-content:space-between;font-family:var(--display);
+    font-weight:700;font-size:17px;color:var(--ink);margin-bottom:12px}
+  .wiz-order-price{font-size:22px;color:var(--accent)}
+  .wiz-order-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .wiz-order-list li{font-size:13.5px;color:var(--ink);padding-left:22px;position:relative}
+  .wiz-order-list li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:700}
+  #wizThanks p{font-size:14px;line-height:1.6;color:var(--ink);margin:0}
   .wiz-step-tag{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:19px;font-weight:800;
     letter-spacing:-.01em;color:var(--ink);margin-top:28px;margin-bottom:14px;padding-bottom:10px;
     border-bottom:1px solid var(--line)}
@@ -411,32 +410,26 @@
     color:var(--muted);margin-left:2px}
   .wiz-hint-inline{font-family:var(--body);font-size:11px;font-weight:500;color:var(--muted);text-transform:none;
     letter-spacing:0}
-  .wiz-about label{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px;margin-top:14px}
-  .wiz-about label:first-of-type{margin-top:0}
+  .wiz-panel label{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px;margin-top:14px}
+  .wiz-panel label:first-of-type{margin-top:0}
   .wiz-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .wiz-row > div > label{margin-top:0}
   @media(max-width:520px){.wiz-row{grid-template-columns:1fr}}
-  .wiz-about input[type="text"],.wiz-about select{width:100%;border:1px solid var(--line);border-radius:12px;
+  .wiz-panel input[type="text"],.wiz-panel input[type="email"],.wiz-panel input[type="tel"],.wiz-panel select{
+    width:100%;border:1px solid var(--line);border-radius:12px;
     padding:12px 14px;font-family:var(--body);font-size:14px;color:var(--ink);background:var(--card);outline:none;appearance:none}
-  .wiz-about select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237a6d81' stroke-width='2'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+  .wiz-panel select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237a6d81' stroke-width='2'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px}
-  .wiz-about textarea{width:100%;min-height:80px;resize:vertical;border:1px solid var(--line);border-radius:16px;
+  .wiz-panel textarea{width:100%;min-height:80px;resize:vertical;border:1px solid var(--line);border-radius:16px;
     padding:14px 16px;font-family:var(--body);font-size:14px;color:var(--ink);background:var(--card);outline:none}
-  .wiz-about input[type="text"]:focus,.wiz-about select:focus,.wiz-about textarea:focus{border-color:var(--accent)}
-  .wiz-about input::placeholder,.wiz-about textarea::placeholder{color:var(--muted)}
+  .wiz-panel input:focus,.wiz-panel select:focus,.wiz-panel textarea:focus{border-color:var(--accent)}
+  .wiz-panel input::placeholder,.wiz-panel textarea::placeholder{color:var(--muted)}
   .wiz-hint{font-size:11px;color:var(--muted);margin-top:6px}
   .wiz-upload-card{background:var(--bg);border:1px dashed var(--line);border-radius:14px;padding:14px}
   .wiz-upload-card label:first-child{margin-top:0;margin-bottom:8px}
-  .wiz-about input[type="file"]{width:100%;font-size:11.5px;color:var(--muted);
+  .wiz-panel input[type="file"]{width:100%;font-size:11.5px;color:var(--muted);
     border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--card)}
-  .wiz-check{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--ink);
-    margin:10px 0 0!important;cursor:pointer}
-  .wiz-check input{width:auto!important}
-
-  .wiz-extra{max-height:0;opacity:0;overflow:hidden;
-    transition:max-height .55s cubic-bezier(.22,.7,.3,1),opacity .4s ease .1s,margin .55s cubic-bezier(.22,.7,.3,1)}
-  .wiz-extra.active{max-height:1600px;opacity:1;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
-  .wiz-extra-note{font-size:12px;color:var(--muted);margin:0 0 4px}
+  .wiz-extra-note{font-size:12px;color:var(--muted);margin:0 0 14px}
   .wiz-upload-note{font-size:11px;color:var(--muted);margin-top:8px}
   .btn-send{display:block;width:100%;margin-top:12px;background:var(--accent);color:#fff;border:none;
     border-radius:999px;padding:13px 22px;font-size:13.5px;font-weight:700;cursor:pointer;transition:opacity .15s,transform .15s}
@@ -516,6 +509,22 @@
     .wiz-preview{transform:none}
     .wiz-cards{grid-template-columns:1fr}
   }
+
+  /* personalised "building your website" transition, business name as anchor */
+  .creating-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 120% at 50% 20%,#332a4a 0%,#1c1626 55%,#120e1a 100%);
+    opacity:0;pointer-events:none;transition:opacity .5s ease}
+  .creating-overlay.active{opacity:1;pointer-events:auto}
+  .creating-inner{text-align:center;padding:0 24px;max-width:90vw}
+  .creating-verb{font-family:var(--body);font-size:clamp(12px,1.6vw,14px);font-weight:700;letter-spacing:.32em;
+    text-transform:uppercase;color:rgba(232,205,149,.85);margin-bottom:18px;min-height:1.2em;transition:opacity .18s ease}
+  .creating-name{font-family:var(--display);font-size:clamp(28px,6vw,60px);font-weight:600;color:#fff;
+    letter-spacing:-.01em;line-height:1.1;margin-bottom:18px;word-break:break-word;
+    text-shadow:0 0 40px rgba(185,143,201,.55),0 0 90px rgba(185,143,201,.3);transition:opacity .18s ease}
+  .creating-overlay.final .creating-name{text-shadow:0 0 60px rgba(232,205,149,.75),0 0 120px rgba(232,205,149,.45)}
+  .creating-sub{font-family:var(--body);font-size:clamp(12px,1.6vw,15px);font-weight:600;letter-spacing:.24em;
+    text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1.2em;transition:opacity .18s ease}
+  @media(prefers-reduced-motion:reduce){.creating-overlay,.creating-verb,.creating-name,.creating-sub{transition:none}}
 
   .conv-row{transition:max-height .5s cubic-bezier(.22,.7,.3,1),opacity .4s ease,margin .5s ease;overflow:hidden;max-height:900px}
   .conv-row.collapsed{max-height:0;opacity:0;margin-top:0}

@@ -29,36 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const bizColours = document.getElementById('bizColours');
   const bizAbout = document.getElementById('bizAbout');
   const bizSocial = document.getElementById('bizSocial');
-  const bizHeroImg = document.getElementById('bizHeroImg');
+  const bizFacebook = document.getElementById('bizFacebook');
   const bizLogo = document.getElementById('bizLogo');
   const bizGallery = document.getElementById('bizGallery');
   const previewUrl = document.getElementById('previewUrl');
   const previewFrame = document.getElementById('previewFrame');
-  const sendBtn = document.getElementById('wizSend');
-  const wizExtra = document.getElementById('wizExtra');
-  const extraSendBtn = document.getElementById('wizExtraSend');
-  const extraStatus = document.getElementById('wizExtraStatus');
-  if (!form) return;
 
-  function readFileAsDataURL(file) {
-    return new Promise((resolve) => {
-      if (!file) return resolve(null);
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-  }
-  let logoDataUrl = null;
-  let heroDataUrl = null;
-  bizLogo.addEventListener('change', async () => {
-    logoDataUrl = bizLogo.files.length ? await readFileAsDataURL(bizLogo.files[0]) : null;
-    refreshPreview();
-  });
-  bizHeroImg.addEventListener('change', async () => {
-    heroDataUrl = bizHeroImg.files.length ? await readFileAsDataURL(bizHeroImg.files[0]) : null;
-    refreshPreview();
-  });
+  const wizLikeIt = document.getElementById('wizLikeIt');
+  const wantThisBtn = document.getElementById('wantThisBtn');
+  const wizAboutPanel = document.getElementById('wizAbout');
+  const wizAboutSend = document.getElementById('wizAboutSend');
+  const wizAboutStatus = document.getElementById('wizAboutStatus');
+  const custName = document.getElementById('custName');
+  const custEmail = document.getElementById('custEmail');
+  const custPhone = document.getElementById('custPhone');
+  const custDomain = document.getElementById('custDomain');
+  const custServices = document.getElementById('custServices');
+  const custBooking = document.getElementById('custBooking');
+  const wizOrder = document.getElementById('wizOrder');
+  const wizOrderSend = document.getElementById('wizOrderSend');
+  const wizOrderStatus = document.getElementById('wizOrderStatus');
+  const wizThanks = document.getElementById('wizThanks');
+
+  const creatingOverlay = document.getElementById('creatingOverlay');
+  const creatingVerb = document.getElementById('creatingVerb');
+  const creatingName = document.getElementById('creatingName');
+  const creatingSub = document.getElementById('creatingSub');
+
+  if (!form) return;
 
   // ---- business types: label, wall-scene category, and 3 typical services ----
   const BUSINESS_TYPES = [
@@ -245,37 +243,69 @@ document.addEventListener('DOMContentLoaded', () => {
       dark: hslToHex(h, Math.min(s + 2, 70), 44)
     };
   }
-  let currentTones = null;
-  bizColours.addEventListener('change', () => {
-    currentTones = bizColours.value ? tonesFromHex(bizColours.value) : null;
-    refreshPreview();
-  });
+  // colour swatch chosen in step 2 is stored for the order details only —
+  // the live demo preview is locked in from step 1 and isn't touched by
+  // anything in the order/onboarding form.
 
-  // step 1: submitting the business name slides the box over, collapses the
-  // comparison cards, and opens the questions step with a live preview —
-  // which is the exact same generated homepage that "Get my free demo" opens.
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = bizNameInput.value.trim();
-    if (!name) return;
-    wizGrid.classList.add('active');
-    convRow.classList.add('collapsed');
-    previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
-    refreshPreview();
-    setTimeout(scalePreviewFrame, 650); // re-measure once the reveal transition finishes
-    bizTagline.focus();
-  });
+  // a short, personalised "building your website" transition — business
+  // name is the visual anchor, cycling through 4 short beats.
+  const CREATING_STEPS = [
+    { verb: 'Designing', sub: 'your new website' },
+    { verb: 'Creating', sub: 'your online presence' },
+    { verb: 'Personalising', sub: 'your experience' },
+    { verb: '', sub: 'your website is ready' }
+  ];
+  function swapText(el, text) {
+    el.style.opacity = 0;
+    setTimeout(() => { el.textContent = text; el.style.opacity = 1; }, 180);
+  }
+  function runCreatingAnimation(name) {
+    return new Promise((resolve) => {
+      creatingName.textContent = name;
+      creatingOverlay.classList.add('active');
+      let i = 0;
+      function step() {
+        const s = CREATING_STEPS[i];
+        swapText(creatingVerb, s.verb);
+        swapText(creatingSub, s.sub);
+        creatingOverlay.classList.toggle('final', i === CREATING_STEPS.length - 1);
+        i++;
+        if (i < CREATING_STEPS.length) {
+          setTimeout(step, 700);
+        } else {
+          setTimeout(() => { creatingOverlay.classList.remove('active'); resolve(); }, 750);
+        }
+      }
+      step();
+    });
+  }
 
-  // live preview updates as they answer each question
+  // step 1: business name + type + location only. Auto-fills the hidden
+  // services field from the chosen type, runs the personalised creation
+  // animation, then reveals the live preview.
   bizTagline.addEventListener('change', () => {
     const info = typeInfo(bizTagline.value);
     if (info) bizServices.value = info.services.join(', ');
-    refreshPreview();
   });
-  bizLocation.addEventListener('input', refreshPreview);
-  bizServices.addEventListener('input', refreshPreview);
-  bizGoal.addEventListener('change', refreshPreview);
-  bizAbout.addEventListener('input', refreshPreview);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = bizNameInput.value.trim();
+    if (!name || !bizTagline.value || !bizLocation.value.trim()) return;
+    const info = typeInfo(bizTagline.value);
+    if (info) bizServices.value = info.services.join(', ');
+    previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
+
+    await runCreatingAnimation(name.toUpperCase());
+
+    wizGrid.classList.add('active');
+    convRow.classList.add('collapsed');
+    refreshPreview();
+    setTimeout(scalePreviewFrame, 650); // re-measure once the reveal transition finishes
+    wizLikeIt.classList.add('active');
+
+    postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + bizLocation.value.trim()).catch(() => {});
+  });
 
   // build a full standalone homepage, styled like the Bayar Beauty site,
   // populated with the answers, and open it in a new tab.
@@ -535,8 +565,9 @@ p{margin:0 0 1.1em}
 </html>`;
   }
 
-  // gather every answer into the exact shape buildDemoHTML expects — used to
-  // keep the live preview and the "Get my free demo" download identical.
+  // gather step 1's answers into the shape buildDemoHTML expects. The live
+  // preview is locked in once it's shown — step 2's order/onboarding form
+  // doesn't feed back into it, by design.
   function gatherData() {
     return {
       name: bizNameInput.value.trim() || 'Your Business Name',
@@ -544,10 +575,10 @@ p{margin:0 0 1.1em}
       location: bizLocation.value.trim(),
       services: bizServices.value.split(',').map(s => s.trim()).filter(Boolean),
       goal: bizGoal.value,
-      about: bizAbout.value.trim(),
-      tones: currentTones,
-      logo: logoDataUrl,
-      heroImage: heroDataUrl
+      about: '',
+      tones: null,
+      logo: null,
+      heroImage: null
     };
   }
   // the iframe always renders at a fixed real-world width (matching
@@ -615,75 +646,68 @@ p{margin:0 0 1.1em}
     if (!res.ok) throw new Error(await res.text());
   }
 
-  function openDemo(data) {
-    const demoHTML = buildDemoHTML(data);
-    const blob = new Blob([demoHTML], { type: 'text/html' });
-    const demoUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = demoUrl;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  // step 1: build+open the demo straight away with what they've given us,
-  // send a first lead, then reveal the "one more thing" extras panel.
-  sendBtn.addEventListener('click', async () => {
-    const business_name = bizNameInput.value.trim();
-    if (!business_name) return;
-    const data = gatherData();
-    openDemo(data);
-
-    const detailParts = [];
-    if (data.tagline) detailParts.push('What they do: ' + data.tagline);
-    if (data.location) detailParts.push('Based in: ' + data.location);
-    if (data.services.length) detailParts.push('Services: ' + data.services.join(', '));
-    const details = detailParts.join('\n');
-    status.textContent = 'Sending...';
-    status.className = 'quick-lead-status';
-    try {
-      await postLead(business_name, details);
-      status.textContent = "Thanks! We'll be in touch within 24 hours.";
-      status.className = 'quick-lead-status ok';
-    } catch (err) {
-      status.textContent = 'Something went wrong — please try again.';
-      status.className = 'quick-lead-status err';
-    }
-    wizExtra.classList.add('active');
+  // "I want this website" — reveal the order/onboarding form. This step is
+  // for collecting what we need to build the final site, not for touching
+  // the demo they've already seen.
+  wantThisBtn.addEventListener('click', () => {
+    wizAboutPanel.classList.add('active');
+    wizAboutPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  // step 2: extra details, all optional — regenerate/reopen the demo with
-  // whatever they added and send a fuller lead.
-  extraSendBtn.addEventListener('click', async () => {
-    const business_name = bizNameInput.value.trim();
-    if (!business_name) return;
-    const data = gatherData();
-    openDemo(data);
-
-    const social = bizSocial.value.trim();
+  function compileOrderDetails() {
+    const parts = [
+      'Business: ' + bizNameInput.value.trim(),
+      'Type: ' + bizTagline.value,
+      'Location: ' + bizLocation.value.trim(),
+      'Contact: ' + custName.value.trim() + ' · ' + custEmail.value.trim() + ' · ' + custPhone.value.trim()
+    ];
+    if (custDomain.value.trim()) parts.push('Existing website/domain: ' + custDomain.value.trim());
+    if (custServices.value.trim()) parts.push('Services: ' + custServices.value.trim());
+    if (custBooking.value.trim()) parts.push('Booking system: ' + custBooking.value.trim());
+    if (bizSocial.value.trim()) parts.push('Instagram: ' + bizSocial.value.trim());
+    if (bizFacebook.value.trim()) parts.push('Facebook: ' + bizFacebook.value.trim());
     const coloursName = bizColours.selectedIndex > 0 ? bizColours.options[bizColours.selectedIndex].textContent : '';
-    const galleryCount = bizGallery.files ? bizGallery.files.length : 0;
-    const about = data.about;
+    if (coloursName) parts.push('Brand colours: ' + coloursName);
+    if (bizLogo.files && bizLogo.files.length) parts.push('Logo: uploaded');
+    if (bizGallery.files && bizGallery.files.length) parts.push('Photos: ' + bizGallery.files.length + ' uploaded');
+    if (bizAbout.value.trim()) parts.push('Notes: ' + bizAbout.value.trim());
+    return parts.join('\n');
+  }
 
-    const detailParts = [];
-    if (social) detailParts.push('Social media: ' + social);
-    if (coloursName) detailParts.push('Colours: ' + coloursName);
-    if (logoDataUrl) detailParts.push('Logo: uploaded');
-    if (heroDataUrl) detailParts.push('Hero photo: uploaded');
-    if (galleryCount) detailParts.push('Gallery: ' + galleryCount + ' photo(s) selected');
-    if (about) detailParts.push(about);
-    const details = detailParts.join('\n');
-    extraStatus.textContent = 'Sending...';
-    extraStatus.className = 'quick-lead-status';
+  // step 2: collect the details we need to build the final site — required
+  // contact info, everything else optional.
+  wizAboutSend.addEventListener('click', async () => {
+    if (!custName.value.trim() || !custEmail.value.trim() || !custPhone.value.trim()) {
+      wizAboutStatus.textContent = 'Please add your name, email and phone number.';
+      wizAboutStatus.className = 'quick-lead-status err';
+      return;
+    }
+    wizAboutStatus.textContent = 'Saving...';
+    wizAboutStatus.className = 'quick-lead-status';
     try {
-      await postLead(business_name, details);
-      extraStatus.textContent = "Thanks! We'll be in touch within 24 hours.";
-      extraStatus.className = 'quick-lead-status ok';
+      await postLead(bizNameInput.value.trim(), compileOrderDetails());
+      wizAboutStatus.textContent = '';
+      wizOrder.classList.add('active');
+      wizOrder.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
-      extraStatus.textContent = 'Something went wrong — please try again.';
-      extraStatus.className = 'quick-lead-status err';
+      wizAboutStatus.textContent = 'Something went wrong — please try again.';
+      wizAboutStatus.className = 'quick-lead-status err';
+    }
+  });
+
+  // step 3: order summary — confirms exactly what they're buying, then
+  // sends the final order through so we can follow up to arrange payment.
+  wizOrderSend.addEventListener('click', async () => {
+    wizOrderStatus.textContent = 'Sending...';
+    wizOrderStatus.className = 'quick-lead-status';
+    try {
+      await postLead(bizNameInput.value.trim(), 'ORDER CONFIRMED — £199 one-off + £20/mo management\n' + compileOrderDetails());
+      wizOrder.classList.remove('active');
+      wizThanks.classList.add('active');
+      wizThanks.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      wizOrderStatus.textContent = 'Something went wrong — please try again.';
+      wizOrderStatus.className = 'quick-lead-status err';
     }
   });
 });
@@ -705,84 +729,121 @@ p{margin:0 0 1.1em}
 <section class="hero-conv">
   <div class="wrap hero-conv-wrap">
     <div class="hero-conv-head">
-      <h1>Built by humans, powered by AI</h1>
+      <div class="eyebrow">Custom website quality, without the agency price</div>
+      <h1>See your new website before you pay</h1>
+      <p class="hero-conv-sub">Create a free, personalised website demo in under 30 seconds.</p>
     </div>
 
     <div class="wiz-grid" id="wizGrid">
       <div class="wiz-left">
-        <div class="quick-lead-halo" id="haloWrap">
-          <form id="quickLead" class="quick-lead">
-            <input type="text" id="bizName" name="business_name" placeholder="Your business name" required>
-            <button type="submit">Build</button>
-          </form>
-        </div>
-
-        <div class="wiz-about" id="wizAbout">
-
-          <div class="wiz-step-tag">1. Your business</div>
+        <form id="quickLead" class="step1-card">
+          <div class="step1-field">
+            <label for="bizName">Business name</label>
+            <input type="text" id="bizName" name="business_name" placeholder="e.g. Luxe Hair &amp; Beauty" required autocomplete="off">
+          </div>
           <div class="wiz-row">
-            <div>
-              <label for="bizTagline">Type of business</label>
-              <select id="bizTagline">
+            <div class="step1-field">
+              <label for="bizTagline">Business type</label>
+              <select id="bizTagline" required>
                 <option value="">Choose one</option>
               </select>
             </div>
-            <div>
-              <label for="bizLocation">Where are you based?</label>
-              <input type="text" id="bizLocation" placeholder="e.g. Marlbury">
+            <div class="step1-field">
+              <label for="bizLocation">Location</label>
+              <input type="text" id="bizLocation" placeholder="e.g. Hull" required autocomplete="off">
             </div>
           </div>
           <input type="hidden" id="bizServices">
           <input type="hidden" id="bizGoal" value="Book now">
 
-          <button type="button" id="wizSend" class="btn-send">Get my free demo →</button>
+          <button type="submit" class="btn-send" id="wizSend">Create my free demo →</button>
+          <div class="step1-reassure">Free demo · No card required · Takes less than 30 seconds</div>
           <div id="quickLeadStatus" class="quick-lead-status"></div>
+        </form>
 
-          <div class="wiz-extra" id="wizExtra">
-            <div class="wiz-step-tag">One more thing <span class="wiz-step-optional">all optional</span></div>
-            <p class="wiz-extra-note">Fill in what you can — leave the rest blank and we'll take care of it.</p>
+        <div class="wiz-panel wiz-likeit" id="wizLikeIt">
+          <p class="wiz-likeit-q">Like what you see?</p>
+          <h4>Let's turn your demo into your finished website.</h4>
+          <div class="wiz-likeit-price">From £199</div>
+          <button type="button" class="btn-send" id="wantThisBtn">I want this website →</button>
+        </div>
 
-            <label for="bizSocial">Social media</label>
-            <input type="text" id="bizSocial" placeholder="Instagram or Facebook link">
+        <div class="wiz-panel" id="wizAbout">
+          <div class="wiz-step-tag">Let's get your website ready</div>
+          <p class="wiz-extra-note">Your demo is already created — we just need a few details to build the final version.</p>
 
-            <label for="bizColours">Colour scheme</label>
-            <select id="bizColours">
-              <option value="">You choose — we can decide</option>
-              <option value="#a3878b">Rose</option>
-              <option value="#b0745c">Terracotta</option>
-              <option value="#6b8f71">Sage green</option>
-              <option value="#2c3e6b">Navy</option>
-              <option value="#3a3330">Charcoal</option>
-              <option value="#b98a4e">Gold</option>
-              <option value="#c98b9e">Blush pink</option>
-              <option value="#123f3d">Teal</option>
-              <option value="#5b3a73">Plum</option>
-              <option value="#7a2e34">Burgundy</option>
-            </select>
-
-            <div class="wiz-row">
-              <div class="wiz-upload-card">
-                <label for="bizHeroImg">Hero photo</label>
-                <input type="file" id="bizHeroImg" accept="image/*">
-                <div class="wiz-upload-note">Or leave blank — we can do it</div>
-              </div>
-              <div class="wiz-upload-card">
-                <label for="bizLogo">Logo</label>
-                <input type="file" id="bizLogo" accept="image/*">
-                <div class="wiz-upload-note">Or leave blank — we can do it</div>
-              </div>
-            </div>
-
-            <label for="bizGallery">Gallery photos</label>
-            <input type="file" id="bizGallery" accept="image/*" multiple>
-            <div class="wiz-upload-note">Send us a few photos of your work or space</div>
-
-            <label for="bizAbout">Anything else?</label>
-            <textarea id="bizAbout" placeholder="Descriptions, opening hours, anything that helps…"></textarea>
-
-            <button type="button" id="wizExtraSend" class="btn-send">Send details →</button>
-            <div id="wizExtraStatus" class="quick-lead-status"></div>
+          <div class="wiz-row">
+            <div><label for="custName">Full name</label><input type="text" id="custName" placeholder="Your name" required></div>
+            <div><label for="custEmail">Email address</label><input type="email" id="custEmail" placeholder="you@business.co.uk" required></div>
           </div>
+          <div class="wiz-row">
+            <div><label for="custPhone">Phone number</label><input type="tel" id="custPhone" placeholder="07…" required></div>
+            <div><label for="custDomain">Existing website / domain</label><input type="text" id="custDomain" placeholder="If you have one"></div>
+          </div>
+          <label for="custServices">Services you'd like listed</label>
+          <textarea id="custServices" placeholder="What should the site cover?"></textarea>
+          <label for="custBooking">Booking system</label>
+          <input type="text" id="custBooking" placeholder="e.g. Fresha, Treatwell, phone only — if relevant">
+
+          <div class="wiz-step-tag" style="margin-top:24px">Optional extras <span class="wiz-step-optional">send later if easier</span></div>
+          <div class="wiz-row">
+            <div><label for="bizSocial">Instagram</label><input type="text" id="bizSocial" placeholder="@yourbusiness"></div>
+            <div><label for="bizFacebook">Facebook</label><input type="text" id="bizFacebook" placeholder="Facebook page link"></div>
+          </div>
+          <label for="bizColours">Brand colours</label>
+          <select id="bizColours">
+            <option value="">You choose — we can decide</option>
+            <option value="#a3878b">Rose</option>
+            <option value="#b0745c">Terracotta</option>
+            <option value="#6b8f71">Sage green</option>
+            <option value="#2c3e6b">Navy</option>
+            <option value="#3a3330">Charcoal</option>
+            <option value="#b98a4e">Gold</option>
+            <option value="#c98b9e">Blush pink</option>
+            <option value="#123f3d">Teal</option>
+            <option value="#5b3a73">Plum</option>
+            <option value="#7a2e34">Burgundy</option>
+          </select>
+
+          <div class="wiz-row">
+            <div class="wiz-upload-card">
+              <label for="bizLogo">Logo</label>
+              <input type="file" id="bizLogo" accept="image/*">
+              <div class="wiz-upload-note">Optional — you can send this later</div>
+            </div>
+            <div class="wiz-upload-card">
+              <label for="bizGallery">Photos</label>
+              <input type="file" id="bizGallery" accept="image/*" multiple>
+              <div class="wiz-upload-note">Optional — you can send these later</div>
+            </div>
+          </div>
+
+          <label for="bizAbout">Anything you'd like changed from the demo?</label>
+          <textarea id="bizAbout" placeholder="Notes, extra info, anything that helps…"></textarea>
+
+          <button type="button" id="wizAboutSend" class="btn-send">Continue to order →</button>
+          <div id="wizAboutStatus" class="quick-lead-status"></div>
+        </div>
+
+        <div class="wiz-panel" id="wizOrder">
+          <div class="wiz-step-tag">Your website</div>
+          <div class="wiz-order-card">
+            <div class="wiz-order-row"><span>Custom website</span><span class="wiz-order-price">£199</span></div>
+            <ul class="wiz-order-list">
+              <li>A modern, custom design built around your business</li>
+              <li>SEO optimisation</li>
+              <li>Optimised to increase bookings</li>
+              <li>First month of management free</li>
+            </ul>
+          </div>
+          <p class="wiz-extra-note">Then £20/month for hosting, updates &amp; ongoing management — cancel any time.</p>
+          <button type="button" id="wizOrderSend" class="btn-send">Order my website — £199 →</button>
+          <div id="wizOrderStatus" class="quick-lead-status"></div>
+        </div>
+
+        <div class="wiz-panel" id="wizThanks">
+          <div class="wiz-step-tag">You're all set</div>
+          <p class="wiz-extra-note">Thanks — your order's with us. We'll be in touch within 24 hours to confirm details and arrange secure payment.</p>
         </div>
       </div>
 
@@ -846,6 +907,14 @@ p{margin:0 0 1.1em}
     </div>
   </div>
 </section>
+
+<div class="creating-overlay" id="creatingOverlay" aria-hidden="true">
+  <div class="creating-inner">
+    <div class="creating-verb" id="creatingVerb">Designing</div>
+    <div class="creating-name" id="creatingName"></div>
+    <div class="creating-sub" id="creatingSub">your new website</div>
+  </div>
+</div>
 
 <section id="how">
   <div class="wrap">
