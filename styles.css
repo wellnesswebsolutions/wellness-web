@@ -453,7 +453,6 @@
   .wiz-likeit{text-align:center}
   .wiz-likeit-q{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
   .wiz-likeit h4{font-family:var(--display);font-size:19px;font-weight:800;color:var(--ink);margin:0 0 10px}
-  .wiz-likeit-price{font-family:var(--display);font-size:26px;font-weight:700;color:var(--ink);margin-bottom:14px}
   .wiz-order-card{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
   .wiz-order-row{display:flex;align-items:baseline;justify-content:space-between;font-family:var(--display);
     font-weight:700;font-size:17px;color:var(--ink);margin-bottom:12px}
@@ -527,11 +526,6 @@
 
   .wiz-preview.mobile .bwin{max-width:420px;margin:0 auto}
 
-  .wiz-preview.fullscreen{position:fixed;inset:0;z-index:999;max-height:none;opacity:1;transform:none;
-    background:rgba(36,27,46,.55);padding:clamp(16px,4vh,48px) clamp(16px,4vw,64px);backdrop-filter:blur(4px)}
-  .wiz-preview.fullscreen .bwin{height:100%;box-shadow:0 40px 120px -30px rgba(0,0,0,.5)}
-  .wiz-preview.fullscreen.mobile .bwin{max-width:420px;margin:0 auto}
-  .wiz-preview.fullscreen .bwin-body{min-height:0}
   /* placeholder full-bleed "photo" — swap for a real image later */
   .wiz-hero{position:relative;min-height:230px;display:flex;align-items:flex-end;overflow:hidden;
     background:linear-gradient(155deg,var(--accent),var(--gold))}
