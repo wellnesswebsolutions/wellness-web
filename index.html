@@ -446,29 +446,6 @@ p{margin:0 0 1.1em}
 </html>`;
   }
 
-  // logo/hero upload fields: picking a file unchecks "we'll design one"
-  function readFileAsDataURL(file) {
-    return new Promise((resolve) => {
-      if (!file) return resolve(null);
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-  }
-  const bizLogo = document.getElementById('bizLogo');
-  const bizHeroImg = document.getElementById('bizHeroImg');
-  let logoDataUrl = null;
-  let heroDataUrl = null;
-  bizLogo.addEventListener('change', async () => {
-    logoDataUrl = bizLogo.files.length ? await readFileAsDataURL(bizLogo.files[0]) : null;
-    refreshPreview();
-  });
-  bizHeroImg.addEventListener('change', async () => {
-    heroDataUrl = bizHeroImg.files.length ? await readFileAsDataURL(bizHeroImg.files[0]) : null;
-    refreshPreview();
-  });
-
   // gather every answer into the exact shape buildDemoHTML expects — used to
   // keep the live preview and the "Get my free demo" download identical.
   function gatherData() {
@@ -480,8 +457,8 @@ p{margin:0 0 1.1em}
       goal: bizGoal.value,
       about: bizAbout.value.trim(),
       tones: currentTones,
-      logo: logoDataUrl,
-      heroImage: heroDataUrl
+      logo: null,
+      heroImage: null
     };
   }
   function refreshPreview() {
@@ -501,8 +478,6 @@ p{margin:0 0 1.1em}
     const goal = data.goal;
     const coloursName = bizColours.selectedIndex > 0 ? bizColours.options[bizColours.selectedIndex].textContent : '';
     const about = data.about;
-    const logoNote = logoDataUrl ? 'Logo: uploaded' : 'Logo: please design one';
-    const heroNote = heroDataUrl ? 'Hero photo: uploaded' : 'Hero photo: please design one';
 
     const demoHTML = buildDemoHTML(data);
     const blob = new Blob([demoHTML], { type: 'text/html' });
@@ -521,8 +496,6 @@ p{margin:0 0 1.1em}
     if (services) detailParts.push('Services: ' + services);
     if (goal) detailParts.push('Wants customers to: ' + goal);
     if (coloursName) detailParts.push('Colours: ' + coloursName);
-    detailParts.push(logoNote);
-    detailParts.push(heroNote);
     if (about) detailParts.push(about);
     const details = detailParts.join('\n');
     status.textContent = 'Sending...';
@@ -622,20 +595,6 @@ p{margin:0 0 1.1em}
                 <option value="#5b3a73">Plum</option>
                 <option value="#7a2e34">Burgundy</option>
               </select>
-            </div>
-          </div>
-
-          <div class="wiz-step-tag">3. Photos <span class="wiz-step-optional">optional</span></div>
-          <div class="wiz-row">
-            <div class="wiz-upload-card">
-              <label for="bizLogo">Logo</label>
-              <input type="file" id="bizLogo" accept="image/*">
-              <div class="wiz-upload-note">Leave blank and we'll design one for you</div>
-            </div>
-            <div class="wiz-upload-card">
-              <label for="bizHeroImg">Homepage photo</label>
-              <input type="file" id="bizHeroImg" accept="image/*">
-              <div class="wiz-upload-note">Leave blank and we'll design one for you</div>
             </div>
           </div>
 
