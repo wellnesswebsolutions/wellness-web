@@ -368,7 +368,14 @@
      it doesn't hide behind it) — border-box gradients don't have that
      problem at all. A soft box-shadow adds the ambient bloom outward. */
   @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-  .glow-box{position:relative;border-radius:20px;border:2px solid transparent;background-clip:padding-box, border-box;
+  /* border-radius:999px isn't a typo — browsers clamp it to half of
+     whichever side (width/height) is shorter, per spec, so this always
+     yields the maximum possible rounding: a true stadium/pill shape on
+     a short wide box, a rounded-rect-to-circle on a taller one. A fixed
+     20px radius on these boxes read as basically square-cornered, which
+     is what actually looked wrong — this removes that ambiguity for
+     any box size, rather than tuning one more magic-number radius. */
+  .glow-box{position:relative;border-radius:999px;border:2px solid transparent;background-clip:padding-box, border-box;
     background-image:linear-gradient(var(--card), var(--card)),
       conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
     box-shadow:0 0 18px -2px rgba(185,143,201,.6), 0 0 36px -6px rgba(91,58,115,.4);
