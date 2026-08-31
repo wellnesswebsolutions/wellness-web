@@ -439,7 +439,8 @@
   .qa-next.visible{opacity:1;transform:scale(1);pointer-events:auto}
   .qa-pill{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);
     border-radius:999px;padding:8px 16px 8px 12px;font-size:13px;font-weight:600;color:var(--ink);
-    box-shadow:0 4px 14px rgba(23,32,31,.06)}
+    box-shadow:0 4px 14px rgba(23,32,31,.06);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+  .qa-pill:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(23,32,31,.1)}
   .qa-pill-check{display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
     background:var(--accent);color:#fff;font-size:10px;flex:none}
 

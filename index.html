@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // derived from the groups by flattenGroups() below.
   function G(name, items) { return { name, items }; } // items: [label, price] pairs
   const BUSINESS_TYPES = [
-    { label: 'Hair & Beauty', cat: 'hairbeauty', photo: 'hair-beauty-hero.jpg',
+    { label: 'Hair & Beauty', cat: 'hairbeauty', photo: 'hair-beauty-hero.jpg', theme: '#a89a92',
       tagline: 'Hair and beauty, done properly',
       desc: '{name} is a friendly, modern salon where every visit starts with a proper consultation, not a rushed guess. Whatever you’re after, our team takes the time to get it right.',
       groups: [
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Brows & Lashes', [['Brow shape & tint', 'From £15'], ['Lash lift', 'From £35'], ['Classic lashes', 'From £45'], ['Russian volume lashes', 'From £60'], ['Lash tint', 'From £12']]),
         G('Makeup & Tanning', [['Occasion makeup', 'From £35'], ['Bridal makeup', 'From £85'], ['Spray tan', 'From £25'], ['Makeup lesson', 'From £45'], ['Party makeup', 'From £30']])
       ] },
-    { label: 'Aesthetics', cat: 'aesthetics', photo: 'aesthetics-hero.jpg',
+    { label: 'Aesthetics', cat: 'aesthetics', photo: 'aesthetics-hero.jpg', theme: '#ada7a3',
       tagline: 'Advanced treatments, honest advice',
       desc: '{name} offers professional-grade aesthetic treatments in a private, clinical setting. Every treatment starts with a proper consultation, so you know exactly what to expect.',
       groups: [
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Advanced Facials', [['CACI facial', 'From £55'], ['Oxygen facial', 'From £60'], ['Radiofrequency facial', 'From £85'], ['Vitamin C facial', 'From £50'], ['Anti-ageing facial', 'From £70']]),
         G('Consultations', [['Skin consultation', 'Free'], ['Patch test', 'Free'], ['Treatment planning', 'Free'], ['Follow-up review', 'From £20'], ['Virtual consultation', 'Free']])
       ] },
-    { label: 'Health & Wellness', cat: 'health', photo: 'health-wellness-hero.webp',
+    { label: 'Health & Wellness', cat: 'health', photo: 'health-wellness-hero.webp', theme: '#9e826b',
       tagline: 'Feel better, move better',
       desc: '{name} helps you feel and move better, with treatments built around what your body actually needs — not a generic routine.',
       groups: [
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Nutrition', [['Nutrition consultation', 'From £45'], ['Meal planning', 'From £35'], ['Weight management', 'From £40'], ['Food intolerance testing', 'From £75'], ['Follow-up review', 'From £30']]),
         G('Clinics', [['Health screening', 'From £60'], ['Blood pressure check', 'From £15'], ['Vaccination', 'From £25'], ['Travel clinic', 'From £35'], ['General consultation', 'From £40']])
       ] },
-    { label: 'Fitness', cat: 'fitness', photo: 'fitness-hero.jpg',
+    { label: 'Fitness', cat: 'fitness', photo: 'fitness-hero.jpg', theme: '#a39b94',
       tagline: 'Training plans built around real life',
       desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.',
       groups: [
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Recovery', [['Sports massage', 'From £45'], ['Stretching session', 'From £25'], ['Recovery room access', 'From £15'], ['Ice bath', 'From £15'], ['Cryotherapy', 'From £35']]),
         G('Specialist', [['Pre/post-natal training', 'From £45'], ['Youth training', 'From £30'], ['Senior fitness', 'From £30'], ['Rehab training', 'From £45'], ['Sports-specific training', 'From £50']])
       ] },
-    { label: 'Automotive', cat: 'automotive', photo: 'automotive-hero.jpg',
+    { label: 'Automotive', cat: 'automotive', photo: 'automotive-hero.jpg', theme: '#7f8790',
       tagline: 'Honest, no-nonsense car care',
       desc: '{name} is your local garage for honest, no-nonsense car care. Our qualified team explains what your car actually needs — and nothing it doesn’t.',
       groups: [
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Air Con & Electrics', [['Air con regas', 'From £50'], ['Battery replacement', 'From £80'], ['Electrical diagnostics', 'From £45'], ['Alternator repair', 'From £150'], ['Starter motor repair', 'From £150']]),
         G('Bodywork', [['Dent removal', 'From £60'], ['Scratch repair', 'From £50'], ['Paint correction', 'From £150'], ['Bumper repair', 'From £120'], ['Alloy wheel refurb', 'From £45']])
       ] },
-    { label: 'Trades', cat: 'trades', photo: 'trades-hero.jpg',
+    { label: 'Trades', cat: 'trades', photo: 'trades-hero.jpg', theme: '#6b625c',
       tagline: 'Fast, fully qualified tradework',
       desc: '{name} is on call for the jobs that can’t wait, and the projects that can. Fully qualified, fully insured, and always upfront about pricing before we start.',
       groups: [
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Locksmith & Security', [['Lock changes', 'From £65'], ['Emergency lockout', 'From £85'], ['Key cutting', 'From £5'], ['Security upgrades', 'Get a quote'], ['uPVC door repair', 'From £75']]),
         G('Cleaning', [['Domestic cleaning', 'From £15/hr'], ['End of tenancy clean', 'From £120'], ['Carpet cleaning', 'From £45'], ['Window cleaning', 'From £15'], ['Office cleaning', 'From £18/hr']])
       ] },
-    { label: 'Home & Garden', cat: 'homegarden', photo: 'home-garden-hero.jpg',
+    { label: 'Home & Garden', cat: 'homegarden', photo: 'home-garden-hero.jpg', theme: '#6b7a4a',
       tagline: 'Spaces people love spending time in',
       desc: '{name} designs and maintains outdoor spaces people actually want to spend time in. From a one-off tidy-up to a full redesign, we work with your space, not against it.',
       groups: [
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Renovation', [['Kitchen fitting', 'Get a quote'], ['Bathroom renovation', 'Get a quote'], ['Painting & decorating', 'From £200'], ['Flooring', 'From £25/m²'], ['Plastering', 'From £250']]),
         G('Outdoor Living', [['Garden building install', 'Get a quote'], ['Outdoor lighting', 'From £150'], ['Water features', 'From £250'], ['BBQ area build', 'Get a quote'], ['Furniture assembly', 'From £45']])
       ] },
-    { label: 'Food & Drink', cat: 'fooddrink', photo: 'food-drink-hero.jpg',
+    { label: 'Food & Drink', cat: 'fooddrink', photo: 'food-drink-hero.jpg', theme: '#7a5c3d',
       tagline: 'Made properly, every time',
       desc: '{name} makes everything properly, with ingredients that matter. A spot for people who care about what they’re eating and drinking.',
       groups: [
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Events & Catering', [['Private events', 'Get a quote'], ['Wedding catering', 'Get a quote'], ['Corporate catering', 'Get a quote'], ['Buffet catering', 'From £12/head'], ['Drinks packages', 'Get a quote']]),
         G('Drinks', [['Cocktails', 'From £9'], ['Wine list', 'From £24/bottle'], ['Craft beer', 'From £5'], ['Coffee subscription', 'From £15/mo'], ['Tasting sessions', 'From £25']])
       ] },
-    { label: 'Professional Services', cat: 'professional', photo: 'professional-services-hero.jpg',
+    { label: 'Professional Services', cat: 'professional', photo: 'professional-services-hero.jpg', theme: '#8a4a3d',
       tagline: 'Clear advice, no jargon',
       desc: '{name} keeps things straightforward, with clear advice and deadlines that never sneak up on you. One trusted team, from start to finish.',
       groups: [
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Financial', [['Mortgage advice', 'Free'], ['Pension advice', 'From £150'], ['Investment advice', 'Get a quote'], ['Insurance advice', 'Free'], ['Financial planning', 'From £200']]),
         G('Consulting', [['Strategy consulting', 'Get a quote'], ['IT consulting', 'From £85/hr'], ['HR consulting', 'From £75/hr'], ['Marketing consulting', 'From £75/hr'], ['Project management', 'Get a quote']])
       ] },
-    { label: 'Creative', cat: 'creative', photo: 'creative-hero.jpg',
+    { label: 'Creative', cat: 'creative', photo: 'creative-hero.jpg', theme: '#3f4a3d',
       tagline: 'The moments that actually matter',
       desc: '{name} captures the moments that actually matter. A relaxed, professional approach that means natural results every time.',
       groups: [
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         G('Editing & Retouching', [['Photo editing', 'From £5/image'], ['Retouching', 'From £15/image'], ['Album design', 'From £150'], ['Colour grading', 'From £80'], ['Video editing', 'From £50/hr']]),
         G('Prints & Products', [['Framed prints', 'From £35'], ['Photo books', 'From £65'], ['Canvas prints', 'From £45'], ['Digital downloads', 'From £10'], ['Prop hire', 'From £20']])
       ] },
-    { label: 'Pets', cat: 'pets', photo: 'pets-hero.jpg',
+    { label: 'Pets', cat: 'pets', photo: 'pets-hero.jpg', theme: '#c08a3d',
       tagline: 'Calm, gentle care for your pet',
       desc: '{name} gives your pet a calm, gentle experience from start to finish. Always handled with patience and care.',
       groups: [
@@ -340,13 +340,55 @@ document.addEventListener('DOMContentLoaded', () => {
     qaProgressSegs.forEach((seg, i) => seg.classList.toggle('filled', i < step - 1 || step > 3));
   }
 
+  // clicking any answered pill jumps back to that question instead of
+  // needing a page refresh — collapses anything generated after it too,
+  // since changing an earlier answer invalidates what came after.
+  let namePillEl = null;
+  function collapseGenerated() {
+    qaProgress.classList.remove('done');
+    wizGrid.classList.remove('active');
+    convRow.classList.remove('collapsed');
+    wizLikeIt.classList.remove('active');
+  }
+  function goBackToName() {
+    collapseGenerated();
+    qaType.dataset.state = 'pending';
+    qaLocation.dataset.state = 'pending';
+    if (namePillEl) { namePillEl.remove(); namePillEl = null; }
+    form.classList.remove('answered');
+    qaProgress.classList.remove('started');
+    setProgressStep(1);
+    setTimeout(() => { bizNameInput.focus(); bizNameInput.select(); }, 350);
+  }
+  function goBackToType() {
+    collapseGenerated();
+    qaLocation.dataset.state = 'pending';
+    qaType.dataset.state = 'active';
+    setProgressStep(2);
+    setTimeout(() => bizTagline.focus(), 350);
+  }
+  function goBackToLocation() {
+    collapseGenerated();
+    qaLocation.dataset.state = 'active';
+    setProgressStep(3);
+    setTimeout(() => bizLocation.focus(), 350);
+  }
+  qaType.querySelector('.qa-pill').addEventListener('click', () => {
+    if (qaType.dataset.state === 'done') goBackToType();
+  });
+  qaLocation.querySelector('.qa-pill').addEventListener('click', () => {
+    if (qaLocation.dataset.state === 'done') goBackToLocation();
+  });
+
   function addNamePill(name) {
     const pill = document.createElement('div');
     pill.className = 'qa-item';
     pill.innerHTML = '<div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text"></span></div>';
     pill.querySelector('.qa-pill-text').textContent = name;
     pill.dataset.state = 'done';
+    pill.querySelector('.qa-pill').addEventListener('click', goBackToName);
     qaFlow.insertBefore(pill, qaFlow.firstChild);
+    namePillEl = pill;
   }
 
   form.addEventListener('submit', (e) => {
@@ -459,7 +501,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const fakeAddress = `${fakeStreetNum} ${fakeStreet}`;
     const fakePostcode = String.fromCharCode(65 + (nameSeed % 26)) + String.fromCharCode(65 + ((nameSeed >> 3) % 26))
       + (1 + (nameSeed % 9)) + ' ' + (1 + ((nameSeed >> 2) % 9)) + String.fromCharCode(65 + ((nameSeed >> 5) % 26)) + String.fromCharCode(65 + ((nameSeed >> 7) % 26));
-    const t = d.tones || { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' };
+    // colour scheme: whatever the customer picked in step 2, otherwise a
+    // palette derived from their category's own hero photo (so a demo
+    // for e.g. Automotive doesn't default to a rose/taupe salon palette)
+    const t = d.tones || (info && info.theme ? tonesFromHex(info.theme) : { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' });
     const gallery = Array.from({length: 6}).map((_, i) => `
         <figure style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);
           font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
@@ -528,7 +573,7 @@ p{margin:0 0 1.1em}
 .btn--outline-light:hover{background:#fff;color:var(--ink);border-color:#fff}
 .btn-row{display:flex;flex-wrap:wrap;gap:12px}
 .center .btn-row{justify-content:center}
-.site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:var(--champagne);border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
+.site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:color-mix(in srgb, var(--taupe) 28%, var(--champagne));border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
 .brand{display:flex;flex-direction:column;line-height:1.1;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
 .brand span{font-size:.55rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-top:2px}
@@ -538,7 +583,7 @@ p{margin:0 0 1.1em}
 .nav a.btn{padding:11px 20px;color:#fff}
 .nav a.btn:hover{background:transparent;color:var(--ink)}
 @media(max-width:760px){.nav{display:none}}
-.hero{position:relative;margin-top:111px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
+.hero{position:relative;margin-top:75px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(28,24,21,.55) 0%,rgba(28,24,21,.28) 34%,rgba(28,24,21,0) 62%),linear-gradient(to top,rgba(28,24,21,.8) 0%,rgba(28,24,21,.6) 26%,rgba(28,24,21,.24) 54%,rgba(28,24,21,0) 82%)}
 .hero .hero-copy{position:relative;z-index:2;width:100%;padding:0 0 3.4em}
 .hero .inner{max-width:1140px;margin:0 auto;padding:0 22px}
@@ -555,7 +600,7 @@ p{margin:0 0 1.1em}
 @media(max-width:900px){.wall-logo{top:10px;width:56px;font-size:1.1rem}}
 @media(max-width:900px){
   .site-header{top:64px}
-  .hero{min-height:min(60vh,480px);margin-top:138px}
+  .hero{min-height:min(60vh,480px);margin-top:75px}
   .hero .hero-copy{padding:2.2em 0;text-align:center}
   .hero .inner{display:flex;flex-direction:column;align-items:center}
   .hero .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:420px}
