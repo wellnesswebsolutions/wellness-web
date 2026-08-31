@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pricing — Aesthetic Intelligence</title>
-<meta name="description" content="Simple pricing for brand websites: one-off Pro (£199) and Prestige (£299) builds, plus management for £20/month with SEO, content and booking.">
+<meta name="description" content="Simple pricing for custom websites: Essential (£199), Pro (£399) and Prestige (£499), each with SEO, hosting and £20/month management.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,39 +14,32 @@
 <link rel="canonical" href="https://wellnessweb.co.uk/pricing">
 <link rel="stylesheet" href="styles.css">
 <style>
-  /* compact everything so all 4 cards fit on one screen without scrolling */
   .page{padding-top:34px}
   .page-hero{margin-bottom:0}
-  .page-hero h1{font-size:clamp(21px,3vw,28px);margin-bottom:4px;line-height:1.1}
-  .page-hero p{font-size:12.5px}
-  #pricing{padding-top:14px!important;padding-bottom:16px}
-  .plans.four{gap:16px}
-  .plans.four .plan{padding:16px 18px}
-  .plans.four .plan .kicker{margin-bottom:4px}
-  .plans.four .plan h4{font-size:18px;margin-bottom:2px}
-  .plans.four .plan .desc{font-size:11.5px;min-height:0;margin-bottom:8px;line-height:1.35}
-  .plans.four .plan .price{font-size:22px}
-  .plans.four .plan .price-note{font-size:10px;margin-bottom:8px}
-  .plans.four .plan .perk{padding:4px 10px;font-size:10px;margin-bottom:9px}
-  .plans.four .plan ul{gap:4px;margin-bottom:10px}
-  .plans.four .plan li{font-size:11.5px;line-height:1.3}
-  .plans.four .plan .go{padding:7px 16px;font-size:10.5px}
+  .page-hero h1{font-size:clamp(24px,3.4vw,32px);margin-bottom:6px;line-height:1.1}
+  .page-hero p{font-size:14px}
+  #pricing{padding-top:20px!important;padding-bottom:16px}
   footer{padding:20px 24px!important}
-  .mgmt-strip{max-width:1040px;margin:16px auto 0;background:var(--card);border:1px solid var(--line);
-    border-radius:16px;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-  .mgmt-strip .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:4px}
-  .mgmt-strip-txt h4{font-family:var(--display);font-size:16px;font-weight:600;margin-bottom:4px}
-  .mgmt-strip-txt p{color:var(--muted);font-size:11.5px;line-height:1.5}
-  .mgmt-strip-price{flex:none;display:flex;align-items:center;gap:16px;text-align:right}
-  .mgmt-strip-price .price{font-family:var(--display);font-size:24px;font-weight:600}
-  .mgmt-strip-price .price small{font-size:12px;color:var(--muted);font-family:var(--body)}
-  .mgmt-strip-price .price-note{display:none}
-  .mgmt-strip-price .go{padding:9px 18px;font-size:11px;border-radius:999px;border:1px solid var(--line);text-decoration:none;color:var(--ink);white-space:nowrap;transition:border-color .15s,color .15s}
-  .mgmt-strip-price .go:hover{border-color:var(--accent);color:var(--accent)}
-  @media(max-width:760px){
-    .mgmt-strip{flex-direction:column;align-items:flex-start;text-align:left}
-    .mgmt-strip-price{text-align:left}
-  }
+
+  .plans.three{max-width:1080px;margin:0 auto}
+  .plan{position:relative}
+  .plan .badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;
+    font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 16px;border-radius:999px;
+    white-space:nowrap;box-shadow:0 8px 18px rgba(91,58,115,.32)}
+  .plan.feature{transform:scale(1.03)}
+  .plan.prestige{background:linear-gradient(165deg,#241b2e 0%,#3d2c52 100%);border-color:transparent;
+    box-shadow:0 26px 60px rgba(36,27,46,.4)}
+  .plan.prestige .badge{background:var(--gold);color:#241b2e;box-shadow:0 8px 18px rgba(185,143,201,.4)}
+  .plan.prestige .kicker{color:var(--gold)}
+  .plan.prestige h4,.plan.prestige .price{color:#fff}
+  .plan.prestige .desc,.plan.prestige .price-note,.plan.prestige .price-plus{color:rgba(255,255,255,.68)}
+  .plan.prestige li{color:#fff}
+  .plan.prestige li:before{color:var(--gold)}
+  .plan.prestige .go{border-color:rgba(255,255,255,.4);color:#fff}
+  .plan.prestige .go:hover{background:#fff;color:#241b2e;border-color:#fff}
+  .price-plus{display:inline-block;font-size:14px;font-weight:600;color:var(--muted);font-family:var(--body);margin-left:8px}
+  .pricing-note{max-width:760px;margin:32px auto 0;text-align:center;font-size:13px;line-height:1.6;color:var(--muted)}
+  @media(max-width:900px){.plan.feature{transform:none}}
 </style>
 <script src="reveal.js" defer></script>
 </head>
@@ -67,56 +60,63 @@
     <div class="wrap">
       <div class="page-hero">
         <div class="eyebrow">Pricing</div>
-        <h1>Two ways to work with us</h1>
-        <p>Pay once for a website that's yours to keep, with a full all-in-one management option also available.</p>
+        <h1>Three levels of custom-built</h1>
+        <p>Every plan gets a real custom website, SEO and full management — the difference is how far the design goes.</p>
       </div>
     </div>
   </section>
   <section id="pricing" style="padding-top:0">
     <div class="wrap">
-      <div class="plans four" style="grid-template-columns:repeat(2,1fr)">
+      <div class="plans three">
         <div class="plan">
-          <div class="kicker">One-off</div>
-          <h4>Pro</h4>
-          <div class="desc">Premium website.</div>
-          <div class="price">£199</div>
-          <div class="price-note">One-time payment</div>
-          <div class="perk">First month of management free</div>
+          <div class="kicker">Great value</div>
+          <h4>Essential</h4>
+          <div class="desc">A professional custom website with everything it needs to perform.</div>
+          <div class="price">£199<span class="price-plus">+ £20/mo</span></div>
+          <div class="price-note">One-off build, then hosting &amp; management</div>
           <ul>
-            <li>A modern, refreshing design</li>
-            <li>SEO optimisation</li>
-            <li>Optimised to increase bookings</li>
+            <li>Professional custom website</li>
+            <li>SEO &amp; SEO-focused content</li>
+            <li>Mobile optimisation</li>
+            <li>Hosting, security &amp; maintenance</li>
+            <li>Core functionality &amp; booking</li>
           </ul>
           <a href="contact.html" class="go">Enquire</a>
         </div>
         <div class="plan feature">
-          <div class="kicker">One-off</div>
-          <h4>Prestige</h4>
-          <div class="desc">A more complex, unique design with striking animations and eye-catching detail.</div>
-          <div class="price">£299</div>
-          <div class="price-note">One-time payment</div>
-          <div class="perk">First 3 months of management free</div>
+          <div class="badge">Most popular</div>
+          <div class="kicker">Best balance</div>
+          <h4>Pro</h4>
+          <div class="desc">Everything in Essential, with a bigger, more capable site.</div>
+          <div class="price">£399<span class="price-plus">+ £20/mo</span></div>
+          <div class="price-note">One-off build, then hosting &amp; management</div>
           <ul>
-            <li>A more complex, unique design</li>
-            <li>SEO optimisation</li>
-            <li>Optimised to increase bookings</li>
-            <li>Social media content</li>
+            <li>Everything in Essential</li>
+            <li>More pages &amp; advanced layouts</li>
+            <li>Custom sections built for you</li>
+            <li>Interactions &amp; animations</li>
+            <li>Third-party integrations</li>
+          </ul>
+          <a href="contact.html" class="go">Enquire</a>
+        </div>
+        <div class="plan prestige">
+          <div class="badge">Flagship</div>
+          <div class="kicker">Made to stand out</div>
+          <h4>Prestige</h4>
+          <div class="desc">The flagship build — fully bespoke, made to stand out.</div>
+          <div class="price">£499<span class="price-plus">+ £20/mo</span></div>
+          <div class="price-note">One-off build, then hosting &amp; management</div>
+          <ul>
+            <li>Everything in Pro</li>
+            <li>Highly bespoke design</li>
+            <li>Premium animations</li>
+            <li>Cinematic transitions</li>
+            <li>Maximum creative customisation</li>
           </ul>
           <a href="contact.html" class="go">Enquire</a>
         </div>
       </div>
-      <div class="mgmt-strip">
-        <div class="mgmt-strip-txt">
-          <div class="kicker">Monthly management</div>
-          <h4>Everything handled, for one simple fee</h4>
-          <p>Same-day changes &amp; updates · Constant design improvements · SEO · 24/7 support · Monthly social content · Fully managed website</p>
-        </div>
-        <div class="mgmt-strip-price">
-          <div class="price">£20 <small>/ mo</small></div>
-          <div class="price-note">Rolling monthly — cancel any time</div>
-          <a href="contact.html" class="go">Start now</a>
-        </div>
-      </div>
+      <p class="pricing-note">£20/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Cancel any time.</p>
     </div>
   </section>
   <footer>
