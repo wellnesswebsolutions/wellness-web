@@ -643,6 +643,21 @@ p{margin:0 0 1.1em}
   </div>
 </footer>
 
+<script>
+// Inside a srcdoc iframe, clicking a same-page "#anchor" link can navigate
+// the frame to the parent page's real URL instead of jumping within this
+// document — so anchor navigation is handled manually here.
+document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+  a.addEventListener('click', function (e) {
+    var id = a.getAttribute('href').slice(1);
+    var el = id && document.getElementById(id);
+    e.preventDefault();
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+<\/script>
+
 </body>
 </html>`;
   }
