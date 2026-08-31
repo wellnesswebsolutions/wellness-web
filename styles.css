@@ -358,17 +358,20 @@
   .hero-conv-sub{font-size:clamp(14px,1.6vw,17px);color:var(--muted);margin-top:12px}
 
   /* ---- futuristic glow box: shared by the name gate and each live question ----
-     a slim, evenly-coloured ring that hugs the box's rounded outline
-     closely (small inset, small blur) rather than a wide diffuse cloud. */
+     the same two-layer halo used on the earlier pill-shaped input box —
+     a blurred spinning ring behind it, plus a crisp spinning ring right
+     on the edge, so it wraps the rounded corners cleanly. */
   @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-  .glow-box{position:relative;border-radius:20px}
-  .glow-box:before{content:"";position:absolute;inset:-2px;border-radius:22px;z-index:0;
-    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    filter:blur(4px);opacity:.85;animation:glow-spin 4s linear infinite}
-  .glow-box:after{content:"";position:absolute;inset:0;border-radius:20px;z-index:1;background:var(--card)}
+  .glow-box{position:relative;border-radius:20px;background:var(--card)}
+  .glow-box:before{content:"";position:absolute;inset:-4px;border-radius:24px;z-index:-2;
+    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), transparent 35%, transparent 65%, var(--accent));
+    filter:blur(6px);opacity:.85;animation:glow-spin 3.2s linear infinite}
+  .glow-box:after{content:"";position:absolute;inset:-1.5px;border-radius:21px;z-index:-1;
+    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), transparent 35%, transparent 65%, var(--accent));
+    animation:glow-spin 3.2s linear infinite}
   .glow-box > *{position:relative;z-index:2}
   @keyframes glow-spin{to{--glow-angle:360deg}}
-  @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
+  @media(prefers-reduced-motion:reduce){.glow-box:before,.glow-box:after{animation:none}}
   @media(prefers-reduced-motion:reduce){.glow-box{animation:none}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
@@ -409,7 +412,7 @@
   .qa-item[data-state="pending"]{display:none}
   .qa-item[data-state="done"] label,.qa-item[data-state="done"] select,
   .qa-item[data-state="done"] .qa-input-row{display:none}
-  .qa-item[data-state="done"]{padding:0;animation:qa-pill-in .4s cubic-bezier(.22,.7,.3,1)}
+  .qa-item[data-state="done"]{padding:0;background:none;animation:qa-pill-in .4s cubic-bezier(.22,.7,.3,1)}
   .qa-item[data-state="done"]:before,.qa-item[data-state="done"]:after{content:none}
   .qa-item[data-state="active"]{flex:1 1 100%;animation:qa-in .45s cubic-bezier(.22,.7,.3,1)}
   .qa-item[data-state="active"] .qa-pill{display:none}

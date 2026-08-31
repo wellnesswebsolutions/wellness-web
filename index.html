@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
       s => `Popular with regulars. Get in touch and we'll talk you through ${esc(s.toLowerCase())}.`
     ];
     const cards = services.slice(0, 3).map((s, i) => `
-        <a class="card card-link" href="#contact">
+        <a class="card card-link" href="#" data-nav="contact">
           <span class="num">${i === 0 ? 'Most Popular · ' : ''}${esc(s)}</span>
           <h3>${esc(s)}${prices[i] ? `<span class="card-price">${esc(prices[i])}</span>` : ''}</h3>
           <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
@@ -547,94 +547,112 @@ p{margin:0 0 1.1em}
 
 <header class="site-header">
   <div class="container">
-    <a class="brand" href="#">${brandMark}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</a>
+    <a class="brand" href="#" data-nav="home">${brandMark}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</a>
     <nav class="nav">
-      <a href="#">Home</a>
-      <a href="#services">Services</a>
-      <a href="#contact">Contact</a>
-      <a class="btn" href="#contact">${esc(goalLabel)}</a>
+      <a href="#" data-nav="home">Home</a>
+      <a href="#" data-nav="services">Services</a>
+      <a href="#" data-nav="contact">Contact</a>
+      <a class="btn" href="#" data-nav="contact">${esc(goalLabel)}</a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  ${sceneMarkup}
-  ${wallNameMarkup}
-  ${doorMarkup}
-  <div class="hero-copy">
-    <div class="inner">
-      <span class="eyebrow">${esc(eyebrowLoc)}</span>
-      <h1 class="hero-title">${esc(d.name)}</h1>
-      <p class="hero-sub">${esc(heroSub)}</p>
-      <div class="btn-row">
-        <a class="btn btn--light" href="#contact">${esc(goalLabel)}</a>
-        <a class="btn btn--outline-light" href="#services">View Services</a>
+<div class="page" data-page="home">
+  <section class="hero">
+    ${sceneMarkup}
+    ${wallNameMarkup}
+    ${doorMarkup}
+    <div class="hero-copy">
+      <div class="inner">
+        <span class="eyebrow">${esc(eyebrowLoc)}</span>
+        <h1 class="hero-title">${esc(d.name)}</h1>
+        <p class="hero-sub">${esc(heroSub)}</p>
+        <div class="btn-row">
+          <a class="btn btn--light" href="#" data-nav="contact">${esc(goalLabel)}</a>
+          <a class="btn btn--outline-light" href="#" data-nav="services">View Services</a>
+        </div>
+        ${tags ? `<div class="hero-tags">${tags}</div>` : ''}
       </div>
-      ${tags ? `<div class="hero-tags">${tags}</div>` : ''}
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="section" id="services">
-  <div class="container">
-    <div class="grid grid-2" style="align-items:center;gap:48px">
-      <div>
+  <section class="section">
+    <div class="container">
+      <div class="center" style="margin-bottom:2.4em">
         <span class="eyebrow">Welcome to ${esc(d.name)}</span>
         <h2>${esc(heroHook) || 'Everything you need, in one place'}</h2>
-        <p class="lede">${esc(d.about) || esc(defaultDesc)}</p>
-        <div class="btn-row">
-          <a class="btn btn--ghost" href="#contact">Get In Touch</a>
+        <p class="lede center">${esc(d.about) || esc(defaultDesc)}</p>
+        <div class="btn-row" style="justify-content:center">
+          <a class="btn btn--ghost" href="#" data-nav="services">View Services</a>
         </div>
       </div>
-      <div class="grid" style="gap:20px">${cards}</div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="section section--tint">
-  <div class="container">
-    <div class="center" style="margin-bottom:2.4em">
-      <span class="eyebrow">Gallery</span>
-      <h2>See more</h2>
-      <p class="lede">A look at the space and the work — drop in real photos and this fills itself in.</p>
+  <section class="section section--tint">
+    <div class="container">
+      <div class="center" style="margin-bottom:2.4em">
+        <span class="eyebrow">Gallery</span>
+        <h2>See more</h2>
+        <p class="lede">A look at the space and the work — drop in real photos and this fills itself in.</p>
+      </div>
+      <div class="gallery">${gallery}</div>
     </div>
-    <div class="gallery">${gallery}</div>
-  </div>
-</section>
+  </section>
 
-<section class="section" id="contact">
-  <div class="container">
-    <div class="center" style="margin-bottom:2.4em">
+  <section class="section band">
+    <div class="container">
+      <span class="eyebrow">Ready when you are</span>
+      <h2>Ready to visit ${esc(d.name)}?</h2>
+      <p>Get in touch and find a time that suits you.</p>
+      <div class="btn-row" style="justify-content:center;margin-top:1.6em">
+        <a class="btn btn--light" href="#" data-nav="contact">${esc(goalLabel)}</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="page" data-page="services" hidden>
+  <section class="section page-head">
+    <div class="container center">
+      <span class="eyebrow">Services</span>
+      <h1>What we offer</h1>
+      <p class="lede center">${esc(heroHook) || 'A quick look at what we do — get in touch for anything not listed here.'}</p>
+    </div>
+  </section>
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="grid grid-3" style="gap:20px">${cards}</div>
+    </div>
+  </section>
+</div>
+
+<div class="page" data-page="contact" hidden>
+  <section class="section page-head">
+    <div class="container center">
       <span class="eyebrow">Contact</span>
-      <h2>${d.location ? `Visit us in ${esc(d.location)}` : 'Get in touch'}</h2>
+      <h1>${d.location ? `Visit us in ${esc(d.location)}` : 'Get in touch'}</h1>
       <p class="lede center">Questions, bookings or anything else — we'd love to hear from you.</p>
     </div>
-    <div class="find${d.location ? ' has-map' : ''}">
-      <div>
-        <ul class="contact-list">
-          <li><b>Phone</b><span>Add your number</span></li>
-          <li><b>Email</b><span>Add your email</span></li>
-          <li><b>Hours</b><span>Mon–Sat, 9am–6pm</span></li>
-        </ul>
-        <div class="btn-row"${d.location ? '' : ' style="justify-content:center"'}>
-          <a class="btn" href="#">${esc(goalLabel)}</a>
+  </section>
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="find${d.location ? ' has-map' : ''}">
+        <div>
+          <ul class="contact-list">
+            <li><b>Phone</b><span>Add your number</span></li>
+            <li><b>Email</b><span>Add your email</span></li>
+            <li><b>Hours</b><span>Mon–Sat, 9am–6pm</span></li>
+          </ul>
+          <div class="btn-row"${d.location ? '' : ' style="justify-content:center"'}>
+            <a class="btn" href="#">${esc(goalLabel)}</a>
+          </div>
         </div>
+        ${d.location ? `<div class="map"><iframe title="Map showing ${esc(d.location)}" src="https://www.google.com/maps?q=${encodeURIComponent(d.location)}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>` : ''}
       </div>
-      ${d.location ? `<div class="map"><iframe title="Map showing ${esc(d.location)}" src="https://www.google.com/maps?q=${encodeURIComponent(d.location)}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>` : ''}
     </div>
-  </div>
-</section>
-
-<section class="section band">
-  <div class="container">
-    <span class="eyebrow">Ready when you are</span>
-    <h2>Ready to visit ${esc(d.name)}?</h2>
-    <p>Get in touch and find a time that suits you.</p>
-    <div class="btn-row" style="justify-content:center;margin-top:1.6em">
-      <a class="btn btn--light" href="#contact">${esc(goalLabel)}</a>
-    </div>
-  </div>
-</section>
+  </section>
+</div>
 
 <footer class="site-footer">
   <div class="container">
@@ -644,18 +662,23 @@ p{margin:0 0 1.1em}
 </footer>
 
 <script>
-// Inside a srcdoc iframe, clicking a same-page "#anchor" link can navigate
-// the frame to the parent page's real URL instead of jumping within this
-// document — so anchor navigation is handled manually here.
-document.querySelectorAll('a[href^="#"]').forEach(function (a) {
-  a.addEventListener('click', function (e) {
-    var id = a.getAttribute('href').slice(1);
-    var el = id && document.getElementById(id);
-    e.preventDefault();
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+// Three "pages" (Home, Services, Contact) live in this one document —
+// nav links swap which .page is visible instead of anchor-scrolling,
+// and the parent page (showing this in a preview frame) is told which
+// page is active so its address bar can reflect it.
+var slug = ${JSON.stringify(d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business')};
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function (p) { p.hidden = p.dataset.page !== id; });
+  window.scrollTo({ top: 0 });
+  try {
+    var path = id === 'home' ? '' : '/' + id;
+    parent.postMessage({ source: 'ai-demo', path: slug + '.co.uk' + path }, '*');
+  } catch (e) {}
+}
+document.querySelectorAll('[data-nav]').forEach(function (a) {
+  a.addEventListener('click', function (e) { e.preventDefault(); showPage(a.dataset.nav); });
 });
+showPage('home');
 <\/script>
 
 </body>
@@ -711,6 +734,14 @@ document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     previewFrame.srcdoc = buildDemoHTML(gatherData());
     scalePreviewFrame();
   }
+  // the demo is a real 3-page site (Home/Services/Contact) swapping pages
+  // client-side inside the iframe — it tells us which page is showing so
+  // the mock address bar above the preview can reflect it.
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.source === 'ai-demo' && previewFrame && e.source === previewFrame.contentWindow) {
+      previewUrl.textContent = e.data.path;
+    }
+  });
 
   function setPreviewDevice(device) {
     previewDevice = device;
