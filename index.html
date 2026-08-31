@@ -280,32 +280,77 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // step 1: business name + type + location only. Auto-fills the hidden
-  // services field from the chosen type, runs the personalised creation
-  // animation, then reveals the live preview.
-  bizTagline.addEventListener('change', () => {
-    const info = typeInfo(bizTagline.value);
-    if (info) bizServices.value = info.services.join(', ');
-  });
+  // conversational step 1: one question at a time. The business name is
+  // asked on its own, big glowing box first; answering it reveals the live
+  // preview immediately, then each further question (type, location)
+  // glows in turn while everything already answered collapses to a small
+  // ✓ pill. Every answer updates the preview instantly.
+  const qaFlow = document.getElementById('qaFlow');
+  const qaType = document.getElementById('qaType');
+  const qaLocation = document.getElementById('qaLocation');
+  const qaTypePillText = document.getElementById('qaTypePillText');
+  const qaLocationPillText = document.getElementById('qaLocationPillText');
+  const qaLocationNext = document.getElementById('qaLocationNext');
+
+  function addNamePill(name) {
+    const pill = document.createElement('div');
+    pill.className = 'qa-item';
+    pill.innerHTML = '<div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text"></span></div>';
+    pill.querySelector('.qa-pill-text').textContent = name;
+    pill.dataset.state = 'done';
+    qaFlow.insertBefore(pill, qaFlow.firstChild);
+  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = bizNameInput.value.trim();
-    if (!name || !bizTagline.value || !bizLocation.value.trim()) return;
-    const info = typeInfo(bizTagline.value);
-    if (info) bizServices.value = info.services.join(', ');
+    if (!name) return;
     previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
 
     await runCreatingAnimation(name.toUpperCase());
 
+    form.classList.add('answered');
+    addNamePill(name);
     wizGrid.classList.add('active');
     convRow.classList.add('collapsed');
     refreshPreview();
     setTimeout(scalePreviewFrame, 650); // re-measure once the reveal transition finishes
-    wizLikeIt.classList.add('active');
 
-    postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + bizLocation.value.trim()).catch(() => {});
+    qaType.dataset.state = 'active';
+    setTimeout(() => bizTagline.focus(), 400);
   });
+
+  bizTagline.addEventListener('change', () => {
+    if (!bizTagline.value) return;
+    const info = typeInfo(bizTagline.value);
+    if (info) bizServices.value = info.services.join(', ');
+    qaTypePillText.textContent = bizTagline.value;
+    qaType.dataset.state = 'done';
+    refreshPreview();
+
+    qaLocation.dataset.state = 'active';
+    setTimeout(() => bizLocation.focus(), 400);
+  });
+
+  function finishLocation() {
+    const loc = bizLocation.value.trim();
+    if (!loc) return;
+    qaLocationPillText.textContent = loc;
+    qaLocation.dataset.state = 'done';
+    refreshPreview();
+    wizLikeIt.classList.add('active');
+    wizLikeIt.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    postLead(bizNameInput.value.trim(), 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
+  }
+  bizLocation.addEventListener('input', () => {
+    qaLocationNext.classList.toggle('visible', !!bizLocation.value.trim());
+    refreshPreview();
+  });
+  bizLocation.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); finishLocation(); }
+  });
+  qaLocationNext.addEventListener('click', finishLocation);
 
   // build a full standalone homepage, styled like the Bayar Beauty site,
   // populated with the answers, and open it in a new tab.
@@ -736,30 +781,34 @@ p{margin:0 0 1.1em}
 
     <div class="wiz-grid" id="wizGrid">
       <div class="wiz-left">
-        <form id="quickLead" class="step1-card">
-          <div class="step1-field">
-            <label for="bizName">Business name</label>
-            <input type="text" id="bizName" name="business_name" placeholder="e.g. Luxe Hair &amp; Beauty" required autocomplete="off">
+        <form id="quickLead" class="name-gate" novalidate>
+          <div class="glow-box name-glow">
+            <input type="text" id="bizName" name="business_name" placeholder="What's your business called?" required autocomplete="off">
+            <button type="submit" class="name-gate-go" id="wizSend" aria-label="Start">→</button>
           </div>
-          <div class="wiz-row">
-            <div class="step1-field">
-              <label for="bizTagline">Business type</label>
-              <select id="bizTagline" required>
-                <option value="">Choose one</option>
-              </select>
-            </div>
-            <div class="step1-field">
-              <label for="bizLocation">Location</label>
-              <input type="text" id="bizLocation" placeholder="e.g. Hull" required autocomplete="off">
-            </div>
-          </div>
-          <input type="hidden" id="bizServices">
-          <input type="hidden" id="bizGoal" value="Book now">
-
-          <button type="submit" class="btn-send" id="wizSend">Create my free demo →</button>
           <div class="step1-reassure">Free demo · No card required · Takes less than 30 seconds</div>
           <div id="quickLeadStatus" class="quick-lead-status"></div>
         </form>
+
+        <div class="qa-flow" id="qaFlow">
+          <div class="qa-item glow-box" id="qaType" data-state="pending">
+            <label for="bizTagline">What type of business is it?</label>
+            <select id="bizTagline" required>
+              <option value="">Choose one</option>
+            </select>
+            <div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text" id="qaTypePillText"></span></div>
+          </div>
+          <div class="qa-item glow-box" id="qaLocation" data-state="pending">
+            <label for="bizLocation">Where's it based?</label>
+            <div class="qa-input-row">
+              <input type="text" id="bizLocation" placeholder="e.g. Hull" required autocomplete="off">
+              <button type="button" class="qa-next" id="qaLocationNext" aria-label="Continue">→</button>
+            </div>
+            <div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text" id="qaLocationPillText"></span></div>
+          </div>
+          <input type="hidden" id="bizServices">
+          <input type="hidden" id="bizGoal" value="Book now">
+        </div>
 
         <div class="wiz-panel wiz-likeit" id="wizLikeIt">
           <p class="wiz-likeit-q">Like what you see?</p>
