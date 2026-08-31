@@ -375,14 +375,20 @@
      20px radius on these boxes read as basically square-cornered, which
      is what actually looked wrong — this removes that ambiguity for
      any box size, rather than tuning one more magic-number radius. */
+  /* box-shadow blur is uniform in every direction from the edge, so on a
+     wide, short pill a LARGE blur radius makes the corners' rounding
+     (small, relative to the blur distance) stop reading at all — the
+     glow ends up looking like a soft rectangle, not a pill. Keeping the
+     blur radii small relative to the border-radius is what keeps it
+     hugging the actual pill outline. */
   .glow-box{position:relative;border-radius:999px;border:2px solid transparent;background-clip:padding-box, border-box;
     background-image:linear-gradient(var(--card), var(--card)),
       conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    box-shadow:0 0 20px -2px rgba(185,143,201,.7), 0 0 45px -6px rgba(91,58,115,.5), 0 0 90px -16px rgba(185,143,201,.55);
+    box-shadow:0 0 10px -1px rgba(185,143,201,.7), 0 0 20px -4px rgba(91,58,115,.5);
     animation:glow-spin 3.2s linear infinite, glow-breathe 2.8s ease-in-out infinite}
   @keyframes glow-spin{to{--glow-angle:360deg}}
-  @keyframes glow-breathe{0%,100%{box-shadow:0 0 20px -2px rgba(185,143,201,.7), 0 0 45px -6px rgba(91,58,115,.5), 0 0 90px -16px rgba(185,143,201,.55)}
-    50%{box-shadow:0 0 26px 0 rgba(185,143,201,.85), 0 0 60px -4px rgba(91,58,115,.6), 0 0 110px -14px rgba(185,143,201,.65)}}
+  @keyframes glow-breathe{0%,100%{box-shadow:0 0 10px -1px rgba(185,143,201,.7), 0 0 20px -4px rgba(91,58,115,.5)}
+    50%{box-shadow:0 0 14px 0 rgba(185,143,201,.85), 0 0 26px -2px rgba(91,58,115,.6)}}
   @media(prefers-reduced-motion:reduce){.glow-box{animation:none}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
