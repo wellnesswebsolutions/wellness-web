@@ -64,72 +64,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- business types: label, wall-scene category, and 3 typical services ----
   const BUSINESS_TYPES = [
-    { label: 'Hair Salon', cat: 'salon', services: ['Cuts & styling', 'Colour & balayage', 'Blow-dry', 'Keratin treatment', 'Bridal hair'], prices: ['From £32', 'From £68', 'From £22', 'From £85', 'From £95'],
-      tagline: 'Cuts, colour and styling done properly',
-      desc: '{name} is a friendly, modern salon where every visit starts with a proper consultation, not a rushed guess. Whether you’re after a sharp trim or a full colour transformation, our stylists take the time to get it right.' },
-    { label: 'Barber Shop', cat: 'salon', services: ['Haircuts', 'Beard trim', 'Hot towel shave', 'Skin fade', 'Kids cuts'], prices: ['From £18', 'From £12', 'From £25', 'From £20', 'From £14'],
-      tagline: 'Classic barbering, modern standards',
-      desc: 'At {name}, classic barbering meets modern styling. Walk in for a quick tidy-up or book in for the full hot towel treatment — our chairs are for anyone who wants to look sharp without the fuss.' },
-    { label: 'Nail Salon', cat: 'salon', services: ['Manicure', 'Pedicure', 'Gel extensions', 'Nail art', 'Acrylic infills'], prices: ['From £22', 'From £28', 'From £38', 'From £8', 'From £25'],
-      tagline: 'Manicures and pedicures that last',
-      desc: '{name} is a relaxed, hygienic space for manicures, pedicures and nail art that actually lasts. We use quality products and take our time, so you leave with nails you’re proud to show off.' },
-    { label: 'Beauty Salon', cat: 'salon', services: ['Facials', 'Waxing', 'Lash & brow', 'Spray tan', 'Makeup application'], prices: ['From £45', 'From £15', 'From £30', 'From £25', 'From £40'],
-      tagline: 'Facials, waxing and brows, tailored to you',
-      desc: '{name} brings together everything you need to feel your best, from relaxing facials to precise brow and lash work. Every treatment is tailored to you, not a one-size-fits-all routine.' },
-    { label: 'Automotive Repair', cat: 'auto', services: ['MOT testing', 'Servicing', 'Diagnostics', 'Brake repair', 'Clutch replacement'], prices: ['From £45', 'From £120', 'From £60', 'From £150', 'From £350'],
-      tagline: 'Honest, no-nonsense car care',
-      desc: '{name} is your local garage for honest, no-nonsense car care. From MOTs to full diagnostics, our qualified mechanics explain what your car actually needs — and nothing it doesn’t.' },
-    { label: 'Tyre & Exhaust', cat: 'auto', services: ['Tyre fitting', 'Exhaust repair', 'Wheel alignment', 'Puncture repair', 'Wheel balancing'], prices: ['From £25', 'From £80', 'From £45', 'From £15', 'From £20'],
-      tagline: 'Fast fitting, fair prices',
-      desc: '{name} keeps you safely on the road with fast, fairly priced tyre and exhaust work. Same-day fitting, proper wheel alignment, and no waiting around all afternoon.' },
-    { label: 'Car Valeting', cat: 'auto', services: ['Full valet', 'Interior detail', 'Paint correction', 'Ceramic coating', 'Engine bay clean'], prices: ['From £60', 'From £80', 'From £150', 'From £250', 'From £30'],
-      tagline: 'Showroom condition, every time',
-      desc: '{name} brings your car back to showroom condition, inside and out. From a quick refresh to full paint correction, we treat every vehicle like it’s our own.' },
-    { label: 'Plumbing', cat: 'trade', services: ['Emergency call-outs', 'Boiler repair', 'Bathroom fitting', 'Leak detection', 'Tap & toilet repair'], prices: ['From £75', 'From £150', 'Get a quote', 'From £65', 'From £55'],
-      tagline: 'Fast, fully qualified plumbing',
-      desc: '{name} is on call for the plumbing jobs that can’t wait, and the bathroom projects that can. Fully qualified, fully insured, and always upfront about pricing before we start.' },
-    { label: 'Electrician', cat: 'trade', services: ['Rewiring', 'Fuse box upgrades', 'PAT testing', 'Socket & switch fitting', 'EV charger install'], prices: ['Get a quote', 'From £350', 'From £3 per item', 'From £45', 'From £650'],
-      tagline: 'Electrical work done to standard',
-      desc: '{name} handles everything electrical, from a single socket to a full rewire, to the safety standard your home or business deserves. NICEIC-minded work, done properly the first time.' },
-    { label: 'Locksmith', cat: 'trade', services: ['Lock changes', 'Emergency lockout', 'Key cutting', 'uPVC door repair', 'Security upgrades'], prices: ['From £65', 'From £85', 'From £5', 'From £75', 'Get a quote'],
-      tagline: 'Fast access, day or night',
-      desc: '{name} gets you back into your home or business fast, day or night. Locked out, moved in, or just want better security — we’re a call away.' },
-    { label: 'Building & Construction', cat: 'trade', services: ['Extensions', 'Renovations', 'Groundwork', 'Loft conversions', 'Plastering'], prices: ['Get a quote', 'Get a quote', 'Get a quote', 'Get a quote', 'From £250'],
-      tagline: 'Your plans, built properly',
-      desc: '{name} turns plans into finished spaces, from single-room renovations to full extensions. We manage the whole job, so you deal with one trusted team from start to finish.' },
-    { label: 'Landscaping & Gardening', cat: 'trade', services: ['Garden design', 'Lawn care', 'Tree surgery', 'Fencing', 'Patio & decking'], prices: ['Get a quote', 'From £35', 'From £150', 'From £45/m', 'Get a quote'],
-      tagline: 'Gardens people love spending time in',
-      desc: '{name} designs and maintains gardens people actually want to spend time in. From a one-off tidy-up to a full redesign, we work with your space, not against it.' },
-    { label: 'Cleaning Services', cat: 'trade', services: ['Domestic cleaning', 'End of tenancy', 'Carpet cleaning', 'Office cleaning', 'Window cleaning'], prices: ['From £15/hr', 'From £120', 'From £45', 'From £18/hr', 'From £15'],
-      tagline: 'Reliable cleaning, done right',
-      desc: '{name} takes cleaning off your to-do list for good. Reliable, thorough, and fully insured — whether it’s a weekly clean or a one-off end of tenancy deep clean.' },
-    { label: 'Bakery & Cafe', cat: 'food', services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes', 'Breakfast & brunch', 'Catering platters'], prices: ['From £3.50', 'From £4.50', 'From £35', 'From £6.50', 'From £45'],
-      tagline: 'Baked fresh, every morning',
-      desc: '{name} is baking fresh every morning — proper bread, good coffee, and cakes made to order. A neighbourhood spot for people who care about what they’re eating.' },
-    { label: 'Restaurant', cat: 'food', services: ['A la carte dining', 'Takeaway', 'Private events', 'Sunday roast', 'Set menu'], prices: ['From £18', 'From £12', 'Get a quote', 'From £16', 'From £25'],
-      tagline: 'Made from scratch, every dish',
-      desc: 'At {name}, every dish is made from scratch with proper ingredients. Whether you’re booking a table, ordering a takeaway, or planning a private event, we treat every table the same way — well.' },
-    { label: 'Personal Training', cat: 'fitness', services: ['1-to-1 training', 'Group classes', 'Nutrition plans', 'Online coaching', 'Body composition scan'], prices: ['From £45', 'From £12', 'From £80', 'From £60/mo', 'From £25'],
+    { label: '💇 Hair & Beauty', cat: 'hairbeauty', photo: 'hair-beauty-hero.jpg',
+      services: ['Cuts & styling', 'Colour & balayage', 'Manicure & pedicure', 'Facials', 'Waxing & brows'],
+      prices: ['From £32', 'From £68', 'From £28', 'From £45', 'From £15'],
+      tagline: 'Hair and beauty, done properly',
+      desc: '{name} is a friendly, modern salon where every visit starts with a proper consultation, not a rushed guess. Whatever you’re after, our team takes the time to get it right.' },
+    { label: '✨ Aesthetics', cat: 'aesthetics', photo: 'aesthetics-hero.jpg',
+      services: ['Anti-wrinkle treatments', 'Dermal fillers', 'Skin peels', 'Laser treatments', 'Consultations'],
+      prices: ['From £150', 'From £180', 'From £65', 'From £45', 'Free'],
+      tagline: 'Advanced treatments, honest advice',
+      desc: '{name} offers professional-grade aesthetic treatments in a private, clinical setting. Every treatment starts with a proper consultation, so you know exactly what to expect.' },
+    { label: '💆 Health & Wellness', cat: 'health',
+      services: ['Massage therapy', 'Physiotherapy', 'Acupuncture', 'Reflexology', 'Wellness consultations'],
+      prices: ['From £45', 'From £55', 'From £40', 'From £35', 'From £30'],
+      tagline: 'Feel better, move better',
+      desc: '{name} helps you feel and move better, with treatments built around what your body actually needs — not a generic routine.' },
+    { label: '🏋️ Fitness', cat: 'fitness', photo: 'fitness-hero.jpg',
+      services: ['1-to-1 training', 'Group classes', 'Nutrition plans', 'Online coaching', 'Body composition scan'],
+      prices: ['From £45', 'From £12', 'From £80', 'From £60/mo', 'From £25'],
       tagline: 'Training plans built around real life',
       desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.' },
-    { label: 'Dentist', cat: 'fitness', services: ['Check-ups', 'Teeth whitening', 'Emergency dental', 'Fillings', 'Invisalign'], prices: ['From £60', 'From £250', 'From £90', 'From £120', 'From £2,400'],
-      tagline: 'Calm, modern dental care',
-      desc: '{name} offers calm, modern dental care for the whole family. From routine check-ups to emergency appointments, we focus on making every visit as comfortable as possible.' },
-    { label: 'Physiotherapy', cat: 'fitness', services: ['Sports injury', 'Massage therapy', 'Rehab plans', 'Postural assessment', 'Sports taping'], prices: ['From £55', 'From £45', 'Get a quote', 'From £40', 'From £15'],
-      tagline: 'Move better, recover properly',
-      desc: '{name} helps you move better and recover properly, whether that’s from a sports injury or everyday aches. Every treatment plan is built around your goals, not a generic routine.' },
-    { label: 'Pet Grooming', cat: 'pet', services: ['Full groom', 'Nail trim', 'Bath & brush', 'De-shedding treatment', 'Puppy introduction groom'], prices: ['From £35', 'From £10', 'From £20', 'From £15', 'From £18'],
-      tagline: 'Calm, gentle grooming for your pet',
-      desc: '{name} gives your pet a calm, gentle grooming experience from start to finish. Full grooms, quick tidy-ups, or just a bath — always handled with patience and care.' },
-    { label: 'Photography', cat: 'office', services: ['Portraits', 'Weddings', 'Commercial shoots', 'Family sessions', 'Product photography'], prices: ['From £120', 'From £950', 'Get a quote', 'From £150', 'From £200'],
+    { label: '🚗 Automotive', cat: 'automotive', photo: 'automotive-hero.jpg',
+      services: ['MOT testing', 'Servicing', 'Diagnostics', 'Tyre fitting', 'Full valet'],
+      prices: ['From £45', 'From £120', 'From £60', 'From £25', 'From £60'],
+      tagline: 'Honest, no-nonsense car care',
+      desc: '{name} is your local garage for honest, no-nonsense car care. Our qualified team explains what your car actually needs — and nothing it doesn’t.' },
+    { label: '🔨 Trades', cat: 'trades', photo: 'trades-hero.jpg',
+      services: ['Emergency call-outs', 'Boiler repair', 'Rewiring', 'Extensions', 'Bathroom fitting'],
+      prices: ['From £75', 'From £150', 'Get a quote', 'Get a quote', 'Get a quote'],
+      tagline: 'Fast, fully qualified tradework',
+      desc: '{name} is on call for the jobs that can’t wait, and the projects that can. Fully qualified, fully insured, and always upfront about pricing before we start.' },
+    { label: '🌿 Home & Garden', cat: 'homegarden', photo: 'home-garden-hero.jpg',
+      services: ['Garden design', 'Lawn care', 'Tree surgery', 'Fencing', 'Patio & decking'],
+      prices: ['Get a quote', 'From £35', 'From £150', 'From £45/m', 'Get a quote'],
+      tagline: 'Spaces people love spending time in',
+      desc: '{name} designs and maintains outdoor spaces people actually want to spend time in. From a one-off tidy-up to a full redesign, we work with your space, not against it.' },
+    { label: '☕ Food & Drink', cat: 'fooddrink', photo: 'food-drink-hero.jpg',
+      services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes', 'A la carte dining', 'Takeaway'],
+      prices: ['From £3.50', 'From £4.50', 'From £35', 'From £18', 'From £12'],
+      tagline: 'Made properly, every time',
+      desc: '{name} makes everything properly, with ingredients that matter. A spot for people who care about what they’re eating and drinking.' },
+    { label: '💼 Professional Services', cat: 'professional', photo: 'professional-services-hero.jpg',
+      services: ['Tax returns', 'Bookkeeping', 'Property sales', 'Valuations', 'Business advice'],
+      prices: ['From £150', 'From £40/mo', 'Get a quote', 'Free valuation', 'From £75/hr'],
+      tagline: 'Clear advice, no jargon',
+      desc: '{name} keeps things straightforward, with clear advice and deadlines that never sneak up on you. One trusted team, from start to finish.' },
+    { label: '📸 Creative', cat: 'creative', photo: 'creative-hero.jpg',
+      services: ['Portraits', 'Weddings', 'Commercial shoots', 'Product photography', 'Family sessions'],
+      prices: ['From £120', 'From £950', 'Get a quote', 'From £200', 'From £150'],
       tagline: 'The moments that actually matter',
-      desc: '{name} captures the moments that actually matter, from portraits to weddings to commercial work. A relaxed approach behind the camera means natural results in front of it.' },
-    { label: 'Accounting & Bookkeeping', cat: 'office', services: ['Tax returns', 'Payroll', 'Bookkeeping', 'VAT returns', 'Business advice'], prices: ['From £150', 'From £25/mo', 'From £40/mo', 'From £60', 'From £75/hr'],
-      tagline: 'Your numbers, sorted properly',
-      desc: '{name} keeps your numbers straight so you can focus on running the business. Clear advice, no jargon, and deadlines that never sneak up on you.' },
-    { label: 'Real Estate', cat: 'office', services: ['Property sales', 'Lettings', 'Valuations', 'Property management', 'Land & new build'], prices: ['Get a quote', 'Get a quote', 'Free valuation', 'Get a quote', 'Get a quote'],
-      tagline: 'Buying, selling and letting made simple',
-      desc: '{name} makes buying, selling and letting property straightforward. Honest valuations, clear communication, and a team that treats your move like it matters — because it does.' }
+      desc: '{name} captures the moments that actually matter. A relaxed, professional approach that means natural results every time.' },
+    { label: '🐕 Pets', cat: 'pets', photo: 'pets-hero.jpg',
+      services: ['Full groom', 'Nail trim', 'Bath & brush', 'De-shedding treatment', 'Puppy introduction groom'],
+      prices: ['From £35', 'From £10', 'From £20', 'From £15', 'From £18'],
+      tagline: 'Calm, gentle care for your pet',
+      desc: '{name} gives your pet a calm, gentle experience from start to finish. Always handled with patience and care.' },
+    { label: 'Other', cat: 'other',
+      services: ['Consultation', 'Custom service', 'Ongoing support', 'One-off project', 'Callout'],
+      prices: ['Free', 'Get a quote', 'Get a quote', 'Get a quote', 'Get a quote'],
+      tagline: 'Tell us what makes you different',
+      desc: '{name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.' }
   ];
   BUSINESS_TYPES.forEach(t => {
     const opt = document.createElement('option');
@@ -143,37 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function sceneSVG(cat, tones) {
     const wallDark = (tones && tones.dark) || '#8a6d72';
     const wallBase = (tones && tones.base) || '#a3878b';
+    // every category now has a real photo except Health & Wellness and
+    // Other, which fall back to one of these illustrated wall scenes
     const propsByCategory = {
-      salon: `
-        <ellipse cx="640" cy="150" rx="70" ry="90" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="6"/>
-        <ellipse cx="640" cy="150" rx="70" ry="90" fill="rgba(255,255,255,.06)"/>
-        <path d="M60 420 q0 -110 40 -110 q40 0 40 110 z" fill="rgba(0,0,0,.18)"/>
-        <path d="M80 320 q-30 -40 0 -70 q30 30 0 70 z" fill="rgba(0,0,0,.22)"/>
-        <path d="M60 300 q-30 -40 0 -70 q30 30 0 70 z" fill="rgba(0,0,0,.22)"/>
-        <path d="M100 300 q-30 -40 0 -70 q30 30 0 70 z" fill="rgba(0,0,0,.22)"/>`,
-      auto: `
-        <g opacity=".16">
-          ${Array.from({length: 6}).map((_, r) => Array.from({length: 12}).map((_, c) =>
-            `<rect x="${c * 70 - (r % 2 ? 35 : 0)}" y="${r * 34}" width="62" height="26" fill="none" stroke="#000" stroke-width="2"/>`).join('')).join('')}
-        </g>
-        <circle cx="120" cy="380" r="70" fill="rgba(0,0,0,.28)"/>
-        <circle cx="120" cy="380" r="70" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="10"/>
-        <circle cx="120" cy="380" r="26" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="8"/>`,
-      trade: `
-        <g opacity=".14">
-          ${Array.from({length: 20}).map((_, i) => `<circle cx="${(i % 10) * 76 + 40}" cy="${Math.floor(i / 10) * 90 + 60}" r="3" fill="#000"/>`).join('')}
-        </g>
-        <rect x="50" y="330" width="130" height="90" rx="6" fill="rgba(0,0,0,.24)"/>
-        <rect x="50" y="330" width="130" height="18" rx="6" fill="rgba(0,0,0,.32)"/>
-        <path d="M600 90 l30 30 -100 100 -30 -30 z" fill="rgba(0,0,0,.22)"/>
-        <circle cx="612" cy="102" r="16" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="6"/>`,
-      food: `
-        <rect x="520" y="60" width="180" height="10" fill="rgba(0,0,0,.22)"/>
-        <rect x="540" y="72" width="40" height="46" rx="4" fill="rgba(0,0,0,.2)"/>
-        <rect x="600" y="72" width="40" height="46" rx="4" fill="rgba(0,0,0,.2)"/>
-        <path d="M70 300 h120 v90 a60 60 0 0 1 -120 0 z" fill="rgba(0,0,0,.2)"/>
-        <ellipse cx="130" cy="300" rx="60" ry="14" fill="rgba(0,0,0,.26)"/>`,
-      fitness: `
+      health: `
         <g fill="rgba(0,0,0,.24)">
           <rect x="60" y="360" width="30" height="60" rx="6"/>
           <rect x="220" y="360" width="30" height="60" rx="6"/>
@@ -182,19 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <g fill="rgba(0,0,0,.16)">
           <rect x="600" y="70" width="70" height="20" rx="4"/>
           <rect x="625" y="45" width="20" height="70" rx="4"/>
-        </g>`,
-      pet: `
-        <g fill="rgba(0,0,0,.2)">
-          <circle cx="120" cy="330" r="16"/>
-          <circle cx="150" cy="310" r="10"/>
-          <circle cx="90" cy="310" r="10"/>
-          <circle cx="105" cy="285" r="8"/>
-          <circle cx="135" cy="285" r="8"/>
-          <circle cx="560" cy="120" r="16"/>
-          <circle cx="590" cy="100" r="10"/>
-          <circle cx="530" cy="100" r="10"/>
-          <circle cx="545" cy="75" r="8"/>
-          <circle cx="575" cy="75" r="8"/>
         </g>`,
       office: `
         <rect x="580" y="60" width="120" height="90" rx="4" fill="none" stroke="rgba(0,0,0,.24)" stroke-width="6"/>
@@ -424,19 +378,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroHook = info ? info.tagline : (d.tagline || 'Tell us what makes you different — this line introduces your business.');
     const heroSub = d.tagline ? `${d.tagline} — ${heroHook}` : heroHook;
     const metaDesc = (heroHook + '. ' + defaultDesc).slice(0, 155).replace(/\s+\S*$/, '') + '.';
-    const usingCuratedSalonPhoto = !d.heroImage && cat === 'salon';
-    const sceneMarkup = (d.heroImage || usingCuratedSalonPhoto) ? '' : sceneSVG(cat, t);
-    const wallNameMarkup = !d.heroImage
-      ? `<div class="wall-name${usingCuratedSalonPhoto ? ' wall-name--salon-photo' : ''}">${esc(d.name)}</div>`
-      : '';
-    const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-    const doorMarkup = usingCuratedSalonPhoto
-      ? `<div class="door-mark">${esc(initials)}</div>`
-      : '';
+    const categoryPhoto = info && info.photo ? `https://wellnessweb.co.uk/img/hero/${info.photo}` : null;
+    const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
+    const sceneMarkup = (d.heroImage || usingCategoryPhoto) ? '' : sceneSVG(cat, t);
+    const wallNameMarkup = !d.heroImage ? `<div class="wall-name">${esc(d.name)}</div>` : '';
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
-      : usingCuratedSalonPhoto
-        ? `url('https://wellnessweb.co.uk/img/salon-hero.png') center/cover no-repeat`
+      : usingCategoryPhoto
+        ? `url('${categoryPhoto}') center/cover no-repeat`
         : `linear-gradient(155deg,${t.dark},${t.light})`;
     const brandMark = d.logo
       ? `<img src="${d.logo}" alt="${esc(d.name)} logo" style="height:38px;width:auto;display:block">`
@@ -509,18 +458,6 @@ p{margin:0 0 1.1em}
   text-shadow:0 2px 10px rgba(0,0,0,.35);box-shadow:0 16px 36px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.06)}
 @media(max-width:900px){.wall-name{top:8px;padding:10px 18px;font-size:1rem;letter-spacing:.06em}}
 @media(max-width:480px){.wall-name{white-space:normal;max-width:88%}}
-.wall-name--salon-photo{top:22%;left:19%;transform:none;background:none;border:none;box-shadow:none;
-  font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:clamp(1.5rem,3.6vw,2.6rem);
-  line-height:1.15;letter-spacing:.02em;text-transform:none;color:#2a2521;text-shadow:0 1px 1px rgba(255,255,255,.3);
-  white-space:normal;max-width:42%;text-align:left}
-@media(max-width:900px){.wall-name--salon-photo{left:50%;top:8%;transform:translateX(-50%);font-size:1.5rem;
-  background:rgba(255,255,255,.85);padding:8px 16px;border-radius:8px}}
-.door-mark{position:absolute;top:44%;left:70%;transform:translate(-50%,-50%);z-index:1;
-  width:14%;aspect-ratio:1;min-width:44px;max-width:74px;border-radius:50%;background:rgba(28,24,21,.88);
-  color:#f6efe9;display:flex;align-items:center;justify-content:center;
-  font-family:Georgia,'Times New Roman',serif;font-weight:600;letter-spacing:.02em;
-  font-size:clamp(.9rem,1.6vw,1.3rem);box-shadow:0 8px 20px rgba(0,0,0,.3)}
-@media(max-width:900px){.door-mark{display:none}}
 @media(max-width:900px){
   .site-header{top:64px}
   .hero{min-height:min(60vh,480px);margin-top:138px}
@@ -595,7 +532,6 @@ p{margin:0 0 1.1em}
   <section class="hero">
     ${sceneMarkup}
     ${wallNameMarkup}
-    ${doorMarkup}
     <div class="hero-copy">
       <div class="inner">
         <span class="eyebrow">${esc(eyebrowLoc)}</span>
