@@ -64,70 +64,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- business types: label, wall-scene category, and 3 typical services ----
   const BUSINESS_TYPES = [
-    { label: 'Hair Salon', cat: 'salon', services: ['Cuts & styling', 'Colour & balayage', 'Blow-dry'], prices: ['From £32', 'From £68', 'From £22'],
+    { label: 'Hair Salon', cat: 'salon', services: ['Cuts & styling', 'Colour & balayage', 'Blow-dry', 'Keratin treatment', 'Bridal hair'], prices: ['From £32', 'From £68', 'From £22', 'From £85', 'From £95'],
       tagline: 'Cuts, colour and styling done properly',
       desc: '{name} is a friendly, modern salon where every visit starts with a proper consultation, not a rushed guess. Whether you’re after a sharp trim or a full colour transformation, our stylists take the time to get it right.' },
-    { label: 'Barber Shop', cat: 'salon', services: ['Haircuts', 'Beard trim', 'Hot towel shave'], prices: ['From £18', 'From £12', 'From £25'],
+    { label: 'Barber Shop', cat: 'salon', services: ['Haircuts', 'Beard trim', 'Hot towel shave', 'Skin fade', 'Kids cuts'], prices: ['From £18', 'From £12', 'From £25', 'From £20', 'From £14'],
       tagline: 'Classic barbering, modern standards',
       desc: 'At {name}, classic barbering meets modern styling. Walk in for a quick tidy-up or book in for the full hot towel treatment — our chairs are for anyone who wants to look sharp without the fuss.' },
-    { label: 'Nail Salon', cat: 'salon', services: ['Manicure', 'Pedicure', 'Gel extensions'], prices: ['From £22', 'From £28', 'From £38'],
+    { label: 'Nail Salon', cat: 'salon', services: ['Manicure', 'Pedicure', 'Gel extensions', 'Nail art', 'Acrylic infills'], prices: ['From £22', 'From £28', 'From £38', 'From £8', 'From £25'],
       tagline: 'Manicures and pedicures that last',
       desc: '{name} is a relaxed, hygienic space for manicures, pedicures and nail art that actually lasts. We use quality products and take our time, so you leave with nails you’re proud to show off.' },
-    { label: 'Beauty Salon', cat: 'salon', services: ['Facials', 'Waxing', 'Lash & brow'], prices: ['From £45', 'From £15', 'From £30'],
+    { label: 'Beauty Salon', cat: 'salon', services: ['Facials', 'Waxing', 'Lash & brow', 'Spray tan', 'Makeup application'], prices: ['From £45', 'From £15', 'From £30', 'From £25', 'From £40'],
       tagline: 'Facials, waxing and brows, tailored to you',
       desc: '{name} brings together everything you need to feel your best, from relaxing facials to precise brow and lash work. Every treatment is tailored to you, not a one-size-fits-all routine.' },
-    { label: 'Automotive Repair', cat: 'auto', services: ['MOT testing', 'Servicing', 'Diagnostics'], prices: ['From £45', 'From £120', 'From £60'],
+    { label: 'Automotive Repair', cat: 'auto', services: ['MOT testing', 'Servicing', 'Diagnostics', 'Brake repair', 'Clutch replacement'], prices: ['From £45', 'From £120', 'From £60', 'From £150', 'From £350'],
       tagline: 'Honest, no-nonsense car care',
       desc: '{name} is your local garage for honest, no-nonsense car care. From MOTs to full diagnostics, our qualified mechanics explain what your car actually needs — and nothing it doesn’t.' },
-    { label: 'Tyre & Exhaust', cat: 'auto', services: ['Tyre fitting', 'Exhaust repair', 'Wheel alignment'], prices: ['From £25', 'From £80', 'From £45'],
+    { label: 'Tyre & Exhaust', cat: 'auto', services: ['Tyre fitting', 'Exhaust repair', 'Wheel alignment', 'Puncture repair', 'Wheel balancing'], prices: ['From £25', 'From £80', 'From £45', 'From £15', 'From £20'],
       tagline: 'Fast fitting, fair prices',
       desc: '{name} keeps you safely on the road with fast, fairly priced tyre and exhaust work. Same-day fitting, proper wheel alignment, and no waiting around all afternoon.' },
-    { label: 'Car Valeting', cat: 'auto', services: ['Full valet', 'Interior detail', 'Paint correction'], prices: ['From £60', 'From £80', 'From £150'],
+    { label: 'Car Valeting', cat: 'auto', services: ['Full valet', 'Interior detail', 'Paint correction', 'Ceramic coating', 'Engine bay clean'], prices: ['From £60', 'From £80', 'From £150', 'From £250', 'From £30'],
       tagline: 'Showroom condition, every time',
       desc: '{name} brings your car back to showroom condition, inside and out. From a quick refresh to full paint correction, we treat every vehicle like it’s our own.' },
-    { label: 'Plumbing', cat: 'trade', services: ['Emergency call-outs', 'Boiler repair', 'Bathroom fitting'], prices: ['From £75', 'From £150', 'Get a quote'],
+    { label: 'Plumbing', cat: 'trade', services: ['Emergency call-outs', 'Boiler repair', 'Bathroom fitting', 'Leak detection', 'Tap & toilet repair'], prices: ['From £75', 'From £150', 'Get a quote', 'From £65', 'From £55'],
       tagline: 'Fast, fully qualified plumbing',
       desc: '{name} is on call for the plumbing jobs that can’t wait, and the bathroom projects that can. Fully qualified, fully insured, and always upfront about pricing before we start.' },
-    { label: 'Electrician', cat: 'trade', services: ['Rewiring', 'Fuse box upgrades', 'PAT testing'], prices: ['Get a quote', 'From £350', 'From £3 per item'],
+    { label: 'Electrician', cat: 'trade', services: ['Rewiring', 'Fuse box upgrades', 'PAT testing', 'Socket & switch fitting', 'EV charger install'], prices: ['Get a quote', 'From £350', 'From £3 per item', 'From £45', 'From £650'],
       tagline: 'Electrical work done to standard',
       desc: '{name} handles everything electrical, from a single socket to a full rewire, to the safety standard your home or business deserves. NICEIC-minded work, done properly the first time.' },
-    { label: 'Locksmith', cat: 'trade', services: ['Lock changes', 'Emergency lockout', 'Key cutting'], prices: ['From £65', 'From £85', 'From £5'],
+    { label: 'Locksmith', cat: 'trade', services: ['Lock changes', 'Emergency lockout', 'Key cutting', 'uPVC door repair', 'Security upgrades'], prices: ['From £65', 'From £85', 'From £5', 'From £75', 'Get a quote'],
       tagline: 'Fast access, day or night',
       desc: '{name} gets you back into your home or business fast, day or night. Locked out, moved in, or just want better security — we’re a call away.' },
-    { label: 'Building & Construction', cat: 'trade', services: ['Extensions', 'Renovations', 'Groundwork'], prices: ['Get a quote', 'Get a quote', 'Get a quote'],
+    { label: 'Building & Construction', cat: 'trade', services: ['Extensions', 'Renovations', 'Groundwork', 'Loft conversions', 'Plastering'], prices: ['Get a quote', 'Get a quote', 'Get a quote', 'Get a quote', 'From £250'],
       tagline: 'Your plans, built properly',
       desc: '{name} turns plans into finished spaces, from single-room renovations to full extensions. We manage the whole job, so you deal with one trusted team from start to finish.' },
-    { label: 'Landscaping & Gardening', cat: 'trade', services: ['Garden design', 'Lawn care', 'Tree surgery'], prices: ['Get a quote', 'From £35', 'From £150'],
+    { label: 'Landscaping & Gardening', cat: 'trade', services: ['Garden design', 'Lawn care', 'Tree surgery', 'Fencing', 'Patio & decking'], prices: ['Get a quote', 'From £35', 'From £150', 'From £45/m', 'Get a quote'],
       tagline: 'Gardens people love spending time in',
       desc: '{name} designs and maintains gardens people actually want to spend time in. From a one-off tidy-up to a full redesign, we work with your space, not against it.' },
-    { label: 'Cleaning Services', cat: 'trade', services: ['Domestic cleaning', 'End of tenancy', 'Carpet cleaning'], prices: ['From £15/hr', 'From £120', 'From £45'],
+    { label: 'Cleaning Services', cat: 'trade', services: ['Domestic cleaning', 'End of tenancy', 'Carpet cleaning', 'Office cleaning', 'Window cleaning'], prices: ['From £15/hr', 'From £120', 'From £45', 'From £18/hr', 'From £15'],
       tagline: 'Reliable cleaning, done right',
       desc: '{name} takes cleaning off your to-do list for good. Reliable, thorough, and fully insured — whether it’s a weekly clean or a one-off end of tenancy deep clean.' },
-    { label: 'Bakery & Cafe', cat: 'food', services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes'], prices: ['From £3.50', 'From £4.50', 'From £35'],
+    { label: 'Bakery & Cafe', cat: 'food', services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes', 'Breakfast & brunch', 'Catering platters'], prices: ['From £3.50', 'From £4.50', 'From £35', 'From £6.50', 'From £45'],
       tagline: 'Baked fresh, every morning',
       desc: '{name} is baking fresh every morning — proper bread, good coffee, and cakes made to order. A neighbourhood spot for people who care about what they’re eating.' },
-    { label: 'Restaurant', cat: 'food', services: ['A la carte dining', 'Takeaway', 'Private events'], prices: ['From £18', 'From £12', 'Get a quote'],
+    { label: 'Restaurant', cat: 'food', services: ['A la carte dining', 'Takeaway', 'Private events', 'Sunday roast', 'Set menu'], prices: ['From £18', 'From £12', 'Get a quote', 'From £16', 'From £25'],
       tagline: 'Made from scratch, every dish',
       desc: 'At {name}, every dish is made from scratch with proper ingredients. Whether you’re booking a table, ordering a takeaway, or planning a private event, we treat every table the same way — well.' },
-    { label: 'Personal Training', cat: 'fitness', services: ['1-to-1 training', 'Group classes', 'Nutrition plans'], prices: ['From £45', 'From £12', 'From £80'],
+    { label: 'Personal Training', cat: 'fitness', services: ['1-to-1 training', 'Group classes', 'Nutrition plans', 'Online coaching', 'Body composition scan'], prices: ['From £45', 'From £12', 'From £80', 'From £60/mo', 'From £25'],
       tagline: 'Training plans built around real life',
       desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.' },
-    { label: 'Dentist', cat: 'fitness', services: ['Check-ups', 'Teeth whitening', 'Emergency dental'], prices: ['From £60', 'From £250', 'From £90'],
+    { label: 'Dentist', cat: 'fitness', services: ['Check-ups', 'Teeth whitening', 'Emergency dental', 'Fillings', 'Invisalign'], prices: ['From £60', 'From £250', 'From £90', 'From £120', 'From £2,400'],
       tagline: 'Calm, modern dental care',
       desc: '{name} offers calm, modern dental care for the whole family. From routine check-ups to emergency appointments, we focus on making every visit as comfortable as possible.' },
-    { label: 'Physiotherapy', cat: 'fitness', services: ['Sports injury', 'Massage therapy', 'Rehab plans'], prices: ['From £55', 'From £45', 'Get a quote'],
+    { label: 'Physiotherapy', cat: 'fitness', services: ['Sports injury', 'Massage therapy', 'Rehab plans', 'Postural assessment', 'Sports taping'], prices: ['From £55', 'From £45', 'Get a quote', 'From £40', 'From £15'],
       tagline: 'Move better, recover properly',
       desc: '{name} helps you move better and recover properly, whether that’s from a sports injury or everyday aches. Every treatment plan is built around your goals, not a generic routine.' },
-    { label: 'Pet Grooming', cat: 'pet', services: ['Full groom', 'Nail trim', 'Bath & brush'], prices: ['From £35', 'From £10', 'From £20'],
+    { label: 'Pet Grooming', cat: 'pet', services: ['Full groom', 'Nail trim', 'Bath & brush', 'De-shedding treatment', 'Puppy introduction groom'], prices: ['From £35', 'From £10', 'From £20', 'From £15', 'From £18'],
       tagline: 'Calm, gentle grooming for your pet',
       desc: '{name} gives your pet a calm, gentle grooming experience from start to finish. Full grooms, quick tidy-ups, or just a bath — always handled with patience and care.' },
-    { label: 'Photography', cat: 'office', services: ['Portraits', 'Weddings', 'Commercial shoots'], prices: ['From £120', 'From £950', 'Get a quote'],
+    { label: 'Photography', cat: 'office', services: ['Portraits', 'Weddings', 'Commercial shoots', 'Family sessions', 'Product photography'], prices: ['From £120', 'From £950', 'Get a quote', 'From £150', 'From £200'],
       tagline: 'The moments that actually matter',
       desc: '{name} captures the moments that actually matter, from portraits to weddings to commercial work. A relaxed approach behind the camera means natural results in front of it.' },
-    { label: 'Accounting & Bookkeeping', cat: 'office', services: ['Tax returns', 'Payroll', 'Bookkeeping'], prices: ['From £150', 'From £25/mo', 'From £40/mo'],
+    { label: 'Accounting & Bookkeeping', cat: 'office', services: ['Tax returns', 'Payroll', 'Bookkeeping', 'VAT returns', 'Business advice'], prices: ['From £150', 'From £25/mo', 'From £40/mo', 'From £60', 'From £75/hr'],
       tagline: 'Your numbers, sorted properly',
       desc: '{name} keeps your numbers straight so you can focus on running the business. Clear advice, no jargon, and deadlines that never sneak up on you.' },
-    { label: 'Real Estate', cat: 'office', services: ['Property sales', 'Lettings', 'Valuations'], prices: ['Get a quote', 'Get a quote', 'Free valuation'],
+    { label: 'Real Estate', cat: 'office', services: ['Property sales', 'Lettings', 'Valuations', 'Property management', 'Land & new build'], prices: ['Get a quote', 'Get a quote', 'Free valuation', 'Get a quote', 'Get a quote'],
       tagline: 'Buying, selling and letting made simple',
       desc: '{name} makes buying, selling and letting property straightforward. Honest valuations, clear communication, and a team that treats your move like it matters — because it does.' }
   ];
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
       s => `Popular with regulars. Get in touch and we'll talk you through ${esc(s.toLowerCase())}.`
     ];
     const cardHooks = ['Fan favourite', 'Client favourite', 'Ask about this one'];
-    const cards = services.slice(0, 3).map((s, i) => `
+    const cards = services.map((s, i) => `
         <a class="card card-link" href="#" data-nav="contact">
           <span class="num">${i === 0 ? 'Most Popular · ' : ''}${esc(s)}</span>
           <h3>${esc(s)}${prices[i] ? `<span class="card-price">${esc(prices[i])}</span>` : ''}</h3>
@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
           <span class="card-cta">Learn more</span>
         </a>`).join('');
-    const tags = services.map(s => `<span>${esc(s)}</span>`).join('');
+    const tags = services.slice(0, 4).map(s => `<span>${esc(s)}</span>`).join('');
     const t = d.tones || { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' };
     const gallery = Array.from({length: 6}).map((_, i) => `
         <figure style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);
@@ -527,7 +527,10 @@ p{margin:0 0 1.1em}
 .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:760px){.gallery{grid-template-columns:repeat(2,1fr);gap:10px}}
 .gallery figure{margin:0;aspect-ratio:1/1;overflow:hidden}
+.find.has-map{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:center}
+@media(max-width:860px){.find.has-map{grid-template-columns:1fr}}
 .map{position:relative;width:100%;aspect-ratio:21/9;max-height:420px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--champagne-2)}
+.find.has-map .map{aspect-ratio:4/3;max-height:none}
 .map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .info-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow)}
 .info-card .eyebrow{margin-bottom:.6em}
@@ -675,13 +678,31 @@ p{margin:0 0 1.1em}
 
   ${d.location ? `<section class="section section--tint" style="padding-top:2em">
     <div class="container">
-      <div class="center" style="margin-bottom:2em">
-        <span class="eyebrow">Find Us</span>
-        <h2>${esc(d.location)}</h2>
+      <div class="find has-map">
+        <div>
+          <span class="eyebrow">Find Us</span>
+          <h2>${esc(d.location)}</h2>
+          <p class="lede">In and around ${esc(d.location)}. Get in touch for directions if you need them.</p>
+          <div class="btn-row">
+            <a class="btn" href="https://www.google.com/maps?q=${encodeURIComponent(d.location)}" target="_blank" rel="noopener">Get Directions</a>
+            <a class="btn btn--ghost" href="#">${esc(goalLabel)}</a>
+          </div>
+        </div>
+        <div class="map"><iframe title="Map showing ${esc(d.location)}" src="https://www.google.com/maps?q=${encodeURIComponent(d.location)}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
       </div>
-      <div class="map"><iframe title="Map showing ${esc(d.location)}" src="https://www.google.com/maps?q=${encodeURIComponent(d.location)}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
     </div>
   </section>` : ''}
+
+  <section class="section band">
+    <div class="container">
+      <span class="eyebrow">Ready when you are</span>
+      <h2>Book with ${esc(d.name)}</h2>
+      <p>Get in touch and find a time that suits you.</p>
+      <div class="btn-row" style="justify-content:center;margin-top:1.6em">
+        <a class="btn btn--light" href="#">${esc(goalLabel)}</a>
+      </div>
+    </div>
+  </section>
 </div>
 
 <footer class="site-footer">
