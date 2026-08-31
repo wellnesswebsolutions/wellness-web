@@ -357,23 +357,24 @@
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(28px,5vw,54px);line-height:1.12}
   .hero-conv-sub{font-size:clamp(14px,1.6vw,17px);color:var(--muted);margin-top:12px}
 
-  /* ---- futuristic glow box: shared by the name gate and each live question ---- */
-  @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-  .glow-box{position:relative;border-radius:20px;
-    box-shadow:0 0 0 1px rgba(91,58,115,.08), 0 0 50px -8px rgba(185,143,201,.65), 0 0 100px -20px rgba(91,58,115,.5),
-      0 20px 50px -18px rgba(91,58,115,.35)}
-  .glow-box:before{content:"";position:absolute;inset:-3px;border-radius:23px;z-index:0;
-    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    filter:blur(9px);opacity:.9;animation:glow-spin 4s linear infinite,glow-pulse 2.4s ease-in-out infinite}
-  .glow-box:after{content:"";position:absolute;inset:0;border-radius:20px;z-index:1;background:var(--card)}
+  /* ---- futuristic glow box: shared by the name gate and each live question ----
+     a conic-gradient spinning ring looks stretched/uneven on wide, short
+     rectangles (it warps proportionally to the aspect ratio), so instead
+     this is a soft ambient bloom that pulses gently — even on any shape. */
+  .glow-box{position:relative;border-radius:20px;border:1px solid rgba(91,58,115,.18);
+    background:var(--card);
+    box-shadow:0 0 30px -4px rgba(185,143,201,.55), 0 0 60px -12px rgba(91,58,115,.4),
+      0 20px 50px -18px rgba(91,58,115,.3);
+    animation:glow-pulse 2.6s ease-in-out infinite}
   .glow-box > *{position:relative;z-index:2}
-  @keyframes glow-spin{to{--glow-angle:360deg}}
-  @keyframes glow-pulse{0%,100%{opacity:.7}50%{opacity:1}}
-  @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
+  @keyframes glow-pulse{0%,100%{box-shadow:0 0 30px -4px rgba(185,143,201,.55), 0 0 60px -12px rgba(91,58,115,.4), 0 20px 50px -18px rgba(91,58,115,.3)}
+    50%{box-shadow:0 0 40px -2px rgba(185,143,201,.75), 0 0 80px -10px rgba(91,58,115,.55), 0 20px 50px -18px rgba(91,58,115,.3)}}
+  @media(prefers-reduced-motion:reduce){.glow-box{animation:none}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
-  .qa-progress{width:100%;max-width:220px;margin:clamp(20px,3svh,28px) auto 0;text-align:center;
-    transition:opacity .4s ease,max-height .4s ease,margin .4s ease;overflow:hidden;max-height:60px}
+  .qa-progress{width:100%;max-width:220px;margin:0 auto;text-align:center;opacity:0;max-height:0;
+    transition:opacity .4s ease,max-height .4s ease,margin .4s ease;overflow:hidden}
+  .qa-progress.started{opacity:1;max-height:60px;margin:clamp(20px,3svh,28px) auto 0}
   .qa-progress.done{opacity:0;max-height:0;margin-top:0}
   .qa-progress-bar{display:flex;gap:6px}
   .qa-progress-seg{flex:1;height:4px;border-radius:999px;background:rgba(91,58,115,.14);overflow:hidden;position:relative}
@@ -406,10 +407,9 @@
   .qa-flow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px;margin-top:4px}
   .qa-item{transition:opacity .35s ease,transform .35s ease}
   .qa-item[data-state="pending"]{display:none}
-  .qa-item[data-state="done"]{animation:qa-pill-in .4s cubic-bezier(.22,.7,.3,1)}
   .qa-item[data-state="done"] label,.qa-item[data-state="done"] select,
   .qa-item[data-state="done"] .qa-input-row{display:none}
-  .qa-item[data-state="done"]:before,.qa-item[data-state="done"]:after{content:none}
+  .qa-item[data-state="done"]{border:none;background:none;box-shadow:none;padding:0;animation:qa-pill-in .4s cubic-bezier(.22,.7,.3,1)}
   .qa-item[data-state="active"]{flex:1 1 100%;animation:qa-in .45s cubic-bezier(.22,.7,.3,1)}
   .qa-item[data-state="active"] .qa-pill{display:none}
   @keyframes qa-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
