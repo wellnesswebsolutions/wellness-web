@@ -226,13 +226,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
     const heroSub = d.tagline || 'Tell us what makes you different — this line introduces your business.';
     const info = typeInfo(d.tagline);
-    const sceneMarkup = d.heroImage ? '' : sceneSVG(info ? info.cat : 'office', t);
+    const cat = info ? info.cat : 'office';
+    const usingCuratedSalonPhoto = !d.heroImage && cat === 'salon';
+    const sceneMarkup = (d.heroImage || usingCuratedSalonPhoto) ? '' : sceneSVG(cat, t);
     const wallNameMarkup = !d.heroImage
-      ? `<div class="wall-name">${esc(d.name)}</div>`
+      ? `<div class="wall-name${usingCuratedSalonPhoto ? ' wall-name--salon-photo' : ''}">${esc(d.name)}</div>`
       : '';
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
-      : `linear-gradient(155deg,${t.dark},${t.light})`;
+      : usingCuratedSalonPhoto
+        ? `url('https://wellnessweb.co.uk/img/salon-hero.png') center/cover no-repeat`
+        : `linear-gradient(155deg,${t.dark},${t.light})`;
     const brandMark = d.logo
       ? `<img src="${d.logo}" alt="${esc(d.name)} logo" style="height:38px;width:auto;display:block">`
       : esc(d.name);
@@ -302,6 +306,11 @@ p{margin:0 0 1.1em}
   text-shadow:0 2px 10px rgba(0,0,0,.35);box-shadow:0 16px 36px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.06)}
 @media(max-width:900px){.wall-name{top:8px;padding:10px 18px;font-size:1rem;letter-spacing:.06em}}
 @media(max-width:480px){.wall-name{white-space:normal;max-width:88%}}
+.wall-name--salon-photo{top:30%;left:19%;transform:none;background:none;border:none;box-shadow:none;
+  font-family:Georgia,'Times New Roman',serif;font-weight:600;font-size:clamp(1.3rem,3vw,2.1rem);
+  letter-spacing:.04em;text-transform:none;color:#2a2521;text-shadow:0 1px 1px rgba(255,255,255,.3)}
+@media(max-width:900px){.wall-name--salon-photo{left:50%;top:8%;transform:translateX(-50%);font-size:1.3rem;
+  background:rgba(255,255,255,.85);padding:8px 16px;border-radius:8px}}
 @media(max-width:900px){
   .site-header{top:64px}
   .hero{min-height:0;display:block;background:var(--champagne);margin-top:138px}
