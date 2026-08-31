@@ -269,10 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
           font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
           background:linear-gradient(${135 + i * 20}deg,${t.dark},${t.light})">Add your photos</figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
-    const heroSub = d.tagline || 'Tell us what makes you different — this line introduces your business.';
     const info = typeInfo(d.tagline);
     const cat = info ? info.cat : 'office';
     const defaultDesc = info ? info.desc.replace(/\{name\}/g, d.name) : `${d.name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.`;
+    const heroHook = info ? info.tagline : (d.tagline || 'Tell us what makes you different — this line introduces your business.');
+    const heroSub = d.tagline ? `${d.tagline} — ${heroHook}` : heroHook;
+    const metaDesc = (heroHook + '. ' + defaultDesc).slice(0, 155).replace(/\s+\S*$/, '') + '.';
     const usingCuratedSalonPhoto = !d.heroImage && cat === 'salon';
     const sceneMarkup = (d.heroImage || usingCuratedSalonPhoto) ? '' : sceneSVG(cat, t);
     const wallNameMarkup = !d.heroImage
@@ -295,7 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(d.name)}${d.location ? ' | ' + esc(d.location) : ''}</title>
+<title>${esc(d.name)}${d.tagline ? ' | ' + esc(d.tagline) : ''}${d.location ? ' in ' + esc(d.location) : ''}</title>
+<meta name="description" content="${esc(metaDesc)}">
 <meta name="theme-color" content="#f6efe9">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -444,7 +447,7 @@ p{margin:0 0 1.1em}
     <div class="grid grid-2" style="align-items:center;gap:48px">
       <div>
         <span class="eyebrow">Welcome to ${esc(d.name)}</span>
-        <h2>${esc(d.tagline) || 'Everything you need, in one place'}</h2>
+        <h2>${esc(heroHook) || 'Everything you need, in one place'}</h2>
         <p class="lede">${esc(d.about) || esc(defaultDesc)}</p>
         <div class="btn-row">
           <a class="btn btn--ghost" href="#services">Browse Services</a>
