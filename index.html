@@ -168,9 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function tonesFromHex(hex) {
     const [h, s] = hexToHsl(hex);
     return {
-      light: hslToHex(h, Math.max(s - 10, 20), 78),
+      light: hslToHex(h, Math.max(s - 14, 16), 86),
       base: hex,
-      dark: hslToHex(h, Math.min(s + 6, 90), 24)
+      dark: hslToHex(h, Math.min(s + 2, 70), 44)
     };
   }
   let currentTones = null;
@@ -227,6 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroSub = d.tagline || 'Tell us what makes you different — this line introduces your business.';
     const info = typeInfo(d.tagline);
     const sceneMarkup = d.heroImage ? '' : sceneSVG(info ? info.cat : 'office', t);
+    const wallLogoMarkup = (d.logo && !d.heroImage)
+      ? `<div class="wall-logo"><img src="${d.logo}" alt="${esc(d.name)} logo"></div>`
+      : '';
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
       : `linear-gradient(155deg,${t.dark},${t.light})`;
@@ -292,6 +295,10 @@ p{margin:0 0 1.1em}
 .hero .hero-sub{font-size:clamp(1.02rem,1.9vw,1.25rem);font-weight:300;max-width:36ch;margin-bottom:1.8em;text-shadow:0 2px 14px rgba(28,24,21,.35)}
 .hero .eyebrow{color:rgba(255,255,255,.85)}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
+.wall-logo{position:absolute;top:16%;left:50%;transform:translateX(-50%);z-index:1;
+  background:rgba(255,255,255,.95);border-radius:14px;padding:14px 22px;box-shadow:0 20px 44px rgba(0,0,0,.28)}
+.wall-logo img{display:block;max-height:56px;max-width:220px;width:auto;height:auto}
+@media(max-width:900px){.wall-logo{top:10px;padding:10px 16px}.wall-logo img{max-height:40px;max-width:160px}}
 @media(max-width:900px){
   .site-header{top:64px}
   .hero{min-height:0;display:block;background:var(--champagne);margin-top:138px}
@@ -351,6 +358,7 @@ p{margin:0 0 1.1em}
 
 <section class="hero">
   ${sceneMarkup}
+  ${wallLogoMarkup}
   <div class="hero-copy">
     <div class="inner">
       <span class="eyebrow">${esc(eyebrowLoc)}</span>
