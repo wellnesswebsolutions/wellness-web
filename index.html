@@ -473,7 +473,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryPhoto = info && info.photo ? `https://wellnessweb.co.uk/img/hero/${info.photo}` : null;
     const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
     const sceneMarkup = (d.heroImage || usingCategoryPhoto) ? '' : sceneSVG(cat, t);
-    const wallNameMarkup = !d.heroImage ? `<div class="wall-name">${esc(d.name)}</div>` : '';
+    const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+    const wallLogoMarkup = `<div class="wall-logo">${esc(initials)}</div>`;
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
       : usingCategoryPhoto
@@ -508,7 +509,10 @@ p{margin:0 0 1.1em}
 .container{width:100%;max-width:1140px;margin:0 auto;padding:0 22px}
 .section{padding:5.5em 0}
 .section--tint{background:var(--champagne)}
-.page-head{background:var(--champagne);padding-bottom:3.2em}
+.page-head{background:linear-gradient(160deg,#2c2523 0%,${t.dark} 60%,${t.base} 100%);color:#fff;padding-bottom:3.2em}
+.page-head h1,.page-head .eyebrow{color:#fff}
+.page-head .eyebrow{color:rgba(255,255,255,.8)}
+.page-head .lede{color:rgba(255,255,255,.88)}
 @media(max-width:767px){.section{padding:3.5em 0}}
 .eyebrow{display:block;font-size:.7rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-bottom:1em}
 .lede{font-size:1.06rem;color:var(--body);max-width:62ch}
@@ -543,13 +547,12 @@ p{margin:0 0 1.1em}
 .hero .hero-sub{font-size:clamp(1.02rem,1.9vw,1.25rem);font-weight:300;max-width:36ch;margin-bottom:1.8em;text-shadow:0 2px 14px rgba(28,24,21,.35)}
 .hero .eyebrow{color:rgba(255,255,255,.85)}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
-.wall-name{position:absolute;top:15%;left:50%;transform:translateX(-50%);z-index:1;
-  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);border-radius:10px;
-  padding:16px 30px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:clamp(1.1rem,2.6vw,1.7rem);
-  letter-spacing:.1em;text-transform:uppercase;color:#fff;text-align:center;white-space:nowrap;
-  text-shadow:0 2px 10px rgba(0,0,0,.35);box-shadow:0 16px 36px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.06)}
-@media(max-width:900px){.wall-name{top:8px;padding:10px 18px;font-size:1rem;letter-spacing:.06em}}
-@media(max-width:480px){.wall-name{white-space:normal;max-width:88%}}
+.wall-logo{position:absolute;top:16%;left:50%;transform:translateX(-50%);z-index:1;
+  width:clamp(64px,9vw,96px);aspect-ratio:1;border-radius:50%;background:rgba(28,24,21,.82);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:.02em;color:#fff;
+  font-size:clamp(1.2rem,2.6vw,1.8rem);box-shadow:0 16px 36px rgba(0,0,0,.32), inset 0 0 0 1px rgba(255,255,255,.14)}
+@media(max-width:900px){.wall-logo{top:10px;width:56px;font-size:1.1rem}}
 @media(max-width:900px){
   .site-header{top:64px}
   .hero{min-height:min(60vh,480px);margin-top:138px}
@@ -626,7 +629,7 @@ p{margin:0 0 1.1em}
 <div class="page" data-page="home">
   <section class="hero">
     ${sceneMarkup}
-    ${wallNameMarkup}
+    ${wallLogoMarkup}
     <div class="hero-copy">
       <div class="inner">
         <span class="eyebrow">${esc(eyebrowLoc)}</span>
