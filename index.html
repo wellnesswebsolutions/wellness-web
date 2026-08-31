@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const bizTagline = document.getElementById('bizTagline');
   const bizLocation = document.getElementById('bizLocation');
   const bizServices = document.getElementById('bizServices');
+  const bizPrices = document.getElementById('bizPrices');
   const bizGoal = document.getElementById('bizGoal');
   const bizColours = document.getElementById('bizColours');
   const bizAbout = document.getElementById('bizAbout');
@@ -60,70 +61,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- business types: label, wall-scene category, and 3 typical services ----
   const BUSINESS_TYPES = [
-    { label: 'Hair Salon', cat: 'salon', services: ['Cuts & styling', 'Colour & balayage', 'Blow-dry'],
+    { label: 'Hair Salon', cat: 'salon', services: ['Cuts & styling', 'Colour & balayage', 'Blow-dry'], prices: ['From £32', 'From £68', 'From £22'],
       tagline: 'Cuts, colour and styling done properly',
       desc: '{name} is a friendly, modern salon where every visit starts with a proper consultation, not a rushed guess. Whether you’re after a sharp trim or a full colour transformation, our stylists take the time to get it right.' },
-    { label: 'Barber Shop', cat: 'salon', services: ['Haircuts', 'Beard trim', 'Hot towel shave'],
+    { label: 'Barber Shop', cat: 'salon', services: ['Haircuts', 'Beard trim', 'Hot towel shave'], prices: ['From £18', 'From £12', 'From £25'],
       tagline: 'Classic barbering, modern standards',
       desc: 'At {name}, classic barbering meets modern styling. Walk in for a quick tidy-up or book in for the full hot towel treatment — our chairs are for anyone who wants to look sharp without the fuss.' },
-    { label: 'Nail Salon', cat: 'salon', services: ['Manicure', 'Pedicure', 'Gel extensions'],
+    { label: 'Nail Salon', cat: 'salon', services: ['Manicure', 'Pedicure', 'Gel extensions'], prices: ['From £22', 'From £28', 'From £38'],
       tagline: 'Manicures and pedicures that last',
       desc: '{name} is a relaxed, hygienic space for manicures, pedicures and nail art that actually lasts. We use quality products and take our time, so you leave with nails you’re proud to show off.' },
-    { label: 'Beauty Salon', cat: 'salon', services: ['Facials', 'Waxing', 'Lash & brow'],
+    { label: 'Beauty Salon', cat: 'salon', services: ['Facials', 'Waxing', 'Lash & brow'], prices: ['From £45', 'From £15', 'From £30'],
       tagline: 'Facials, waxing and brows, tailored to you',
       desc: '{name} brings together everything you need to feel your best, from relaxing facials to precise brow and lash work. Every treatment is tailored to you, not a one-size-fits-all routine.' },
-    { label: 'Automotive Repair', cat: 'auto', services: ['MOT testing', 'Servicing', 'Diagnostics'],
+    { label: 'Automotive Repair', cat: 'auto', services: ['MOT testing', 'Servicing', 'Diagnostics'], prices: ['From £45', 'From £120', 'From £60'],
       tagline: 'Honest, no-nonsense car care',
       desc: '{name} is your local garage for honest, no-nonsense car care. From MOTs to full diagnostics, our qualified mechanics explain what your car actually needs — and nothing it doesn’t.' },
-    { label: 'Tyre & Exhaust', cat: 'auto', services: ['Tyre fitting', 'Exhaust repair', 'Wheel alignment'],
+    { label: 'Tyre & Exhaust', cat: 'auto', services: ['Tyre fitting', 'Exhaust repair', 'Wheel alignment'], prices: ['From £25', 'From £80', 'From £45'],
       tagline: 'Fast fitting, fair prices',
       desc: '{name} keeps you safely on the road with fast, fairly priced tyre and exhaust work. Same-day fitting, proper wheel alignment, and no waiting around all afternoon.' },
-    { label: 'Car Valeting', cat: 'auto', services: ['Full valet', 'Interior detail', 'Paint correction'],
+    { label: 'Car Valeting', cat: 'auto', services: ['Full valet', 'Interior detail', 'Paint correction'], prices: ['From £60', 'From £80', 'From £150'],
       tagline: 'Showroom condition, every time',
       desc: '{name} brings your car back to showroom condition, inside and out. From a quick refresh to full paint correction, we treat every vehicle like it’s our own.' },
-    { label: 'Plumbing', cat: 'trade', services: ['Emergency call-outs', 'Boiler repair', 'Bathroom fitting'],
+    { label: 'Plumbing', cat: 'trade', services: ['Emergency call-outs', 'Boiler repair', 'Bathroom fitting'], prices: ['From £75', 'From £150', 'Get a quote'],
       tagline: 'Fast, fully qualified plumbing',
       desc: '{name} is on call for the plumbing jobs that can’t wait, and the bathroom projects that can. Fully qualified, fully insured, and always upfront about pricing before we start.' },
-    { label: 'Electrician', cat: 'trade', services: ['Rewiring', 'Fuse box upgrades', 'PAT testing'],
+    { label: 'Electrician', cat: 'trade', services: ['Rewiring', 'Fuse box upgrades', 'PAT testing'], prices: ['Get a quote', 'From £350', 'From £3 per item'],
       tagline: 'Electrical work done to standard',
       desc: '{name} handles everything electrical, from a single socket to a full rewire, to the safety standard your home or business deserves. NICEIC-minded work, done properly the first time.' },
-    { label: 'Locksmith', cat: 'trade', services: ['Lock changes', 'Emergency lockout', 'Key cutting'],
+    { label: 'Locksmith', cat: 'trade', services: ['Lock changes', 'Emergency lockout', 'Key cutting'], prices: ['From £65', 'From £85', 'From £5'],
       tagline: 'Fast access, day or night',
       desc: '{name} gets you back into your home or business fast, day or night. Locked out, moved in, or just want better security — we’re a call away.' },
-    { label: 'Building & Construction', cat: 'trade', services: ['Extensions', 'Renovations', 'Groundwork'],
+    { label: 'Building & Construction', cat: 'trade', services: ['Extensions', 'Renovations', 'Groundwork'], prices: ['Get a quote', 'Get a quote', 'Get a quote'],
       tagline: 'Your plans, built properly',
       desc: '{name} turns plans into finished spaces, from single-room renovations to full extensions. We manage the whole job, so you deal with one trusted team from start to finish.' },
-    { label: 'Landscaping & Gardening', cat: 'trade', services: ['Garden design', 'Lawn care', 'Tree surgery'],
+    { label: 'Landscaping & Gardening', cat: 'trade', services: ['Garden design', 'Lawn care', 'Tree surgery'], prices: ['Get a quote', 'From £35', 'From £150'],
       tagline: 'Gardens people love spending time in',
       desc: '{name} designs and maintains gardens people actually want to spend time in. From a one-off tidy-up to a full redesign, we work with your space, not against it.' },
-    { label: 'Cleaning Services', cat: 'trade', services: ['Domestic cleaning', 'End of tenancy', 'Carpet cleaning'],
+    { label: 'Cleaning Services', cat: 'trade', services: ['Domestic cleaning', 'End of tenancy', 'Carpet cleaning'], prices: ['From £15/hr', 'From £120', 'From £45'],
       tagline: 'Reliable cleaning, done right',
       desc: '{name} takes cleaning off your to-do list for good. Reliable, thorough, and fully insured — whether it’s a weekly clean or a one-off end of tenancy deep clean.' },
-    { label: 'Bakery & Cafe', cat: 'food', services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes'],
+    { label: 'Bakery & Cafe', cat: 'food', services: ['Fresh bread', 'Coffee & pastries', 'Custom cakes'], prices: ['From £3.50', 'From £4.50', 'From £35'],
       tagline: 'Baked fresh, every morning',
       desc: '{name} is baking fresh every morning — proper bread, good coffee, and cakes made to order. A neighbourhood spot for people who care about what they’re eating.' },
-    { label: 'Restaurant', cat: 'food', services: ['A la carte dining', 'Takeaway', 'Private events'],
+    { label: 'Restaurant', cat: 'food', services: ['A la carte dining', 'Takeaway', 'Private events'], prices: ['From £18', 'From £12', 'Get a quote'],
       tagline: 'Made from scratch, every dish',
       desc: 'At {name}, every dish is made from scratch with proper ingredients. Whether you’re booking a table, ordering a takeaway, or planning a private event, we treat every table the same way — well.' },
-    { label: 'Personal Training', cat: 'fitness', services: ['1-to-1 training', 'Group classes', 'Nutrition plans'],
+    { label: 'Personal Training', cat: 'fitness', services: ['1-to-1 training', 'Group classes', 'Nutrition plans'], prices: ['From £45', 'From £12', 'From £80'],
       tagline: 'Training plans built around real life',
       desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.' },
-    { label: 'Dentist', cat: 'fitness', services: ['Check-ups', 'Teeth whitening', 'Emergency dental'],
+    { label: 'Dentist', cat: 'fitness', services: ['Check-ups', 'Teeth whitening', 'Emergency dental'], prices: ['From £60', 'From £250', 'From £90'],
       tagline: 'Calm, modern dental care',
       desc: '{name} offers calm, modern dental care for the whole family. From routine check-ups to emergency appointments, we focus on making every visit as comfortable as possible.' },
-    { label: 'Physiotherapy', cat: 'fitness', services: ['Sports injury', 'Massage therapy', 'Rehab plans'],
+    { label: 'Physiotherapy', cat: 'fitness', services: ['Sports injury', 'Massage therapy', 'Rehab plans'], prices: ['From £55', 'From £45', 'Get a quote'],
       tagline: 'Move better, recover properly',
       desc: '{name} helps you move better and recover properly, whether that’s from a sports injury or everyday aches. Every treatment plan is built around your goals, not a generic routine.' },
-    { label: 'Pet Grooming', cat: 'pet', services: ['Full groom', 'Nail trim', 'Bath & brush'],
+    { label: 'Pet Grooming', cat: 'pet', services: ['Full groom', 'Nail trim', 'Bath & brush'], prices: ['From £35', 'From £10', 'From £20'],
       tagline: 'Calm, gentle grooming for your pet',
       desc: '{name} gives your pet a calm, gentle grooming experience from start to finish. Full grooms, quick tidy-ups, or just a bath — always handled with patience and care.' },
-    { label: 'Photography', cat: 'office', services: ['Portraits', 'Weddings', 'Commercial shoots'],
+    { label: 'Photography', cat: 'office', services: ['Portraits', 'Weddings', 'Commercial shoots'], prices: ['From £120', 'From £950', 'Get a quote'],
       tagline: 'The moments that actually matter',
       desc: '{name} captures the moments that actually matter, from portraits to weddings to commercial work. A relaxed approach behind the camera means natural results in front of it.' },
-    { label: 'Accounting & Bookkeeping', cat: 'office', services: ['Tax returns', 'Payroll', 'Bookkeeping'],
+    { label: 'Accounting & Bookkeeping', cat: 'office', services: ['Tax returns', 'Payroll', 'Bookkeeping'], prices: ['From £150', 'From £25/mo', 'From £40/mo'],
       tagline: 'Your numbers, sorted properly',
       desc: '{name} keeps your numbers straight so you can focus on running the business. Clear advice, no jargon, and deadlines that never sneak up on you.' },
-    { label: 'Real Estate', cat: 'office', services: ['Property sales', 'Lettings', 'Valuations'],
+    { label: 'Real Estate', cat: 'office', services: ['Property sales', 'Lettings', 'Valuations'], prices: ['Get a quote', 'Get a quote', 'Free valuation'],
       tagline: 'Buying, selling and letting made simple',
       desc: '{name} makes buying, selling and letting property straightforward. Honest valuations, clear communication, and a team that treats your move like it matters — because it does.' }
   ];
@@ -328,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bizTagline.addEventListener('change', () => {
     if (!bizTagline.value) return;
     const info = typeInfo(bizTagline.value);
-    if (info) bizServices.value = info.services.join(', ');
+    if (info) { bizServices.value = info.services.join(', '); bizPrices.value = info.prices.join(', '); }
     qaTypePillText.textContent = bizTagline.value;
     qaType.dataset.state = 'done';
     setProgressStep(3);
@@ -371,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   function buildDemoHTML(d) {
     const services = d.services.length ? d.services : ['Service one', 'Service two', 'Service three'];
+    const prices = d.prices || [];
     const goalLabel = d.goal || 'Book now';
     const cardBlurbs = [
       s => `One of the most requested treatments here — ask about ${esc(s.toLowerCase())} and we'll take it from there.`,
@@ -380,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cards = services.slice(0, 3).map((s, i) => `
         <a class="card card-link" href="#contact">
           <span class="num">${i === 0 ? 'Most Popular · ' : ''}${esc(s)}</span>
-          <h3>${esc(s)}</h3>
+          <h3>${esc(s)}${prices[i] ? `<span class="card-price">${esc(prices[i])}</span>` : ''}</h3>
           <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
           <span class="card-cta">Learn more</span>
         </a>`).join('');
@@ -509,6 +511,9 @@ p{margin:0 0 1.1em}
 .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:32px 28px;box-shadow:var(--shadow);transition:transform .3s,box-shadow .3s}
 .card:hover{transform:translateY(-4px);box-shadow:0 26px 60px rgba(28,24,21,.14)}
 .card .num{display:block;font-size:.7rem;font-weight:700;letter-spacing:.22em;color:var(--rose-dark);margin-bottom:1em}
+.card h3{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-price{font-size:.62rem;font-weight:700;letter-spacing:.06em;color:var(--rose-dark);background:var(--champagne);
+  border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
 .card p:last-child{margin-bottom:0}
 .card-link{display:block;text-decoration:none;color:inherit}
 .card-cta{display:inline-flex;align-items:center;gap:8px;margin-top:1.2em;font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-dark)}
@@ -651,6 +656,7 @@ p{margin:0 0 1.1em}
       tagline: bizTagline.value,
       location: bizLocation.value.trim(),
       services: bizServices.value.split(',').map(s => s.trim()).filter(Boolean),
+      prices: bizPrices.value.split(',').map(s => s.trim()).filter(Boolean),
       goal: bizGoal.value,
       about: '',
       tones: null,
@@ -854,6 +860,7 @@ p{margin:0 0 1.1em}
             <div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text" id="qaLocationPillText"></span></div>
           </div>
           <input type="hidden" id="bizServices">
+          <input type="hidden" id="bizPrices">
           <input type="hidden" id="bizGoal" value="Book now">
         </div>
 
