@@ -292,6 +292,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const qaTypePillText = document.getElementById('qaTypePillText');
   const qaLocationPillText = document.getElementById('qaLocationPillText');
   const qaLocationNext = document.getElementById('qaLocationNext');
+  const qaProgress = document.getElementById('qaProgress');
+  const qaProgressLabel = document.getElementById('qaProgressLabel');
+  const qaProgressSegs = qaProgress.querySelectorAll('.qa-progress-seg');
+
+  function setProgressStep(step) {
+    qaProgressLabel.textContent = step > 3 ? "You're all set" : `Step ${step} of 3`;
+    qaProgressSegs.forEach((seg, i) => seg.classList.toggle('filled', i < step - 1 || step > 3));
+  }
 
   function addNamePill(name) {
     const pill = document.createElement('div');
@@ -310,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.classList.add('answered');
     addNamePill(name);
+    setProgressStep(2);
 
     qaType.dataset.state = 'active';
     setTimeout(() => bizTagline.focus(), 400);
@@ -321,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (info) bizServices.value = info.services.join(', ');
     qaTypePillText.textContent = bizTagline.value;
     qaType.dataset.state = 'done';
+    setProgressStep(3);
 
     qaLocation.dataset.state = 'active';
     setTimeout(() => bizLocation.focus(), 400);
@@ -331,10 +341,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!loc) return;
     qaLocationPillText.textContent = loc;
     qaLocation.dataset.state = 'done';
+    setProgressStep(4);
 
     const name = bizNameInput.value.trim();
     await runCreatingAnimation(name.toUpperCase());
 
+    qaProgress.classList.add('done');
     wizGrid.classList.add('active');
     convRow.classList.add('collapsed');
     refreshPreview();
@@ -788,6 +800,15 @@ p{margin:0 0 1.1em}
 
     <div class="wiz-grid" id="wizGrid">
       <div class="wiz-left">
+        <div class="qa-progress" id="qaProgress">
+          <div class="qa-progress-bar">
+            <span class="qa-progress-seg" data-seg="1"></span>
+            <span class="qa-progress-seg" data-seg="2"></span>
+            <span class="qa-progress-seg" data-seg="3"></span>
+          </div>
+          <div class="qa-progress-label" id="qaProgressLabel">Step 1 of 3</div>
+        </div>
+
         <form id="quickLead" class="name-gate" novalidate>
           <div class="glow-box name-glow">
             <input type="text" id="bizName" name="business_name" placeholder="What's your business called?" required autocomplete="off">
