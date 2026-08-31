@@ -27,10 +27,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const bizGoal = document.getElementById('bizGoal');
   const bizColours = document.getElementById('bizColours');
   const bizAbout = document.getElementById('bizAbout');
+  const bizSocial = document.getElementById('bizSocial');
+  const bizHeroImg = document.getElementById('bizHeroImg');
+  const bizLogo = document.getElementById('bizLogo');
+  const bizGallery = document.getElementById('bizGallery');
   const previewUrl = document.getElementById('previewUrl');
   const previewFrame = document.getElementById('previewFrame');
   const sendBtn = document.getElementById('wizSend');
+  const wizExtra = document.getElementById('wizExtra');
+  const extraSendBtn = document.getElementById('wizExtraSend');
+  const extraStatus = document.getElementById('wizExtraStatus');
   if (!form) return;
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve) => {
+      if (!file) return resolve(null);
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+  let logoDataUrl = null;
+  let heroDataUrl = null;
+  bizLogo.addEventListener('change', async () => {
+    logoDataUrl = bizLogo.files.length ? await readFileAsDataURL(bizLogo.files[0]) : null;
+    refreshPreview();
+  });
+  bizHeroImg.addEventListener('change', async () => {
+    heroDataUrl = bizHeroImg.files.length ? await readFileAsDataURL(bizHeroImg.files[0]) : null;
+    refreshPreview();
+  });
 
   // ---- business types: label, wall-scene category, and 3 typical services ----
   const BUSINESS_TYPES = [
@@ -518,8 +545,8 @@ p{margin:0 0 1.1em}
       goal: bizGoal.value,
       about: bizAbout.value.trim(),
       tones: currentTones,
-      logo: null,
-      heroImage: null
+      logo: logoDataUrl,
+      heroImage: heroDataUrl
     };
   }
   // the iframe always renders at a fixed desktop width (1300px, matching
@@ -539,19 +566,21 @@ p{margin:0 0 1.1em}
     scalePreviewFrame();
   }
 
-  // step 2: send the full lead once they're happy — reuses the exact same
-  // data and generator as the live preview, so the download always matches.
-  sendBtn.addEventListener('click', async () => {
-    const business_name = bizNameInput.value.trim();
-    if (!business_name) return;
-    const data = gatherData();
-    const tagline = data.tagline;
-    const location = data.location;
-    const services = bizServices.value.trim();
-    const goal = data.goal;
-    const coloursName = bizColours.selectedIndex > 0 ? bizColours.options[bizColours.selectedIndex].textContent : '';
-    const about = data.about;
+  async function postLead(business_name, details) {
+    const res = await fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': 'sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
+        'Authorization': 'Bearer sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ business_name, details, created_at: new Date().toISOString() })
+    });
+    if (!res.ok) throw new Error(await res.text());
+  }
 
+  function openDemo(data) {
     const demoHTML = buildDemoHTML(data);
     const blob = new Blob([demoHTML], { type: 'text/html' });
     const demoUrl = URL.createObjectURL(blob);
@@ -562,34 +591,64 @@ p{margin:0 0 1.1em}
     document.body.appendChild(a);
     a.click();
     a.remove();
+  }
+
+  // step 1: build+open the demo straight away with what they've given us,
+  // send a first lead, then reveal the "one more thing" extras panel.
+  sendBtn.addEventListener('click', async () => {
+    const business_name = bizNameInput.value.trim();
+    if (!business_name) return;
+    const data = gatherData();
+    openDemo(data);
 
     const detailParts = [];
-    if (tagline) detailParts.push('What they do: ' + tagline);
-    if (location) detailParts.push('Based in: ' + location);
-    if (services) detailParts.push('Services: ' + services);
-    if (goal) detailParts.push('Wants customers to: ' + goal);
-    if (coloursName) detailParts.push('Colours: ' + coloursName);
-    if (about) detailParts.push(about);
+    if (data.tagline) detailParts.push('What they do: ' + data.tagline);
+    if (data.location) detailParts.push('Based in: ' + data.location);
+    if (data.services.length) detailParts.push('Services: ' + data.services.join(', '));
     const details = detailParts.join('\n');
     status.textContent = 'Sending...';
     status.className = 'quick-lead-status';
     try {
-      const res = await fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
-          'Authorization': 'Bearer sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ business_name, details, created_at: new Date().toISOString() })
-      });
-      if (!res.ok) throw new Error(await res.text());
+      await postLead(business_name, details);
       status.textContent = "Thanks! We'll be in touch within 24 hours.";
       status.className = 'quick-lead-status ok';
     } catch (err) {
       status.textContent = 'Something went wrong — please try again.';
       status.className = 'quick-lead-status err';
+    }
+    wizExtra.classList.add('active');
+  });
+
+  // step 2: extra details, all optional — regenerate/reopen the demo with
+  // whatever they added and send a fuller lead.
+  extraSendBtn.addEventListener('click', async () => {
+    const business_name = bizNameInput.value.trim();
+    if (!business_name) return;
+    const data = gatherData();
+    openDemo(data);
+
+    const social = bizSocial.value.trim();
+    const coloursName = bizColours.selectedIndex > 0 ? bizColours.options[bizColours.selectedIndex].textContent : '';
+    const galleryCount = bizGallery.files ? bizGallery.files.length : 0;
+    const about = data.about;
+
+    const detailParts = [];
+    if (social) detailParts.push('Social media: ' + social);
+    if (coloursName) detailParts.push('Colours: ' + coloursName);
+    if (logoDataUrl) detailParts.push('Logo: uploaded');
+    if (heroDataUrl) detailParts.push('Hero photo: uploaded');
+    if (galleryCount) detailParts.push('Gallery: ' + galleryCount + ' photo(s) selected');
+    if (about) detailParts.push(about);
+    const details = detailParts.join('\n');
+    extraStatus.textContent = 'Sending...';
+    extraStatus.className = 'quick-lead-status';
+    try {
+      await postLead(business_name, details);
+      extraStatus.textContent = "Thanks! We'll be in touch within 24 hours.";
+      extraStatus.className = 'quick-lead-status ok';
+    } catch (err) {
+      extraStatus.textContent = 'Something went wrong — please try again.';
+      extraStatus.className = 'quick-lead-status err';
     }
   });
 });
@@ -638,44 +697,57 @@ p{margin:0 0 1.1em}
               <input type="text" id="bizLocation" placeholder="e.g. Marlbury">
             </div>
           </div>
-
-          <div class="wiz-step-tag">2. Website</div>
-          <label for="bizServices">Services <span class="wiz-hint-inline">auto-filled — edit if you like</span></label>
-          <input type="text" id="bizServices" placeholder="e.g. Colour, Cuts, Balayage">
-
-          <div class="wiz-row">
-            <div>
-              <label for="bizGoal">Customers should…</label>
-              <select id="bizGoal">
-                <option value="Call now">Call</option>
-                <option value="Book now">Book</option>
-                <option value="Get a quote">Get a Quote</option>
-                <option value="Message us">Message</option>
-              </select>
-            </div>
-            <div>
-              <label for="bizColours">Colour scheme</label>
-              <select id="bizColours">
-                <option value="">You choose</option>
-                <option value="#a3878b">Rose</option>
-                <option value="#b0745c">Terracotta</option>
-                <option value="#6b8f71">Sage green</option>
-                <option value="#2c3e6b">Navy</option>
-                <option value="#3a3330">Charcoal</option>
-                <option value="#b98a4e">Gold</option>
-                <option value="#c98b9e">Blush pink</option>
-                <option value="#123f3d">Teal</option>
-                <option value="#5b3a73">Plum</option>
-                <option value="#7a2e34">Burgundy</option>
-              </select>
-            </div>
-          </div>
-
-          <label for="bizAbout">Anything else? <span class="wiz-step-optional">optional</span></label>
-          <textarea id="bizAbout" placeholder="Anything else that would help us get it right…"></textarea>
+          <input type="hidden" id="bizServices">
+          <input type="hidden" id="bizGoal" value="Book now">
 
           <button type="button" id="wizSend" class="btn-send">Get my free demo →</button>
           <div id="quickLeadStatus" class="quick-lead-status"></div>
+
+          <div class="wiz-extra" id="wizExtra">
+            <div class="wiz-step-tag">One more thing <span class="wiz-step-optional">all optional</span></div>
+            <p class="wiz-extra-note">Fill in what you can — leave the rest blank and we'll take care of it.</p>
+
+            <label for="bizSocial">Social media</label>
+            <input type="text" id="bizSocial" placeholder="Instagram or Facebook link">
+
+            <label for="bizColours">Colour scheme</label>
+            <select id="bizColours">
+              <option value="">You choose — we can decide</option>
+              <option value="#a3878b">Rose</option>
+              <option value="#b0745c">Terracotta</option>
+              <option value="#6b8f71">Sage green</option>
+              <option value="#2c3e6b">Navy</option>
+              <option value="#3a3330">Charcoal</option>
+              <option value="#b98a4e">Gold</option>
+              <option value="#c98b9e">Blush pink</option>
+              <option value="#123f3d">Teal</option>
+              <option value="#5b3a73">Plum</option>
+              <option value="#7a2e34">Burgundy</option>
+            </select>
+
+            <div class="wiz-row">
+              <div class="wiz-upload-card">
+                <label for="bizHeroImg">Hero photo</label>
+                <input type="file" id="bizHeroImg" accept="image/*">
+                <div class="wiz-upload-note">Or leave blank — we can do it</div>
+              </div>
+              <div class="wiz-upload-card">
+                <label for="bizLogo">Logo</label>
+                <input type="file" id="bizLogo" accept="image/*">
+                <div class="wiz-upload-note">Or leave blank — we can do it</div>
+              </div>
+            </div>
+
+            <label for="bizGallery">Gallery photos</label>
+            <input type="file" id="bizGallery" accept="image/*" multiple>
+            <div class="wiz-upload-note">Send us a few photos of your work or space</div>
+
+            <label for="bizAbout">Anything else?</label>
+            <textarea id="bizAbout" placeholder="Descriptions, opening hours, anything that helps…"></textarea>
+
+            <button type="button" id="wizExtraSend" class="btn-send">Send details →</button>
+            <div id="wizExtraStatus" class="quick-lead-status"></div>
+          </div>
         </div>
       </div>
 
