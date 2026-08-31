@@ -754,6 +754,10 @@ showPage('home');
     if (!frameScale || !frameScale.parentElement) return;
     const w = renderWidth();
     frameScale.style.width = w + 'px';
+    // bwin-body's own height is derived from its width via this ratio —
+    // frame-scale is position:absolute so its real 1300x2200 size never
+    // reaches bwin-body's layout sizing at all (see styles.css).
+    frameScale.parentElement.style.aspectRatio = `${w} / 2200`;
     const containerWidth = frameScale.parentElement.clientWidth;
     if (!containerWidth) return;
     frameScale.style.transform = `scale(${containerWidth / w})`;
