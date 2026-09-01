@@ -357,36 +357,29 @@
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,4.2vw,44px);line-height:1.12}
   .hero-conv-sub{font-size:clamp(13px,1.5vw,16px);color:var(--muted);margin-top:8px}
 
-  /* ---- futuristic glow box: an OUTER wrapper (this element, no background
-     of its own) holding a blurred ring + a crisp ring, both spinning, plus
-     a separate INNER content box (.glow-box-inner) that's the real visible
-     pill with its own opaque background.
-
-     Why two elements: a negative z-index pseudo-element does NOT paint
-     behind its own parent's background — per spec it paints ABOVE it,
-     just below non-negative content. So a single-element "glow pseudo
-     behind a background" trick is structurally impossible; every earlier
-     attempt at masking hit exactly that. Two elements sidesteps it
-     entirely: the glow pseudos sit at z-index:0 on the OUTER wrapper,
-     the real content box sits at z-index:1 — a plain, unambiguous
-     comparison (1 > 0), no reliance on paint-order categories at all. */
+  /* ---- futuristic glow box, rebuilt clean and simple ----
+     ONE glowing ring, not two layers to keep in sync. Outer wrapper
+     (.glow-box, no background) holds a single blurred, spinning pill-
+     shaped ring behind everything; the real content sits in a separate
+     inner box (.glow-box-inner) with its own solid background stacked
+     above it. Two elements because a negative z-index pseudo-element
+     paints ABOVE its own parent's background, not behind it (per spec)
+     — so a single element can't mask a glow pseudo behind its own
+     background. Splitting into outer (z:0) + inner (z:1) makes the
+     paint order a plain, unambiguous 1 > 0 comparison. */
   @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
   /* border-radius:999px isn't a typo — browsers clamp it to half of
-     whichever side (width/height) is shorter, per spec, so this always
-     yields the maximum possible rounding: a true stadium/pill shape on
-     a short wide box, a rounded-rect-to-circle on a taller one. */
+     whichever side (width/height) is shorter, so this always yields
+     the maximum rounding: a true pill/stadium shape on any of these
+     wide, short boxes. */
   .glow-box{position:relative;border-radius:999px}
-  .glow-box:before{content:"";position:absolute;inset:-6px;border-radius:inherit;z-index:0;
+  .glow-box:before{content:"";position:absolute;inset:-8px;border-radius:inherit;z-index:0;
     background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    filter:blur(10px);opacity:.85;
-    animation:glow-spin 3.2s linear infinite, glow-breathe 2.8s ease-in-out infinite}
-  .glow-box:after{content:"";position:absolute;inset:-2px;border-radius:inherit;z-index:0;
-    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    animation:glow-spin 3.2s linear infinite}
+    filter:blur(12px);animation:glow-spin 4s linear infinite, glow-breathe 2.8s ease-in-out infinite}
   .glow-box-inner{position:relative;z-index:1;border-radius:inherit;background:var(--card)}
   @keyframes glow-spin{to{--glow-angle:360deg}}
-  @keyframes glow-breathe{0%,100%{opacity:.75}50%{opacity:1}}
-  @media(prefers-reduced-motion:reduce){.glow-box:before,.glow-box:after{animation:none}}
+  @keyframes glow-breathe{0%,100%{opacity:.7}50%{opacity:1}}
+  @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
   .qa-progress{width:100%;max-width:220px;margin:0 auto;text-align:center;opacity:0;max-height:0;
