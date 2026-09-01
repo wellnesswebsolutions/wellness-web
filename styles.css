@@ -376,9 +376,14 @@
   @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
   :root{--qa-ease: cubic-bezier(.16,.84,.44,1)} /* smooth decel, no overshoot — "flowy" not bouncy */
   .glow-box{position:relative;border-radius:999px}
+  /* two bright arcs directly opposite each other, separated by transparent
+     gaps — a single near-continuous rainbow ring barely reads as moving,
+     but two distinct hotspots orbiting the pill clearly do */
   .glow-box:before{content:"";position:absolute;inset:-5px;border-radius:inherit;z-index:0;
-    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    filter:blur(7px);opacity:.85;animation:glow-spin 14s linear infinite, glow-breathe 5s ease-in-out infinite}
+    background:conic-gradient(from var(--glow-angle),
+      transparent 0deg, var(--gold) 35deg, var(--accent) 70deg, transparent 100deg,
+      transparent 180deg, var(--gold) 215deg, var(--accent) 250deg, transparent 280deg, transparent 360deg);
+    filter:blur(7px);opacity:.9;animation:glow-spin 7s linear infinite, glow-breathe 5s ease-in-out infinite}
   .glow-box-inner{position:relative;z-index:1;border-radius:inherit;background:var(--card)}
   @keyframes glow-spin{to{--glow-angle:360deg}}
   @keyframes glow-breathe{0%,100%{opacity:.62}50%{opacity:.92}}
@@ -466,17 +471,6 @@
   .wiz-panel.active{max-height:2400px;opacity:1;margin-top:16px;padding:24px;
     background:var(--card);border:1px solid var(--line);
     box-shadow:0 0 0 1px rgba(91,58,115,.06), 0 30px 70px -30px rgba(91,58,115,.35), 0 0 60px -10px rgba(185,143,201,.35)}
-  .wiz-likeit{text-align:center}
-  .wiz-likeit-q{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
-  .wiz-likeit h4{font-family:var(--display);font-size:19px;font-weight:800;color:var(--ink);margin:0 0 10px}
-  .wiz-order-card{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
-  .wiz-order-row{display:flex;align-items:baseline;justify-content:space-between;font-family:var(--display);
-    font-weight:700;font-size:17px;color:var(--ink);margin-bottom:12px}
-  .wiz-order-price{font-size:22px;color:var(--accent)}
-  .wiz-order-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-  .wiz-order-list li{font-size:13.5px;color:var(--ink);padding-left:22px;position:relative}
-  .wiz-order-list li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:700}
-  #wizThanks p{font-size:14px;line-height:1.6;color:var(--ink);margin:0}
   .wiz-step-tag{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:19px;font-weight:800;
     letter-spacing:-.01em;color:var(--ink);margin-top:28px;margin-bottom:14px;padding-bottom:10px;
     border-bottom:1px solid var(--line)}
@@ -485,32 +479,23 @@
   .wiz-step-tag:first-child{margin-top:0}
   .wiz-step-optional{font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;
     color:var(--muted);margin-left:2px}
-  .wiz-hint-inline{font-family:var(--body);font-size:11px;font-weight:500;color:var(--muted);text-transform:none;
-    letter-spacing:0}
   .wiz-panel label{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px;margin-top:14px}
   .wiz-panel label:first-of-type{margin-top:0}
   .wiz-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .wiz-row > div > label{margin-top:0}
   @media(max-width:520px){.wiz-row{grid-template-columns:1fr}}
-  .wiz-panel input[type="text"],.wiz-panel input[type="email"],.wiz-panel input[type="tel"],.wiz-panel select{
+  .wiz-panel input[type="text"],.wiz-panel input[type="email"],.wiz-panel input[type="tel"]{
     width:100%;border:1px solid var(--line);border-radius:12px;
     padding:12px 14px;font-family:var(--body);font-size:14px;color:var(--ink);background:var(--card);outline:none;appearance:none}
-  .wiz-panel select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237a6d81' stroke-width='2'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px}
-  .wiz-panel textarea{width:100%;min-height:80px;resize:vertical;border:1px solid var(--line);border-radius:16px;
-    padding:14px 16px;font-family:var(--body);font-size:14px;color:var(--ink);background:var(--card);outline:none}
-  .wiz-panel input:focus,.wiz-panel select:focus,.wiz-panel textarea:focus{border-color:var(--accent)}
-  .wiz-panel input::placeholder,.wiz-panel textarea::placeholder{color:var(--muted)}
-  .wiz-hint{font-size:11px;color:var(--muted);margin-top:6px}
-  .wiz-upload-card{background:var(--bg);border:1px dashed var(--line);border-radius:14px;padding:14px}
-  .wiz-upload-card label:first-child{margin-top:0;margin-bottom:8px}
-  .wiz-panel input[type="file"]{width:100%;font-size:11.5px;color:var(--muted);
-    border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--card)}
+  .wiz-panel input:focus{border-color:var(--accent)}
+  .wiz-panel input::placeholder{color:var(--muted)}
   .wiz-extra-note{font-size:12px;color:var(--muted);margin:0 0 14px}
-  .wiz-upload-note{font-size:11px;color:var(--muted);margin-top:8px}
   .btn-send{display:block;width:100%;margin-top:12px;background:var(--accent);color:#fff;border:none;
     border-radius:999px;padding:13px 22px;font-size:13.5px;font-weight:700;cursor:pointer;transition:opacity .15s,transform .15s}
   .btn-send:hover{opacity:.9;transform:translateY(-1px)}
+  .btn-whatsapp{display:flex;align-items:center;justify-content:center;gap:9px}
+  .btn-whatsapp svg{width:18px;height:18px;flex:none}
+  .wiz-whatsapp-note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:10px}
 
   .wiz-preview{opacity:0;max-height:0;overflow:hidden;min-width:0;transform:translateX(16px);display:flex;flex-direction:column;
     transition:opacity .5s ease .15s,max-height .6s cubic-bezier(.22,.7,.3,1) .1s,transform .5s ease .15s}
