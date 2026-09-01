@@ -351,6 +351,10 @@ p{margin:0 0 1.1em}
 .btn--outline-light:hover{background:#fff;color:var(--ink);border-color:#fff}
 .btn-row{display:flex;flex-wrap:wrap;gap:12px}
 .center .btn-row{justify-content:center}
+@media(max-width:600px){
+  .btn-row{flex-direction:column;align-items:stretch;width:100%}
+  .btn-row .btn{width:100%;text-align:center}
+}
 .site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:color-mix(in srgb, var(--taupe) 28%, var(--champagne));border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
 .brand{display:flex;flex-direction:row;align-items:center;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
@@ -425,8 +429,11 @@ p{margin:0 0 1.1em}
 .map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 /* contact page: intro + stacked label/value rows on the left, a bordered
    opening-hours card on the right — mirrors a real booking-site contact page */
-.contact-split{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:start;text-align:left}
+.contact-split{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:stretch;text-align:left}
 @media(max-width:860px){.contact-split{grid-template-columns:1fr;gap:36px}}
+.contact-intro{display:flex;flex-direction:column}
+.hours-card{display:flex;flex-direction:column}
+.hours-card .hours-note{flex:1}
 .contact-intro h1{margin-top:.2em}
 .contact-rows{margin-top:2em}
 .contact-row{display:grid;grid-template-columns:100px 1fr;gap:20px;padding:20px 0;border-top:1px solid var(--line)}
