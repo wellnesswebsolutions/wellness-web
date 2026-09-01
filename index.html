@@ -373,7 +373,10 @@ document.addEventListener('DOMContentLoaded', () => {
       builderInput.value = '';
       builderField.classList.remove('qa-filled', 'qa-focused');
       builderProgress.textContent = `${i + 1}/${BUILDER_QUESTIONS.length}`;
-      builderBack.classList.toggle('visible', i > 0);
+      // always visible: on question 1 it steps back out of the full-page
+      // builder into the 3-question wizard (editing location) instead of
+      // just being hidden with nowhere to go.
+      builderBack.classList.add('visible');
     };
     if (!animate) { render(); return; }
     builderBarRow.classList.add('builder-leaving');
@@ -411,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   function goToPreviousBuilderQuestion() {
-    if (builderIndex === 0) return;
+    if (builderIndex === 0) { goBackToLocation(); return; }
     builderIndex--;
     showBuilderQuestion(builderIndex);
     setTimeout(() => { builderInput.value = builderAnswers[builderIndex] || ''; builderInput.dispatchEvent(new Event('input')); }, 230);
