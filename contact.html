@@ -14,17 +14,23 @@
 <link rel="canonical" href="https://wellnessweb.co.uk/contact">
 <link rel="stylesheet" href="styles.css">
 <script src="reveal.js" defer></script>
+<script src="nav.js" defer></script>
 </head>
 <body>
 <div class="bar" id="bar"></div>
 <div class="top">
   <a href="index.html" class="brand">Aesthetic<span>Intelligence</span></a>
-  <nav class="tabs">
+  <nav class="tabs" id="navTabs">
     <a href="index.html">What we do</a>
     <a href="work.html">Our work</a>
     <a href="pricing.html">Pricing</a>
   </nav>
-  <a href="contact.html" class="cta">Build</a>
+  <div class="top-right">
+    <a href="contact.html" class="cta">Build</a>
+    <button type="button" class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </div>
 
 <div class="after page">
