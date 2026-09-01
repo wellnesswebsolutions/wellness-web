@@ -1064,8 +1064,11 @@ showPage('home');
         <form id="quickLead" class="name-gate" novalidate>
           <div class="glow-box name-glow">
             <div class="glow-box-inner">
-              <input type="text" id="bizName" name="business_name" placeholder="What's your business called?" required autocomplete="off">
-              <button type="submit" class="name-gate-go" id="wizSend" aria-label="Build">Build</button>
+              <label for="bizName">What's your business called?</label>
+              <div class="qa-input-row">
+                <input type="text" id="bizName" name="business_name" placeholder="e.g. Luxe Hair &amp; Beauty" required autocomplete="off">
+                <button type="submit" class="name-gate-go" id="wizSend" aria-label="Build">Build</button>
+              </div>
             </div>
           </div>
           <div class="step1-reassure">Free demo · No card required · Takes less than 30 seconds</div>

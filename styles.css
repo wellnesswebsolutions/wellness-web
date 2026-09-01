@@ -399,7 +399,8 @@
     transition:opacity .4s ease,max-height .5s cubic-bezier(.22,.7,.3,1),margin .5s cubic-bezier(.22,.7,.3,1);
     overflow:hidden;max-height:200px}
   .name-gate.answered{opacity:0;max-height:0;margin-top:0;pointer-events:none}
-  .name-gate .name-glow .glow-box-inner{padding:8px 8px 8px 26px;display:flex;align-items:center;gap:10px}
+  .name-gate .name-glow .glow-box-inner{padding:20px 26px}
+  .name-gate label{display:block;font-family:var(--display);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:12px}
   .name-gate input{flex:1;min-width:0;border:none;background:transparent;outline:none;
     font-family:var(--display);font-size:clamp(14px,1.9vw,17px);font-weight:600;color:var(--ink);padding:12px 0}
   .name-gate input::placeholder{color:var(--muted);font-weight:500}
