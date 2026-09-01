@@ -299,12 +299,12 @@
     const t = d.tones || (info && info.theme ? tonesFromHex(info.theme) : { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' });
     const preset = SITE_STYLE_PRESETS[d.stylePreset] || SITE_STYLE_PRESETS['clean-professional'];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-    const galleryTones = [[t.dark,t.base],[t.base,t.light],[t.light,'#f6efe9'],[t.dark,t.light],[t.base,'#f6efe9'],['#2d2927',t.dark]];
+    const galleryTones = [[t.dark,t.base],[t.base,t.light],[t.light,t.base],[t.dark,t.light],[t.base,t.dark],[t.light,t.dark]];
     const gallery = galleryTones.map((colors, i) => `
       <figure class="gallery-placeholder" aria-label="Photo placeholder ${i + 1} for ${esc(d.name)}"
         style="--gallery-a:${colors[0]};--gallery-b:${colors[1]};--gallery-angle:${125 + i * 23}deg">
         <span class="gallery-orb gallery-orb--${(i % 3) + 1}" aria-hidden="true"></span>
-        <span class="gallery-initials" aria-hidden="true">${esc(initials)}</span>
+        <span class="brand-badge gallery-badge" aria-hidden="true">${esc(initials)}</span>
         <figcaption>Add your photo</figcaption>
       </figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
@@ -325,10 +325,16 @@
     const categoryPhoto = info && info.photo ? `https://wellnessweb.co.uk/img/hero/${info.photo}` : null;
     const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
     const sceneMarkup = (d.heroImage || usingCategoryPhoto) ? '' : sceneSVG(cat, t);
+    const heroHasPhoto = !!(d.heroImage || usingCategoryPhoto);
+    // `contain`, not `cover`: cover crops the edges off to fill the band,
+    // zooming past the business name composited onto the wall. The heroes
+    // are 16:9 and the desktop hero box matches that ratio, so contain fills
+    // it edge to edge with the whole photograph visible. (Mobile overrides
+    // background-size separately, further down.)
     const heroBg = d.heroImage
-      ? `url('${d.heroImage}') center/cover no-repeat`
+      ? `url('${d.heroImage}') center/contain no-repeat`
       : usingCategoryPhoto
-        ? `url('${categoryPhoto}') center/cover no-repeat`
+        ? `url('${categoryPhoto}') center/contain no-repeat`
         : `linear-gradient(155deg,${t.dark},${t.light})`;
     const brandMark = d.logo
       ? `<img src="${d.logo}" alt="${esc(d.name)} logo" style="height:38px;width:auto;display:block">`
@@ -340,12 +346,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(d.name)}${d.tagline ? ' | ' + esc(d.tagline) : ''}${d.location ? ' in ' + esc(d.location) : ''}</title>
 <meta name="description" content="${esc(metaDesc)}">
-<meta name="theme-color" content="#f6efe9">
+<meta name="theme-color" content="${t.dark}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--champagne:#f6efe9;--champagne-2:#efe4db;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--line:rgba(28,24,21,.12);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
+:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
 body{margin:0;padding-top:37px;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
@@ -379,7 +385,7 @@ p{margin:0 0 1.1em}
   .btn-row{flex-direction:column;align-items:stretch;width:100%}
   .btn-row .btn{width:100%;text-align:center}
 }
-.site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:color-mix(in srgb, var(--taupe) 28%, var(--champagne));border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
+.site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:var(--header-surface);border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
 .brand{display:flex;flex-direction:row;align-items:center;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
@@ -389,8 +395,33 @@ p{margin:0 0 1.1em}
 .nav a:hover{border-bottom-color:var(--ink)}
 .nav a.btn{padding:11px 20px;color:#fff}
 .nav a.btn:hover{background:transparent;color:var(--ink)}
-@media(max-width:760px){.nav{display:none}}
+.menu-toggle{display:none;width:44px;height:44px;border:1px solid var(--line);border-radius:max(var(--radius),10px);
+  background:var(--champagne);color:var(--ink);align-items:center;justify-content:center;cursor:pointer}
+.menu-toggle span,.menu-toggle::before,.menu-toggle::after{content:"";display:block;width:19px;height:2px;border-radius:2px;background:currentColor;transition:transform .2s,opacity .2s}
+.menu-toggle span{margin:4px 0}
+.menu-toggle[aria-expanded="true"] span{opacity:0}
+.menu-toggle[aria-expanded="true"]::before{transform:translateY(6px) rotate(45deg)}
+.menu-toggle[aria-expanded="true"]::after{transform:translateY(-6px) rotate(-45deg)}
+.mobile-nav{display:none}
+@media(max-width:760px){
+  .site-header .container{position:relative;min-height:68px}
+  .nav{display:none}
+  .menu-toggle{display:flex;flex-direction:column}
+  .mobile-nav{position:absolute;display:grid;top:100%;left:14px;right:14px;padding:10px;background:#fff;
+    border:1px solid var(--line);border-radius:max(var(--radius),14px);box-shadow:0 18px 50px rgba(28,24,21,.18)}
+  .mobile-nav[hidden]{display:none}
+  .mobile-nav a{padding:13px 14px;border-radius:max(var(--radius),8px);text-decoration:none;color:var(--ink);
+    font-size:.75rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+  .mobile-nav a:hover{background:var(--champagne)}
+  .mobile-nav .btn{margin-top:5px;text-align:center;background:var(--rose-dark);border-color:var(--rose-dark);color:#fff}
+}
 .hero{position:relative;margin-top:75px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
+${heroHasPhoto ? `@media(min-width:901px){
+  /* Match the hero band to the photograph's own 16:9 ratio so \`contain\`
+     fills it exactly — the full image, no zoomed-in crop. The background
+     colour only shows if a supplied photo is ever a different shape. */
+  .hero{aspect-ratio:16/9;min-height:0;background-color:var(--ink)}
+}` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
 @media(max-width:760px){.hero-photo-note{left:14px;right:14px;text-align:center}}
@@ -402,33 +433,38 @@ p{margin:0 0 1.1em}
 .hero .hero-sub{font-size:clamp(1.02rem,1.9vw,1.25rem);font-weight:300;max-width:36ch;margin-bottom:1.8em;text-shadow:0 2px 14px rgba(28,24,21,.35)}
 .hero .eyebrow{color:rgba(255,255,255,.85)}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
-.brand-badge{flex:none;width:28px;height:28px;border-radius:50%;background:var(--rose-dark);
-  display:flex;align-items:center;justify-content:center;margin-right:10px;
-  font-family:var(--body-font);font-weight:700;letter-spacing:.02em;color:#fff;font-size:.7rem}
+.brand-badge{flex:none;width:38px;height:38px;border-radius:50%;background:var(--rose-dark);
+  display:flex;align-items:center;justify-content:center;margin-right:11px;border:1px solid rgba(255,255,255,.42);
+  box-shadow:0 5px 16px color-mix(in srgb,var(--rose-dark) 28%,transparent);
+  font-family:var(--body-font);font-weight:700;letter-spacing:.04em;color:#fff;font-size:.68rem;line-height:1}
 @media(max-width:900px){
   .site-header{top:64px}
   /* Mobile uses the hero photograph as a complete 16:9 image rather than
      cropping a desktop background into a tall portrait panel. The content
      then sits in its own panel below, so buttons never cover the sentence. */
-  .hero{display:block;min-height:0;margin-top:75px;padding-top:56.25%;
-    background-size:100% auto;background-position:center top;background-repeat:no-repeat;background-color:var(--ink)}
-  .hero::after{inset:0 0 auto;height:auto;aspect-ratio:16/9;
+  .hero{--mobile-hero-height:clamp(270px,75vw,440px);display:block;min-height:0;margin-top:75px;
+    padding-top:var(--mobile-hero-height);background-size:auto var(--mobile-hero-height);
+    background-position:center top;background-repeat:no-repeat;background-color:var(--ink)}
+  .hero::after{inset:0 0 auto;height:var(--mobile-hero-height);
     background:linear-gradient(to top,rgba(28,24,21,.24),rgba(28,24,21,0) 58%)}
-  .hero .hero-copy{padding:1.35em 0 1.55em;text-align:center;
-    background:linear-gradient(145deg,var(--ink),color-mix(in srgb,var(--rose-dark) 48%,var(--ink)))}
+  .hero .hero-copy{padding:1.35em 0 1.55em;text-align:center;background:var(--header-surface);
+    border-top:1px solid color-mix(in srgb,var(--rose-dark) 16%,transparent)}
   .hero .inner{display:flex;flex-direction:column;align-items:center;padding:0 18px}
-  .hero .eyebrow{margin-bottom:.65em}
+  .hero h1,.hero p{color:var(--ink);text-shadow:none}
+  .hero .eyebrow{margin-bottom:.65em;color:var(--rose-dark)}
   .hero-title{font-size:clamp(1.9rem,8vw,2.5rem);margin-bottom:.25em}
   .hero .hero-sub{font-size:1rem;line-height:1.5;max-width:31ch;margin:0 auto 1.15em}
   .hero .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:390px}
   .hero .btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:11px 14px;
     border-radius:max(var(--radius),8px);font-size:.66rem;line-height:1.25;letter-spacing:.13em;box-shadow:none}
-  .hero .btn--outline-light{background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
+  .hero .btn--light{background:var(--rose-dark);border-color:var(--rose-dark);color:#fff}
+  .hero .btn--outline-light{background:transparent;border-color:color-mix(in srgb,var(--rose-dark) 62%,transparent);color:var(--ink);backdrop-filter:none}
   .hero-tags{display:none}
 }
 @media(max-width:360px){
   .hero .btn-row{grid-template-columns:1fr}
 }
+@media(max-width:760px){.hero{margin-top:68px}}
 .grid{display:grid;gap:26px}
 .grid-2{grid-template-columns:repeat(2,1fr)}
 .grid-3{grid-template-columns:repeat(3,1fr)}
@@ -473,7 +509,9 @@ p{margin:0 0 1.1em}
 .gallery-placeholder::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(28,24,21,.38),transparent 55%);z-index:-1}
 .gallery-orb{position:absolute;width:70%;aspect-ratio:1;border:1px solid rgba(255,255,255,.24);border-radius:50%;z-index:-1}
 .gallery-orb--1{left:-18%;top:-30%}.gallery-orb--2{right:-22%;bottom:-34%;width:85%}.gallery-orb--3{left:14%;top:8%;width:72%;border-radius:36% 64% 58% 42%}
-.gallery-initials{font-family:var(--heading-font);font-size:clamp(2rem,6vw,4rem);font-weight:500;letter-spacing:.12em;text-shadow:0 5px 25px rgba(28,24,21,.25)}
+.gallery-badge{width:clamp(58px,8vw,76px);height:clamp(58px,8vw,76px);margin:0;
+  font-size:clamp(.9rem,1.8vw,1.25rem);border:2px solid rgba(255,255,255,.72);
+  box-shadow:0 12px 32px rgba(28,24,21,.24),0 0 0 7px rgba(255,255,255,.12)}
 .gallery-placeholder figcaption{position:absolute;left:14px;bottom:11px;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.88)}
 .find.has-map{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:center}
 @media(max-width:860px){.find.has-map{grid-template-columns:1fr}}
@@ -520,6 +558,13 @@ p{margin:0 0 1.1em}
   <div class="container">
     <a class="brand" href="#" data-nav="home"><span class="brand-badge">${esc(initials)}</span><span class="brand-text">${brandMark}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</span></a>
     <nav class="nav">
+      <a href="#" data-nav="home">Home</a>
+      <a href="#" data-nav="services">Services</a>
+      <a href="#" data-nav="contact">Contact</a>
+      <a class="btn" href="#" data-nav="contact">${esc(goalLabel)}</a>
+    </nav>
+    <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav"><span></span></button>
+    <nav class="mobile-nav" id="mobileNav" hidden>
       <a href="#" data-nav="home">Home</a>
       <a href="#" data-nav="services">Services</a>
       <a href="#" data-nav="contact">Contact</a>
@@ -716,7 +761,24 @@ p{margin:0 0 1.1em}
 // and the parent page (showing this in a preview frame) is told which
 // page is active so its address bar can reflect it.
 var slug = ${JSON.stringify(d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business')};
+var menuToggle = document.querySelector('.menu-toggle');
+var mobileNav = document.getElementById('mobileNav');
+function closeMobileMenu() {
+  if (!menuToggle || !mobileNav) return;
+  menuToggle.setAttribute('aria-expanded', 'false');
+  menuToggle.setAttribute('aria-label', 'Open menu');
+  mobileNav.hidden = true;
+}
+if (menuToggle && mobileNav) {
+  menuToggle.addEventListener('click', function () {
+    var opening = mobileNav.hidden;
+    mobileNav.hidden = !opening;
+    menuToggle.setAttribute('aria-expanded', String(opening));
+    menuToggle.setAttribute('aria-label', opening ? 'Close menu' : 'Open menu');
+  });
+}
 function showPage(id) {
+  closeMobileMenu();
   document.querySelectorAll('.page').forEach(function (p) { p.hidden = p.dataset.page !== id; });
   window.scrollTo({ top: 0 });
   try {

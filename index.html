@@ -105,6 +105,21 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBuilderBottom();
   }
 
+  // On iPhones, a fixed bottom control can sit behind the software keyboard
+  // because the visual viewport becomes shorter than the layout viewport.
+  // Lift only the builder bar by that difference so the field and arrow stay
+  // visible and tappable while typing.
+  function syncBuilderBarToKeyboard() {
+    if (!builderBarWrap || !window.visualViewport || builderOverlay.hidden) return;
+    const viewport = window.visualViewport;
+    const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+    builderBarWrap.style.transform = `translateY(${-keyboardHeight}px)`;
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncBuilderBarToKeyboard);
+    window.visualViewport.addEventListener('scroll', syncBuilderBarToKeyboard);
+  }
+
   function toTitleCase(value) {
     return value
       .trim()
@@ -423,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
       builderPh.textContent = question.q + (question.optional ? ' (optional)' : '');
       builderInput.setAttribute('aria-label', question.q + (question.optional ? ' (optional)' : ''));
       builderInput.type = question.type;
+      builderInput.enterKeyHint = i === BUILDER_QUESTIONS.length - 1 ? 'done' : 'next';
       builderInput.value = '';
       builderField.classList.remove('qa-filled', 'qa-focused');
       builderProgress.textContent = `${i + 1}/${BUILDER_QUESTIONS.length}`;
@@ -477,8 +493,16 @@ document.addEventListener('DOMContentLoaded', () => {
   builderInput.addEventListener('input', () => {
     builderField.classList.toggle('qa-filled', !!builderInput.value.trim());
   });
-  builderInput.addEventListener('focus', () => builderField.classList.add('qa-focused'));
-  builderInput.addEventListener('blur', () => builderField.classList.remove('qa-focused'));
+  builderInput.addEventListener('focus', () => {
+    builderField.classList.add('qa-focused');
+    requestAnimationFrame(syncBuilderBarToKeyboard);
+  });
+  builderInput.addEventListener('blur', () => {
+    builderField.classList.remove('qa-focused');
+    setTimeout(() => {
+      if (builderBarWrap) builderBarWrap.style.transform = '';
+    }, 120);
+  });
   builderInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); submitBuilderAnswer(); }
   });

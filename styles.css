@@ -516,7 +516,7 @@
      pill from the first 3 questions sitting inside it. */
   .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;display:flex;justify-content:center;
     pointer-events:auto;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(23,32,31,.06);
-    padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px))}
+    padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px));touch-action:manipulation;will-change:transform}
   .builder-bar{width:100%;max-width:780px;pointer-events:auto;transition:background .35s var(--qa-ease)}
   /* a permanent, visible ring around the pill (on top of the animated glow
      behind it) so it reads clearly against any part of the preview */
@@ -552,11 +552,16 @@
     clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
   @media(max-width:760px){
-    .builder-bar-wrap{padding-left:10px;padding-right:10px}
-    .builder-bar-row{padding:0 8px;gap:5px}
+    .builder-bar-wrap{padding:10px 8px calc(10px + env(safe-area-inset-bottom, 0px))}
+    .builder-bar .glow-box-inner{min-height:58px}
+    .builder-bar-row{padding:0 7px;gap:5px}
     .builder-mobile-toggle{display:none}
-    .builder-icon-btn{width:32px;height:32px}
+    .builder-icon-btn{width:40px;height:40px}
     .builder-progress{font-size:10.5px;min-width:2.2em}
+    .builder-field{min-height:48px}
+    .builder-field input{min-height:44px;font-size:16px;line-height:1.25;pointer-events:auto}
+    .builder-field .qa-ph{font-size:16px}
+    .builder-bar .qa-go{width:44px;height:44px;padding:0;margin-right:0;font-size:18px;touch-action:manipulation}
   }
 
   /* personalised "building your website" transition, business name as anchor */
