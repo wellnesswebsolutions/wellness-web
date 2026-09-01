@@ -483,7 +483,17 @@
     background:var(--accent);color:#fff;font-family:var(--display);font-size:13px;font-weight:700;
     letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
-    opacity:1;transform:scale(1);pointer-events:auto;transition:opacity .25s var(--qa-ease),transform .25s var(--qa-ease)}
+    opacity:1;transform:scale(1);transition:opacity .25s var(--qa-ease),transform .25s var(--qa-ease)}
+  /* Deliberately NOT pointer-events:auto here. The inactive slides are
+     position:absolute;inset:0, stacked exactly over the active one, and they
+     rely on .qa-slide{pointer-events:none} to stay out of the way. An explicit
+     `auto` on a descendant re-enables hit-testing on that descendant even
+     though its parent is `none` — so the last slide's invisible Build button
+     sat on top of the real one, and tapping Build fired the wrong step's
+     handler, which returned early on an empty value and did nothing at all.
+     This rule makes that guarantee explicit rather than relying on the
+     absence of an override. */
+  .qa-slide:not(.qa-active) .qa-go{pointer-events:none}
   .qa-go:hover{transform:scale(1.06)}
   .step1-reassure{text-align:center;font-size:11.5px;letter-spacing:.04em;color:var(--muted);margin-top:14px}
   .quick-lead-status{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;min-height:18px}
