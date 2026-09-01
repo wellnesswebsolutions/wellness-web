@@ -578,8 +578,7 @@ Instagram: ${instagram || 'Not provided'}`;
 <section class="hero-conv">
   <div class="wrap hero-conv-wrap">
     <div class="hero-conv-head">
-      <div class="eyebrow">Custom website quality, without the agency price</div>
-      <h1>A human touch, powered by AI</h1>
+      <h1>Make a preview. Send it to a designer.</h1>
     </div>
 
     <div class="wiz-grid" id="wizGrid">
@@ -597,6 +596,28 @@ Instagram: ${instagram || 'Not provided'}`;
 
         <form id="quickLead" novalidate>
           <div class="glow-box qa-box" id="qaBox">
+            <!-- Decorative only (hence aria-hidden): "AI" letters scattered around
+                 the pill, invisible until they glow. --d is the whole effect — it
+                 rises as the letter sits closer to the box, so the glow starts at
+                 the outermost letters and ripples inward. -->
+            <div class="ai-orbit" aria-hidden="true">
+              <span style="--x:-352px;--y:-52px;--s:1.10;--d:0s"></span>
+              <span style="--x:346px;--y:64px;--s:1.05;--d:.02s;--c:var(--gold)"></span>
+              <span style="--x:-318px;--y:96px;--s:.98;--d:.08s"></span>
+              <span style="--x:300px;--y:-112px;--s:1.02;--d:.13s"></span>
+              <span style="--x:-268px;--y:-128px;--s:.92;--d:.21s;--c:var(--gold)"></span>
+              <span style="--x:262px;--y:132px;--s:.88;--d:.22s"></span>
+              <span style="--x:214px;--y:-124px;--s:.90;--d:.38s"></span>
+              <span style="--x:-208px;--y:118px;--s:.84;--d:.41s;--c:var(--gold)"></span>
+              <span style="--x:-166px;--y:-136px;--s:.80;--d:.50s"></span>
+              <span style="--x:158px;--y:140px;--s:.82;--d:.51s"></span>
+              <span style="--x:126px;--y:-132px;--s:.76;--d:.61s;--c:var(--gold)"></span>
+              <span style="--x:-118px;--y:126px;--s:.74;--d:.64s"></span>
+              <span style="--x:80px;--y:122px;--s:.70;--d:.74s"></span>
+              <span style="--x:-72px;--y:-118px;--s:.72;--d:.77s"></span>
+              <span style="--x:-28px;--y:112px;--s:.66;--d:.85s;--c:var(--gold)"></span>
+              <span style="--x:34px;--y:-104px;--s:.64;--d:.87s"></span>
+            </div>
             <div class="glow-box-inner">
               <div class="qa-slide qa-active" id="qaSlideName" data-step="1">
                 <div class="qa-field" id="qaFieldName">

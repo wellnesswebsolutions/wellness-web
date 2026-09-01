@@ -379,7 +379,8 @@
       radial-gradient(65% 60% at 50% 0%, rgba(185,143,201,.48), rgba(247,242,236,0) 72%),
       radial-gradient(60% 55% at 50% 0%, rgba(255,251,243,.85), rgba(247,242,236,0) 68%), var(--bg)}
   .hero-conv-wrap{width:100%;position:relative;z-index:1}
-  .hero-conv-head{max-width:680px;margin:0 auto clamp(12px,2.5svh,22px);text-align:center}
+  /* above the .ai-orbit letters, which are free to drift behind the copy */
+  .hero-conv-head{max-width:680px;margin:0 auto clamp(12px,2.5svh,22px);text-align:center;position:relative;z-index:2}
   .hero-conv-head .eyebrow{font-size:clamp(11px,1.4vw,13px);letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:clamp(8px,1.4svh,14px)}
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,4.2vw,44px);line-height:1.12}
   .hero-conv-sub{font-size:clamp(13px,1.5vw,16px);color:var(--muted);margin-top:8px}
@@ -409,6 +410,37 @@
   .glow-box-inner{position:relative;z-index:1;border-radius:inherit;background:var(--card)}
   @keyframes glow-breathe{0%,100%{opacity:.62}50%{opacity:.92}}
   @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
+
+  /* ---- hero pill: "AI" letters rippling inward, in place of the purple ring ----
+     Scoped to .qa-box so the builder bar keeps the ring above. The letters sit
+     behind .glow-box-inner (z-index:1) and behind the headline, so they may
+     overlap either freely — they read as atmosphere, never as obstruction.
+     text-shadow is STATIC and only opacity animates: animating a blur or a
+     gradient angle here is what previously made the page feel janky to scroll. */
+  .qa-box:before{display:none}
+  /* z-index:-1, not 0. The comparison cards below are unpositioned, so a
+     positioned layer at 0 paints on top of them and the letters spill across
+     the cards. At -1 the field sits behind all content in .hero-conv-wrap's
+     stacking context while still showing over the section's gradient, which
+     is painted outside that context. */
+  .ai-orbit{position:absolute;inset:0;z-index:-1;pointer-events:none;--sx:1;--sy:1}
+  .ai-orbit span{position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%)
+      translate(calc(var(--x) * var(--sx)), calc(var(--y) * var(--sy)))
+      scale(var(--s,1));
+    font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.09em;
+    color:var(--c,var(--accent));text-shadow:0 0 12px currentColor;
+    opacity:0;animation:ai-ripple 6s var(--qa-ease) infinite;animation-delay:var(--d,0s)}
+  .ai-orbit span:before{content:"AI"}
+  /* fades fully out by 34%, so the rest of the 6s cycle is the pause between ripples */
+  @keyframes ai-ripple{0%,100%{opacity:0}9%{opacity:.85}34%{opacity:0}}
+  /* Narrow screens need the two axes scaled in opposite directions: pull in
+     horizontally so nothing is clipped by the section, but push further out
+     vertically into the open space above the pill — otherwise the letters
+     bunch into two tight bands hugging the box and collide with the copy. */
+  @media(max-width:760px){.ai-orbit{--sx:.55;--sy:1.5}}
+  @media(max-width:420px){.ai-orbit{--sx:.4;--sy:1.75}}
+  @media(prefers-reduced-motion:reduce){.ai-orbit span{animation:none;opacity:.22}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
   .qa-progress{width:100%;max-width:220px;margin:0 auto;text-align:center;opacity:0;max-height:0;
