@@ -424,12 +424,11 @@ Name: ${fullName}
 Email: ${email}
 Customer WhatsApp: ${whatsapp}
 Facebook/Instagram: ${socialLink || 'Not provided'}
-Preview: ${previewLink}
 
 I'll send my services, photos, logo and any other information here.`;
 
     try {
-      await postLead(businessName, message);
+      await postLead(businessName, message + '\n\nPreview: ' + previewLink);
     } catch (err) {
       // the WhatsApp handoff is the part that matters to the customer —
       // still open it even if the backend save failed, so they aren't blocked.
