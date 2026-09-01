@@ -271,9 +271,10 @@
       : '';
     const tags = services.slice(0, 4).map(s => `<span>${esc(s)}</span>`).join('');
     // fake but plausible contact details for the demo — Ofcom reserves
-    // 07700 900xxx for fictional use, so it's never a real number.
+    // 07700 900xxx for fictional use, so it's never a real number. Once the
+    // customer's given their real number (builder Q3), use that instead.
     const nameSeed = d.name.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-    const fakePhone = '07700 900' + String(100 + (nameSeed % 900)).padStart(3, '0');
+    const fakePhone = d.phone || '07700 900' + String(100 + (nameSeed % 900)).padStart(3, '0');
     const emailSlug = d.name.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'business';
     const fakeEmail = `hello@${emailSlug}.co.uk`;
     const fakeStreetNum = 1 + (nameSeed % 98);
@@ -323,7 +324,7 @@
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--champagne:#f6efe9;--champagne-2:#efe4db;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--line:rgba(28,24,21,.12);--radius:2px;--shadow:0 18px 50px rgba(28,24,21,.10)}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px}
-body{margin:0;padding-top:37px;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased}
+body{margin:0;padding-top:37px;padding-bottom:150px;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased}
 img{max-width:100%;display:block}
 a{color:var(--rose-dark)}
 h1,h2,h3,h4{color:var(--ink);font-weight:600;line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}

@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('quickLead');
   const status = document.getElementById('quickLeadStatus');
   const wizGrid = document.getElementById('wizGrid');
-  const wizPreview = document.getElementById('wizPreview');
   const convRow = document.getElementById('convRow');
   const bizNameInput = document.getElementById('bizName');
   const bizTagline = document.getElementById('bizTagline');
@@ -29,16 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const bizServices = document.getElementById('bizServices');
   const bizPrices = document.getElementById('bizPrices');
   const bizGoal = document.getElementById('bizGoal');
-  const previewUrl = document.getElementById('previewUrl');
   const previewFrame = document.getElementById('previewFrame');
 
-  const wizAboutPanel = document.getElementById('wizAbout');
-  const wizAboutSend = document.getElementById('wizAboutSend');
-  const wizAboutStatus = document.getElementById('wizAboutStatus');
-  const custName = document.getElementById('custName');
-  const custWhatsapp = document.getElementById('custWhatsapp');
-  const custWebsite = document.getElementById('custWebsite');
-  const custSocial = document.getElementById('custSocial');
+  const builderOverlay = document.getElementById('builderOverlay');
+  const builderBar = document.getElementById('builderBar');
+  const builderBarRow = document.getElementById('builderBarRow');
+  const builderProgress = document.getElementById('builderProgress');
+  const builderField = document.getElementById('builderField');
+  const builderPh = document.getElementById('builderPh');
+  const builderInput = document.getElementById('builderInput');
+  const builderGo = document.getElementById('builderGo');
+  const builderWhatsappBtn = document.getElementById('builderWhatsappBtn');
 
   const creatingOverlay = document.getElementById('creatingOverlay');
   const creatingVerb = document.getElementById('creatingVerb');
@@ -46,6 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const creatingSub = document.getElementById('creatingSub');
 
   if (!form) return;
+
+  // keeps the full-page preview's top offset (--header-h) matched to the
+  // real fixed header, which is a different height on mobile.
+  const topBar = document.querySelector('.top');
+  function syncHeaderHeight() {
+    if (topBar) document.documentElement.style.setProperty('--header-h', topBar.offsetHeight + 'px');
+  }
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight);
 
   function toTitleCase(value) {
     return value
@@ -167,10 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const pills = {};
   function collapseGenerated() {
     qaProgress.classList.remove('done');
-    wizGrid.classList.remove('active');
     convRow.classList.remove('collapsed');
-    wizAboutPanel.classList.remove('active');
     qaBox.classList.remove('qa-box-done', 'qa-box-finish');
+    builderOverlay.hidden = true;
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    resetBuilderBar();
   }
   function removePillsFrom(step) {
     [1, 2, 3].forEach((s) => { if (s >= step && pills[s]) { pills[s].remove(); delete pills[s]; } });
@@ -212,7 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = toTitleCase(bizNameInput.value);
     if (!name) return;
     bizNameInput.value = name;
-    previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
 
     addPill(1, name);
     qaProgress.classList.add('started');
@@ -245,12 +255,20 @@ document.addEventListener('DOMContentLoaded', () => {
     await runCreatingAnimation(name.toUpperCase());
 
     qaProgress.classList.add('done');
-    wizGrid.classList.add('active');
     convRow.classList.add('collapsed');
     refreshPreview();
-    setTimeout(scalePreviewFrame, 650); // re-measure once the reveal transition finishes
-    wizAboutPanel.classList.add('active');
-    wizAboutPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // hand off to the full-page builder: the generated site fills the
+    // screen below the header, with the 5-question bar floating over it
+    builderOverlay.hidden = false;
+    // lock BOTH html and body — with html{overflow-x:hidden} already set
+    // elsewhere, only setting body's overflow doesn't actually stop page
+    // scroll (the propagation-to-viewport rule breaks once html has any
+    // explicit overflow of its own, so html itself must be locked too).
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    resetBuilderBar();
+    builderInput.focus();
 
     postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
   }
@@ -263,145 +281,39 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   qaLocationNext.addEventListener('click', finishLocation);
 
-  // gather step 1's answers into the shape buildDemoHTML expects. The live
-  // preview is locked in once it's shown — step 2's order/onboarding form
-  // doesn't feed back into it, by design.
+  // gather every answer collected so far into the shape buildDemoHTML
+  // expects — the initial 3 questions, plus whichever of the 5 builder-bar
+  // answers (services/differentiator/phone) affect the generated site, so
+  // the full-page preview updates live as the customer answers them.
   function gatherData() {
+    const servicesAnswer = builderAnswers[0] ? builderAnswers[0].trim() : '';
+    const services = servicesAnswer
+      ? servicesAnswer.split(',').map(s => s.trim()).filter(Boolean)
+      : bizServices.value.split(',').map(s => s.trim()).filter(Boolean);
+    const prices = servicesAnswer ? [] : bizPrices.value.split(',').map(s => s.trim()).filter(Boolean);
     return {
       name: bizNameInput.value.trim() || 'Your Business Name',
       tagline: bizTagline.value,
       location: bizLocation.value.trim(),
-      services: bizServices.value.split(',').map(s => s.trim()).filter(Boolean),
-      prices: bizPrices.value.split(',').map(s => s.trim()).filter(Boolean),
+      services,
+      prices,
       goal: bizGoal.value,
-      about: '',
+      about: (builderAnswers[1] || '').trim(),
+      phone: (builderAnswers[2] || '').trim(),
       tones: null,
       logo: null,
       heroImage: null
     };
   }
-  // the iframe always renders at a fixed real-world width (matching
-  // buildDemoHTML's real output at that breakpoint), and it's a WRAPPER
-  // div around the iframe that gets scaled down to fit the panel — not the
-  // iframe itself. Scaling the iframe directly is what caused the bug:
-  // Chromium resolves an embedded page's `width=device-width` viewport
-  // meta against the iframe's post-transform (scaled) size when the
-  // transform sits on the iframe element, silently tripping the site's
-  // mobile CSS breakpoint inside the "desktop" preview. Scaling an
-  // ancestor instead leaves the iframe's own viewport unaffected.
-  // the preview is a fixed browser-window-sized "viewport" (like a real
-  // desktop/mobile screen), not the whole scaled-down page — so it stays
-  // compact and locked at the top of the panel, and the extra page
-  // content scrolls WITHIN it (like an embedded site) instead of
-  // stretching the preview panel down the page.
-  const DESKTOP_RENDER_WIDTH = 1300;
-  const DESKTOP_RENDER_HEIGHT = 800;
-  const MOBILE_RENDER_WIDTH = 390;
-  const MOBILE_RENDER_HEIGHT = 780;
-  let previewDevice = 'desktop';
-  const frameScale = document.getElementById('frameScale');
-  const viewDesktopBtn = document.getElementById('viewDesktop');
-  const viewMobileBtn = document.getElementById('viewMobile');
-  const viewFullscreenBtn = document.getElementById('viewFullscreen');
-
-  function renderSize() {
-    return previewDevice === 'mobile'
-      ? { w: MOBILE_RENDER_WIDTH, h: MOBILE_RENDER_HEIGHT }
-      : { w: DESKTOP_RENDER_WIDTH, h: DESKTOP_RENDER_HEIGHT };
-  }
-  function scalePreviewFrame() {
-    if (!frameScale || !frameScale.parentElement) return;
-    const { w, h } = renderSize();
-    frameScale.style.width = w + 'px';
-    const bwinBody = frameScale.parentElement;
-    const bwin = bwinBody.closest('.bwin');
-    const containerWidth = bwinBody.clientWidth;
-    if (!containerWidth) return;
-    const scale = containerWidth / w;
-    frameScale.style.transform = `scale(${scale})`;
-    // match the preview box's height to the "Let's finish your website"
-    // panel beside it, rather than a fixed device aspect-ratio, so the two
-    // cards line up as one row — the rest of the page still scrolls inside
-    // the frame (see the scroll-to-bottom handling below).
-    const formHeight = wizAboutPanel ? wizAboutPanel.getBoundingClientRect().height : 0;
-    const shouldMatchForm = window.matchMedia('(min-width: 821px)').matches && formHeight > 0 && bwin;
-    if (shouldMatchForm) {
-      const bar = bwin.querySelector('.bwin-bar');
-      const barHeight = bar ? bar.getBoundingClientRect().height : 0;
-      const borders = bwin.getBoundingClientRect().height - bwin.clientHeight;
-      const bodyHeight = Math.max(340, formHeight - barHeight - borders);
-
-      bwin.style.height = formHeight + 'px';
-      bwinBody.style.aspectRatio = '';
-      bwinBody.style.height = bodyHeight + 'px';
-      // Expand the iframe's real viewport to exactly fill the visible body
-      // after scaling, rather than leaving empty space below an 800px frame.
-      frameScale.style.height = (bodyHeight / scale) + 'px';
-    } else {
-      if (bwin) bwin.style.height = '';
-      bwinBody.style.height = '';
-      bwinBody.style.aspectRatio = `${w} / ${h}`;
-      frameScale.style.height = h + 'px';
-    }
-  }
-  window.addEventListener('resize', scalePreviewFrame);
-  if ('ResizeObserver' in window && wizAboutPanel) {
-    new ResizeObserver(() => scalePreviewFrame()).observe(wizAboutPanel);
-  }
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(scalePreviewFrame);
-  }
+  // the preview is a REAL iframe filling the screen — no scaled-down
+  // mockup, no browser-chrome wrapper. It just renders at its own natural
+  // size, so the generated site's own responsive CSS applies exactly as
+  // it would on a real visit, and normal scrolling (wheel/trackpad/touch)
+  // works inside it with no tricks needed.
   function refreshPreview() {
     if (!previewFrame) return;
     previewFrame.srcdoc = buildDemoHTML(gatherData());
-    scalePreviewFrame();
   }
-  // show the bottom of the generated homepage in the live preview box,
-  // rather than leaving it pinned at the top, once each render loads.
-  if (previewFrame) {
-    previewFrame.addEventListener('load', () => {
-      try {
-        const doc = previewFrame.contentWindow.document;
-        // an instant jump (not scrollTo, which inherits the demo page's own
-        // scroll-behavior:smooth and can silently no-op while the tab is
-        // backgrounded) — directly setting scrollTop always applies right away.
-        doc.documentElement.scrollTop = doc.body.scrollHeight;
-        doc.body.scrollTop = doc.body.scrollHeight;
-      } catch (e) {}
-    });
-  }
-  // the demo is a real 3-page site (Home/Services/Contact) swapping pages
-  // client-side inside the iframe — it tells us which page is showing so
-  // the mock address bar above the preview can reflect it.
-  window.addEventListener('message', (e) => {
-    if (e.data && e.data.source === 'ai-demo' && previewFrame && e.source === previewFrame.contentWindow) {
-      previewUrl.textContent = e.data.path;
-    }
-  });
-
-  function setPreviewDevice(device) {
-    previewDevice = device;
-    viewDesktopBtn.classList.toggle('active', device === 'desktop');
-    viewMobileBtn.classList.toggle('active', device === 'mobile');
-    wizPreview.classList.toggle('mobile', device === 'mobile');
-    scalePreviewFrame();
-  }
-  viewDesktopBtn.addEventListener('click', () => setPreviewDevice('desktop'));
-  viewMobileBtn.addEventListener('click', () => setPreviewDevice('mobile'));
-  // opens the real generated page in its own tab, full size — not just a
-  // bigger scaled-up view of the same small iframe.
-  viewFullscreenBtn.addEventListener('click', () => {
-    const html = buildDemoHTML(gatherData());
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  });
 
   async function postLead(business_name, details) {
     const res = await fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
@@ -417,61 +329,103 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!res.ok) throw new Error(await res.text());
   }
 
-  // a unique, publicly-accessible preview link — the answers are encoded
-  // straight into the URL (as JSON, in the same shape buildDemoHTML takes)
-  // rather than needing a database row, so preview.html can regenerate the
-  // exact same site client-side wherever the link is opened. No expiry,
-  // no storage, no backend to keep in sync.
-  function buildPreviewUrl() {
-    const payload = encodeURIComponent(JSON.stringify(gatherData()));
-    return location.origin + '/preview.html?d=' + payload;
+  const designerWhatsAppNumber = '447535928879';
+
+  // the fixed bottom bar: one question at a time, floating over the
+  // full-page live preview. Same fading-placeholder / crossfade pattern as
+  // the first 3 questions, just driven by a single reusable field instead
+  // of 5 near-identical slides.
+  const BUILDER_QUESTIONS = [
+    { q: 'What services do you offer?', type: 'text' },
+    { q: 'What makes your business different?', type: 'text' },
+    { q: 'What contact number should we use?', type: 'tel' },
+    { q: 'Do you have an existing website or social page?', type: 'text' },
+    { q: 'Is there anything specific you want included?', type: 'text' }
+  ];
+  let builderIndex = 0;
+  let builderAnswers = [];
+
+  function resetBuilderBar() {
+    builderIndex = 0;
+    builderAnswers = [];
+    builderBarRow.hidden = false;
+    builderWhatsappBtn.hidden = true;
+    builderBar.classList.remove('builder-bar-done');
+    showBuilderQuestion(0, { animate: false });
   }
 
-  const designerWhatsAppNumber = '447535928879';
+  function showBuilderQuestion(i, { animate = true } = {}) {
+    const render = () => {
+      builderPh.textContent = BUILDER_QUESTIONS[i].q;
+      builderInput.type = BUILDER_QUESTIONS[i].type;
+      builderInput.value = '';
+      builderField.classList.remove('qa-filled', 'qa-focused');
+      builderProgress.textContent = `${i + 1}/${BUILDER_QUESTIONS.length}`;
+    };
+    if (!animate) { render(); return; }
+    builderBarRow.classList.add('builder-leaving');
+    setTimeout(() => {
+      render();
+      builderBarRow.classList.remove('builder-leaving');
+      builderBarRow.classList.add('builder-entering');
+      requestAnimationFrame(() => requestAnimationFrame(() => builderBarRow.classList.remove('builder-entering')));
+      builderInput.focus();
+    }, 220);
+  }
+
+  function finishBuilder() {
+    builderBar.classList.add('builder-bar-done');
+    setTimeout(() => {
+      builderBarRow.hidden = true;
+      builderWhatsappBtn.hidden = false;
+    }, 220);
+  }
+
+  function submitBuilderAnswer() {
+    builderAnswers[builderIndex] = builderInput.value.trim();
+    if (builderIndex === 0 || builderIndex === 1 || builderIndex === 2) refreshPreview();
+    builderIndex++;
+    if (builderIndex < BUILDER_QUESTIONS.length) {
+      showBuilderQuestion(builderIndex);
+    } else {
+      finishBuilder();
+    }
+  }
+  builderGo.addEventListener('click', submitBuilderAnswer);
+  builderInput.addEventListener('input', () => {
+    builderField.classList.toggle('qa-filled', !!builderInput.value.trim());
+  });
+  builderInput.addEventListener('focus', () => builderField.classList.add('qa-focused'));
+  builderInput.addEventListener('blur', () => builderField.classList.remove('qa-focused'));
+  builderInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submitBuilderAnswer(); }
+  });
 
   // final step: hand everything off to the designer over WhatsApp instead
   // of a checkout/payment page — nothing is charged until the finished
-  // site is approved.
-  wizAboutSend.addEventListener('click', async () => {
-    const fullName = custName.value.trim();
-    const whatsapp = custWhatsapp.value.trim();
-    if (!fullName || !whatsapp) {
-      wizAboutStatus.textContent = 'Please add your name and WhatsApp number.';
-      wizAboutStatus.className = 'quick-lead-status err';
-      return;
-    }
-    wizAboutStatus.textContent = 'Saving your details...';
-    wizAboutStatus.className = 'quick-lead-status';
-
+  // site is approved. The customer still has to press send inside WhatsApp.
+  builderWhatsappBtn.addEventListener('click', () => {
     const businessName = bizNameInput.value.trim();
     const businessType = bizTagline.value;
     const location_ = bizLocation.value.trim();
-    const currentWebsite = custWebsite.value.trim();
-    const socialLink = custSocial.value.trim();
-    const previewLink = buildPreviewUrl();
+    const [services, different, phone, existing, extra] = builderAnswers;
 
     const message = `Hi, I'd like you to finish my website.
 
 Business: ${businessName}
 Industry: ${businessType}
 Location: ${location_}
-Name: ${fullName}
-Customer WhatsApp: ${whatsapp}
-Current website: ${currentWebsite || 'Not provided'}
-Social media: ${socialLink || 'Not provided'}
 
-I'll send my services, photos, logo and any other information here.`;
+Services: ${services || 'Not provided'}
+What makes us different: ${different || 'Not provided'}
+Contact number: ${phone || 'Not provided'}
+Existing website/social: ${existing || 'Not provided'}
+Anything specific: ${extra || 'Not provided'}`;
 
-    try {
-      await postLead(businessName, message + '\n\nPreview: ' + previewLink);
-    } catch (err) {
-      // the WhatsApp handoff is the part that matters to the customer —
-      // still open it even if the backend save failed, so they aren't blocked.
-    }
+    postLead(businessName, message).catch(() => {});
 
     const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-    wizAboutStatus.textContent = '';
   });
 });
 </script>
@@ -548,45 +502,6 @@ I'll send my services, photos, logo and any other information here.`;
           <input type="hidden" id="bizPrices">
           <input type="hidden" id="bizGoal" value="Book now">
         </form>
-
-        <div class="wiz-panel" id="wizAbout">
-          <div class="wiz-step-tag">Let's finish your website</div>
-          <p class="wiz-extra-note">Send your details to your designer. We'll finish your website and send you a private preview — there's nothing to pay until you're happy.</p>
-
-          <label for="custName">Full name</label>
-          <input type="text" id="custName" placeholder="Your name" required>
-          <label for="custWhatsapp">WhatsApp number</label>
-          <input type="tel" id="custWhatsapp" placeholder="07…" required>
-          <div class="wiz-row">
-            <div><label for="custWebsite">Current website <span class="wiz-step-optional">optional</span></label><input type="text" id="custWebsite" placeholder="Link to your current site"></div>
-            <div><label for="custSocial">Social media <span class="wiz-step-optional">optional</span></label><input type="text" id="custSocial" placeholder="Link to your page or profile"></div>
-          </div>
-
-          <button type="button" id="wizAboutSend" class="btn-send btn-whatsapp">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.9-1.25-4.78-4.17-4.93-4.36-.15-.2-1.17-1.55-1.17-2.96s.73-2.1.99-2.39c.26-.28.56-.35.75-.35h.53c.17 0 .4-.03.62.47.24.55.8 1.9.87 2.03.07.14.11.3.02.49-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.15.28.68 1.12 1.46 1.82 1 .9 1.85 1.18 2.13 1.31.28.14.44.11.61-.07.16-.18.7-.82.89-1.1.19-.28.38-.23.63-.14.26.09 1.63.77 1.9.91.28.14.46.21.53.33.07.12.07.68-.17 1.35z"/></svg>
-            <span>Send to designer on WhatsApp →</span>
-          </button>
-          <div id="wizAboutStatus" class="quick-lead-status"></div>
-          <p class="wiz-whatsapp-note">WhatsApp will open with your details ready to send. No payment required.</p>
-        </div>
-      </div>
-
-      <div class="wiz-preview" id="wizPreview">
-        <div class="bwin">
-          <div class="bwin-bar">
-            <i></i><i></i><i></i><span class="url" id="previewUrl">your-business.co.uk</span>
-            <div class="bwin-tools">
-              <button type="button" class="bwin-btn active" id="viewDesktop" aria-label="Desktop view" title="Desktop view">🖥️</button>
-              <button type="button" class="bwin-btn" id="viewMobile" aria-label="Mobile view" title="Mobile view">📱</button>
-              <button type="button" class="bwin-btn" id="viewFullscreen" aria-label="Open full site in a new tab" title="Open full site in a new tab">↗</button>
-            </div>
-          </div>
-          <div class="bwin-body" id="previewScroll">
-            <div class="frame-scale" id="frameScale">
-              <iframe id="previewFrame" title="Live preview of your homepage" scrolling="yes"></iframe>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -624,6 +539,31 @@ I'll send my services, photos, logo and any other information here.`;
     </div>
   </div>
 </section>
+
+<div class="builder-overlay" id="builderOverlay" hidden>
+  <div class="builder-preview" id="builderPreview">
+    <iframe id="previewFrame" title="Live preview of your website" scrolling="yes"></iframe>
+  </div>
+
+  <div class="builder-bar-wrap">
+    <div class="glow-box builder-bar" id="builderBar">
+      <div class="glow-box-inner">
+        <div class="builder-bar-row" id="builderBarRow">
+          <span class="builder-progress" id="builderProgress">1/5</span>
+          <div class="qa-field builder-field" id="builderField">
+            <span class="qa-ph" id="builderPh">What services do you offer?</span>
+            <input type="text" id="builderInput" autocomplete="off">
+          </div>
+          <button type="button" class="qa-go visible" id="builderGo" aria-label="Next question">→</button>
+        </div>
+        <button type="button" class="btn-send btn-whatsapp builder-whatsapp" id="builderWhatsappBtn" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.9-1.25-4.78-4.17-4.93-4.36-.15-.2-1.17-1.55-1.17-2.96s.73-2.1.99-2.39c.26-.28.56-.35.75-.35h.53c.17 0 .4-.03.62.47.24.55.8 1.9.87 2.03.07.14.11.3.02.49-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.15.28.68 1.12 1.46 1.82 1 .9 1.85 1.18 2.13 1.31.28.14.44.11.61-.07.16-.18.7-.82.89-1.1.19-.28.38-.23.63-.14.26.09 1.63.77 1.9.91.28.14.46.21.53.33.07.12.07.68-.17 1.35z"/></svg>
+          <span>Send to designer on WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="creating-overlay" id="creatingOverlay" aria-hidden="true">
   <div class="creating-inner">
