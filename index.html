@@ -348,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // and its cursor) as soon as it's focused or already has a value; its
   // paired arrow button (if any) fades in once there's something to submit.
   const qaNameGo = document.getElementById('qaNameGo');
+  const qaTypeGo = document.getElementById('qaTypeGo');
   function wireField(field, input, goBtn) {
     const sync = () => {
       field.classList.toggle('qa-filled', !!input.value.trim());
@@ -360,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sync();
   }
   wireField(qaFieldName, bizNameInput, qaNameGo);
-  wireField(qaFieldType, bizTagline);
+  wireField(qaFieldType, bizTagline, qaTypeGo);
   wireField(qaFieldLocation, bizLocation, qaLocationNext);
 
   // crossfades the box's content from whichever slide is active to `next`
@@ -436,14 +437,16 @@ document.addEventListener('DOMContentLoaded', () => {
     goToSlide(qaSlideType);
   });
 
-  bizTagline.addEventListener('change', () => {
+  function finishType() {
     if (!bizTagline.value) return;
     const info = typeInfo(bizTagline.value);
     if (info) { const flat = flattenGroups(info); bizServices.value = flat.services.join(', '); bizPrices.value = flat.prices.join(', '); }
     addPill(2, bizTagline.value);
     setProgressStep(3);
     goToSlide(qaSlideLocation);
-  });
+  }
+  bizTagline.addEventListener('change', finishType);
+  qaTypeGo.addEventListener('click', finishType);
 
   async function finishLocation() {
     const loc = bizLocation.value.trim();
@@ -930,6 +933,20 @@ showPage('home');
     previewFrame.srcdoc = buildDemoHTML(gatherData());
     scalePreviewFrame();
   }
+  // show the bottom of the generated homepage in the live preview box,
+  // rather than leaving it pinned at the top, once each render loads.
+  if (previewFrame) {
+    previewFrame.addEventListener('load', () => {
+      try {
+        const doc = previewFrame.contentWindow.document;
+        // an instant jump (not scrollTo, which inherits the demo page's own
+        // scroll-behavior:smooth and can silently no-op while the tab is
+        // backgrounded) — directly setting scrollTop always applies right away.
+        doc.documentElement.scrollTop = doc.body.scrollHeight;
+        doc.body.scrollTop = doc.body.scrollHeight;
+      } catch (e) {}
+    });
+  }
   // the demo is a real 3-page site (Home/Services/Contact) swapping pages
   // client-side inside the iframe — it tells us which page is showing so
   // the mock address bar above the preview can reflect it.
@@ -1100,7 +1117,7 @@ showPage('home');
                   <span class="qa-ph">What's your business called?</span>
                   <input type="text" id="bizName" name="business_name" required autocomplete="off">
                 </div>
-                <button type="submit" class="qa-go" id="qaNameGo" aria-label="Continue">→</button>
+                <button type="submit" class="qa-go" id="qaNameGo">Build</button>
               </div>
               <div class="qa-slide" id="qaSlideType" data-step="2">
                 <div class="qa-field" id="qaFieldType">
@@ -1109,13 +1126,14 @@ showPage('home');
                     <option value="" selected></option>
                   </select>
                 </div>
+                <button type="button" class="qa-go" id="qaTypeGo">Build</button>
               </div>
               <div class="qa-slide" id="qaSlideLocation" data-step="3">
                 <div class="qa-field" id="qaFieldLocation">
                   <span class="qa-ph">Where are you based?</span>
                   <input type="text" id="bizLocation" required autocomplete="off">
                 </div>
-                <button type="button" class="qa-go" id="qaLocationNext" aria-label="Continue">→</button>
+                <button type="button" class="qa-go" id="qaLocationNext">Build</button>
               </div>
             </div>
           </div>
