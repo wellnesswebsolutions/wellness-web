@@ -622,15 +622,22 @@
   .ic-x{background:rgba(176,52,52,.12);color:#b03434}
   .ic-check{background:rgba(70,140,90,.14);color:#3f8a56}
   .conv-mini-pos li{font-weight:600}
+  /* small chevrons pointing from each alternative into the AI card */
+  .conv-arrow{flex:none;align-self:center;display:flex;align-items:center;justify-content:center;
+    color:var(--accent);opacity:.55}
+  .conv-arrow svg{width:clamp(20px,2.4vw,28px);height:auto}
   @media(max-width:760px){
     .conv-row{flex-direction:column;max-width:420px;gap:7px;margin-top:10px}
     .conv-col{padding:9px 12px;border-radius:12px}
     .conv-col-ai{order:1}
-    .conv-col-old{order:2}
-    .conv-col-new{order:3}
+    .conv-arrow{order:2;transform:rotate(-90deg);margin:-2px 0}
+    .conv-col-old{order:3}
+    .conv-col-new{order:4}
     .conv-col h4{font-size:13px;margin-bottom:5px}
-    .conv-mini{gap:2px}
-    .conv-mini li{font-size:10.5px;line-height:1.15;gap:5px}
+    /* bullets flow inline (like tags) instead of one per line, so each
+       card stays short even with three of them stacked on a phone */
+    .conv-mini{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px 10px}
+    .conv-mini li{font-size:10.5px;line-height:1.15;gap:4px;width:auto}
     .ic{width:1.05em;height:1.05em}
   }
 
