@@ -1,0 +1,13 @@
+{
+  "hairbeauty": { "image": "hair-beauty.webp", "logo": { "left": "70%", "top": "31%", "width": "24%", "blendMode": "multiply", "opacity": 0.82 } },
+  "aesthetics": { "image": "aesthetics.webp", "logo": { "left": "50%", "top": "31%", "width": "27%", "blendMode": "multiply", "opacity": 0.8 } },
+  "health": { "image": "health-wellness.webp", "logo": { "left": "72%", "top": "30%", "width": "24%", "blendMode": "multiply", "opacity": 0.82 } },
+  "fitness": { "image": "fitness.webp", "logo": { "left": "50%", "top": "31%", "width": "27%", "blendMode": "screen", "opacity": 0.88 } },
+  "automotive": { "image": "automotive.webp", "logo": { "left": "57%", "top": "48%", "width": "25%", "blendMode": "multiply", "opacity": 0.84 } },
+  "trades": { "image": "trades.webp", "logo": { "left": "57%", "top": "48%", "width": "25%", "blendMode": "multiply", "opacity": 0.84 } },
+  "homegarden": { "image": "home-garden.webp", "logo": { "left": "67%", "top": "38%", "width": "23%", "blendMode": "multiply", "opacity": 0.82 } },
+  "fooddrink": { "image": "food-drink.webp", "logo": { "left": "51%", "top": "31%", "width": "24%", "blendMode": "multiply", "opacity": 0.82 } },
+  "professional": { "image": "professional-services.webp", "logo": { "left": "50%", "top": "30%", "width": "25%", "blendMode": "multiply", "opacity": 0.8 } },
+  "creative": { "image": "creative.webp", "logo": { "left": "72%", "top": "31%", "width": "24%", "blendMode": "multiply", "opacity": 0.82 } },
+  "pets": { "image": "pets.webp", "logo": { "left": "70%", "top": "29%", "width": "23%", "blendMode": "multiply", "opacity": 0.82 } }
+}
