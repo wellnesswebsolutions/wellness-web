@@ -598,16 +598,16 @@
     text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1.2em;transition:opacity .18s ease}
   @media(prefers-reduced-motion:reduce){.creating-overlay,.creating-verb,.creating-name,.creating-sub{transition:none}}
 
-  .conv-row{transition:max-height .5s cubic-bezier(.22,.7,.3,1),opacity .4s ease,margin .5s ease;overflow:hidden;max-height:900px}
+  /* three cards stacked vertically (same on every screen size) — the AI
+     card leads, on a light purple tint; the two comparison cards follow,
+     on a plain white-ish card, so the "us" card reads as the standout. */
+  .conv-row{transition:max-height .5s cubic-bezier(.22,.7,.3,1),opacity .4s ease,margin .5s ease;overflow:hidden;max-height:2400px}
   .conv-row.collapsed{max-height:0;opacity:0;margin-top:0}
-  .conv-row{display:flex;align-items:flex-start;justify-content:center;gap:clamp(10px,2.6vw,28px);max-width:1120px;margin:clamp(16px,2.5svh,28px) auto 0}
-  .conv-col{flex:1 1 0;min-width:0;max-width:270px;text-align:center;position:relative}
-  .conv-col-ai{max-width:290px}
-  .conv-col-old,.conv-col-new{padding-top:clamp(4px,.8svh,8px)}
-  .conv-col-old:after,.conv-col-new:after{content:"";position:absolute;top:0;bottom:6%;width:1px;
-    background:linear-gradient(to bottom, rgba(23,32,31,0), var(--line) 22%, var(--line) 78%, rgba(23,32,31,0))}
-  .conv-col-old:after{right:clamp(-8px,-1.4vw,-14px)}
-  .conv-col-new:after{left:clamp(-8px,-1.4vw,-14px)}
+  .conv-row{display:flex;flex-direction:column;align-items:stretch;gap:14px;max-width:420px;margin:clamp(16px,2.5svh,28px) auto 0}
+  .conv-col{width:100%;text-align:center;position:relative;border-radius:18px;padding:22px 24px}
+  .conv-col-old,.conv-col-new{background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(23,32,31,.05)}
+  .conv-col-ai{background:linear-gradient(160deg, rgba(185,143,201,.24), rgba(91,58,115,.1));
+    border:1px solid rgba(91,58,115,.18);box-shadow:0 14px 34px rgba(91,58,115,.14)}
   .conv-icon-wrap{width:clamp(38px,4.2vw,50px);height:clamp(38px,4.2vw,50px);margin:0 auto clamp(6px,1svh,10px);
     border-radius:50%;display:flex;align-items:center;justify-content:center;
     background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.9), rgba(255,255,255,.15) 70%), rgba(255,255,255,.5);
@@ -617,8 +617,6 @@
   .conv-icon{font-size:clamp(18px,2.1vw,24px);line-height:1}
   .conv-icon-ai{color:var(--accent);font-weight:800;font-size:clamp(13px,1.5vw,16px);letter-spacing:.02em;font-family:var(--display)}
   .conv-col h4{font-family:var(--display);font-size:clamp(14px,1.7vw,19px);font-weight:600;margin-bottom:3px}
-  .conv-col-new{max-width:340px}
-  .conv-col-new h4{white-space:nowrap}
   .conv-badge{display:inline-block;font-family:var(--display);font-size:clamp(14px,1.7vw,19px);font-weight:700;
     color:var(--accent);margin-bottom:clamp(4px,.8svh,7px)}
   .conv-price{font-size:clamp(12px,1.2vw,14px);color:var(--muted);font-weight:600;margin-bottom:clamp(6px,1.2svh,12px)}
@@ -634,22 +632,9 @@
     padding:11px 24px;border-radius:999px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
     transition:transform .15s,box-shadow .15s;white-space:nowrap;box-shadow:0 10px 24px rgba(91,58,115,.28)}
   .conv-cta:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(91,58,115,.36)}
-  .conv-arrow{align-self:center;flex:none;display:flex;align-items:center;justify-content:center;color:var(--accent);opacity:.65;margin-top:clamp(16px,2.6svh,24px)}
-  .conv-arrow svg{width:clamp(26px,3.2vw,38px);height:auto}
-  .conv-arrow-l svg{animation:conv-pulse-l 2.2s ease-in-out infinite}
-  .conv-arrow-r svg{animation:conv-pulse-r 2.2s ease-in-out infinite .3s}
-  @keyframes conv-pulse-l{0%,100%{transform:translateX(0);opacity:.7}50%{transform:translateX(5px);opacity:1}}
-  @keyframes conv-pulse-r{0%,100%{transform:translateX(0);opacity:.7}50%{transform:translateX(-5px);opacity:1}}
-  @media(prefers-reduced-motion:reduce){.conv-arrow-l svg,.conv-arrow-r svg{animation:none}}
-  @media(max-width:640px){
-    .conv-row{gap:4px}
-    .conv-col{max-width:120px}
-    .conv-col-ai{max-width:132px}
-    .conv-col-new h4{white-space:normal}
-    .conv-col-old:after,.conv-col-new:after{content:none}
-    .conv-mini li{white-space:normal}
-    .conv-arrow svg{width:16px}
-    .conv-arrow{margin-top:clamp(20px,4svh,30px)}
+  /* trim to 3 bullets per card on phones so the stacked cards stay compact */
+  @media(max-width:480px){
+    .conv-mini li:nth-child(n+4){display:none}
   }
 
   /* terms & privacy page */
