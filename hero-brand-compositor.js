@@ -94,9 +94,28 @@
     ctx.fillText(words, box.x + box.width / 2, box.y + box.height / 2, box.width);
   }
 
+  // Safari does not encode WebP from a canvas: it ignores the requested type
+  // and silently returns PNG. For a 1600x900 photograph that is ~2.1 MB of
+  // base64 instead of ~120 KB — large enough to stall the iPhone preview once
+  // it is inlined into the generated site's srcdoc. Probe once and fall back
+  // to JPEG, which every browser encodes and which stays small for photos.
+  // (The hero is fully opaque, so losing alpha costs nothing.)
+  let exportType = null;
+  function pickExportType() {
+    if (exportType) return exportType;
+    try {
+      const probe = document.createElement('canvas');
+      probe.width = probe.height = 1;
+      exportType = probe.toDataURL('image/webp').indexOf('data:image/webp') === 0 ? 'image/webp' : 'image/jpeg';
+    } catch (error) {
+      exportType = 'image/jpeg';
+    }
+    return exportType;
+  }
+
   function canvasBlob(canvas, quality) {
     return new Promise((resolve, reject) => {
-      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not export the branded hero.')), 'image/webp', quality);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not export the branded hero.')), pickExportType(), quality);
     });
   }
 
@@ -149,7 +168,7 @@
     if (output === 'canvas') return canvas;
     if (output === 'blob') return canvasBlob(canvas, quality);
     if (output === 'objectURL') return URL.createObjectURL(await canvasBlob(canvas, quality));
-    return canvas.toDataURL('image/webp', quality);
+    return canvas.toDataURL(pickExportType(), quality);
   }
 
   global.HeroBrandCompositor = Object.freeze({ render, scenes: SCENES, sceneKey });
