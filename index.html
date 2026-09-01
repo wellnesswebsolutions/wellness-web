@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const wizAboutSend = document.getElementById('wizAboutSend');
   const wizAboutStatus = document.getElementById('wizAboutStatus');
   const custName = document.getElementById('custName');
-  const custEmail = document.getElementById('custEmail');
   const custWhatsapp = document.getElementById('custWhatsapp');
+  const custWebsite = document.getElementById('custWebsite');
   const custSocial = document.getElementById('custSocial');
 
   const creatingOverlay = document.getElementById('creatingOverlay');
@@ -433,10 +433,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // site is approved.
   wizAboutSend.addEventListener('click', async () => {
     const fullName = custName.value.trim();
-    const email = custEmail.value.trim();
     const whatsapp = custWhatsapp.value.trim();
-    if (!fullName || !email || !whatsapp) {
-      wizAboutStatus.textContent = 'Please add your name, email and WhatsApp number.';
+    if (!fullName || !whatsapp) {
+      wizAboutStatus.textContent = 'Please add your name and WhatsApp number.';
       wizAboutStatus.className = 'quick-lead-status err';
       return;
     }
@@ -446,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const businessName = bizNameInput.value.trim();
     const businessType = bizTagline.value;
     const location_ = bizLocation.value.trim();
+    const currentWebsite = custWebsite.value.trim();
     const socialLink = custSocial.value.trim();
     const previewLink = buildPreviewUrl();
 
@@ -455,9 +455,9 @@ Business: ${businessName}
 Industry: ${businessType}
 Location: ${location_}
 Name: ${fullName}
-Email: ${email}
 Customer WhatsApp: ${whatsapp}
-Facebook/Instagram: ${socialLink || 'Not provided'}
+Current website: ${currentWebsite || 'Not provided'}
+Social media: ${socialLink || 'Not provided'}
 
 I'll send my services, photos, logo and any other information here.`;
 
@@ -549,12 +549,12 @@ I'll send my services, photos, logo and any other information here.`;
 
           <label for="custName">Full name</label>
           <input type="text" id="custName" placeholder="Your name" required>
+          <label for="custWhatsapp">WhatsApp number</label>
+          <input type="tel" id="custWhatsapp" placeholder="07…" required>
           <div class="wiz-row">
-            <div><label for="custEmail">Email address</label><input type="email" id="custEmail" placeholder="you@business.co.uk" required></div>
-            <div><label for="custWhatsapp">WhatsApp number</label><input type="tel" id="custWhatsapp" placeholder="07…" required></div>
+            <div><label for="custWebsite">Current website <span class="wiz-step-optional">optional</span></label><input type="text" id="custWebsite" placeholder="Link to your current site"></div>
+            <div><label for="custSocial">Social media <span class="wiz-step-optional">optional</span></label><input type="text" id="custSocial" placeholder="Link to your page or profile"></div>
           </div>
-          <label for="custSocial">Facebook or Instagram link <span class="wiz-step-optional">optional</span></label>
-          <input type="text" id="custSocial" placeholder="Link to your page or profile">
 
           <button type="button" id="wizAboutSend" class="btn-send btn-whatsapp">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.9-1.25-4.78-4.17-4.93-4.36-.15-.2-1.17-1.55-1.17-2.96s.73-2.1.99-2.39c.26-.28.56-.35.75-.35h.53c.17 0 .4-.03.62.47.24.55.8 1.9.87 2.03.07.14.11.3.02.49-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.15.28.68 1.12 1.46 1.82 1 .9 1.85 1.18 2.13 1.31.28.14.44.11.61-.07.16-.18.7-.82.89-1.1.19-.28.38-.23.63-.14.26.09 1.63.77 1.9.91.28.14.46.21.53.33.07.12.07.68-.17 1.35z"/></svg>
