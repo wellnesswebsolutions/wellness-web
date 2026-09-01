@@ -319,17 +319,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // conversational step 1: one question at a time. The business name is
-  // asked on its own, big glowing box first; answering it asks the type,
-  // then the location, each glowing in turn while everything already
-  // answered collapses to a small ✓ pill. Only once all three are answered
-  // does the personalised loading screen run, revealing the finished,
-  // live preview right after.
-  const qaFlow = document.getElementById('qaFlow');
-  const qaType = document.getElementById('qaType');
-  const qaLocation = document.getElementById('qaLocation');
-  const qaTypePillText = document.getElementById('qaTypePillText');
-  const qaLocationPillText = document.getElementById('qaLocationPillText');
+  // conversational step 1: one persistent glowing box, one question at a
+  // time. The question sits inside the box itself as fading placeholder
+  // text; answering it crossfades that same box into the next question
+  // rather than swapping in a new one. Answered questions collapse into
+  // small ✓ pills above the box. Only once all three are answered does
+  // the personalised loading screen run, revealing the finished, live
+  // preview right after.
+  const qaBox = document.getElementById('qaBox');
+  const qaPills = document.getElementById('qaPills');
+  const qaSlideName = document.getElementById('qaSlideName');
+  const qaSlideType = document.getElementById('qaSlideType');
+  const qaSlideLocation = document.getElementById('qaSlideLocation');
+  const qaFieldName = document.getElementById('qaFieldName');
+  const qaFieldType = document.getElementById('qaFieldType');
+  const qaFieldLocation = document.getElementById('qaFieldLocation');
   const qaLocationNext = document.getElementById('qaLocationNext');
   const qaProgress = document.getElementById('qaProgress');
   const qaProgressLabel = document.getElementById('qaProgressLabel');
@@ -340,55 +344,84 @@ document.addEventListener('DOMContentLoaded', () => {
     qaProgressSegs.forEach((seg, i) => seg.classList.toggle('filled', i < step - 1 || step > 3));
   }
 
+  // a field's placeholder question fades away (revealing the real input
+  // and its cursor) as soon as it's focused or already has a value; its
+  // paired arrow button (if any) fades in once there's something to submit.
+  const qaNameGo = document.getElementById('qaNameGo');
+  function wireField(field, input, goBtn) {
+    const sync = () => {
+      field.classList.toggle('qa-filled', !!input.value.trim());
+      if (goBtn) goBtn.classList.toggle('visible', !!input.value.trim());
+    };
+    input.addEventListener('focus', () => field.classList.add('qa-focused'));
+    input.addEventListener('blur', () => field.classList.remove('qa-focused'));
+    input.addEventListener('input', sync);
+    input.addEventListener('change', sync);
+    sync();
+  }
+  wireField(qaFieldName, bizNameInput, qaNameGo);
+  wireField(qaFieldType, bizTagline);
+  wireField(qaFieldLocation, bizLocation, qaLocationNext);
+
+  // crossfades the box's content from whichever slide is active to `next`
+  // — same box, same position, the question just dissolves into the next.
+  let activeSlide = qaSlideName;
+  function goToSlide(next, focusTarget) {
+    if (activeSlide !== next) {
+      const leaving = activeSlide;
+      leaving.classList.remove('qa-active');
+      leaving.classList.add('qa-leaving');
+      setTimeout(() => leaving.classList.remove('qa-leaving'), 320);
+      next.classList.add('qa-active');
+      activeSlide = next;
+    }
+    if (focusTarget) setTimeout(() => focusTarget.focus(), 260);
+  }
+
   // clicking any answered pill jumps back to that question instead of
   // needing a page refresh — collapses anything generated after it too,
   // since changing an earlier answer invalidates what came after.
-  let namePillEl = null;
+  const pills = {};
   function collapseGenerated() {
     qaProgress.classList.remove('done');
     wizGrid.classList.remove('active');
     convRow.classList.remove('collapsed');
     wizLikeIt.classList.remove('active');
+    qaBox.classList.remove('qa-box-done', 'qa-box-finish');
+  }
+  function removePillsFrom(step) {
+    [1, 2, 3].forEach((s) => { if (s >= step && pills[s]) { pills[s].remove(); delete pills[s]; } });
   }
   function goBackToName() {
     collapseGenerated();
-    qaType.dataset.state = 'pending';
-    qaLocation.dataset.state = 'pending';
-    if (namePillEl) { namePillEl.remove(); namePillEl = null; }
-    form.classList.remove('answered');
+    removePillsFrom(1);
+    goToSlide(qaSlideName);
     qaProgress.classList.remove('started');
     setProgressStep(1);
-    setTimeout(() => { bizNameInput.focus(); bizNameInput.select(); }, 350);
+    setTimeout(() => { bizNameInput.focus(); bizNameInput.select(); }, 320);
   }
   function goBackToType() {
     collapseGenerated();
-    qaLocation.dataset.state = 'pending';
-    qaType.dataset.state = 'active';
+    removePillsFrom(2);
+    goToSlide(qaSlideType, bizTagline);
     setProgressStep(2);
-    setTimeout(() => bizTagline.focus(), 350);
   }
   function goBackToLocation() {
     collapseGenerated();
-    qaLocation.dataset.state = 'active';
+    removePillsFrom(3);
+    goToSlide(qaSlideLocation, bizLocation);
     setProgressStep(3);
-    setTimeout(() => bizLocation.focus(), 350);
   }
-  qaType.querySelector('.qa-pill').addEventListener('click', () => {
-    if (qaType.dataset.state === 'done') goBackToType();
-  });
-  qaLocation.querySelector('.qa-pill').addEventListener('click', () => {
-    if (qaLocation.dataset.state === 'done') goBackToLocation();
-  });
+  const goBackByStep = { 1: goBackToName, 2: goBackToType, 3: goBackToLocation };
 
-  function addNamePill(name) {
+  function addPill(step, text) {
     const pill = document.createElement('div');
-    pill.className = 'qa-item';
-    pill.innerHTML = '<div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text"></span></div>';
-    pill.querySelector('.qa-pill-text').textContent = name;
-    pill.dataset.state = 'done';
-    pill.querySelector('.qa-pill').addEventListener('click', goBackToName);
-    qaFlow.insertBefore(pill, qaFlow.firstChild);
-    namePillEl = pill;
+    pill.className = 'qa-pill';
+    pill.innerHTML = '<span class="qa-pill-check">✓</span><span class="qa-pill-text"></span>';
+    pill.querySelector('.qa-pill-text').textContent = text;
+    pill.addEventListener('click', () => goBackByStep[step]());
+    qaPills.appendChild(pill);
+    pills[step] = pill;
   }
 
   form.addEventListener('submit', (e) => {
@@ -397,33 +430,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!name) return;
     previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
 
-    form.classList.add('answered');
-    addNamePill(name);
+    addPill(1, name);
     qaProgress.classList.add('started');
     setProgressStep(2);
-
-    qaType.dataset.state = 'active';
-    setTimeout(() => bizTagline.focus(), 400);
+    goToSlide(qaSlideType);
   });
 
   bizTagline.addEventListener('change', () => {
     if (!bizTagline.value) return;
     const info = typeInfo(bizTagline.value);
     if (info) { const flat = flattenGroups(info); bizServices.value = flat.services.join(', '); bizPrices.value = flat.prices.join(', '); }
-    qaTypePillText.textContent = bizTagline.value;
-    qaType.dataset.state = 'done';
+    addPill(2, bizTagline.value);
     setProgressStep(3);
-
-    qaLocation.dataset.state = 'active';
-    setTimeout(() => bizLocation.focus(), 400);
+    goToSlide(qaSlideLocation);
   });
 
   async function finishLocation() {
     const loc = bizLocation.value.trim();
     if (!loc) return;
-    qaLocationPillText.textContent = loc;
-    qaLocation.dataset.state = 'done';
+    addPill(3, loc);
     setProgressStep(4);
+
+    // a slightly more exciting flourish into the loading/preview experience
+    qaBox.classList.add('qa-box-finish');
+    setTimeout(() => qaBox.classList.add('qa-box-done'), 500);
 
     const name = bizNameInput.value.trim();
     await runCreatingAnimation(name.toUpperCase());
@@ -1060,44 +1090,41 @@ showPage('home');
           <div class="qa-progress-label" id="qaProgressLabel">Step 1 of 3</div>
         </div>
 
-        <form id="quickLead" class="name-gate" novalidate>
-          <div class="glow-box name-glow">
-            <div class="glow-box-inner">
-              <label for="bizName">What's your business called?</label>
-              <div class="qa-input-row">
-                <input type="text" id="bizName" name="business_name" required autocomplete="off">
-                <button type="submit" class="name-gate-go" id="wizSend" aria-label="Build">Build</button>
-              </div>
-            </div>
-          </div>
-          <div class="step1-reassure">Free demo · No card required · Takes less than 30 seconds</div>
-          <div id="quickLeadStatus" class="quick-lead-status"></div>
-        </form>
+        <div class="qa-pills" id="qaPills"></div>
 
-        <div class="qa-flow" id="qaFlow">
-          <div class="qa-item glow-box" id="qaType" data-state="pending">
+        <form id="quickLead" novalidate>
+          <div class="glow-box qa-box" id="qaBox">
             <div class="glow-box-inner">
-              <label for="bizTagline">What type of business is it?</label>
-              <select id="bizTagline" required>
-                <option value="">Choose one</option>
-              </select>
-            </div>
-            <div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text" id="qaTypePillText"></span></div>
-          </div>
-          <div class="qa-item glow-box" id="qaLocation" data-state="pending">
-            <div class="glow-box-inner">
-              <label for="bizLocation">Where's it based?</label>
-              <div class="qa-input-row">
-                <input type="text" id="bizLocation" placeholder="e.g. Hull" required autocomplete="off">
-                <button type="button" class="qa-next" id="qaLocationNext" aria-label="Continue">→</button>
+              <div class="qa-slide qa-active" id="qaSlideName" data-step="1">
+                <div class="qa-field" id="qaFieldName">
+                  <span class="qa-ph">What's your business called?</span>
+                  <input type="text" id="bizName" name="business_name" required autocomplete="off">
+                </div>
+                <button type="submit" class="qa-go" id="qaNameGo" aria-label="Continue">→</button>
+              </div>
+              <div class="qa-slide" id="qaSlideType" data-step="2">
+                <div class="qa-field" id="qaFieldType">
+                  <span class="qa-ph">What type of business are you?</span>
+                  <select id="bizTagline" required>
+                    <option value="" selected></option>
+                  </select>
+                </div>
+              </div>
+              <div class="qa-slide" id="qaSlideLocation" data-step="3">
+                <div class="qa-field" id="qaFieldLocation">
+                  <span class="qa-ph">Where are you based?</span>
+                  <input type="text" id="bizLocation" required autocomplete="off">
+                </div>
+                <button type="button" class="qa-go" id="qaLocationNext" aria-label="Continue">→</button>
               </div>
             </div>
-            <div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text" id="qaLocationPillText"></span></div>
           </div>
+          <div class="step1-reassure" id="qaReassure">Free demo · No card required · Takes less than 30 seconds</div>
+          <div id="quickLeadStatus" class="quick-lead-status"></div>
           <input type="hidden" id="bizServices">
           <input type="hidden" id="bizPrices">
           <input type="hidden" id="bizGoal" value="Book now">
-        </div>
+        </form>
 
         <div class="wiz-panel wiz-likeit" id="wizLikeIt">
           <p class="wiz-likeit-q">Like what you see?</p>

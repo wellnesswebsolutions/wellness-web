@@ -357,28 +357,25 @@
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,4.2vw,44px);line-height:1.12}
   .hero-conv-sub{font-size:clamp(13px,1.5vw,16px);color:var(--muted);margin-top:8px}
 
-  /* ---- futuristic glow box, rebuilt clean and simple ----
-     ONE glowing ring, not two layers to keep in sync. Outer wrapper
-     (.glow-box, no background) holds a single blurred, spinning pill-
-     shaped ring behind everything; the real content sits in a separate
-     inner box (.glow-box-inner) with its own solid background stacked
-     above it. Two elements because a negative z-index pseudo-element
-     paints ABOVE its own parent's background, not behind it (per spec)
-     — so a single element can't mask a glow pseudo behind its own
-     background. Splitting into outer (z:0) + inner (z:1) makes the
-     paint order a plain, unambiguous 1 > 0 comparison. */
+  /* ---- futuristic glow box ----
+     A single fixed border-radius (not 999px/pill) shared by the outer
+     glow ring (:before) and the inner solid box via border-radius:inherit,
+     so the halo always matches the box's actual corners exactly — no
+     square edges peeking through, at any box height. Outer (z:0) holds
+     the blurred ring behind everything; inner (z:1) holds the real
+     content on its own background, since a negative z-index pseudo
+     paints above its own parent, not behind it.
+     Kept far from any ancestor with overflow:hidden — clipping an
+     ancestor's box always crops this ring to a hard rectangle. */
   @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-  /* border-radius:999px isn't a typo — browsers clamp it to half of
-     whichever side (width/height) is shorter, so this always yields
-     the maximum rounding: a true pill/stadium shape on any of these
-     wide, short boxes. */
-  .glow-box{position:relative;border-radius:999px}
-  .glow-box:before{content:"";position:absolute;inset:-8px;border-radius:inherit;z-index:0;
+  --qa-ease: cubic-bezier(.16,.84,.44,1); /* smooth decel, no overshoot — "flowy" not bouncy */
+  .glow-box{position:relative;border-radius:24px}
+  .glow-box:before{content:"";position:absolute;inset:-9px;border-radius:inherit;z-index:0;
     background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    filter:blur(12px);animation:glow-spin 4s linear infinite, glow-breathe 2.8s ease-in-out infinite}
+    filter:blur(18px);opacity:.6;animation:glow-spin 14s linear infinite, glow-breathe 5s ease-in-out infinite}
   .glow-box-inner{position:relative;z-index:1;border-radius:inherit;background:var(--card)}
   @keyframes glow-spin{to{--glow-angle:360deg}}
-  @keyframes glow-breathe{0%,100%{opacity:.7}50%{opacity:1}}
+  @keyframes glow-breathe{0%,100%{opacity:.45}50%{opacity:.72}}
   @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
@@ -390,58 +387,62 @@
   .qa-progress-seg{flex:1;height:4px;border-radius:999px;background:rgba(91,58,115,.14);overflow:hidden;position:relative}
   .qa-progress-seg:after{content:"";position:absolute;inset:0;border-radius:999px;
     background:linear-gradient(90deg,var(--accent),var(--gold));transform:scaleX(0);transform-origin:left;
-    transition:transform .5s cubic-bezier(.22,.7,.3,1)}
+    transition:transform .6s var(--qa-ease)}
   .qa-progress-seg.filled:after{transform:scaleX(1)}
   .qa-progress-label{margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 
-  /* ---- the very first thing shown: one big glowing question ---- */
-  .name-gate{position:relative;width:100%;max-width:560px;margin:clamp(10px,1.8svh,20px) auto 0;
-    transition:opacity .4s ease,max-height .5s cubic-bezier(.22,.7,.3,1),margin .5s cubic-bezier(.22,.7,.3,1);
-    overflow:hidden;max-height:200px}
-  .name-gate.answered{opacity:0;max-height:0;margin-top:0;pointer-events:none}
-  .name-gate .name-glow .glow-box-inner{padding:20px 26px}
-  .name-gate label{display:block;font-family:var(--display);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:12px}
-  .name-gate input{flex:1;min-width:0;border:none;background:transparent;outline:none;
-    font-family:var(--display);font-size:clamp(14px,1.9vw,17px);font-weight:600;color:var(--ink);padding:12px 0}
-  .name-gate input::placeholder{color:var(--muted);font-weight:500}
-  .name-gate-go{flex:none;height:46px;padding:0 26px;border-radius:999px;border:none;background:var(--accent);color:#fff;
-    font-size:14px;font-weight:700;letter-spacing:.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:transform .15s ease,opacity .15s ease}
-  .name-gate-go:hover{transform:translateX(2px) scale(1.03)}
+  /* ---- answered questions: small ✓ pills sitting in a row above the box ---- */
+  .qa-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 auto clamp(10px,1.5svh,14px);
+    max-width:560px;min-height:0;transition:margin .4s var(--qa-ease)}
+  .qa-pills:empty{margin:0}
+  .qa-pill{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:8px 16px 8px 12px;font-size:13px;font-weight:600;color:var(--ink);
+    box-shadow:0 4px 14px rgba(23,32,31,.06);cursor:pointer;
+    transition:transform .15s ease,box-shadow .15s ease;
+    animation:qa-pill-in .5s cubic-bezier(.34,1.56,.64,1)} /* the one deliberate, tiny spring */
+  .qa-pill:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(23,32,31,.1)}
+  .qa-pill-check{display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:10px;flex:none}
+  @keyframes qa-pill-in{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+
+  /* ---- the question box: one persistent glowing box, its content
+     crossfading between the three questions rather than being replaced
+     by separate boxes. Compact — a single input row, no label sitting
+     above it with empty space beneath. ---- */
+  .qa-box{width:100%;max-width:560px;margin:0 auto;transition:opacity .5s var(--qa-ease),max-height .5s var(--qa-ease);
+    max-height:200px;overflow:visible}
+  .qa-box.qa-box-done{opacity:0;max-height:0;pointer-events:none;margin:0}
+  .qa-box .glow-box-inner{position:relative;min-height:64px;display:flex;align-items:stretch;overflow:hidden}
+  .qa-slide{position:absolute;inset:0;display:flex;align-items:center;gap:12px;padding:0 8px 0 24px;
+    opacity:0;transform:translateY(10px);pointer-events:none;
+    transition:opacity .45s var(--qa-ease),transform .45s var(--qa-ease)}
+  .qa-slide.qa-active{position:relative;flex:1 1 auto;min-width:0;opacity:1;transform:none;pointer-events:auto}
+  .qa-slide.qa-leaving{opacity:0;transform:translateY(-10px);transition-duration:.3s}
+  .qa-field{position:relative;flex:1;min-width:0;display:flex;align-items:center;min-height:52px}
+  .qa-ph{position:absolute;left:0;right:8px;font-family:var(--display);font-size:clamp(15px,1.9vw,17px);
+    font-weight:600;color:var(--muted);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    transition:opacity .28s var(--qa-ease),transform .28s var(--qa-ease)}
+  .qa-field.qa-filled .qa-ph,.qa-field.qa-focused .qa-ph{opacity:0;transform:translateY(-5px)}
+  .qa-field input,.qa-field select{position:relative;z-index:1;width:100%;border:none;background:transparent;outline:none;
+    font-family:var(--display);font-size:clamp(15px,1.9vw,17px);font-weight:600;color:var(--ink);
+    padding:0;appearance:none;opacity:0;transition:opacity .28s var(--qa-ease)}
+  .qa-field.qa-filled input,.qa-field.qa-focused input,.qa-field.qa-filled select,.qa-field.qa-focused select{opacity:1}
+  .qa-field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237a6d81' stroke-width='2'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 6px center;background-size:16px;cursor:pointer}
+  .qa-go{flex:none;align-self:center;width:44px;height:44px;border-radius:50%;border:none;background:var(--accent);color:#fff;
+    font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    opacity:0;transform:scale(.8);pointer-events:none;transition:opacity .25s var(--qa-ease),transform .25s var(--qa-ease)}
+  .qa-go.visible{opacity:1;transform:scale(1);pointer-events:auto}
+  .qa-go:hover{transform:scale(1.06)}
   .step1-reassure{text-align:center;font-size:11.5px;letter-spacing:.04em;color:var(--muted);margin-top:14px}
   .quick-lead-status{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;min-height:18px}
   .quick-lead-status.ok{color:var(--accent);font-weight:600}
   .quick-lead-status.err{color:#b23b2c}
 
-  /* ---- conversational Q&A: one glowing question at a time, answered ones
-     collapse into small ✓ pills that sit in a row above the live one ---- */
-  .qa-flow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px;margin-top:4px}
-  .qa-item{transition:opacity .35s ease,transform .35s ease}
-  .qa-item[data-state="pending"]{display:none}
-  .qa-item[data-state="done"] .glow-box-inner{display:none}
-  .qa-item[data-state="done"]:before,.qa-item[data-state="done"]:after{content:none}
-  .qa-item[data-state="done"]{animation:qa-pill-in .4s cubic-bezier(.22,.7,.3,1)}
-  .qa-item[data-state="active"]{flex:1 1 100%;animation:qa-in .45s cubic-bezier(.22,.7,.3,1)}
-  .qa-item[data-state="active"] .qa-pill{display:none}
-  @keyframes qa-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  @keyframes qa-pill-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
-  .qa-item .glow-box-inner{padding:22px 24px}
-  .qa-item label{display:block;font-family:var(--display);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:14px}
-  .qa-item select,.qa-item input[type="text"]{width:100%;border:none;background:transparent;outline:none;
-    font-family:var(--body);font-size:15px;color:var(--ink);padding:8px 0;appearance:none}
-  .qa-item select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237a6d81' stroke-width='2'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 4px center;background-size:16px}
-  .qa-input-row{display:flex;align-items:center;gap:10px}
-  .qa-next{flex:none;width:36px;height:36px;border-radius:50%;border:none;background:var(--accent);color:#fff;
-    font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    opacity:0;transform:scale(.8);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
-  .qa-next.visible{opacity:1;transform:scale(1);pointer-events:auto}
-  .qa-pill{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);
-    border-radius:999px;padding:8px 16px 8px 12px;font-size:13px;font-weight:600;color:var(--ink);
-    box-shadow:0 4px 14px rgba(23,32,31,.06);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
-  .qa-pill:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(23,32,31,.1)}
-  .qa-pill-check{display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
-    background:var(--accent);color:#fff;font-size:10px;flex:none}
+  /* the finishing flourish: box lifts, brightens and dissolves into the
+     loading screen instead of just vanishing */
+  .qa-box.qa-box-finish{animation:qa-finish .55s var(--qa-ease) forwards}
+  @keyframes qa-finish{0%{opacity:1;transform:none;filter:blur(0)}100%{opacity:0;transform:scale(1.04) translateY(-6px);filter:blur(6px)}}
 
   /* ---- interactive builder: step 1 -> creation animation -> live preview -> order ---- */
   .wiz-grid{display:grid;grid-template-columns:1fr;max-width:560px;margin:0 auto;
