@@ -407,11 +407,27 @@ p{margin:0 0 1.1em}
   font-family:var(--body-font);font-weight:700;letter-spacing:.02em;color:#fff;font-size:.7rem}
 @media(max-width:900px){
   .site-header{top:64px}
-  .hero{min-height:min(60vh,480px);margin-top:75px}
-  .hero .hero-copy{padding:2.2em 0;text-align:center}
-  .hero .inner{display:flex;flex-direction:column;align-items:center}
-  .hero .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:420px}
+  /* Mobile uses the hero photograph as a complete 16:9 image rather than
+     cropping a desktop background into a tall portrait panel. The content
+     then sits in its own panel below, so buttons never cover the sentence. */
+  .hero{display:block;min-height:0;margin-top:75px;padding-top:56.25%;
+    background-size:100% auto;background-position:center top;background-repeat:no-repeat;background-color:var(--ink)}
+  .hero::after{inset:0 0 auto;height:auto;aspect-ratio:16/9;
+    background:linear-gradient(to top,rgba(28,24,21,.24),rgba(28,24,21,0) 58%)}
+  .hero .hero-copy{padding:1.35em 0 1.55em;text-align:center;
+    background:linear-gradient(145deg,var(--ink),color-mix(in srgb,var(--rose-dark) 48%,var(--ink)))}
+  .hero .inner{display:flex;flex-direction:column;align-items:center;padding:0 18px}
+  .hero .eyebrow{margin-bottom:.65em}
+  .hero-title{font-size:clamp(1.9rem,8vw,2.5rem);margin-bottom:.25em}
+  .hero .hero-sub{font-size:1rem;line-height:1.5;max-width:31ch;margin:0 auto 1.15em}
+  .hero .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:390px}
+  .hero .btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:11px 14px;
+    border-radius:max(var(--radius),8px);font-size:.66rem;line-height:1.25;letter-spacing:.13em;box-shadow:none}
+  .hero .btn--outline-light{background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
   .hero-tags{display:none}
+}
+@media(max-width:360px){
+  .hero .btn-row{grid-template-columns:1fr}
 }
 .grid{display:grid;gap:26px}
 .grid-2{grid-template-columns:repeat(2,1fr)}
