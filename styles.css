@@ -357,39 +357,36 @@
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(24px,4.2vw,44px);line-height:1.12}
   .hero-conv-sub{font-size:clamp(13px,1.5vw,16px);color:var(--muted);margin-top:8px}
 
-  /* ---- futuristic glow box: shared by the name gate and each live question ----
-     a rotating gradient ring painted directly on the border (dual
-     background: solid colour clipped to padding-box, gradient clipped to
-     border-box) — it self-masks by construction, so there's no pseudo-
-     element/z-index paint-order trap to get wrong. Pseudo-element ring
-     attempts kept either escaping behind other page content (no stacking
-     context) or painting OVER the box's own interior once one was added
-     (negative z-index still paints above the element's own background,
-     it doesn't hide behind it) — border-box gradients don't have that
-     problem at all. A soft box-shadow adds the ambient bloom outward. */
+  /* ---- futuristic glow box: an OUTER wrapper (this element, no background
+     of its own) holding a blurred ring + a crisp ring, both spinning, plus
+     a separate INNER content box (.glow-box-inner) that's the real visible
+     pill with its own opaque background.
+
+     Why two elements: a negative z-index pseudo-element does NOT paint
+     behind its own parent's background — per spec it paints ABOVE it,
+     just below non-negative content. So a single-element "glow pseudo
+     behind a background" trick is structurally impossible; every earlier
+     attempt at masking hit exactly that. Two elements sidesteps it
+     entirely: the glow pseudos sit at z-index:0 on the OUTER wrapper,
+     the real content box sits at z-index:1 — a plain, unambiguous
+     comparison (1 > 0), no reliance on paint-order categories at all. */
   @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
   /* border-radius:999px isn't a typo — browsers clamp it to half of
      whichever side (width/height) is shorter, per spec, so this always
      yields the maximum possible rounding: a true stadium/pill shape on
-     a short wide box, a rounded-rect-to-circle on a taller one. A fixed
-     20px radius on these boxes read as basically square-cornered, which
-     is what actually looked wrong — this removes that ambiguity for
-     any box size, rather than tuning one more magic-number radius. */
-  /* box-shadow blur is uniform in every direction from the edge, so on a
-     wide, short pill a LARGE blur radius makes the corners' rounding
-     (small, relative to the blur distance) stop reading at all — the
-     glow ends up looking like a soft rectangle, not a pill. Keeping the
-     blur radii small relative to the border-radius is what keeps it
-     hugging the actual pill outline. */
-  .glow-box{position:relative;border-radius:999px;border:2px solid transparent;background-clip:padding-box, border-box;
-    background-image:linear-gradient(var(--card), var(--card)),
-      conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
-    box-shadow:0 0 10px -1px rgba(185,143,201,.7), 0 0 20px -4px rgba(91,58,115,.5);
+     a short wide box, a rounded-rect-to-circle on a taller one. */
+  .glow-box{position:relative;border-radius:999px}
+  .glow-box:before{content:"";position:absolute;inset:-6px;border-radius:inherit;z-index:0;
+    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
+    filter:blur(10px);opacity:.85;
     animation:glow-spin 3.2s linear infinite, glow-breathe 2.8s ease-in-out infinite}
+  .glow-box:after{content:"";position:absolute;inset:-2px;border-radius:inherit;z-index:0;
+    background:conic-gradient(from var(--glow-angle), var(--accent), var(--gold), var(--accent), var(--gold), var(--accent));
+    animation:glow-spin 3.2s linear infinite}
+  .glow-box-inner{position:relative;z-index:1;border-radius:inherit;background:var(--card)}
   @keyframes glow-spin{to{--glow-angle:360deg}}
-  @keyframes glow-breathe{0%,100%{box-shadow:0 0 10px -1px rgba(185,143,201,.7), 0 0 20px -4px rgba(91,58,115,.5)}
-    50%{box-shadow:0 0 14px 0 rgba(185,143,201,.85), 0 0 26px -2px rgba(91,58,115,.6)}}
-  @media(prefers-reduced-motion:reduce){.glow-box{animation:none}}
+  @keyframes glow-breathe{0%,100%{opacity:.75}50%{opacity:1}}
+  @media(prefers-reduced-motion:reduce){.glow-box:before,.glow-box:after{animation:none}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
   .qa-progress{width:100%;max-width:220px;margin:0 auto;text-align:center;opacity:0;max-height:0;
@@ -409,7 +406,7 @@
     transition:opacity .4s ease,max-height .5s cubic-bezier(.22,.7,.3,1),margin .5s cubic-bezier(.22,.7,.3,1);
     overflow:hidden;max-height:200px}
   .name-gate.answered{opacity:0;max-height:0;margin-top:0;pointer-events:none}
-  .name-gate .name-glow{padding:8px 8px 8px 26px;display:flex;align-items:center;gap:10px}
+  .name-gate .name-glow .glow-box-inner{padding:8px 8px 8px 26px;display:flex;align-items:center;gap:10px}
   .name-gate input{flex:1;min-width:0;border:none;background:transparent;outline:none;
     font-family:var(--display);font-size:clamp(14px,1.9vw,17px);font-weight:600;color:var(--ink);padding:12px 0}
   .name-gate input::placeholder{color:var(--muted);font-weight:500}
@@ -427,14 +424,14 @@
   .qa-flow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px;margin-top:4px}
   .qa-item{transition:opacity .35s ease,transform .35s ease}
   .qa-item[data-state="pending"]{display:none}
-  .qa-item[data-state="done"] label,.qa-item[data-state="done"] select,
-  .qa-item[data-state="done"] .qa-input-row{display:none}
-  .qa-item[data-state="done"]{padding:0;border:none;background:none;box-shadow:none;animation:qa-pill-in .4s cubic-bezier(.22,.7,.3,1)}
+  .qa-item[data-state="done"] .glow-box-inner{display:none}
+  .qa-item[data-state="done"]:before,.qa-item[data-state="done"]:after{content:none}
+  .qa-item[data-state="done"]{animation:qa-pill-in .4s cubic-bezier(.22,.7,.3,1)}
   .qa-item[data-state="active"]{flex:1 1 100%;animation:qa-in .45s cubic-bezier(.22,.7,.3,1)}
   .qa-item[data-state="active"] .qa-pill{display:none}
   @keyframes qa-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @keyframes qa-pill-in{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
-  .qa-item[data-state="active"]{padding:22px 24px}
+  .qa-item .glow-box-inner{padding:22px 24px}
   .qa-item label{display:block;font-family:var(--display);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:14px}
   .qa-item select,.qa-item input[type="text"]{width:100%;border:none;background:transparent;outline:none;
     font-family:var(--body);font-size:15px;color:var(--ink);padding:8px 0;appearance:none}

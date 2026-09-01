@@ -519,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
     const sceneMarkup = (d.heroImage || usingCategoryPhoto) ? '' : sceneSVG(cat, t);
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-    const wallLogoMarkup = `<div class="wall-logo">${esc(initials)}</div>`;
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
       : usingCategoryPhoto
@@ -554,10 +553,7 @@ p{margin:0 0 1.1em}
 .container{width:100%;max-width:1140px;margin:0 auto;padding:0 22px}
 .section{padding:5.5em 0}
 .section--tint{background:var(--champagne)}
-.page-head{background:linear-gradient(160deg,#2c2523 0%,${t.dark} 60%,${t.base} 100%);color:#fff;padding-bottom:3.2em}
-.page-head h1,.page-head .eyebrow{color:#fff}
-.page-head .eyebrow{color:rgba(255,255,255,.8)}
-.page-head .lede{color:rgba(255,255,255,.88)}
+.page-head{padding-bottom:3.2em}
 @media(max-width:767px){.section{padding:3.5em 0}}
 .eyebrow{display:block;font-size:.7rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-bottom:1em}
 .lede{font-size:1.06rem;color:var(--body);max-width:62ch}
@@ -575,7 +571,8 @@ p{margin:0 0 1.1em}
 .center .btn-row{justify-content:center}
 .site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:color-mix(in srgb, var(--taupe) 28%, var(--champagne));border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
-.brand{display:flex;flex-direction:column;line-height:1.1;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
+.brand{display:flex;flex-direction:row;align-items:center;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
+.brand-text{display:flex;flex-direction:column;line-height:1.1}
 .brand span{font-size:.55rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-top:2px}
 .nav{display:flex;align-items:center;gap:24px}
 .nav a{text-decoration:none;color:var(--ink);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid transparent}
@@ -592,12 +589,9 @@ p{margin:0 0 1.1em}
 .hero .hero-sub{font-size:clamp(1.02rem,1.9vw,1.25rem);font-weight:300;max-width:36ch;margin-bottom:1.8em;text-shadow:0 2px 14px rgba(28,24,21,.35)}
 .hero .eyebrow{color:rgba(255,255,255,.85)}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
-.wall-logo{position:absolute;top:16%;left:50%;transform:translateX(-50%);z-index:1;
-  width:clamp(64px,9vw,96px);aspect-ratio:1;border-radius:50%;background:rgba(28,24,21,.82);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:.02em;color:#fff;
-  font-size:clamp(1.2rem,2.6vw,1.8rem);box-shadow:0 16px 36px rgba(0,0,0,.32), inset 0 0 0 1px rgba(255,255,255,.14)}
-@media(max-width:900px){.wall-logo{top:10px;width:56px;font-size:1.1rem}}
+.brand-badge{flex:none;width:28px;height:28px;border-radius:50%;background:var(--rose-dark);
+  display:flex;align-items:center;justify-content:center;margin-right:10px;
+  font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:.02em;color:#fff;font-size:.7rem}
 @media(max-width:900px){
   .site-header{top:64px}
   .hero{min-height:min(60vh,480px);margin-top:75px}
@@ -661,7 +655,7 @@ p{margin:0 0 1.1em}
 
 <header class="site-header">
   <div class="container">
-    <a class="brand" href="#" data-nav="home">${brandMark}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</a>
+    <a class="brand" href="#" data-nav="home"><span class="brand-badge">${esc(initials)}</span><span class="brand-text">${brandMark}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</span></a>
     <nav class="nav">
       <a href="#" data-nav="home">Home</a>
       <a href="#" data-nav="services">Services</a>
@@ -674,7 +668,6 @@ p{margin:0 0 1.1em}
 <div class="page" data-page="home">
   <section class="hero">
     ${sceneMarkup}
-    ${wallLogoMarkup}
     <div class="hero-copy">
       <div class="inner">
         <span class="eyebrow">${esc(eyebrowLoc)}</span>
@@ -1070,8 +1063,10 @@ showPage('home');
 
         <form id="quickLead" class="name-gate" novalidate>
           <div class="glow-box name-glow">
-            <input type="text" id="bizName" name="business_name" placeholder="What's your business called?" required autocomplete="off">
-            <button type="submit" class="name-gate-go" id="wizSend" aria-label="Build">Build</button>
+            <div class="glow-box-inner">
+              <input type="text" id="bizName" name="business_name" placeholder="What's your business called?" required autocomplete="off">
+              <button type="submit" class="name-gate-go" id="wizSend" aria-label="Build">Build</button>
+            </div>
           </div>
           <div class="step1-reassure">Free demo · No card required · Takes less than 30 seconds</div>
           <div id="quickLeadStatus" class="quick-lead-status"></div>
@@ -1079,17 +1074,21 @@ showPage('home');
 
         <div class="qa-flow" id="qaFlow">
           <div class="qa-item glow-box" id="qaType" data-state="pending">
-            <label for="bizTagline">What type of business is it?</label>
-            <select id="bizTagline" required>
-              <option value="">Choose one</option>
-            </select>
+            <div class="glow-box-inner">
+              <label for="bizTagline">What type of business is it?</label>
+              <select id="bizTagline" required>
+                <option value="">Choose one</option>
+              </select>
+            </div>
             <div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text" id="qaTypePillText"></span></div>
           </div>
           <div class="qa-item glow-box" id="qaLocation" data-state="pending">
-            <label for="bizLocation">Where's it based?</label>
-            <div class="qa-input-row">
-              <input type="text" id="bizLocation" placeholder="e.g. Hull" required autocomplete="off">
-              <button type="button" class="qa-next" id="qaLocationNext" aria-label="Continue">→</button>
+            <div class="glow-box-inner">
+              <label for="bizLocation">Where's it based?</label>
+              <div class="qa-input-row">
+                <input type="text" id="bizLocation" placeholder="e.g. Hull" required autocomplete="off">
+                <button type="button" class="qa-next" id="qaLocationNext" aria-label="Continue">→</button>
+              </div>
             </div>
             <div class="qa-pill"><span class="qa-pill-check">✓</span><span class="qa-pill-text" id="qaLocationPillText"></span></div>
           </div>
