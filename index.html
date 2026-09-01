@@ -271,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     resetBuilderBar();
-    builderInput.focus();
 
     postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
   }
@@ -370,7 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
       builderBarRow.classList.remove('builder-leaving');
       builderBarRow.classList.add('builder-entering');
       requestAnimationFrame(() => requestAnimationFrame(() => builderBarRow.classList.remove('builder-entering')));
-      builderInput.focus();
     }, 220);
   }
 

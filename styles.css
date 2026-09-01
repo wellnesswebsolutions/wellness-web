@@ -507,20 +507,19 @@
   .builder-preview.mobile-view iframe{max-width:390px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
   @media(max-width:820px){.builder-preview.mobile-view{padding:0}.builder-preview.mobile-view iframe{max-width:none;border:0}}
 
-  /* a fixed, full-width dock rather than a floating pill — reads as part
-     of the page chrome (like a real app's bottom bar) instead of a card
-     sitting on top of the preview. */
-  .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;pointer-events:none}
-  .builder-bar{width:100%;border-radius:0;pointer-events:auto;transition:background .35s var(--qa-ease)}
-  /* a permanent, visible border along the top edge (on top of the animated
-     glow behind it) so the dock reads clearly against any part of the preview */
-  .builder-bar .glow-box-inner{position:relative;overflow:hidden;border-radius:0;min-height:64px;display:flex;align-items:center;
-    background:var(--card);border:none;border-top:1.5px solid rgba(91,58,115,.28);
-    box-shadow:0 -10px 30px rgba(23,32,31,.08);
-    padding-bottom:env(safe-area-inset-bottom, 0px);
-    transition:background .35s var(--qa-ease),border-color .35s var(--qa-ease)}
-  .builder-bar-row{position:relative;width:100%;max-width:900px;margin:0 auto;display:flex;align-items:center;gap:8px;
-    padding:0 24px;transition:opacity .22s var(--qa-ease),transform .22s var(--qa-ease)}
+  /* a fixed, full-width white footer strip — reads as part of the page
+     chrome rather than floating over the preview — with the same glowing
+     pill from the first 3 questions sitting inside it. */
+  .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;display:flex;justify-content:center;
+    background:var(--card);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(23,32,31,.06);
+    padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px))}
+  .builder-bar{width:100%;max-width:640px;pointer-events:auto;transition:background .35s var(--qa-ease)}
+  /* a permanent, visible ring around the pill (on top of the animated glow
+     behind it) so it reads clearly against any part of the preview */
+  .builder-bar .glow-box-inner{position:relative;overflow:hidden;min-height:64px;display:flex;align-items:center;
+    border:1.5px solid rgba(91,58,115,.28);transition:background .35s var(--qa-ease),border-color .35s var(--qa-ease)}
+  .builder-bar-row{position:relative;width:100%;display:flex;align-items:center;gap:8px;padding:0 8px 0 10px;
+    transition:opacity .22s var(--qa-ease),transform .22s var(--qa-ease)}
   .builder-bar-row.builder-leaving{opacity:0;transform:translateY(-8px)}
   .builder-bar-row.builder-entering{opacity:0;transform:translateY(8px)}
   .builder-icon-btn{flex:none;width:34px;height:34px;border-radius:50%;border:none;background:transparent;
