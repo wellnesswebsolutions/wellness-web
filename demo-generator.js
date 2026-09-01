@@ -439,11 +439,10 @@ p{margin:0 0 1.1em}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
 @media(max-width:900px){body{padding-top:64px}}
 .demo-flag{position:fixed;top:0;left:0;right:0;z-index:99;background:#1c1815;color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:8px 12px}
-.demo-flag a{color:#e8cd95}
 </style>
 </head>
 <body>
-<div class="demo-flag">This is an auto-generated preview from your answers — not a finished site. <a href="https://wellnessweb.co.uk/contact.html" target="_blank" rel="noopener">Talk to us to make it real →</a></div>
+<div class="demo-flag">This is an auto-generated preview from your answers — not a finished site.</div>
 
 <header class="site-header">
   <div class="container">

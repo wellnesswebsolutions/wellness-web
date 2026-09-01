@@ -496,25 +496,47 @@
      renders at its own natural size, so its own responsive CSS and native
      scrolling (wheel/trackpad/touch) behave exactly as a real visit would. ---- */
   .builder-overlay{position:fixed;inset:0;z-index:60}
-  .builder-preview{position:fixed;top:var(--header-h, 75px);left:0;right:0;bottom:0;overflow:hidden;background:var(--bg)}
-  .builder-preview iframe{width:100%;height:100%;border:0;display:block;pointer-events:auto;background:#fff}
+  .builder-preview{position:fixed;top:var(--header-h, 75px);left:0;right:0;bottom:0;overflow:hidden;background:var(--bg);
+    transition:padding .3s var(--qa-ease)}
+  .builder-preview iframe{width:100%;height:100%;border:0;display:block;pointer-events:auto;background:#fff;
+    transition:max-width .3s var(--qa-ease)}
+  /* real device-width column (not a scaled mockup) — the iframe is simply
+     narrower, so the generated site's own responsive CSS switches to its
+     mobile layout naturally, exactly as it would on an actual phone */
+  .builder-preview.mobile-view{padding:0 calc(50% - 195px)}
+  .builder-preview.mobile-view iframe{max-width:390px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+  @media(max-width:820px){.builder-preview.mobile-view{padding:0}.builder-preview.mobile-view iframe{max-width:none;border:0}}
 
   .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;display:flex;justify-content:center;
     padding:0 20px calc(20px + env(safe-area-inset-bottom, 0px));pointer-events:none}
-  .builder-bar{width:100%;max-width:640px;pointer-events:auto}
-  .builder-bar .glow-box-inner{position:relative;overflow:hidden;min-height:64px;display:flex;align-items:center}
-  .builder-bar-row{position:relative;width:100%;display:flex;align-items:center;gap:10px;padding:0 8px 0 20px;
+  .builder-bar{width:100%;max-width:640px;pointer-events:auto;transition:background .35s var(--qa-ease)}
+  /* a permanent, visible ring around the pill (on top of the animated glow
+     behind it) so it reads clearly against any part of the preview */
+  .builder-bar .glow-box-inner{position:relative;overflow:hidden;min-height:64px;display:flex;align-items:center;
+    border:1.5px solid rgba(91,58,115,.28);transition:background .35s var(--qa-ease),border-color .35s var(--qa-ease)}
+  .builder-bar-row{position:relative;width:100%;display:flex;align-items:center;gap:8px;padding:0 8px 0 10px;
     transition:opacity .22s var(--qa-ease),transform .22s var(--qa-ease)}
   .builder-bar-row.builder-leaving{opacity:0;transform:translateY(-8px)}
   .builder-bar-row.builder-entering{opacity:0;transform:translateY(8px)}
+  .builder-icon-btn{flex:none;width:34px;height:34px;border-radius:50%;border:none;background:transparent;
+    color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    opacity:0;transform:scale(.8);pointer-events:none;transition:opacity .2s var(--qa-ease),transform .2s var(--qa-ease),background .15s,color .15s}
+  .builder-icon-btn svg{width:18px;height:18px}
+  .builder-icon-btn:hover{background:rgba(91,58,115,.08);color:var(--ink)}
+  .builder-mobile-toggle{opacity:1;transform:none;pointer-events:auto}
+  .builder-mobile-toggle.active{background:rgba(91,58,115,.12);color:var(--accent)}
+  .builder-back.visible{opacity:1;transform:none;pointer-events:auto}
   .builder-progress{flex:none;font-family:var(--display);font-size:11.5px;font-weight:700;color:var(--muted);
     letter-spacing:.02em;min-width:2.4em}
   .builder-field{flex:1;min-width:0}
-  /* the row fades/collapses away and the WhatsApp button fades/scales in —
-     a soft morph rather than an abrupt swap */
+  /* the row fades/collapses away, the whole pill turns WhatsApp green, and
+     the button fades in centred within it — a soft morph rather than an
+     abrupt swap */
   .builder-bar-row{opacity:1;transform:none}
   .builder-bar.builder-bar-done .builder-bar-row{opacity:0;transform:translateY(-8px);pointer-events:none}
-  .builder-whatsapp{margin:0;opacity:0;transform:scale(.96);transition:opacity .3s var(--qa-ease),transform .3s var(--qa-ease)}
+  .builder-bar.builder-bar-done .glow-box-inner{background:#25D366;border-color:#1da851;justify-content:center}
+  .builder-whatsapp{margin:0;width:auto;padding:12px 32px;background:transparent;color:#fff;
+    opacity:0;transform:scale(.96);transition:opacity .3s var(--qa-ease),transform .3s var(--qa-ease)}
   .builder-bar.builder-bar-done .builder-whatsapp{opacity:1;transform:none}
   .builder-whatsapp[hidden]{display:none}
 

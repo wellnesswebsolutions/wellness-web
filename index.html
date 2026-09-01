@@ -31,8 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewFrame = document.getElementById('previewFrame');
 
   const builderOverlay = document.getElementById('builderOverlay');
+  const builderPreview = document.getElementById('builderPreview');
   const builderBar = document.getElementById('builderBar');
   const builderBarRow = document.getElementById('builderBarRow');
+  const builderBack = document.getElementById('builderBack');
+  const builderMobileToggle = document.getElementById('builderMobileToggle');
   const builderProgress = document.getElementById('builderProgress');
   const builderField = document.getElementById('builderField');
   const builderPh = document.getElementById('builderPh');
@@ -281,25 +284,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   qaLocationNext.addEventListener('click', finishLocation);
 
-  // gather every answer collected so far into the shape buildDemoHTML
-  // expects — the initial 3 questions, plus whichever of the 5 builder-bar
-  // answers (services/differentiator/phone) affect the generated site, so
-  // the full-page preview updates live as the customer answers them.
+  // gather the initial 3 questions into the shape buildDemoHTML expects.
+  // The builder-bar's WhatsApp number (Q2) doubles as the site's displayed
+  // contact number, since it's the one real piece of site-relevant info in
+  // that contact-details flow — everything else there is for the designer.
   function gatherData() {
-    const servicesAnswer = builderAnswers[0] ? builderAnswers[0].trim() : '';
-    const services = servicesAnswer
-      ? servicesAnswer.split(',').map(s => s.trim()).filter(Boolean)
-      : bizServices.value.split(',').map(s => s.trim()).filter(Boolean);
-    const prices = servicesAnswer ? [] : bizPrices.value.split(',').map(s => s.trim()).filter(Boolean);
     return {
       name: bizNameInput.value.trim() || 'Your Business Name',
       tagline: bizTagline.value,
       location: bizLocation.value.trim(),
-      services,
-      prices,
+      services: bizServices.value.split(',').map(s => s.trim()).filter(Boolean),
+      prices: bizPrices.value.split(',').map(s => s.trim()).filter(Boolean),
       goal: bizGoal.value,
-      about: (builderAnswers[1] || '').trim(),
-      phone: (builderAnswers[2] || '').trim(),
+      about: '',
+      phone: (builderAnswers[1] || '').trim(),
       tones: null,
       logo: null,
       heroImage: null
@@ -334,13 +332,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // the fixed bottom bar: one question at a time, floating over the
   // full-page live preview. Same fading-placeholder / crossfade pattern as
   // the first 3 questions, just driven by a single reusable field instead
-  // of 5 near-identical slides.
+  // of 5 near-identical slides. Name + WhatsApp are the only two the
+  // designer actually needs to get started — the rest are optional.
   const BUILDER_QUESTIONS = [
-    { q: 'What services do you offer?', type: 'text' },
-    { q: 'What makes your business different?', type: 'text' },
-    { q: 'What contact number should we use?', type: 'tel' },
-    { q: 'Do you have an existing website or social page?', type: 'text' },
-    { q: 'Is there anything specific you want included?', type: 'text' }
+    { q: 'Full name', type: 'text', required: true },
+    { q: 'WhatsApp number', type: 'tel', required: true },
+    { q: 'Current website', type: 'text', optional: true },
+    { q: 'Facebook', type: 'text', optional: true },
+    { q: 'Instagram', type: 'text', optional: true }
   ];
   let builderIndex = 0;
   let builderAnswers = [];
@@ -355,12 +354,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showBuilderQuestion(i, { animate = true } = {}) {
+    const question = BUILDER_QUESTIONS[i];
     const render = () => {
-      builderPh.textContent = BUILDER_QUESTIONS[i].q;
-      builderInput.type = BUILDER_QUESTIONS[i].type;
+      builderPh.textContent = question.q + (question.optional ? ' (optional)' : '');
+      builderInput.type = question.type;
       builderInput.value = '';
       builderField.classList.remove('qa-filled', 'qa-focused');
       builderProgress.textContent = `${i + 1}/${BUILDER_QUESTIONS.length}`;
+      builderBack.classList.toggle('visible', i > 0);
     };
     if (!animate) { render(); return; }
     builderBarRow.classList.add('builder-leaving');
@@ -382,8 +383,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function submitBuilderAnswer() {
-    builderAnswers[builderIndex] = builderInput.value.trim();
-    if (builderIndex === 0 || builderIndex === 1 || builderIndex === 2) refreshPreview();
+    const question = BUILDER_QUESTIONS[builderIndex];
+    const value = builderInput.value.trim();
+    if (question.required && !value) {
+      builderField.classList.add('qa-focused');
+      builderInput.focus();
+      return;
+    }
+    builderAnswers[builderIndex] = value;
+    if (builderIndex === 1) refreshPreview(); // WhatsApp number doubles as the site's contact number
     builderIndex++;
     if (builderIndex < BUILDER_QUESTIONS.length) {
       showBuilderQuestion(builderIndex);
@@ -391,7 +399,14 @@ document.addEventListener('DOMContentLoaded', () => {
       finishBuilder();
     }
   }
+  function goToPreviousBuilderQuestion() {
+    if (builderIndex === 0) return;
+    builderIndex--;
+    showBuilderQuestion(builderIndex);
+    setTimeout(() => { builderInput.value = builderAnswers[builderIndex] || ''; builderInput.dispatchEvent(new Event('input')); }, 230);
+  }
   builderGo.addEventListener('click', submitBuilderAnswer);
+  builderBack.addEventListener('click', goToPreviousBuilderQuestion);
   builderInput.addEventListener('input', () => {
     builderField.classList.toggle('qa-filled', !!builderInput.value.trim());
   });
@@ -401,6 +416,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') { e.preventDefault(); submitBuilderAnswer(); }
   });
 
+  // toggles the full-page preview to a centred, phone-width column — since
+  // it's a real iframe (not a scaled mockup), the generated site's own
+  // responsive CSS just naturally switches to its mobile layout at that width.
+  let builderMobileView = false;
+  function setBuilderMobileView(on) {
+    builderMobileView = on;
+    builderPreview.classList.toggle('mobile-view', on);
+    builderMobileToggle.classList.toggle('active', on);
+  }
+  builderMobileToggle.addEventListener('click', () => setBuilderMobileView(!builderMobileView));
+
   // final step: hand everything off to the designer over WhatsApp instead
   // of a checkout/payment page — nothing is charged until the finished
   // site is approved. The customer still has to press send inside WhatsApp.
@@ -408,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const businessName = bizNameInput.value.trim();
     const businessType = bizTagline.value;
     const location_ = bizLocation.value.trim();
-    const [services, different, phone, existing, extra] = builderAnswers;
+    const [fullName, whatsapp, website, facebook, instagram] = builderAnswers;
 
     const message = `Hi, I'd like you to finish my website.
 
@@ -416,11 +442,11 @@ Business: ${businessName}
 Industry: ${businessType}
 Location: ${location_}
 
-Services: ${services || 'Not provided'}
-What makes us different: ${different || 'Not provided'}
-Contact number: ${phone || 'Not provided'}
-Existing website/social: ${existing || 'Not provided'}
-Anything specific: ${extra || 'Not provided'}`;
+Name: ${fullName || 'Not provided'}
+WhatsApp number: ${whatsapp || 'Not provided'}
+Current website: ${website || 'Not provided'}
+Facebook: ${facebook || 'Not provided'}
+Instagram: ${instagram || 'Not provided'}`;
 
     postLead(businessName, message).catch(() => {});
 
@@ -549,6 +575,12 @@ Anything specific: ${extra || 'Not provided'}`;
     <div class="glow-box builder-bar" id="builderBar">
       <div class="glow-box-inner">
         <div class="builder-bar-row" id="builderBarRow">
+          <button type="button" class="builder-icon-btn builder-back" id="builderBack" aria-label="Previous question">
+            <svg viewBox="0 0 20 20"><path d="M12.5 4 L6 10 L12.5 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="builder-icon-btn builder-mobile-toggle" id="builderMobileToggle" aria-label="Toggle mobile preview" title="Preview on mobile width">
+            <svg viewBox="0 0 20 20"><rect x="5.5" y="2" width="9" height="16" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="8.5" y1="15.2" x2="11.5" y2="15.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
           <span class="builder-progress" id="builderProgress">1/5</span>
           <div class="qa-field builder-field" id="builderField">
             <span class="qa-ph" id="builderPh">What services do you offer?</span>
