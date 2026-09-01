@@ -216,7 +216,14 @@
     };
   }
   function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-  function buildDemoHTML(d) {
+  // customers type answers however they like ("isla spa", "HULL") — title
+  // case them for anywhere they're displayed, so the generated site reads
+  // as professionally as a real one, regardless of typing habits.
+  function toTitleCase(s) {
+    return (s || '').replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  }
+  function buildDemoHTML(rawD) {
+    const d = Object.assign({}, rawD, { name: toTitleCase(rawD.name), location: toTitleCase(rawD.location) });
     const info = typeInfo(d.tagline);
     const services = d.services.length ? d.services : ['Service one', 'Service two', 'Service three'];
     const prices = d.prices || [];
@@ -260,7 +267,6 @@
       ? info.groups.map((g, i) => `
         <a class="cat-tile" href="#svc-group-${i}">
           <h3>${esc(g.name)}</h3>
-          <span class="cat-tile-count">${g.items.length} services</span>
         </a>`).join('')
       : '';
     const tags = services.slice(0, 4).map(s => `<span>${esc(s)}</span>`).join('');
@@ -317,7 +323,7 @@
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--champagne:#f6efe9;--champagne-2:#efe4db;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--line:rgba(28,24,21,.12);--radius:2px;--shadow:0 18px 50px rgba(28,24,21,.10)}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px}
-body{margin:0;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased}
+body{margin:0;padding-top:37px;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased}
 img{max-width:100%;display:block}
 a{color:var(--rose-dark)}
 h1,h2,h3,h4{color:var(--ink);font-weight:600;line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}
@@ -393,13 +399,12 @@ p{margin:0 0 1.1em}
 .card p:last-child{margin-bottom:0}
 .card-link{display:block;text-decoration:none;color:inherit}
 .card-cta{display:inline-flex;align-items:center;gap:8px;margin-top:1.2em;font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-dark)}
-.cat-grid{margin-bottom:1em}
-.cat-tile{display:flex;flex-direction:column;align-items:flex-start;gap:.3em;background:#fff;border:1px solid var(--line);
-  border-radius:var(--radius);padding:26px 24px;box-shadow:var(--shadow);text-decoration:none;color:inherit;
+.cat-grid{gap:12px;margin-bottom:1em}
+.cat-tile{display:flex;align-items:center;justify-content:center;text-align:center;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);padding:18px 16px;min-height:64px;box-shadow:var(--shadow);text-decoration:none;color:inherit;
   transition:transform .3s,box-shadow .3s}
 .cat-tile:hover{transform:translateY(-4px);box-shadow:0 26px 60px rgba(28,24,21,.14)}
-.cat-tile h3{margin:.2em 0 0}
-.cat-tile-count{font-size:.82rem;color:var(--muted)}
+.cat-tile h3{margin:0;font-size:.98rem}
 .service-group{margin-bottom:2.4em;scroll-margin-top:110px}
 .service-group:last-child{margin-bottom:0}
 .service-group-title{font-family:'Montserrat',sans-serif;font-weight:600;font-size:1.3rem;color:var(--rose-dark);margin-bottom:.4em}
@@ -431,7 +436,8 @@ p{margin:0 0 1.1em}
 .site-footer{background:var(--ink);color:rgba(255,255,255,.72);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center}
 .site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
-.demo-flag{position:sticky;top:0;z-index:99;background:#1c1815;color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:8px 12px}
+@media(max-width:900px){body{padding-top:64px}}
+.demo-flag{position:fixed;top:0;left:0;right:0;z-index:99;background:#1c1815;color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:8px 12px}
 .demo-flag a{color:#e8cd95}
 </style>
 </head>

@@ -298,13 +298,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const { w, h } = renderSize();
     frameScale.style.width = w + 'px';
     frameScale.style.height = h + 'px';
-    // bwin-body's own height is derived from its width via this fixed
-    // viewport ratio — frame-scale is position:absolute so its real
-    // size never reaches bwin-body's layout sizing at all (see styles.css).
-    frameScale.parentElement.style.aspectRatio = `${w} / ${h}`;
-    const containerWidth = frameScale.parentElement.clientWidth;
+    const bwinBody = frameScale.parentElement;
+    const containerWidth = bwinBody.clientWidth;
     if (!containerWidth) return;
     frameScale.style.transform = `scale(${containerWidth / w})`;
+    // match the preview box's height to the "Let's finish your website"
+    // panel beside it, rather than a fixed device aspect-ratio, so the two
+    // cards line up as one row — the rest of the page still scrolls inside
+    // the frame (see the scroll-to-bottom handling below).
+    const formHeight = wizAboutPanel ? wizAboutPanel.getBoundingClientRect().height : 0;
+    if (formHeight > 0) {
+      bwinBody.style.aspectRatio = '';
+      bwinBody.style.height = formHeight + 'px';
+    } else {
+      bwinBody.style.height = '';
+      bwinBody.style.aspectRatio = `${w} / ${h}`;
+    }
   }
   window.addEventListener('resize', scalePreviewFrame);
   function refreshPreview() {
