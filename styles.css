@@ -610,7 +610,12 @@
     border:1px solid rgba(91,58,115,.18);box-shadow:0 14px 34px rgba(91,58,115,.14)}
   .conv-best{display:inline-block;font-family:var(--display);font-size:10.5px;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;color:#fff;background:var(--accent);border-radius:999px;padding:4px 12px;margin-bottom:8px}
-  .conv-col h4{font-family:var(--display);font-size:clamp(14px,1.5vw,17px);font-weight:700;margin-bottom:3px}
+  .conv-col h4{font-family:var(--display);font-size:clamp(14px,1.5vw,17px);font-weight:700;margin-bottom:3px;
+    display:flex;align-items:center;justify-content:center;gap:6px}
+  .conv-ai-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;
+    border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), var(--gold) 78%);
+    color:var(--accent);font-size:.55em;font-weight:800;letter-spacing:.02em;
+    box-shadow:0 4px 10px rgba(91,58,115,.3), inset 0 0 0 1px rgba(255,255,255,.7)}
   .conv-sub{font-size:clamp(11px,1.1vw,12.5px);color:var(--muted);margin:0 0 clamp(8px,1.2svh,12px);line-height:1.35}
   .conv-mini{list-style:none;display:inline-flex;flex-direction:column;gap:clamp(5px,.9svh,8px);text-align:left;margin:0 auto}
   .conv-mini li{display:flex;align-items:flex-start;gap:7px;font-size:clamp(11px,1.05vw,12.5px);line-height:1.25;color:var(--ink)}
