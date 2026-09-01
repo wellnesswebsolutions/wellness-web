@@ -423,12 +423,24 @@ p{margin:0 0 1.1em}
 .map{position:relative;width:100%;aspect-ratio:21/9;max-height:420px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--champagne-2)}
 .find.has-map .map{aspect-ratio:4/3;max-height:none}
 .map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.info-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow)}
-.info-card .eyebrow{margin-bottom:.6em}
-.info-card h3{font-size:1.15rem;margin-bottom:.3em}
-.info-card p{margin:0;color:var(--muted);font-size:.92rem}
+/* contact page: intro + stacked label/value rows on the left, a bordered
+   opening-hours card on the right — mirrors a real booking-site contact page */
+.contact-split{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:start;text-align:left}
+@media(max-width:860px){.contact-split{grid-template-columns:1fr;gap:36px}}
+.contact-intro h1{margin-top:.2em}
+.contact-rows{margin-top:2em}
+.contact-row{display:grid;grid-template-columns:100px 1fr;gap:20px;padding:20px 0;border-top:1px solid var(--line)}
+.contact-row:last-child{border-bottom:1px solid var(--line)}
+.contact-row-label{font-size:.7rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--rose-dark);padding-top:.15em}
+.contact-row h3{font-size:1.05rem;margin-bottom:.25em}
+.contact-row p{margin:0;color:var(--muted);font-size:.9rem}
+.hours-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow)}
+.hours-card .eyebrow{margin-bottom:.5em}
+.hours-card h2{font-size:1.3rem;margin-bottom:1em}
+.hours-note{color:var(--muted);font-size:.86rem;margin:1.3em 0 1.4em}
 .hours{width:100%;border-collapse:collapse;font-size:.92rem}
-.hours td{padding:5px 0;color:var(--body)}
+.hours td{padding:9px 0;color:var(--body);border-bottom:1px solid var(--line)}
+.hours tr:last-child td{border-bottom:0}
 .hours td:last-child{text-align:right;color:var(--muted)}
 .band{background:linear-gradient(160deg,#2c2523 0%,${t.dark} 60%,${t.base} 100%);color:#fff;text-align:center}
 .band h2,.band .eyebrow{color:#fff}
@@ -529,45 +541,63 @@ p{margin:0 0 1.1em}
       ${serviceGroups}
     </div>
   </section>
+
+  <section class="section band">
+    <div class="container">
+      <span class="eyebrow">Not sure which to book?</span>
+      <h2>Start with a consultation</h2>
+      <p>Tell us what you'd like to work on and we'll recommend the right treatment.</p>
+      <div class="btn-row" style="justify-content:center;margin-top:1.6em">
+        <a class="btn btn--light" href="#" data-nav="contact">${esc(goalLabel)}</a>
+      </div>
+    </div>
+  </section>
 </div>
 
 <div class="page" data-page="contact" hidden>
-  <section class="section page-head">
-    <div class="container center">
-      <span class="eyebrow">Contact &amp; Booking</span>
-      <h1>${esc(d.name)}${d.location ? `, ${esc(d.location)}` : ''}</h1>
-      <p class="lede center">Questions, bookings or anything else — we'd love to hear from you.</p>
-    </div>
-  </section>
-  <section class="section" style="padding-top:0">
+  <section class="section">
     <div class="container">
-      <div class="grid grid-2" style="gap:20px">
-        <div class="info-card">
-          <span class="eyebrow">Phone</span>
-          <h3>${fakePhone}</h3>
-          <p>Call or text — we'll reply as soon as we can</p>
+      <div class="contact-split">
+        <div class="contact-intro">
+          <span class="eyebrow">Contact &amp; Booking</span>
+          <h1>${esc(d.name)}${d.location ? `, ${esc(d.location)}` : ''}</h1>
+          <p class="lede">Questions, bookings or anything else — we'd love to hear from you.</p>
+          <div class="contact-rows">
+            <div class="contact-row">
+              <span class="contact-row-label">Phone</span>
+              <div>
+                <h3>${fakePhone}</h3>
+                <p>Call or text — we'll reply as soon as we can</p>
+              </div>
+            </div>
+            <div class="contact-row">
+              <span class="contact-row-label">Location</span>
+              <div>
+                <h3>${esc(fakeAddress)}</h3>
+                <p>${d.location ? `${esc(d.location)}, ${fakePostcode}` : fakePostcode}</p>
+              </div>
+            </div>
+            <div class="contact-row">
+              <span class="contact-row-label">Booking</span>
+              <div>
+                <h3>${esc(goalLabel)}</h3>
+                <p>Get in touch and we'll find a time that suits you</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="info-card">
-          <span class="eyebrow">Location</span>
-          <h3>${esc(fakeAddress)}</h3>
-          <p>${d.location ? `${esc(d.location)}, ${fakePostcode}` : fakePostcode}</p>
-        </div>
-        <div class="info-card">
-          <span class="eyebrow">Booking</span>
-          <h3>${esc(goalLabel)}</h3>
-          <p>Get in touch and we'll find a time that suits you</p>
-        </div>
-        <div class="info-card">
+
+        <div class="hours-card">
           <span class="eyebrow">Opening Hours</span>
+          <h2>When we're open</h2>
           <table class="hours"><tbody>
             <tr><td>Mon – Fri</td><td>9:00 – 18:00</td></tr>
             <tr><td>Saturday</td><td>9:00 – 14:00</td></tr>
             <tr><td>Sunday</td><td>Closed</td></tr>
           </tbody></table>
+          <p class="hours-note">Get in touch to book — ${fakePhone}.</p>
+          <a class="btn" href="#" data-nav="contact" style="width:100%;text-align:center">${esc(goalLabel)}</a>
         </div>
-      </div>
-      <div class="btn-row" style="justify-content:center;margin-top:2.2em">
-        <a class="btn" href="#">${esc(goalLabel)}</a>
       </div>
     </div>
   </section>
