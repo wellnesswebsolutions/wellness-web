@@ -215,6 +215,16 @@
       dark: hslToHex(h, Math.min(s + 2, 70), 44)
     };
   }
+  const SITE_STYLE_PRESETS = {
+    'soft-luxury': { heading: "'Cormorant Garamond', Georgia, serif", body: "'Montserrat', sans-serif", radius: '2px', space: '5.8em', card: '0 18px 50px rgba(28,24,21,.10)' },
+    'clinical-luxury': { heading: "'DM Sans', sans-serif", body: "'DM Sans', sans-serif", radius: '12px', space: '5.2em', card: '0 16px 40px rgba(28,24,21,.08)' },
+    'calm-wellness': { heading: "'Lora', Georgia, serif", body: "'DM Sans', sans-serif", radius: '16px', space: '5.6em', card: '0 18px 48px rgba(28,24,21,.09)' },
+    'bold-modern': { heading: "'Space Grotesk', sans-serif", body: "'Inter', sans-serif", radius: '6px', space: '5em', card: '0 18px 44px rgba(15,18,22,.16)' },
+    'warm-editorial': { heading: "'Fraunces', Georgia, serif", body: "'DM Sans', sans-serif", radius: '4px', space: '6em', card: '0 16px 44px rgba(48,34,24,.10)' },
+    'clean-professional': { heading: "'Manrope', sans-serif", body: "'Inter', sans-serif", radius: '10px', space: '5.2em', card: '0 14px 36px rgba(25,35,45,.10)' },
+    'editorial-portfolio': { heading: "'Fraunces', Georgia, serif", body: "'Inter', sans-serif", radius: '0px', space: '6.4em', card: '0 12px 34px rgba(20,24,20,.12)' },
+    'friendly-modern': { heading: "'Nunito Sans', sans-serif", body: "'Nunito Sans', sans-serif", radius: '20px', space: '5.2em', card: '0 18px 44px rgba(48,36,24,.10)' }
+  };
   function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   // customers type answers however they like ("isla spa", "HULL") — title
   // case them for anywhere they're displayed, so the generated site reads
@@ -287,20 +297,34 @@
     // palette derived from their category's own hero photo (so a demo
     // for e.g. Automotive doesn't default to a rose/taupe salon palette)
     const t = d.tones || (info && info.theme ? tonesFromHex(info.theme) : { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' });
-    const gallery = Array.from({length: 6}).map((_, i) => `
-        <figure style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);
-          font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-          background:linear-gradient(${135 + i * 20}deg,${t.dark},${t.light})">Add your photos</figure>`).join('');
+    const preset = SITE_STYLE_PRESETS[d.stylePreset] || SITE_STYLE_PRESETS['clean-professional'];
+    const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+    const galleryTones = [[t.dark,t.base],[t.base,t.light],[t.light,'#f6efe9'],[t.dark,t.light],[t.base,'#f6efe9'],['#2d2927',t.dark]];
+    const gallery = galleryTones.map((colors, i) => `
+      <figure class="gallery-placeholder" aria-label="Photo placeholder ${i + 1} for ${esc(d.name)}"
+        style="--gallery-a:${colors[0]};--gallery-b:${colors[1]};--gallery-angle:${125 + i * 23}deg">
+        <span class="gallery-orb gallery-orb--${(i % 3) + 1}" aria-hidden="true"></span>
+        <span class="gallery-initials" aria-hidden="true">${esc(initials)}</span>
+        <figcaption>Add your photo</figcaption>
+      </figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
     const cat = info ? info.cat : 'office';
     const defaultDesc = info ? info.desc.replace(/\{name\}/g, d.name) : `${d.name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.`;
     const heroHook = info ? info.tagline : (d.tagline || 'Tell us what makes you different — this line introduces your business.');
     const heroSub = d.tagline ? `${d.tagline} — ${heroHook}` : heroHook;
+    const galleryHeadings = { hairbeauty:'Inside the salon',aesthetics:'Inside the clinic',health:'Inside the practice',fitness:'Inside the studio',automotive:'Inside the workshop',trades:'Recent work',homegarden:'Recent projects',fooddrink:'From our kitchen',professional:'Our work',creative:'Selected work',pets:'Meet our happy clients',office:'Our work' };
+    const galleryHeading = galleryHeadings[cat] || 'Our work';
+    const reviewCopy = [
+      'A brilliant experience from start to finish. The team listened carefully and made everything feel easy.',
+      `Friendly, professional and genuinely attentive. I would happily recommend ${d.name} to anyone in ${d.location || 'the area'}.`,
+      'Excellent service and a result I was really pleased with. I will definitely be coming back.'
+    ];
+    const reviewNames = ['Amelia','Charlotte','Sophie'];
+    const reviews = reviewCopy.map((copy,i)=>`<article class="review-card"><div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div><blockquote>“${esc(copy)}”</blockquote><p><strong>${reviewNames[i]}</strong> · Sample client</p></article>`).join('');
     const metaDesc = (heroHook + '. ' + defaultDesc).slice(0, 155).replace(/\s+\S*$/, '') + '.';
     const categoryPhoto = info && info.photo ? `https://wellnessweb.co.uk/img/hero/${info.photo}` : null;
     const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
     const sceneMarkup = (d.heroImage || usingCategoryPhoto) ? '' : sceneSVG(cat, t);
-    const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
       : usingCategoryPhoto
@@ -319,21 +343,21 @@
 <meta name="theme-color" content="#f6efe9">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--champagne:#f6efe9;--champagne-2:#efe4db;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--line:rgba(28,24,21,.12);--radius:2px;--shadow:0 18px 50px rgba(28,24,21,.10)}
+:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--champagne:#f6efe9;--champagne-2:#efe4db;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--line:rgba(28,24,21,.12);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:110px}
-body{margin:0;padding-top:37px;padding-bottom:150px;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
+body{margin:0;padding-top:37px;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
 img{max-width:100%;display:block}
 a{color:var(--rose-dark)}
-h1,h2,h3,h4{color:var(--ink);font-weight:600;line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}
+h1,h2,h3,h4{font-family:var(--heading-font);color:var(--ink);font-weight:600;line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}
 h1{font-size:clamp(2.1rem,5.5vw,3.6rem);font-weight:300;letter-spacing:.01em}
 h2{font-size:clamp(1.6rem,3.4vw,2.4rem);font-weight:300}
 h3{font-size:1.05rem;font-weight:600}
 p{margin:0 0 1.1em}
 .container{width:100%;max-width:1140px;margin:0 auto;padding:0 22px}
-.section{padding:5.5em 0}
+.section{padding:var(--section-space) 0}
 .section--tint{background:var(--champagne)}
 .page-head{padding-bottom:3.2em}
 @media(max-width:767px){.section{padding:3.5em 0}}
@@ -380,7 +404,7 @@ p{margin:0 0 1.1em}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
 .brand-badge{flex:none;width:28px;height:28px;border-radius:50%;background:var(--rose-dark);
   display:flex;align-items:center;justify-content:center;margin-right:10px;
-  font-family:'Montserrat',sans-serif;font-weight:700;letter-spacing:.02em;color:#fff;font-size:.7rem}
+  font-family:var(--body-font);font-weight:700;letter-spacing:.02em;color:#fff;font-size:.7rem}
 @media(max-width:900px){
   .site-header{top:64px}
   .hero{min-height:min(60vh,480px);margin-top:75px}
@@ -412,16 +436,29 @@ p{margin:0 0 1.1em}
 .cat-tile h3{margin:0;font-size:.98rem}
 .service-group{margin-bottom:2.4em;scroll-margin-top:110px}
 .service-group:last-child{margin-bottom:0}
-.service-group-title{font-family:'Montserrat',sans-serif;font-weight:600;font-size:1.3rem;color:var(--rose-dark);margin-bottom:.4em}
+.service-group-title{font-family:var(--heading-font);font-weight:600;font-size:1.3rem;color:var(--rose-dark);margin-bottom:.4em}
 .service-list{border-top:1px solid var(--line)}
 .service-row{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;padding:28px 0;border-bottom:1px solid var(--line)}
 .service-row-main h3{font-size:1.08rem;margin-bottom:.35em}
 .service-row-main p{margin:0;color:var(--muted);font-size:.92rem;max-width:56ch}
-.service-row-price{flex:none;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.95rem;color:var(--rose-dark);white-space:nowrap}
+.service-row-price{flex:none;font-family:var(--body-font);font-weight:600;font-size:.95rem;color:var(--rose-dark);white-space:nowrap}
 @media(max-width:600px){.service-row{flex-direction:column;gap:8px}}
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.review-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:30px 26px;min-height:230px;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.review-stars{color:var(--rose-dark);letter-spacing:.18em;font-size:.82rem;margin-bottom:1.2em}
+.review-card blockquote{margin:0 0 1.4em;color:var(--body);font-size:.98rem;line-height:1.75;flex:1}
+.review-card p{margin:0;color:var(--muted);font-size:.78rem}
+.review-note{margin-top:1.4em;color:var(--muted);font-size:.76rem;text-align:center}
+@media(max-width:760px){.reviews{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:0 1px 12px}.review-card{flex:0 0 86%;scroll-snap-align:center;min-height:215px}}
 .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:760px){.gallery{grid-template-columns:repeat(2,1fr);gap:10px}}
-.gallery figure{margin:0;aspect-ratio:1/1;overflow:hidden}
+.gallery figure{margin:0;aspect-ratio:4/3;overflow:hidden;border-radius:var(--radius)}
+.gallery-placeholder{position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate;background:linear-gradient(var(--gallery-angle),var(--gallery-a),var(--gallery-b));color:#fff}
+.gallery-placeholder::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(28,24,21,.38),transparent 55%);z-index:-1}
+.gallery-orb{position:absolute;width:70%;aspect-ratio:1;border:1px solid rgba(255,255,255,.24);border-radius:50%;z-index:-1}
+.gallery-orb--1{left:-18%;top:-30%}.gallery-orb--2{right:-22%;bottom:-34%;width:85%}.gallery-orb--3{left:14%;top:8%;width:72%;border-radius:36% 64% 58% 42%}
+.gallery-initials{font-family:var(--heading-font);font-size:clamp(2rem,6vw,4rem);font-weight:500;letter-spacing:.12em;text-shadow:0 5px 25px rgba(28,24,21,.25)}
+.gallery-placeholder figcaption{position:absolute;left:14px;bottom:11px;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.88)}
 .find.has-map{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:center}
 @media(max-width:860px){.find.has-map{grid-template-columns:1fr}}
 .map{position:relative;width:100%;aspect-ratio:21/9;max-height:420px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--champagne-2)}
@@ -510,9 +547,21 @@ p{margin:0 0 1.1em}
   <section class="section section--tint">
     <div class="container">
       <div class="center" style="margin-bottom:2.4em">
+        <span class="eyebrow">Client Reviews</span>
+        <h2>What our clients say</h2>
+        <p class="lede center">A few words from recent clients.</p>
+      </div>
+      <div class="reviews">${reviews}</div>
+      <p class="review-note">Sample preview reviews — replace these with your real customer feedback.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="center" style="margin-bottom:2.4em">
         <span class="eyebrow">Gallery</span>
-        <h2>See more</h2>
-        <p class="lede">A look at the space and the work — drop in real photos and this fills itself in.</p>
+        <h2>${esc(galleryHeading)}</h2>
+        <p class="lede center">Your six real photographs will replace these branded placeholders.</p>
       </div>
       <div class="gallery">${gallery}</div>
     </div>

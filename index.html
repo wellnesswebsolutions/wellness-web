@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const builderBarRow = document.getElementById('builderBarRow');
   const builderBack = document.getElementById('builderBack');
   const builderMobileToggle = document.getElementById('builderMobileToggle');
+  const builderColourToggle = document.getElementById('builderColourToggle');
+  const builderUploadToggle = document.getElementById('builderUploadToggle');
+  const builderUploadMenu = document.getElementById('builderUploadMenu');
+  const builderLogoInput = document.getElementById('builderLogoInput');
+  const builderHeroInput = document.getElementById('builderHeroInput');
+  const builderToolStatus = document.getElementById('builderToolStatus');
   const builderProgress = document.getElementById('builderProgress');
   const builderField = document.getElementById('builderField');
   const builderPh = document.getElementById('builderPh');
@@ -47,6 +53,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const creatingVerb = document.getElementById('creatingVerb');
   const creatingName = document.getElementById('creatingName');
   const creatingSub = document.getElementById('creatingSub');
+
+  let paletteIndex = 0;
+  let selectedTones = null;
+  let uploadedLogo = null;
+  let uploadedHeroImage = null;
+
+  const STYLE_BY_TYPE = {
+    'Hair & Beauty': 'soft-luxury',
+    'Aesthetics': 'clinical-luxury',
+    'Health & Wellness': 'calm-wellness',
+    'Fitness': 'bold-modern',
+    'Automotive': 'bold-modern',
+    'Trades': 'bold-modern',
+    'Home & Garden': 'warm-editorial',
+    'Food & Drink': 'warm-editorial',
+    'Professional Services': 'clean-professional',
+    'Creative': 'editorial-portfolio',
+    'Pets': 'friendly-modern',
+    'Other': 'clean-professional'
+  };
+
+  const COLOURS_BY_TYPE = {
+    'Hair & Beauty': ['#a89a92', '#b07d93', '#847796', '#8d9a82'],
+    'Aesthetics': ['#ada7a3', '#9b8ba6', '#82959a', '#b38d82'],
+    'Health & Wellness': ['#9e826b', '#788c7a', '#77899c', '#9a7895'],
+    'Fitness': ['#4d5864', '#914b45', '#526d59', '#5b4d7c'],
+    'Automotive': ['#59636e', '#7a403c', '#36586a', '#4b4b4b'],
+    'Trades': ['#6b625c', '#8a6337', '#3f6270', '#59654a'],
+    'Home & Garden': ['#6b7a4a', '#827052', '#54736c', '#7e667c'],
+    'Food & Drink': ['#7a5c3d', '#8b4540', '#5f7046', '#69506e'],
+    'Professional Services': ['#365875', '#6a4c70', '#4f6659', '#7a5047'],
+    'Creative': ['#3f4a3d', '#704b72', '#9a5a42', '#3f6170'],
+    'Pets': ['#c08a3d', '#4f7d70', '#8a6687', '#9a6650'],
+    'Other': ['#5b3a73', '#456c78', '#7a5947', '#596b52']
+  };
 
   if (!form) return;
 
@@ -249,6 +290,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!bizTagline.value) return;
     const info = typeInfo(bizTagline.value);
     if (info) { const flat = flattenGroups(info); bizServices.value = flat.services.join(', '); bizPrices.value = flat.prices.join(', '); }
+    paletteIndex = 0;
+    selectedTones = null;
+    const firstColour = (COLOURS_BY_TYPE[bizTagline.value] || COLOURS_BY_TYPE.Other)[0];
+    builderColourToggle.style.setProperty('--chosen-colour', firstColour);
+    builderColourToggle.setAttribute('aria-label', 'Change website colours. Colour 1 of 4');
     addPill(2, bizTagline.value);
     setProgressStep(3);
     goToSlide(qaSlideLocation);
@@ -309,9 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
       goal: bizGoal.value,
       about: '',
       phone: (builderAnswers[1] || '').trim(),
-      tones: null,
-      logo: null,
-      heroImage: null
+      tones: selectedTones,
+      stylePreset: STYLE_BY_TYPE[bizTagline.value] || 'clean-professional',
+      logo: uploadedLogo,
+      heroImage: uploadedHeroImage
     };
   }
   // the preview is a REAL iframe filling the screen — no scaled-down
@@ -323,6 +370,65 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!previewFrame) return;
     previewFrame.srcdoc = buildDemoHTML(gatherData());
   }
+
+  function showToolStatus(message) {
+    if (!builderToolStatus) return;
+    builderToolStatus.textContent = message;
+    builderToolStatus.hidden = false;
+    clearTimeout(showToolStatus.timer);
+    showToolStatus.timer = setTimeout(() => { builderToolStatus.hidden = true; }, 2400);
+  }
+
+  function applyNextColour() {
+    const choices = COLOURS_BY_TYPE[bizTagline.value] || COLOURS_BY_TYPE.Other;
+    paletteIndex = (paletteIndex + 1) % choices.length;
+    selectedTones = tonesFromHex(choices[paletteIndex]);
+    builderColourToggle.style.setProperty('--chosen-colour', choices[paletteIndex]);
+    builderColourToggle.setAttribute('aria-label', `Change website colours. Colour ${paletteIndex + 1} of ${choices.length}`);
+    refreshPreview();
+    showToolStatus(`Colour option ${paletteIndex + 1} of ${choices.length}`);
+  }
+
+  function closeUploadMenu() {
+    builderUploadMenu.hidden = true;
+    builderUploadToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleUploadMenu() {
+    const opening = builderUploadMenu.hidden;
+    builderUploadMenu.hidden = !opening;
+    builderUploadToggle.setAttribute('aria-expanded', String(opening));
+  }
+
+  function loadImageFile(file, kind) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToolStatus('Please choose an image file');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      showToolStatus('Please choose an image smaller than 8 MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      if (kind === 'logo') uploadedLogo = reader.result;
+      if (kind === 'hero') uploadedHeroImage = reader.result;
+      refreshPreview();
+      closeUploadMenu();
+      showToolStatus(kind === 'logo' ? 'Logo added to your preview' : 'Main photo added to your preview');
+    });
+    reader.readAsDataURL(file);
+  }
+
+  builderColourToggle.addEventListener('click', applyNextColour);
+  builderUploadToggle.addEventListener('click', toggleUploadMenu);
+  builderLogoInput.addEventListener('change', () => loadImageFile(builderLogoInput.files[0], 'logo'));
+  builderHeroInput.addEventListener('change', () => loadImageFile(builderHeroInput.files[0], 'hero'));
+  builderUploadMenu.addEventListener('click', (event) => event.stopPropagation());
+  document.addEventListener('click', (event) => {
+    if (!builderUploadMenu.hidden && !builderUploadMenu.contains(event.target) && event.target !== builderUploadToggle) closeUploadMenu();
+  });
 
   async function postLead(business_name, details) {
     const res = await fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
@@ -462,9 +568,13 @@ Current website: ${website || 'Not provided'}
 Facebook: ${facebook || 'Not provided'}
 Instagram: ${instagram || 'Not provided'}`;
 
-    postLead(businessName, message).catch(() => {});
+    const completeMessage = `${message}
+Logo added to preview: ${uploadedLogo ? 'Yes' : 'No'}
+Main photo added to preview: ${uploadedHeroImage ? 'Yes' : 'No'}`;
 
-    const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+    postLead(businessName, completeMessage).catch(() => {});
+
+    const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(completeMessage)}`;
     window.open(whatsappUrl, '_blank');
   });
 });
@@ -586,6 +696,21 @@ Instagram: ${instagram || 'Not provided'}`;
   </div>
 
   <div class="builder-bar-wrap">
+    <div class="builder-upload-menu" id="builderUploadMenu" hidden>
+      <strong>Add your own images</strong>
+      <p>Add an image to the preview. You can send the original file to the designer on WhatsApp.</p>
+      <label class="builder-upload-choice" for="builderLogoInput">
+        <span>Upload your logo</span>
+        <small>PNG, JPG or WebP · maximum 8 MB</small>
+      </label>
+      <input class="visually-hidden" type="file" id="builderLogoInput" accept="image/png,image/jpeg,image/webp">
+      <label class="builder-upload-choice" for="builderHeroInput">
+        <span>Upload your main photo</span>
+        <small>The large picture at the top of your website</small>
+      </label>
+      <input class="visually-hidden" type="file" id="builderHeroInput" accept="image/png,image/jpeg,image/webp">
+    </div>
+    <div class="builder-tool-status" id="builderToolStatus" role="status" aria-live="polite" hidden></div>
     <div class="glow-box builder-bar" id="builderBar">
       <div class="glow-box-inner">
         <div class="builder-bar-row" id="builderBarRow">
@@ -595,6 +720,10 @@ Instagram: ${instagram || 'Not provided'}`;
           <button type="button" class="builder-icon-btn builder-mobile-toggle" id="builderMobileToggle" aria-label="Toggle mobile preview" title="Preview on mobile width">
             <svg viewBox="0 0 20 20"><rect x="5.5" y="2" width="9" height="16" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="8.5" y1="15.2" x2="11.5" y2="15.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           </button>
+          <button type="button" class="builder-icon-btn builder-colour-toggle" id="builderColourToggle" aria-label="Change website colours. Colour 1 of 4" title="Change website colours">
+            <span aria-hidden="true"></span>
+          </button>
+          <button type="button" class="builder-icon-btn builder-upload-toggle" id="builderUploadToggle" aria-label="Add your logo or main photo" aria-expanded="false" aria-controls="builderUploadMenu" title="Add your logo or main photo">+</button>
           <span class="builder-progress" id="builderProgress">1/5</span>
           <div class="qa-field builder-field" id="builderField">
             <span class="qa-ph" id="builderPh">What services do you offer?</span>
