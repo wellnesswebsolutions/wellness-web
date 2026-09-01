@@ -28,7 +28,11 @@
   /* below 820px the bar becomes two rows: brand + button, then the tabs.
      without flex-wrap the three children overlap each other. */
   @media(max-width:820px){
-    .top{display:flex;padding:9px 14px;flex-wrap:wrap;row-gap:2px}
+    /* backdrop-filter under a fixed header repaints on every scroll frame —
+       expensive enough on mobile GPUs to make the whole page feel sticky/
+       janky while scrolling. A near-opaque flat background looks almost
+       identical without that per-frame cost. */
+    .top{display:flex;padding:9px 14px;flex-wrap:wrap;row-gap:2px;background:rgba(247,242,236,.96);backdrop-filter:none}
     .tabs{gap:16px;order:3;width:100%;justify-content:center;padding-top:2px;justify-self:auto}
     .tabs a{font-size:10.5px;letter-spacing:.1em;white-space:nowrap;padding:4px 0}
   }
@@ -388,6 +392,11 @@
   @keyframes glow-spin{to{--glow-angle:360deg}}
   @keyframes glow-breathe{0%,100%{opacity:.62}50%{opacity:.92}}
   @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
+  /* the conic-gradient + blur repaints every animation frame regardless of
+     speed — continuous cost that compounds with scroll compositing and
+     contributes to sluggish/sticky-feeling scroll on phones. Keep the glow,
+     drop the spin, on small screens. */
+  @media(max-width:760px){.glow-box:before{animation:glow-breathe 5s ease-in-out infinite}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
   .qa-progress{width:100%;max-width:220px;margin:0 auto;text-align:center;opacity:0;max-height:0;
