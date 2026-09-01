@@ -36,8 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewUrl = document.getElementById('previewUrl');
   const previewFrame = document.getElementById('previewFrame');
 
-  const wizLikeIt = document.getElementById('wizLikeIt');
-  const wantThisBtn = document.getElementById('wantThisBtn');
   const wizAboutPanel = document.getElementById('wizAbout');
   const wizAboutSend = document.getElementById('wizAboutSend');
   const wizAboutStatus = document.getElementById('wizAboutStatus');
@@ -387,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     qaProgress.classList.remove('done');
     wizGrid.classList.remove('active');
     convRow.classList.remove('collapsed');
-    wizLikeIt.classList.remove('active');
+    wizAboutPanel.classList.remove('active');
     qaBox.classList.remove('qa-box-done', 'qa-box-finish');
   }
   function removePillsFrom(step) {
@@ -466,8 +464,8 @@ document.addEventListener('DOMContentLoaded', () => {
     convRow.classList.add('collapsed');
     refreshPreview();
     setTimeout(scalePreviewFrame, 650); // re-measure once the reveal transition finishes
-    wizLikeIt.classList.add('active');
-    wizLikeIt.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    wizAboutPanel.classList.add('active');
+    wizAboutPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
   }
@@ -515,12 +513,22 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`).join('');
     }
     const serviceGroups = info && info.groups
-      ? info.groups.map(g => `
-        <div class="service-group">
+      ? info.groups.map((g, i) => `
+        <div class="service-group" id="svc-group-${i}">
           <h3 class="service-group-title">${esc(g.name)}</h3>
           <div class="service-list">${serviceRowsFor(g.items, 0)}</div>
         </div>`).join('')
       : `<div class="service-list">${serviceRowsFor(services.map((s, i) => [s, prices[i]]), 0)}</div>`;
+    // category tiles at the top of the services page — one per treatment
+    // group, in a 3x2 grid (Bayar Beauty-style), jumping down to that group
+    const categoryTiles = info && info.groups
+      ? info.groups.map((g, i) => `
+        <a class="cat-tile" href="#svc-group-${i}">
+          <span class="cat-tile-num">${String(i + 1).padStart(2, '0')}</span>
+          <h3>${esc(g.name)}</h3>
+          <span class="cat-tile-count">${g.items.length} services</span>
+        </a>`).join('')
+      : '';
     const tags = services.slice(0, 4).map(s => `<span>${esc(s)}</span>`).join('');
     // fake but plausible contact details for the demo — Ofcom reserves
     // 07700 900xxx for fictional use, so it's never a real number.
@@ -648,7 +656,15 @@ p{margin:0 0 1.1em}
 .card p:last-child{margin-bottom:0}
 .card-link{display:block;text-decoration:none;color:inherit}
 .card-cta{display:inline-flex;align-items:center;gap:8px;margin-top:1.2em;font-size:.66rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--rose-dark)}
-.service-group{margin-bottom:2.4em}
+.cat-grid{margin-bottom:1em}
+.cat-tile{display:flex;flex-direction:column;align-items:flex-start;gap:.3em;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);padding:26px 24px;box-shadow:var(--shadow);text-decoration:none;color:inherit;
+  transition:transform .3s,box-shadow .3s}
+.cat-tile:hover{transform:translateY(-4px);box-shadow:0 26px 60px rgba(28,24,21,.14)}
+.cat-tile-num{font-size:.7rem;font-weight:700;letter-spacing:.22em;color:var(--rose-dark)}
+.cat-tile h3{margin:.2em 0 0}
+.cat-tile-count{font-size:.82rem;color:var(--muted)}
+.service-group{margin-bottom:2.4em;scroll-margin-top:110px}
 .service-group:last-child{margin-bottom:0}
 .service-group-title{font-family:'Montserrat',sans-serif;font-weight:600;font-size:1.3rem;color:var(--rose-dark);margin-bottom:.4em}
 .service-list{border-top:1px solid var(--line)}
@@ -760,6 +776,11 @@ p{margin:0 0 1.1em}
       <p class="lede center">${esc(heroHook) || 'A quick look at what we do — get in touch for anything not listed here.'}</p>
     </div>
   </section>
+  ${categoryTiles ? `<section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="grid grid-3 cat-grid">${categoryTiles}</div>
+    </div>
+  </section>` : ''}
   <section class="section" style="padding-top:0">
     <div class="container">
       ${serviceGroups}
@@ -994,13 +1015,6 @@ showPage('home');
     if (!res.ok) throw new Error(await res.text());
   }
 
-  // "I want this website" — reveal the order/onboarding form. This step is
-  // for collecting what we need to build the final site, not for touching
-  // the demo they've already seen.
-  wantThisBtn.addEventListener('click', () => {
-    wizAboutPanel.classList.add('active');
-  });
-
   function compileOrderDetails() {
     const parts = [
       'Business: ' + bizNameInput.value.trim(),
@@ -1143,12 +1157,6 @@ showPage('home');
           <input type="hidden" id="bizPrices">
           <input type="hidden" id="bizGoal" value="Book now">
         </form>
-
-        <div class="wiz-panel wiz-likeit" id="wizLikeIt">
-          <p class="wiz-likeit-q">Like what you see?</p>
-          <h4>Check out your demo, tell us a few more things, then we take over.</h4>
-          <button type="button" class="btn-send" id="wantThisBtn">I want this website →</button>
-        </div>
 
         <div class="wiz-panel" id="wizAbout">
           <div class="wiz-step-tag">Let's get your website ready</div>
