@@ -497,11 +497,15 @@
   .btn-whatsapp svg{width:18px;height:18px;flex:none}
   .wiz-whatsapp-note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:10px}
 
-  .wiz-preview{opacity:0;max-height:0;overflow:hidden;min-width:0;transform:translateX(16px);display:flex;flex-direction:column;
+  /* align-self:start — .wiz-grid.active stretches both columns to match
+     height, but the preview's real height is dictated by its aspect-ratio
+     (see bwin-body below), not by however tall the form column happens to
+     be; stretching it left blank space under the actual rendered page. */
+  .wiz-preview{opacity:0;max-height:0;overflow:hidden;min-width:0;align-self:start;transform:translateX(16px);display:flex;flex-direction:column;
     transition:opacity .5s ease .15s,max-height .6s cubic-bezier(.22,.7,.3,1) .1s,transform .5s ease .15s}
   .wiz-grid.active .wiz-preview{opacity:1;max-height:2400px;transform:none}
   .wiz-preview .bwin{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;
-    box-shadow:0 30px 70px -24px rgba(36,27,46,.28);display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    box-shadow:0 30px 70px -24px rgba(36,27,46,.28);display:flex;flex-direction:column;min-height:0;min-width:0}
   .wiz-preview .bwin-bar{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--bg);flex:none}
   .wiz-preview .bwin-bar i{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
   .wiz-preview .bwin-bar i:nth-child(1){background:#e9b0a0}
@@ -525,7 +529,7 @@
      all; bwin-body's own height is instead set to match the *scaled*
      size via aspect-ratio (kept in sync with the current device width
      by JS), so the box is exactly the visible preview's size. */
-  .wiz-preview .bwin-body{position:relative;flex:1;min-height:340px;overflow:hidden}
+  .wiz-preview .bwin-body{position:relative;flex:none;min-height:340px;overflow:hidden}
   /* the WRAPPER (not the iframe) renders at a fixed device width and is
      scaled down via JS — scaling the iframe directly would make Chromium
      resolve its `width=device-width` viewport meta against the scaled
