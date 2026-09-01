@@ -598,8 +598,8 @@
     text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1.2em;transition:opacity .18s ease}
   @media(prefers-reduced-motion:reduce){.creating-overlay,.creating-verb,.creating-name,.creating-sub{transition:none}}
 
-  /* three cards side by side on desktop (AI card on the right, marked as
-     "best of both"), stacked on mobile — compact enough at every size to
+  /* three cards side by side on desktop with AI in the centre, then stacked
+     with AI first on mobile — compact enough at every size to
      sit inside one screen alongside the hero, with no scrolling needed. */
   .conv-row{transition:max-height .5s cubic-bezier(.22,.7,.3,1),opacity .4s ease,margin .5s ease;overflow:hidden;max-height:2400px}
   .conv-row.collapsed{max-height:0;opacity:0;margin-top:0}
@@ -608,15 +608,12 @@
   .conv-col-old,.conv-col-new{background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(23,32,31,.05)}
   .conv-col-ai{background:linear-gradient(160deg, rgba(185,143,201,.24), rgba(91,58,115,.1));
     border:1px solid rgba(91,58,115,.18);box-shadow:0 14px 34px rgba(91,58,115,.14)}
-  .conv-best{display:inline-block;font-family:var(--display);font-size:10.5px;font-weight:700;letter-spacing:.1em;
-    text-transform:uppercase;color:#fff;background:var(--accent);border-radius:999px;padding:4px 12px;margin-bottom:8px}
-  .conv-col h4{font-family:var(--display);font-size:clamp(14px,1.5vw,17px);font-weight:700;margin-bottom:3px;
+  .conv-col h4{font-family:var(--display);font-size:clamp(14px,1.5vw,17px);font-weight:700;margin-bottom:10px;
     display:flex;align-items:center;justify-content:center;gap:6px}
   .conv-ai-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;
     border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), var(--gold) 78%);
     color:var(--accent);font-size:.55em;font-weight:800;letter-spacing:.02em;
     box-shadow:0 4px 10px rgba(91,58,115,.3), inset 0 0 0 1px rgba(255,255,255,.7)}
-  .conv-sub{font-size:clamp(11px,1.1vw,12.5px);color:var(--muted);margin:0 0 clamp(8px,1.2svh,12px);line-height:1.35}
   .conv-mini{list-style:none;display:inline-flex;flex-direction:column;gap:clamp(5px,.9svh,8px);text-align:left;margin:0 auto}
   .conv-mini li{display:flex;align-items:flex-start;gap:7px;font-size:clamp(11px,1.05vw,12.5px);line-height:1.25;color:var(--ink)}
   .ic{flex:none;width:1.15em;height:1.15em;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
@@ -626,7 +623,15 @@
   .ic-check{background:rgba(70,140,90,.14);color:#3f8a56}
   .conv-mini-pos li{font-weight:600}
   @media(max-width:760px){
-    .conv-row{flex-direction:column;max-width:420px}
+    .conv-row{flex-direction:column;max-width:420px;gap:7px;margin-top:10px}
+    .conv-col{padding:9px 12px;border-radius:12px}
+    .conv-col-ai{order:1}
+    .conv-col-old{order:2}
+    .conv-col-new{order:3}
+    .conv-col h4{font-size:13px;margin-bottom:5px}
+    .conv-mini{gap:2px}
+    .conv-mini li{font-size:10.5px;line-height:1.15;gap:5px}
+    .ic{width:1.05em;height:1.05em}
   }
 
   /* terms & privacy page */

@@ -46,6 +46,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!form) return;
 
+  function toTitleCase(value) {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/(^|[\s&/\-’'])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
+  }
+
+  // Show capital initials while typing, then store the same properly-cased
+  // value so it is also correct in pills, previews and WhatsApp messages.
+  bizNameInput.style.textTransform = 'capitalize';
+  bizNameInput.addEventListener('blur', () => {
+    bizNameInput.value = toTitleCase(bizNameInput.value);
+  });
+
   // populate the type dropdown from the shared generator's BUSINESS_TYPES
   BUSINESS_TYPES.forEach(t => {
     const opt = document.createElement('option');
@@ -194,8 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = bizNameInput.value.trim();
+    const name = toTitleCase(bizNameInput.value);
     if (!name) return;
+    bizNameInput.value = name;
     previewUrl.textContent = (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business') + '.co.uk';
 
     addPill(1, name);
@@ -297,25 +312,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!frameScale || !frameScale.parentElement) return;
     const { w, h } = renderSize();
     frameScale.style.width = w + 'px';
-    frameScale.style.height = h + 'px';
     const bwinBody = frameScale.parentElement;
+    const bwin = bwinBody.closest('.bwin');
     const containerWidth = bwinBody.clientWidth;
     if (!containerWidth) return;
-    frameScale.style.transform = `scale(${containerWidth / w})`;
+    const scale = containerWidth / w;
+    frameScale.style.transform = `scale(${scale})`;
     // match the preview box's height to the "Let's finish your website"
     // panel beside it, rather than a fixed device aspect-ratio, so the two
     // cards line up as one row — the rest of the page still scrolls inside
     // the frame (see the scroll-to-bottom handling below).
     const formHeight = wizAboutPanel ? wizAboutPanel.getBoundingClientRect().height : 0;
-    if (formHeight > 0) {
+    const shouldMatchForm = window.matchMedia('(min-width: 821px)').matches && formHeight > 0 && bwin;
+    if (shouldMatchForm) {
+      const bar = bwin.querySelector('.bwin-bar');
+      const barHeight = bar ? bar.getBoundingClientRect().height : 0;
+      const borders = bwin.getBoundingClientRect().height - bwin.clientHeight;
+      const bodyHeight = Math.max(340, formHeight - barHeight - borders);
+
+      bwin.style.height = formHeight + 'px';
       bwinBody.style.aspectRatio = '';
-      bwinBody.style.height = formHeight + 'px';
+      bwinBody.style.height = bodyHeight + 'px';
+      // Expand the iframe's real viewport to exactly fill the visible body
+      // after scaling, rather than leaving empty space below an 800px frame.
+      frameScale.style.height = (bodyHeight / scale) + 'px';
     } else {
+      if (bwin) bwin.style.height = '';
       bwinBody.style.height = '';
       bwinBody.style.aspectRatio = `${w} / ${h}`;
+      frameScale.style.height = h + 'px';
     }
   }
   window.addEventListener('resize', scalePreviewFrame);
+  if ('ResizeObserver' in window && wizAboutPanel) {
+    new ResizeObserver(() => scalePreviewFrame()).observe(wizAboutPanel);
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(scalePreviewFrame);
+  }
   function refreshPreview() {
     if (!previewFrame) return;
     previewFrame.srcdoc = buildDemoHTML(gatherData());
@@ -480,7 +514,7 @@ I'll send my services, photos, logo and any other information here.`;
               <div class="qa-slide qa-active" id="qaSlideName" data-step="1">
                 <div class="qa-field" id="qaFieldName">
                   <span class="qa-ph">What's your business called?</span>
-                  <input type="text" id="bizName" name="business_name" required autocomplete="off">
+                  <input type="text" id="bizName" name="business_name" required autocomplete="organization" autocapitalize="words">
                 </div>
                 <button type="submit" class="qa-go" id="qaNameGo">Build</button>
               </div>
@@ -553,7 +587,6 @@ I'll send my services, photos, logo and any other information here.`;
     <div class="conv-row" id="convRow">
       <div class="conv-col conv-col-old">
         <h4>DIY website builders</h4>
-        <p class="conv-sub">Affordable tools, but you have to do the work.</p>
         <ul class="conv-mini">
           <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>Time-consuming to build</li>
           <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>Template-based designs</li>
@@ -561,24 +594,21 @@ I'll send my services, photos, logo and any other information here.`;
         </ul>
       </div>
 
-      <div class="conv-col conv-col-new">
-        <h4>Traditional agencies</h4>
-        <p class="conv-sub">Custom quality, but often expensive and slow.</p>
-        <ul class="conv-mini">
-          <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>£800+ upfront</li>
-          <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>Weeks of waiting</li>
-          <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>Changes can cost extra</li>
-        </ul>
-      </div>
-
       <div class="conv-col conv-col-ai">
-        <div class="conv-best">Best of both</div>
         <h4><span class="conv-ai-icon" aria-hidden="true">AI</span>Aesthetic Intelligence</h4>
-        <p class="conv-sub">Human-designed, AI-powered and fully managed.</p>
         <ul class="conv-mini conv-mini-pos">
           <li><span class="ic ic-check"><svg viewBox="0 0 20 20"><path d="M4 10.5 L8.2 15 L16 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Modern, custom design</li>
           <li><span class="ic ic-check"><svg viewBox="0 0 20 20"><path d="M4 10.5 L8.2 15 L16 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Faster and more affordable</li>
           <li><span class="ic ic-check"><svg viewBox="0 0 20 20"><path d="M4 10.5 L8.2 15 L16 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Managed for you, with ongoing SEO</li>
+        </ul>
+      </div>
+
+      <div class="conv-col conv-col-new">
+        <h4>Traditional agencies</h4>
+        <ul class="conv-mini">
+          <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>£800+ upfront</li>
+          <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>Weeks of waiting</li>
+          <li><span class="ic ic-x"><svg viewBox="0 0 20 20"><path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>Changes can cost extra</li>
         </ul>
       </div>
     </div>
