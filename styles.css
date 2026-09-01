@@ -5,8 +5,8 @@
     --body:'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth;overflow-x:hidden}
-  body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  html{scroll-behavior:smooth;overflow-x:clip;overflow-y:auto}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
   a{color:inherit}
 
   /* grid (not flex space-between) so the nav sits on the header's true
@@ -14,7 +14,7 @@
      the Build button, which drifts off-centre whenever those two differ
      in width (the brand text is wider than the button). */
   .top{position:fixed;top:0;left:0;right:0;z-index:40;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
-    padding:16px 28px;pointer-events:none;background:rgba(247,242,236,.78);backdrop-filter:blur(10px);
+    padding:16px 28px;pointer-events:none;background:rgba(247,242,236,.97);backdrop-filter:none;-webkit-backdrop-filter:none;
     border-bottom:1px solid var(--line)}
   .top .brand{justify-self:start}
   .top-right{justify-self:end;display:flex;align-items:center;gap:14px;pointer-events:auto}
@@ -389,26 +389,21 @@
      paints above its own parent, not behind it.
      Kept far from any ancestor with overflow:hidden — clipping an
      ancestor's box always crops this ring to a hard rectangle. */
-  @property --glow-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
   :root{--qa-ease: cubic-bezier(.16,.84,.44,1)} /* smooth decel, no overshoot — "flowy" not bouncy */
   .glow-box{position:relative;border-radius:999px}
-  /* two bright arcs directly opposite each other, separated by transparent
-     gaps — a single near-continuous rainbow ring barely reads as moving,
-     but two distinct hotspots orbiting the pill clearly do */
+  /* static two-hotspot ring — a gentle opacity "breathe" only. Animating the
+     conic angle (rotation) forced a repaint of the blurred gradient every
+     frame, which compounded with scroll compositing and made the page feel
+     sticky/janky. A fixed gradient with only opacity animating is nearly
+     free to composite. */
   .glow-box:before{content:"";position:absolute;inset:-5px;border-radius:inherit;z-index:0;
-    background:conic-gradient(from var(--glow-angle),
+    background:conic-gradient(from 0deg,
       transparent 0deg, var(--gold) 35deg, var(--accent) 70deg, transparent 100deg,
       transparent 180deg, var(--gold) 215deg, var(--accent) 250deg, transparent 280deg, transparent 360deg);
-    filter:blur(7px);opacity:.9;animation:glow-spin 7s linear infinite, glow-breathe 5s ease-in-out infinite}
+    filter:blur(7px);opacity:.9;animation:glow-breathe 5s ease-in-out infinite}
   .glow-box-inner{position:relative;z-index:1;border-radius:inherit;background:var(--card)}
-  @keyframes glow-spin{to{--glow-angle:360deg}}
   @keyframes glow-breathe{0%,100%{opacity:.62}50%{opacity:.92}}
   @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
-  /* the conic-gradient + blur repaints every animation frame regardless of
-     speed — continuous cost that compounds with scroll compositing and
-     contributes to sluggish/sticky-feeling scroll on phones. Keep the glow,
-     drop the spin, on small screens. */
-  @media(max-width:760px){.glow-box:before{animation:glow-breathe 5s ease-in-out infinite}}
 
   /* ---- step progress: Step X of 3, with a 3-segment fill bar ---- */
   .qa-progress{width:100%;max-width:220px;margin:0 auto;text-align:center;opacity:0;max-height:0;
@@ -495,9 +490,13 @@
      No scaled-down mockup, no browser-chrome wrapper — the iframe just
      renders at its own natural size, so its own responsive CSS and native
      scrolling (wheel/trackpad/touch) behave exactly as a real visit would. ---- */
-  .builder-overlay{position:fixed;inset:0;z-index:60}
-  .builder-preview{position:fixed;top:var(--header-h, 75px);left:0;right:0;bottom:0;overflow:hidden;background:var(--bg);
-    transition:padding .3s var(--qa-ease)}
+  /* pointer-events:none on the overlay itself so its invisible top area
+     (above the preview) doesn't capture clicks meant for the fixed header,
+     which sits at a lower z-index. Only the actual visible pieces re-enable
+     pointer events. */
+  .builder-overlay{position:fixed;inset:0;z-index:60;pointer-events:none}
+  .builder-preview{position:fixed;top:var(--header-h, 75px);left:0;right:0;overflow:hidden;background:var(--bg);
+    pointer-events:auto;transition:padding .3s var(--qa-ease),bottom .2s var(--qa-ease)}
   .builder-preview iframe{width:100%;height:100%;border:0;display:block;pointer-events:auto;background:#fff;
     transition:max-width .3s var(--qa-ease)}
   /* real device-width column (not a scaled mockup) — the iframe is simply
@@ -511,7 +510,7 @@
      chrome rather than floating over the preview — with the same glowing
      pill from the first 3 questions sitting inside it. */
   .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;display:flex;justify-content:center;
-    background:var(--card);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(23,32,31,.06);
+    pointer-events:auto;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(23,32,31,.06);
     padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px))}
   .builder-bar{width:100%;max-width:640px;pointer-events:auto;transition:background .35s var(--qa-ease)}
   /* a permanent, visible ring around the pill (on top of the animated glow

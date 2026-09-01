@@ -59,6 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
   syncHeaderHeight();
   window.addEventListener('resize', syncHeaderHeight);
 
+  // keeps the preview's bottom edge finishing above the floating question
+  // bar instead of sliding underneath it — the bar's real height shifts
+  // with mobile safe-area padding, so it's measured rather than assumed.
+  const builderBarWrap = document.querySelector('.builder-bar-wrap');
+  if (builderBarWrap && builderPreview && 'ResizeObserver' in window) {
+    const updateBuilderBottom = () => {
+      builderPreview.style.bottom = `${builderBarWrap.getBoundingClientRect().height}px`;
+    };
+    new ResizeObserver(updateBuilderBottom).observe(builderBarWrap);
+    updateBuilderBottom();
+  }
+
   function toTitleCase(value) {
     return value
       .trim()
@@ -356,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const question = BUILDER_QUESTIONS[i];
     const render = () => {
       builderPh.textContent = question.q + (question.optional ? ' (optional)' : '');
+      builderInput.setAttribute('aria-label', question.q + (question.optional ? ' (optional)' : ''));
       builderInput.type = question.type;
       builderInput.value = '';
       builderField.classList.remove('qa-filled', 'qa-focused');
@@ -498,25 +511,25 @@ Instagram: ${instagram || 'Not provided'}`;
               <div class="qa-slide qa-active" id="qaSlideName" data-step="1">
                 <div class="qa-field" id="qaFieldName">
                   <span class="qa-ph">What's your business called?</span>
-                  <input type="text" id="bizName" name="business_name" required autocomplete="organization" autocapitalize="words">
+                  <input type="text" id="bizName" name="business_name" required autocomplete="organization" autocapitalize="words" aria-label="Business name">
                 </div>
-                <button type="submit" class="qa-go" id="qaNameGo">Build</button>
+                <button type="submit" class="qa-go" id="qaNameGo" aria-label="Continue with business name">Build</button>
               </div>
               <div class="qa-slide" id="qaSlideType" data-step="2">
                 <div class="qa-field" id="qaFieldType">
                   <span class="qa-ph">What type of business are you?</span>
-                  <select id="bizTagline" required>
+                  <select id="bizTagline" required aria-label="Business type">
                     <option value="" selected></option>
                   </select>
                 </div>
-                <button type="button" class="qa-go" id="qaTypeGo">Build</button>
+                <button type="button" class="qa-go" id="qaTypeGo" aria-label="Continue with business type">Build</button>
               </div>
               <div class="qa-slide" id="qaSlideLocation" data-step="3">
                 <div class="qa-field" id="qaFieldLocation">
                   <span class="qa-ph">Where are you based?</span>
-                  <input type="text" id="bizLocation" required autocomplete="off">
+                  <input type="text" id="bizLocation" required autocomplete="off" aria-label="Business location">
                 </div>
-                <button type="button" class="qa-go" id="qaLocationNext">Build</button>
+                <button type="button" class="qa-go" id="qaLocationNext" aria-label="Create website preview">Build</button>
               </div>
             </div>
           </div>
