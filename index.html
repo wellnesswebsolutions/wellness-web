@@ -941,7 +941,7 @@ Instagram: ${instagram || 'Not provided'}`;
 
   var timer = null;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  function start(){ if (!timer && !reduce && !paused) timer = setInterval(next, 4500); }
+  function start(){ if (!timer && !reduce && !paused) timer = setInterval(next, 2600); }
   function stop(){ if (timer) { clearInterval(timer); timer = null; } }
 
   // paused covers hover, touch, off-screen and background-tab
