@@ -799,12 +799,13 @@
       /* room for the scaled-down side cards to sit beside the centre one */
       padding:0 0 clamp(16px,2.4vw,26px)}
   .cx-stage{position:relative;width:min(560px,72vw);margin:0 auto;aspect-ratio:16/10}
-  /* Opacity starts after transform has had a head start, so an incoming
-     card grows past the size of the one it's replacing before it begins to
-     fade in (and, symmetrically, an outgoing card shrinks first, then
-     fades out) — no moment where two same-size, half-faded cards overlap. */
+  /* Position and opacity move together, one duration and one easing curve
+     for both, so the card reads as a single smooth motion rather than two
+     properties racing each other or a delayed "pop" once fully grown. The
+     .7s settle leaves most of the 1.8s autoplay cycle for the card to just
+     sit still before the next move starts. */
   .cx-item{position:absolute;inset:0;margin:auto;will-change:transform,opacity;
-    transition:transform 1.72s cubic-bezier(.4,0,.2,1), opacity 1s ease .7s;
+    transition:transform .7s cubic-bezier(.22,.61,.36,1), opacity .7s cubic-bezier(.22,.61,.36,1);
     backface-visibility:hidden}
   .cx-item[data-pos="0"]{transform:translateX(0) scale(1);opacity:1;z-index:3}
   .cx-item[data-pos="-1"]{transform:translateX(-50%) scale(.74);opacity:.5;z-index:2}
