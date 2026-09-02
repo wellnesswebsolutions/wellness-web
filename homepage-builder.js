@@ -509,15 +509,111 @@ document.addEventListener('DOMContentLoaded', () => {
     { q: 'Full name', type: 'text', required: true },
     { q: 'Email address', type: 'email', required: true },
     { q: 'Current website', type: 'text', optional: true },
-    { q: 'Facebook', type: 'text', optional: true },
-    { q: 'Instagram', type: 'text', optional: true }
+    { q: 'Social media', type: 'text', optional: true },
+    { q: 'Add your media', type: 'media', optional: true }
   ];
   let builderIndex = 0;
   let builderAnswers = [];
+  let selectedMediaSummary = 'Not provided';
+
+  const mediaModal = document.getElementById('builderMediaModal');
+  const mediaEmailForm = document.getElementById('mediaEmailForm');
+  const mediaEmailBusiness = document.getElementById('mediaEmailBusiness');
+  const mediaEmailCustomer = document.getElementById('mediaEmailCustomer');
+  const mediaEmailCustomerAddress = document.getElementById('mediaEmailCustomerAddress');
+  const mediaModalBackdrop = document.getElementById('mediaModalBackdrop');
+  const mediaModalClose = document.getElementById('mediaModalClose');
+  const logoUpload = document.getElementById('builderLogoUpload');
+  const heroUpload = document.getElementById('builderHeroUpload');
+  const galleryUpload = document.getElementById('builderGalleryUpload');
+  const mediaSelectionStatus = document.getElementById('mediaSelectionStatus');
+  const mediaSaveBtn = document.getElementById('mediaSaveBtn');
+  const mediaLaterBtn = document.getElementById('mediaLaterBtn');
+  const mediaDesignerBtn = document.getElementById('mediaDesignerBtn');
+
+  function getSelectedMedia() {
+    return {
+      logo: logoUpload.files[0] || null,
+      hero: heroUpload.files[0] || null,
+      gallery: Array.from(galleryUpload.files || [])
+    };
+  }
+
+  function getSelectedMediaBytes() {
+    const media = getSelectedMedia();
+    return [media.logo, media.hero, ...media.gallery].filter(Boolean).reduce((total, file) => total + file.size, 0);
+  }
+
+  function updateMediaSelectionStatus() {
+    const media = getSelectedMedia();
+    const parts = [];
+    if (media.logo) parts.push('Logo added');
+    if (media.hero) parts.push('Homepage picture added');
+    if (media.gallery.length) parts.push(`${media.gallery.length} gallery picture${media.gallery.length === 1 ? '' : 's'} added`);
+    mediaSelectionStatus.textContent = parts.length ? parts.join(' · ') : 'No files selected yet.';
+    mediaSaveBtn.disabled = !parts.length;
+  }
+
+  function openMediaModal() {
+    mediaModal.hidden = false;
+    requestAnimationFrame(() => mediaModal.classList.add('is-open'));
+    mediaModalClose.focus();
+  }
+
+  function closeMediaModal() {
+    mediaModal.classList.remove('is-open');
+    setTimeout(() => {
+      mediaModal.hidden = true;
+      builderGo.focus();
+    }, 180);
+  }
+
+  function completeMediaStep(summary) {
+    selectedMediaSummary = summary;
+    builderAnswers[builderIndex] = summary;
+    builderIndex++;
+    closeMediaModal();
+    finishBuilder();
+  }
+
+  [logoUpload, heroUpload].forEach(input => input.addEventListener('change', updateMediaSelectionStatus));
+  galleryUpload.addEventListener('change', () => {
+    if (galleryUpload.files.length > 6) {
+      galleryUpload.value = '';
+      mediaSelectionStatus.textContent = 'Please choose no more than 6 gallery pictures.';
+      mediaSaveBtn.disabled = true;
+      return;
+    }
+    updateMediaSelectionStatus();
+  });
+  mediaSaveBtn.addEventListener('click', () => {
+    const media = getSelectedMedia();
+    if (getSelectedMediaBytes() > 10 * 1024 * 1024) {
+      mediaSelectionStatus.textContent = 'Please keep the total upload below 10 MB.';
+      return;
+    }
+    const parts = [];
+    if (media.logo) parts.push(`logo: ${media.logo.name}`);
+    if (media.hero) parts.push(`homepage picture: ${media.hero.name}`);
+    if (media.gallery.length) parts.push(`gallery: ${media.gallery.map(file => file.name).join(', ')}`);
+    completeMediaStep(`Selected — ${parts.join('; ')}. Files will also be emailed automatically.`);
+  });
+  mediaLaterBtn.addEventListener('click', () => completeMediaStep('Customer will add media later'));
+  mediaDesignerBtn.addEventListener('click', () => completeMediaStep('Please choose suitable images for me'));
+  mediaModalClose.addEventListener('click', closeMediaModal);
+  mediaModalBackdrop.addEventListener('click', closeMediaModal);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !mediaModal.hidden) closeMediaModal();
+  });
 
   function resetBuilderBar() {
     builderIndex = 0;
     builderAnswers = [];
+    selectedMediaSummary = 'Not provided';
+    logoUpload.value = '';
+    heroUpload.value = '';
+    galleryUpload.value = '';
+    updateMediaSelectionStatus();
     builderBarRow.hidden = false;
     builderWhatsappBtn.hidden = true;
     builderBar.classList.remove('builder-bar-done');
@@ -527,9 +623,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function showBuilderQuestion(i, { animate = true } = {}) {
     const question = BUILDER_QUESTIONS[i];
     const render = () => {
+      const isMediaStep = question.type === 'media';
       builderPh.textContent = question.q + (question.optional ? ' (optional)' : '');
       builderInput.setAttribute('aria-label', question.q + (question.optional ? ' (optional)' : ''));
-      builderInput.type = question.type;
+      builderInput.type = isMediaStep ? 'text' : question.type;
+      builderInput.hidden = isMediaStep;
+      builderInput.disabled = isMediaStep;
+      builderInput.readOnly = isMediaStep;
+      builderField.classList.toggle('builder-media-field', isMediaStep);
+      builderField.setAttribute('role', isMediaStep ? 'button' : 'presentation');
+      builderField.tabIndex = isMediaStep ? 0 : -1;
+      builderGo.setAttribute('aria-label', isMediaStep ? 'Open media options' : 'Next question');
       builderInput.enterKeyHint = i === BUILDER_QUESTIONS.length - 1 ? 'done' : 'next';
       builderInput.value = '';
       builderField.classList.remove('qa-filled', 'qa-focused');
@@ -559,6 +663,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function submitBuilderAnswer() {
     const question = BUILDER_QUESTIONS[builderIndex];
+    if (question.type === 'media') {
+      openMediaModal();
+      return;
+    }
     const value = builderInput.value.trim();
     if (question.required && !value) {
       builderField.classList.add('qa-focused');
@@ -577,7 +685,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (builderIndex === 0) { goBackToLocation(); return; }
     builderIndex--;
     showBuilderQuestion(builderIndex);
-    setTimeout(() => { builderInput.value = builderAnswers[builderIndex] || ''; builderInput.dispatchEvent(new Event('input')); }, 230);
+    setTimeout(() => {
+      if (BUILDER_QUESTIONS[builderIndex].type !== 'media') {
+        builderInput.value = builderAnswers[builderIndex] || '';
+        builderInput.dispatchEvent(new Event('input'));
+      }
+    }, 230);
   }
   builderGo.addEventListener('click', submitBuilderAnswer);
   builderBack.addEventListener('click', goToPreviousBuilderQuestion);
@@ -596,6 +709,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   builderInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); submitBuilderAnswer(); }
+  });
+  builderField.addEventListener('click', () => {
+    if (BUILDER_QUESTIONS[builderIndex]?.type === 'media') openMediaModal();
+  });
+  builderField.addEventListener('keydown', e => {
+    if (BUILDER_QUESTIONS[builderIndex]?.type === 'media' && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      openMediaModal();
+    }
   });
 
   // toggles the full-page preview to a centred, phone-width column — since
@@ -621,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const businessName = bizNameInput.value.trim();
     const businessType = bizTagline.value;
     const location_ = bizLocation.value.trim();
-    const [fullName, email, website, facebook, instagram] = builderAnswers;
+    const [fullName, email, website, socialMedia, mediaChoice] = builderAnswers;
 
     const message = `Hi, I'd like you to finish my website.
 
@@ -632,12 +754,19 @@ Location: ${location_}
 Name: ${fullName || 'Not provided'}
 Email address: ${email || 'Not provided'}
 Current website: ${website || 'Not provided'}
-Facebook: ${facebook || 'Not provided'}
-Instagram: ${instagram || 'Not provided'}`;
+Social media: ${socialMedia || 'Not provided'}
+Media: ${mediaChoice || selectedMediaSummary}`;
 
     const completeMessage = message;
 
     postLead(businessName, completeMessage).catch(() => {});
+
+    if (getSelectedMediaBytes() > 0) {
+      mediaEmailBusiness.value = businessName;
+      mediaEmailCustomer.value = fullName || 'Not provided';
+      mediaEmailCustomerAddress.value = email || 'Not provided';
+      mediaEmailForm.submit();
+    }
 
     const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(completeMessage)}`;
     window.open(whatsappUrl, '_blank');

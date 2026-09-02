@@ -12,14 +12,14 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#F7F2EC">
 <link rel="canonical" href="https://wellnessweb.co.uk/">
-<link rel="stylesheet" href="styles.css?v=20260902-3">
-<script src="reveal.js?v=20260902-3" defer></script>
-<script src="nav.js?v=20260902-3" defer></script>
-<script src="demo-generator.js?v=20260902-3" defer></script>
-<script src="hero-brand-compositor.js?v=20260902-3" defer></script>
-<script src="homepage-builder.js?v=20260902-3" defer></script>
-<script src="homepage-ui.js?v=20260902-3" defer></script>
-<script src="homepage-carousel.js?v=20260902-3" defer></script>
+<link rel="stylesheet" href="styles.css?v=20260902-4">
+<script src="reveal.js?v=20260902-4" defer></script>
+<script src="nav.js?v=20260902-4" defer></script>
+<script src="demo-generator.js?v=20260902-4" defer></script>
+<script src="hero-brand-compositor.js?v=20260902-4" defer></script>
+<script src="homepage-builder.js?v=20260902-4" defer></script>
+<script src="homepage-ui.js?v=20260902-4" defer></script>
+<script src="homepage-carousel.js?v=20260902-4" defer></script>
 </head>
 <body>
 <div class="bar" id="bar"></div>
@@ -180,6 +180,49 @@
         </button>
       </div>
     </div>
+  </div>
+
+  <div class="media-modal" id="builderMediaModal" hidden>
+    <button type="button" class="media-modal-backdrop" id="mediaModalBackdrop" aria-label="Close media options"></button>
+    <form class="media-modal-card" id="mediaEmailForm" role="dialog" aria-modal="true" aria-labelledby="mediaModalTitle" action="https://formsubmit.co/wellnesswebsolutions@gmail.com" method="POST" enctype="multipart/form-data" target="mediaEmailTarget">
+      <input type="hidden" name="_subject" value="New BrightSite customer media">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="Business" id="mediaEmailBusiness">
+      <input type="hidden" name="Customer" id="mediaEmailCustomer">
+      <input type="hidden" name="Customer email" id="mediaEmailCustomerAddress">
+      <button type="button" class="media-modal-close" id="mediaModalClose" aria-label="Close media options">&times;</button>
+      <div class="media-modal-kicker">Optional</div>
+      <h2 id="mediaModalTitle">Add your media</h2>
+      <p class="media-modal-intro">Add what you have now, send it later, or leave the image choices to us.</p>
+
+      <div class="media-upload-grid">
+        <label class="media-upload-option">
+          <span class="media-upload-icon" aria-hidden="true">L</span>
+          <span><strong>Add your logo</strong><small>PNG, JPG, WEBP or SVG</small></span>
+          <input type="file" id="builderLogoUpload" name="Logo" accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml">
+        </label>
+        <label class="media-upload-option">
+          <span class="media-upload-icon" aria-hidden="true">H</span>
+          <span><strong>Add a homepage picture</strong><small>Your main hero image</small></span>
+          <input type="file" id="builderHeroUpload" name="Homepage picture" accept="image/*">
+        </label>
+        <label class="media-upload-option">
+          <span class="media-upload-icon" aria-hidden="true">G</span>
+          <span><strong>Add gallery pictures</strong><small>Choose up to 6 images</small></span>
+          <input type="file" id="builderGalleryUpload" name="Gallery pictures" accept="image/*" multiple>
+        </label>
+      </div>
+
+      <div class="media-selection-status" id="mediaSelectionStatus" aria-live="polite">No files selected yet.</div>
+
+      <button type="button" class="media-primary-action" id="mediaSaveBtn">Continue with selected media</button>
+      <div class="media-choice-row">
+        <button type="button" class="media-secondary-action" id="mediaLaterBtn">I’ll add these later</button>
+        <button type="button" class="media-secondary-action media-designer-action" id="mediaDesignerBtn">Choose suitable images for me</button>
+      </div>
+      <p class="media-whatsapp-note">Selected files will be emailed to us automatically when you send your details.</p>
+    </form>
+    <iframe name="mediaEmailTarget" id="mediaEmailTarget" title="Media upload response" hidden></iframe>
   </div>
 </div>
 
