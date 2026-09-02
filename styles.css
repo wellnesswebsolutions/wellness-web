@@ -178,8 +178,37 @@
   .chrome .url{flex:1;margin-left:8px;background:#fff;border:1px solid var(--line);border-radius:999px;
     padding:5px 14px;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .frame{position:relative;aspect-ratio:16/10;background:#F7F2EC;overflow:hidden}
-  .frame iframe{position:absolute;top:0;left:0;width:250%;height:250%;border:0;
-    transform:scale(.4);transform-origin:0 0}
+  /* The frames never scroll, so each site sat frozen on its first screenful and
+     none of their own scroll-triggered animations ever fired. Render a taller
+     viewport than the window shows, then slowly pan down it and back: the
+     preview reads as a living page. Only `transform` animates, so it composites
+     on the GPU rather than repainting — the mistake that made the old rotating
+     glow janky. */
+  .frame iframe{position:absolute;top:0;left:0;width:250%;height:500%;border:0;
+    transform:translateY(0) scale(.4);transform-origin:0 0;
+    animation:preview-pan 22s ease-in-out infinite;will-change:transform}
+  /* height is 5x the frame and scales to 0.4, so 2 frames of content are
+     rendered and translateY(-20%) travels exactly one frame down. */
+  @keyframes preview-pan{
+    0%,14%    {transform:translateY(0) scale(.4)}
+    50%,64%   {transform:translateY(-18%) scale(.4)}
+    100%      {transform:translateY(0) scale(.4)}
+  }
+  /* stagger them so the row does not move as one block */
+  .demo:nth-child(2) .frame iframe{animation-delay:-5s}
+  .demo:nth-child(3) .frame iframe{animation-delay:-10s}
+  .demo:nth-child(4) .frame iframe{animation-delay:-15s}
+  .demo:nth-child(5) .frame iframe{animation-delay:-3s}
+  .demo:nth-child(6) .frame iframe{animation-delay:-13s}
+  /* Phones: a taller render means six large cross-origin documents laying out
+     more content, which is exactly the kind of cost that made scrolling sticky
+     before. Keep the previews static and short on small screens. */
+  @media(max-width:760px){
+    .frame iframe{animation:none;height:250%;will-change:auto}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .frame iframe{animation:none;height:250%;will-change:auto}
+  }
   /* transparent layer: keeps page scrolling natural, whole preview opens the site */
   .frame .hit{position:absolute;inset:0;z-index:2;cursor:pointer;display:block}
   .frame .live{position:absolute;z-index:3;top:12px;right:12px;background:rgba(23,32,31,.72);color:#fff;
