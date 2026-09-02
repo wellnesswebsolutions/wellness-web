@@ -970,7 +970,7 @@ Instagram: ${instagram || 'Not provided'}`;
 
   var timer = null;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var INTERVAL = 2200;
+  var INTERVAL = 1800;
   function start(){ if (!timer && !reduce && !paused) timer = setInterval(next, INTERVAL); }
   function stop(){ if (timer) { clearInterval(timer); timer = null; } }
 
