@@ -48,6 +48,31 @@ const address = server.address();
 const baseUrl = `http://127.0.0.1:${address.port}`;
 const browser = await chromium.launch({ headless: true });
 
+async function swipeUp(page, { x, startY, endY }) {
+  const client = await page.context().newCDPSession(page);
+  await client.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [{ x, y: startY }]
+  });
+
+  const steps = 12;
+  for (let step = 1; step <= steps; step++) {
+    const y = startY + ((endY - startY) * step / steps);
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x, y }]
+    });
+    await page.waitForTimeout(18);
+  }
+
+  await client.send('Input.dispatchTouchEvent', {
+    type: 'touchEnd',
+    touchPoints: []
+  });
+  await client.detach();
+  await page.waitForTimeout(450);
+}
+
 async function runHomepageFlow(label, contextOptions, mobile) {
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
@@ -85,9 +110,28 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   });
   assert.equal(dotColoursMatch, true, `${label}: active dot should match the site's hero colour`);
 
-  await page.evaluate(() => window.scrollTo(0, 700));
-  await page.waitForTimeout(100);
-  assert.ok(await page.evaluate(() => window.scrollY > 0), `${label}: document should scroll`);
+  if (mobile) {
+    await page.locator('#cx').evaluate((element) => element.scrollIntoView({ block: 'center' }));
+    await page.waitForTimeout(100);
+    const carouselBox = await page.locator('#cx').boundingBox();
+    const viewport = page.viewportSize();
+    const beforeSwipe = await page.evaluate(() => window.scrollY);
+    const startY = Math.min(viewport.height - 70, carouselBox.y + carouselBox.height * 0.72);
+    await swipeUp(page, {
+      x: Math.round(viewport.width / 2),
+      startY: Math.round(startY),
+      endY: Math.round(Math.max(80, startY - 340))
+    });
+    const afterSwipe = await page.evaluate(() => window.scrollY);
+    assert.ok(
+      afterSwipe > beforeSwipe + 40,
+      `${label}: a real finger swipe over the carousel should scroll (${beforeSwipe} -> ${afterSwipe})`
+    );
+  } else {
+    await page.evaluate(() => window.scrollTo(0, 700));
+    await page.waitForTimeout(100);
+    assert.ok(await page.evaluate(() => window.scrollY > 0), `${label}: document should scroll`);
+  }
   await page.evaluate(() => window.scrollTo(0, 0));
 
   const nameInput = page.locator('#bizName');
@@ -118,6 +162,23 @@ async function runHomepageFlow(label, contextOptions, mobile) {
 
   const rootLocked = await page.evaluate(() => document.documentElement.classList.contains('builder-scroll-lock'));
   assert.equal(rootLocked, !mobile, `${label}: scroll lock should be desktop-only`);
+
+  if (mobile) {
+    const previewFrame = page.locator('#previewFrame');
+    const frameBox = await previewFrame.boundingBox();
+    const beforePreviewSwipe = await previewFrame.evaluate((frame) => frame.contentWindow.scrollY);
+    const startY = Math.min(frameBox.y + frameBox.height - 90, page.viewportSize().height - 150);
+    await swipeUp(page, {
+      x: Math.round(frameBox.x + frameBox.width / 2),
+      startY: Math.round(startY),
+      endY: Math.round(Math.max(frameBox.y + 80, startY - 360))
+    });
+    const afterPreviewSwipe = await previewFrame.evaluate((frame) => frame.contentWindow.scrollY);
+    assert.ok(
+      afterPreviewSwipe > beforePreviewSwipe + 40,
+      `${label}: a real finger swipe should scroll the generated preview (${beforePreviewSwipe} -> ${afterPreviewSwipe})`
+    );
+  }
 
   const builderInput = page.locator('#builderInput');
   await activate(builderInput);
