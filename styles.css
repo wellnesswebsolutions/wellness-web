@@ -933,3 +933,14 @@ html,body{max-width:100%;}
    :focus-within is more reliable on mobile Safari than waiting for a JS class. */
 .qa-field:focus-within .qa-ph{opacity:0;transform:translateY(calc(-50% - 5px));}
 .qa-field input:focus + .qa-ph{opacity:0;}
+
+
+/* Mobile scrolling: the desktop hero uses sticky positioning for its scroll
+   animation, but mobile must scroll as ordinary document content. */
+@media(max-width:820px){
+  html,body{overflow-x:hidden;overflow-y:auto;}
+  #stage{height:auto!important;min-height:0!important;}
+  #pin{position:relative!important;top:auto!important;height:auto!important;min-height:0!important;overflow:visible!important;}
+  #scene{position:absolute;inset:0;pointer-events:none;}
+  .after{position:relative;z-index:5;}
+}
