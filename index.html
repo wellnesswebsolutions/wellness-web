@@ -953,7 +953,7 @@ Instagram: ${instagram || 'Not provided'}`;
 
   var timer = null;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var INTERVAL = 2600;
+  var INTERVAL = 2200;
   function start(){ if (!timer && !reduce && !paused) timer = setInterval(next, INTERVAL); }
   function stop(){ if (timer) { clearInterval(timer); timer = null; } }
 
@@ -1001,7 +1001,7 @@ Instagram: ${instagram || 'Not provided'}`;
      faces a burst of six documents. */
   var frames = items.map(function(el){ return el.querySelector('iframe'); });
   var mobile = matchMedia('(max-width:760px)').matches;
-  var near   = mobile ? 0 : 1;
+  var near   = mobile ? 1 : 1;
   var armed  = false, loading = false;
 
   function wanted(i){
