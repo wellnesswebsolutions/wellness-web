@@ -1,81 +1,46 @@
-<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A business owner entering their details into a website form">
   <defs>
-    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#5B3A73"/>
-      <stop offset="100%" stop-color="#B98FC9"/>
+    <linearGradient id="s1acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5B3A73"/><stop offset="100%" stop-color="#B98FC9"/>
+    </linearGradient>
+    <radialGradient id="s1glow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#B98FC9" stop-opacity=".38"/>
+      <stop offset="100%" stop-color="#B98FC9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="s1field" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#B98FC9" stop-opacity=".18"/><stop offset="100%" stop-color="#B98FC9" stop-opacity="0"/>
     </linearGradient>
   </defs>
 
   <rect width="800" height="600" fill="#F7F2EC"/>
+  <ellipse cx="400" cy="280" rx="330" ry="250" fill="url(#s1glow)"/>
 
-  <!-- window chrome -->
-  <rect x="0" y="0" width="800" height="44" fill="#FFFFFF"/>
-  <line x1="0" y1="44" x2="800" y2="44" stroke="#E7DED2" stroke-width="1"/>
-  <circle cx="26" cy="22" r="6" fill="#e9b0a0"/>
-  <circle cx="46" cy="22" r="6" fill="#e9d19c"/>
-  <circle cx="66" cy="22" r="6" fill="#a8c9a0"/>
-  <rect x="300" y="12" width="200" height="20" rx="10" fill="#F7F2EC"/>
-  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#7a6d81" text-anchor="middle">index.html — your-business.co.uk</text>
+  <!-- form panel -->
+  <rect x="132" y="104" width="536" height="392" rx="26" fill="#FFFFFF" stroke="#E7DED2" stroke-width="2"/>
+  <circle cx="170" cy="146" r="6" fill="#E7DED2"/><circle cx="192" cy="146" r="6" fill="#E7DED2"/><circle cx="214" cy="146" r="6" fill="#E7DED2"/>
+  <line x1="132" y1="180" x2="668" y2="180" stroke="#E7DED2" stroke-width="2"/>
 
-  <!-- left: code editor panel -->
-  <rect x="0" y="44" width="500" height="556" fill="#FFFFFF"/>
-  <g font-family="'SF Mono', Menlo, monospace" font-size="13" fill="#c3bac6">
-    <text x="22" y="80">1</text><text x="22" y="104">2</text><text x="22" y="128">3</text>
-    <text x="22" y="152">4</text><text x="22" y="176">5</text><text x="22" y="200">6</text>
-    <text x="22" y="224">7</text><text x="22" y="248">8</text><text x="22" y="272">9</text>
-    <text x="18" y="296">10</text><text x="18" y="320">11</text>
-  </g>
-  <g font-family="'SF Mono', Menlo, monospace" font-size="13.5">
-    <text x="50" y="80"><tspan fill="#B98FC9">&lt;section</tspan><tspan fill="#241B2E"> class=</tspan><tspan fill="#5B3A73">"hero"</tspan><tspan fill="#B98FC9">&gt;</tspan></text>
-    <text x="70" y="104"><tspan fill="#B98FC9">&lt;h1&gt;</tspan><tspan fill="#241B2E">Boutique hair salon</tspan></text>
-    <text x="70" y="128"><tspan fill="#241B2E">in Marlbury</tspan><tspan fill="#B98FC9">&lt;/h1&gt;</tspan></text>
-    <text x="70" y="152"><tspan fill="#B98FC9">&lt;p&gt;</tspan><tspan fill="#7a6d81">Book your appointment</tspan></text>
-    <text x="70" y="176"><tspan fill="#7a6d81">in seconds</tspan><tspan fill="#B98FC9">&lt;/p&gt;</tspan></text>
-    <text x="50" y="200"><tspan fill="#B98FC9">&lt;/section&gt;</tspan></text>
-    <text x="50" y="248"><tspan fill="#5B3A73">.hero{</tspan></text>
-    <text x="70" y="272"><tspan fill="#8a5f9e">background</tspan><tspan fill="#241B2E">: </tspan><tspan fill="#5B3A73">var(--accent)</tspan><tspan fill="#241B2E">;</tspan></text>
-    <text x="70" y="296"><tspan fill="#8a5f9e">border-radius</tspan><tspan fill="#241B2E">: </tspan><tspan fill="#5B3A73">24px</tspan><tspan fill="#241B2E">;</tspan></text>
-    <text x="50" y="320"><tspan fill="#5B3A73">}</tspan></text>
-  </g>
-  <rect x="50" y="336" width="140" height="14" rx="3" fill="#F0EAF3">
-    <animate attributeName="opacity" values="1;0.3;1" dur="1.4s" repeatCount="indefinite"/>
-  </rect>
+  <!-- business owner chip -->
+  <circle cx="196" cy="238" r="26" fill="#F2ECF6" stroke="#B98FC9" stroke-width="2"/>
+  <circle cx="196" cy="230" r="9" fill="#5B3A73"/>
+  <path d="M181 254c3-9 9-13 15-13s12 4 15 13" fill="#5B3A73"/>
+  <rect x="238" y="224" width="150" height="12" rx="6" fill="#241B2E" opacity=".78"/>
+  <rect x="238" y="246" width="98" height="10" rx="5" fill="#241B2E" opacity=".26"/>
 
-  <!-- right panel: AI assistant chat -->
-  <rect x="524" y="68" width="252" height="464" rx="16" fill="#FFFFFF" stroke="#E7DED2"/>
-  <text x="546" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#241B2E">Aesthetic Intelligence</text>
-  <circle cx="756" cy="95" r="4" fill="#7fb37a"/>
+  <!-- completed field -->
+  <rect x="180" y="298" width="440" height="46" rx="14" fill="#FBF8F4" stroke="#E7DED2" stroke-width="2"/>
+  <rect x="200" y="315" width="176" height="12" rx="6" fill="#241B2E" opacity=".34"/>
 
-  <!-- user message -->
-  <rect x="586" y="124" width="164" height="50" rx="12" fill="#F7F2EC"/>
-  <text x="602" y="144" font-family="Manrope, sans-serif" font-size="11" fill="#241B2E">Build me a modern</text>
-  <text x="602" y="160" font-family="Manrope, sans-serif" font-size="11" fill="#241B2E">salon website</text>
+  <!-- active, glowing field with caret -->
+  <rect x="172" y="356" width="456" height="62" rx="18" fill="url(#s1field)"/>
+  <rect x="180" y="364" width="440" height="46" rx="14" fill="#FFFFFF" stroke="url(#s1acc)" stroke-width="2.5"/>
+  <rect x="200" y="381" width="118" height="12" rx="6" fill="#5B3A73" opacity=".85"/>
+  <rect x="326" y="374" width="2.5" height="26" rx="1.25" fill="#5B3A73"/>
 
-  <!-- AI response bubble -->
-  <rect x="546" y="190" width="204" height="112" rx="12" fill="url(#accentGrad)"/>
-  <text x="564" y="214" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">On it — drafting your</text>
-  <text x="564" y="230" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">hero, services and</text>
-  <text x="564" y="246" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#fff">booking flow now.</text>
-  <rect x="564" y="264" width="168" height="8" rx="4" fill="rgba(255,255,255,.4)"/>
-  <rect x="564" y="278" width="110" height="8" rx="4" fill="rgba(255,255,255,.4)"/>
+  <!-- submit -->
+  <rect x="452" y="436" width="168" height="44" rx="22" fill="url(#s1acc)"/>
+  <rect x="486" y="453" width="100" height="10" rx="5" fill="#FFFFFF" opacity=".92"/>
 
-  <!-- typing indicator -->
-  <g>
-    <circle cx="564" cy="324" r="4" fill="#5B3A73"><animate attributeName="opacity" values="1;.25;1" dur="1s" repeatCount="indefinite"/></circle>
-    <circle cx="580" cy="324" r="4" fill="#5B3A73"><animate attributeName="opacity" values="1;.25;1" dur="1s" begin="0.2s" repeatCount="indefinite"/></circle>
-    <circle cx="596" cy="324" r="4" fill="#5B3A73"><animate attributeName="opacity" values="1;.25;1" dur="1s" begin="0.4s" repeatCount="indefinite"/></circle>
-  </g>
-
-  <!-- small live preview thumbnail inside the panel -->
-  <rect x="546" y="348" width="204" height="146" rx="10" fill="#F7F2EC" stroke="#E7DED2"/>
-  <rect x="546" y="348" width="204" height="26" rx="10" fill="#FFFFFF"/>
-  <circle cx="560" cy="361" r="3" fill="#e9b0a0"/>
-  <circle cx="572" cy="361" r="3" fill="#e9d19c"/>
-  <circle cx="584" cy="361" r="3" fill="#a8c9a0"/>
-  <rect x="564" y="388" width="80" height="10" rx="2" fill="#241B2E"/>
-  <rect x="564" y="406" width="140" height="6" rx="2" fill="#8a7f8f"/>
-  <rect x="564" y="420" width="110" height="6" rx="2" fill="#8a7f8f"/>
-  <rect x="564" y="442" width="70" height="24" rx="12" fill="url(#accentGrad)"/>
-
-  <text x="546" y="524" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a7f8f">Every line finished and checked by a real designer.</text>
+  <!-- pointer -->
+  <path d="M604 402l0 44 12-13 9 19 11-5-9-19 18-2z" fill="#241B2E" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
 </svg>

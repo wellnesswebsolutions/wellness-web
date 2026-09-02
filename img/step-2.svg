@@ -1,68 +1,48 @@
-<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A personalised website preview appearing in a browser window">
   <defs>
-    <linearGradient id="accentGrad2" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#5B3A73"/>
-      <stop offset="100%" stop-color="#B98FC9"/>
+    <linearGradient id="s2acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5B3A73"/><stop offset="100%" stop-color="#B98FC9"/>
+    </linearGradient>
+    <radialGradient id="s2glow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#B98FC9" stop-opacity=".38"/>
+      <stop offset="100%" stop-color="#B98FC9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="s2hero" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5B3A73" stop-opacity=".92"/><stop offset="100%" stop-color="#B98FC9" stop-opacity=".72"/>
     </linearGradient>
   </defs>
 
   <rect width="800" height="600" fill="#F7F2EC"/>
+  <ellipse cx="400" cy="280" rx="330" ry="250" fill="url(#s2glow)"/>
 
-  <!-- window chrome -->
-  <rect x="0" y="0" width="800" height="44" fill="#FFFFFF"/>
-  <line x1="0" y1="44" x2="800" y2="44" stroke="#E7DED2" stroke-width="1"/>
-  <circle cx="26" cy="22" r="6" fill="#e9b0a0"/>
-  <circle cx="46" cy="22" r="6" fill="#e9d19c"/>
-  <circle cx="66" cy="22" r="6" fill="#a8c9a0"/>
-  <rect x="290" y="12" width="220" height="20" rx="10" fill="#F7F2EC"/>
-  <text x="400" y="26" font-family="Manrope, sans-serif" font-size="11" fill="#7a6d81" text-anchor="middle">dashboard.aestheticintelligence.co.uk</text>
+  <!-- browser -->
+  <rect x="120" y="96" width="560" height="368" rx="24" fill="#FFFFFF" stroke="#E7DED2" stroke-width="2"/>
+  <circle cx="158" cy="136" r="6" fill="#E7DED2"/><circle cx="180" cy="136" r="6" fill="#E7DED2"/><circle cx="202" cy="136" r="6" fill="#E7DED2"/>
+  <rect x="232" y="126" width="300" height="20" rx="10" fill="#F7F2EC"/>
+  <line x1="120" y1="168" x2="680" y2="168" stroke="#E7DED2" stroke-width="2"/>
 
-  <!-- left nav -->
-  <rect x="0" y="44" width="180" height="556" fill="#FFFFFF"/>
-  <line x1="180" y1="44" x2="180" y2="600" stroke="#E7DED2" stroke-width="1"/>
-  <text x="26" y="84" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#241B2E">Your website</text>
-  <g font-family="Manrope, sans-serif" font-size="12" fill="#7a6d81">
-    <rect x="16" y="106" width="148" height="34" rx="8" fill="#F7F2EC"/>
-    <text x="30" y="127" fill="#5B3A73" font-weight="700">Overview</text>
-    <text x="30" y="167">Hosting</text>
-    <text x="30" y="203">SEO</text>
-    <text x="30" y="239">Content</text>
-    <text x="30" y="275">Bookings</text>
-  </g>
+  <!-- rendered hero band -->
+  <path d="M120 168h560v128H120z" fill="url(#s2hero)"/>
+  <rect x="156" y="200" width="150" height="11" rx="5.5" fill="#FFFFFF" opacity=".62"/>
+  <rect x="156" y="224" width="236" height="18" rx="9" fill="#FFFFFF" opacity=".95"/>
+  <rect x="156" y="256" width="104" height="22" rx="11" fill="#FFFFFF"/>
 
-  <!-- hosting status card -->
-  <rect x="200" y="72" width="270" height="130" rx="14" fill="#FFFFFF" stroke="#E7DED2"/>
-  <text x="222" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#241B2E">Hosting status</text>
-  <circle cx="222" cy="122" r="5" fill="#7fb37a"/>
-  <text x="236" y="126" font-family="Manrope, sans-serif" font-size="12" fill="#241B2E">Live — 100% uptime</text>
-  <text x="222" y="152" font-family="Manrope, sans-serif" font-size="11" fill="#8a7f8f">SSL secured</text>
-  <text x="222" y="172" font-family="Manrope, sans-serif" font-size="11" fill="#8a7f8f">Auto-backed up daily</text>
+  <!-- content cards -->
+  <rect x="156" y="322" width="152" height="102" rx="14" fill="#FBF8F4" stroke="#E7DED2" stroke-width="2"/>
+  <rect x="324" y="322" width="152" height="102" rx="14" fill="#FBF8F4" stroke="#E7DED2" stroke-width="2"/>
+  <rect x="492" y="322" width="152" height="102" rx="14" fill="#FBF8F4" stroke="#E7DED2" stroke-width="2"/>
+  <rect x="176" y="344" width="76" height="9" rx="4.5" fill="#241B2E" opacity=".3"/>
+  <rect x="176" y="364" width="112" height="8" rx="4" fill="#241B2E" opacity=".16"/>
+  <rect x="344" y="344" width="76" height="9" rx="4.5" fill="#241B2E" opacity=".3"/>
+  <rect x="344" y="364" width="112" height="8" rx="4" fill="#241B2E" opacity=".16"/>
+  <rect x="512" y="344" width="76" height="9" rx="4.5" fill="#241B2E" opacity=".3"/>
+  <rect x="512" y="364" width="112" height="8" rx="4" fill="#241B2E" opacity=".16"/>
 
-  <!-- SEO card -->
-  <rect x="490" y="72" width="290" height="130" rx="14" fill="#FFFFFF" stroke="#E7DED2"/>
-  <text x="512" y="100" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#241B2E">SEO ranking</text>
-  <text x="512" y="150" font-family="Manrope, sans-serif" font-size="30" font-weight="700" fill="url(#accentGrad2)">#2</text>
-  <text x="560" y="150" font-family="Manrope, sans-serif" font-size="11" fill="#8a7f8f">on Google for</text>
-  <text x="560" y="164" font-family="Manrope, sans-serif" font-size="11" fill="#8a7f8f">"hair salon Marlbury"</text>
-  <path d="M512 178 l14 -10 l10 6 l16 -14" stroke="#7fb37a" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- laptop base -->
+  <path d="M92 464h616l30 40H62z" fill="#FFFFFF" stroke="#E7DED2" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="352" y="476" width="96" height="8" rx="4" fill="#E7DED2"/>
 
-  <!-- traffic graph -->
-  <rect x="200" y="220" width="580" height="220" rx="14" fill="#FFFFFF" stroke="#E7DED2"/>
-  <text x="222" y="250" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#241B2E">Site visits — last 6 months</text>
-  <polyline points="222,400 300,380 380,360 460,320 540,270 620,240 700,208 758,190"
-            fill="none" stroke="url(#accentGrad2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <polygon points="222,400 300,380 380,360 460,320 540,270 620,240 700,208 758,190 758,420 222,420" fill="url(#accentGrad2)" opacity="0.10"/>
-  <g fill="#8a7f8f" font-family="Manrope, sans-serif" font-size="10">
-    <text x="222" y="434">Mar</text><text x="330" y="434">Apr</text><text x="438" y="434">May</text>
-    <text x="546" y="434">Jun</text><text x="654" y="434">Jul</text><text x="740" y="434">Aug</text>
-  </g>
-
-  <!-- update pill -->
-  <rect x="200" y="466" width="580" height="60" rx="14" fill="#FFFFFF" stroke="#E7DED2"/>
-  <circle cx="228" cy="496" r="5" fill="#7fb37a"><animate attributeName="opacity" values="1;.3;1" dur="1.4s" repeatCount="indefinite"/></circle>
-  <text x="244" y="500" font-family="Manrope, sans-serif" font-size="12" fill="#241B2E">New opening hours published — live in 8 seconds</text>
-  <rect x="660" y="480" width="100" height="30" rx="15" fill="url(#accentGrad2)"/>
-  <text x="710" y="500" font-family="Manrope, sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">Managed</text>
-
-  <text x="200" y="560" font-family="Manrope, sans-serif" font-size="10.5" fill="#8a7f8f">Hosting, updates and SEO — handled for you, every day.</text>
+  <!-- "appearing" sparkles -->
+  <path d="M690 150l7 19 19 7-19 7-7 19-7-19-19-7 19-7z" fill="url(#s2acc)"/>
+  <path d="M126 400l5 13 13 5-13 5-5 13-5-13-13-5 13-5z" fill="#B98FC9" opacity=".85"/>
 </svg>
