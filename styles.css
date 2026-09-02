@@ -973,3 +973,9 @@ html,body{max-width:100%;}
 @keyframes cx-dot-breathe{0%,100%{filter:brightness(.95);box-shadow:0 0 0 3px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 18%,transparent),0 0 12px 4px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 55%,transparent),0 0 24px 7px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 25%,transparent)}50%{filter:brightness(1.2);box-shadow:0 0 0 4px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 22%,transparent),0 0 16px 6px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 75%,transparent),0 0 34px 11px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 38%,transparent)}}
 @media(max-width:760px){.cx-dot{top:-15px;width:9px;height:9px;}}
 @media(prefers-reduced-motion:reduce){.cx-dot{animation:none!important;transition:none;}}
+
+
+/* Keep the prompt hidden after a business name has been entered. The native
+   :valid state persists the value on mobile even if focus moves to the arrow. */
+.qa-field:has(input:valid) .qa-ph{opacity:0!important;transform:translateY(calc(-50% - 5px));}
+.qa-field:has(input:valid) input{opacity:1!important;}
