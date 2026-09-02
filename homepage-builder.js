@@ -503,6 +503,14 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify({ business_name, details, created_at: new Date().toISOString() })
     });
     if (!res.ok) throw new Error(await res.text());
+
+    // best-effort email notification — don't let a failure here block the
+    // lead capture itself, which already succeeded above
+    fetch('/api/notify-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ business_name, details })
+    }).catch(() => {});
   }
 
   const designerWhatsAppNumber = '447535928879';
