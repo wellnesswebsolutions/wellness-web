@@ -1027,3 +1027,42 @@ html,body{max-width:100%;}
   .qa-field .qa-ph{pointer-events:none!important;z-index:31;}
   .qa-field:focus-within .qa-ph,.qa-field:has(input:valid) .qa-ph{opacity:0!important;}
 }
+
+
+/* ── definitive mobile interaction reset ─────────────────────────────── */
+@media(max-width:820px){
+  html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:visible!important;}
+  body{position:static!important;touch-action:auto!important;}
+
+  /* Use a plain native text field on phones. The decorative prompt is removed
+     and the same wording is supplied by the input's real placeholder. */
+  #qaFieldName .qa-ph{display:none!important;}
+  #qaFieldName,#qaSlideName{pointer-events:auto!important;touch-action:auto!important;}
+  #bizName{
+    display:block!important;position:relative!important;z-index:100!important;
+    width:100%!important;min-height:52px!important;opacity:1!important;
+    pointer-events:auto!important;touch-action:auto!important;
+    -webkit-appearance:none!important;appearance:none!important;
+    -webkit-user-select:text!important;user-select:text!important;
+    color:var(--ink)!important;background:transparent!important;
+  }
+  #bizName::placeholder{opacity:1;color:var(--muted);}
+  #bizName:focus::placeholder{opacity:0;}
+
+  /* Carousel may animate automatically, but it must never own vertical touch
+     gestures or create a horizontal scrolling surface. */
+  #showcase,.cx,.cx-stage,.cx-item{touch-action:pan-y!important;}
+  .cx-shot iframe,.cx-hit{touch-action:pan-y!important;}
+}
+
+/* Simple cross-browser glow dot. Avoid color-mix(), which disappears on some
+   older Safari versions. The CSS variable still gives every site its colour. */
+.cx-dot{
+  display:block!important;top:-17px!important;width:11px!important;height:11px!important;
+  background:var(--cx-hero-colour,#3B82F6)!important;
+  border:2px solid rgba(255,255,255,.92)!important;
+  box-shadow:0 0 8px var(--cx-hero-colour,#3B82F6),0 0 20px var(--cx-hero-colour,#3B82F6)!important;
+  filter:none!important;
+}
+.cx-item[data-pos="0"] .cx-dot{opacity:1!important;}
+.cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{opacity:.45!important;}
