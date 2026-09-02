@@ -902,13 +902,15 @@ Instagram: ${instagram || 'Not provided'}`;
   var root  = document.getElementById('cx');
   if (!stage) return;
 
+  // The six live builds from the Our work page — real homepages, rendered in
+  // the card rather than a mocked-up screenshot.
   var DESIGNS = [
-    { label:'Salon',        name:'Bella Hair',      kicker:'Hair salon · Beverley',   cta:'Book now',      url:'bellahair.co.uk',       img:'img/hero-logo-ready/hair-beauty.webp' },
-    { label:'Café',         name:'The Bakehouse',   kicker:'Coffee & bakery · Hull',  cta:'See menu',      url:'thebakehouse.co.uk',    img:'img/hero-logo-ready/food-drink.webp' },
-    { label:'Builder',      name:'Marsh & Son',     kicker:'Builders · East Yorks',   cta:'Get a quote',   url:'marshandson.co.uk',     img:'img/hero-logo-ready/trades.webp' },
-    { label:'Fitness',      name:'Iron Works',      kicker:'Gym & training · Hull',   cta:'Start today',   url:'ironworksgym.co.uk',    img:'img/hero-logo-ready/fitness.webp' },
-    { label:'Photographer', name:'Studio Fern',     kicker:'Photography · Beverley',  cta:'View work',     url:'studiofern.co.uk',      img:'img/hero-logo-ready/creative.webp' },
-    { label:'Garden design',name:'Wilder Gardens',  kicker:'Landscaping · Beverley',  cta:'Get a quote',   url:'wildergardens.co.uk',   img:'img/hero-logo-ready/home-garden.webp' }
+    { label:'Hairdressing',  name:'SISK\u014c Hairdressing',    url:'sisko-hairdressing.vercel.app' },
+    { label:'Car valeting',  name:'Kings Valeting Hull',       url:'kings-valeting-hull.vercel.app' },
+    { label:'Hair & beauty', name:'De Lacy',                   url:'de-lacy.vercel.app' },
+    { label:'Hair & beauty', name:'Muse.',                     url:'muse-hull-deploy.vercel.app' },
+    { label:'Garden care',   name:'MGS Beverley',              url:'mgs-beverley.vercel.app' },
+    { label:'Electrician',   name:'Brian Griffin Electrical',  url:'brian-griffin-electrical.vercel.app' }
   ];
 
   DESIGNS.forEach(function(d, i){
@@ -917,13 +919,13 @@ Instagram: ${instagram || 'Not provided'}`;
     el.innerHTML =
       '<div class="cx-win">' +
         '<div class="cx-bar"><i></i><i></i><i></i><span>' + d.url + '</span></div>' +
-        '<div class="cx-shot" style="background-image:url(' + d.img + ')">' +
-          '<div class="cx-nav"><b>' + d.name + '</b><em><i></i><i></i><i></i></em></div>' +
-          '<div class="cx-copy"><small>' + d.kicker + '</small><strong>' + d.name + '</strong><u>' + d.cta + '</u></div>' +
+        '<div class="cx-shot">' +
+          '<iframe data-src="https://' + d.url + '" title="' + d.name + ' homepage preview" ' +
+                  'sandbox="allow-scripts allow-same-origin" scrolling="no" tabindex="-1" loading="lazy"></iframe>' +
+          '<a class="cx-hit" href="https://' + d.url + '" target="_blank" rel="noopener" aria-label="Open the ' + d.name + ' site"></a>' +
         '</div>' +
-        '<div class="cx-body"><div></div><div></div><div></div></div>' +
       '</div>' +
-      '<div class="cx-label">' + d.label + '</div>';
+      '<div class="cx-label">' + d.name + '</div>';
     stage.appendChild(el);
 
     var b = document.createElement('button');
@@ -987,6 +989,17 @@ Instagram: ${instagram || 'Not provided'}`;
 
   place();
   start();
+
+  // Six cross-origin documents are expensive, so hold them until the carousel
+  // is close to the viewport, then load them all (they swap in and out fast).
+  var pending=[].slice.call(stage.querySelectorAll('iframe[data-src]'));
+  function loadFrames(){ pending.forEach(function(f){ f.src=f.dataset.src; delete f.dataset.src; }); pending=[]; }
+  if('IntersectionObserver' in window){
+    var fio=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ loadFrames(); fio.disconnect(); } });
+    },{rootMargin:'500px'});
+    fio.observe(root);
+  } else { loadFrames(); }
 })();
 </script>
 </body>
