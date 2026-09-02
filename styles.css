@@ -820,9 +820,11 @@
 
 
   @media(max-width:760px){
-    .cx-stage{width:min(300px,64vw)}
-    .cx-item[data-pos="-1"]{transform:translateX(-46%) scale(.7)}
-    .cx-item[data-pos="1"]{transform:translateX(46%) scale(.7)}
+    /* a narrower centre card and a wider push leaves a real, visible sliver of
+       each neighbour on a phone instead of a hairline at the screen edge */
+    .cx-stage{width:min(260px,56vw)}
+    .cx-item[data-pos="-1"]{transform:translateX(-64%) scale(.72);opacity:.62}
+    .cx-item[data-pos="1"]{transform:translateX(64%) scale(.72);opacity:.62}
   }
   @media(prefers-reduced-motion:reduce){
     .cx-item{transition:none}
