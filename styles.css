@@ -705,8 +705,6 @@
   .two-up{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(18px,2.4vw,30px)}
   @media(max-width:820px){.two-up{grid-template-columns:1fr;max-width:460px;margin:0 auto}}
   .sec-cta{text-align:center;margin-top:clamp(20px,3vw,30px)}
-  .founder-sign{margin-top:12px;font-weight:700;color:var(--accent)}
-  section.tint{background:linear-gradient(180deg,rgba(185,143,201,.10),rgba(247,242,236,0))}
 
   /* the final call to action reuses .band, centred */
   #final-cta .band{text-align:center}
