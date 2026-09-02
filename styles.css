@@ -863,15 +863,6 @@ html,body{max-width:100%;}
 .cx-item[data-pos="0"] .cx-dot{opacity:1;}
 .cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{opacity:.48;transform:translateX(-50%) scale(.8);}
 
-/* The carousel's own drag/pointer handling and touch-action:pan-y have
-   been the recurring suspect behind reports of the page scroll locking up
-   on phones. Rather than keep chasing it, drop the section from mobile
-   entirely — it's a nice-to-have showcase, not core content, and the six
-   live-site links are still reachable from the Our Work page. */
-@media(max-width:820px){
-  #showcase{display:none!important;}
-}
-
 @media(max-width:820px){
   html{overflow-x:hidden;overflow-y:auto;}
   body{overflow-x:hidden;overflow-y:visible;position:static;}
