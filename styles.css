@@ -795,7 +795,7 @@
       padding:0 0 clamp(16px,2.4vw,26px)}
   .cx-stage{position:relative;width:min(560px,72vw);margin:0 auto;aspect-ratio:16/10}
   .cx-item{position:absolute;inset:0;margin:auto;will-change:transform,opacity;
-    transition:transform 1.12s cubic-bezier(.4,0,.2,1), opacity .9s ease;
+    transition:transform 1.72s cubic-bezier(.4,0,.2,1), opacity 1.4s ease;
     backface-visibility:hidden}
   .cx-item[data-pos="0"]{transform:translateX(0) scale(1);opacity:1;z-index:3}
   .cx-item[data-pos="-1"]{transform:translateX(-50%) scale(.74);opacity:.5;z-index:2}
@@ -856,20 +856,20 @@ html,body{max-width:100%}
   border:2px solid rgba(255,255,255,.95);
   box-shadow:0 0 8px var(--cx-hero-colour,#3B82F6),0 0 18px var(--cx-hero-colour,#3B82F6);
   opacity:0;pointer-events:none;
-  transition:opacity .9s ease,transform 1.12s cubic-bezier(.4,0,.2,1)
+  transition:opacity 1.4s ease,transform 1.72s cubic-bezier(.4,0,.2,1)
 }
 .cx-item[data-pos="0"] .cx-dot{opacity:1}
 .cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{
   opacity:.48;transform:translateX(-50%) scale(.8)
 }
 
-/* The 1.2s drift fills the tiny gap between carousel translations, keeping
+/* The 1.8s drift fills the tiny gap between carousel translations, keeping
    the centre design visibly alive without making the page hard to read. */
 @keyframes cx-centre-drift{
   from{transform:translate3d(0,2px,0) scale(.997)}
   to{transform:translate3d(0,-2px,0) scale(1.003)}
 }
-.cx-item[data-pos="0"] .cx-float{animation:cx-centre-drift 1.2s linear infinite}
+.cx-item[data-pos="0"] .cx-float{animation:cx-centre-drift 1.8s linear infinite}
 
 @media(max-width:820px){
   html.nav-open,body.nav-open{overflow:hidden}

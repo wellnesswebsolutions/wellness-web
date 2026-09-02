@@ -1,12 +1,12 @@
 /* Six-site homepage carousel. The card transition lasts almost the full
-   1.2-second cycle, while the active card has a subtle inner drift, so the
+   1.8-second cycle, while the active card has a subtle inner drift, so the
    presentation keeps moving instead of stopping between designs. */
 (() => {
   const root = document.getElementById('cx');
   const stage = document.getElementById('cxStage');
   if (!root || !stage) return;
 
-  const AUTOPLAY_MS = 1200;
+  const AUTOPLAY_MS = 1800;
   const VISIBLE_POSITIONS = new Set([-1, 0, 1]);
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;

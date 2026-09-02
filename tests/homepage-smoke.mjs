@@ -64,9 +64,9 @@ async function runHomepageFlow(label, contextOptions, mobile) {
 
   await page.locator('#cx').scrollIntoViewIfNeeded();
   const firstCarouselIndex = await page.locator('#cx').getAttribute('data-active');
-  await page.waitForTimeout(1350);
+  await page.waitForTimeout(1950);
   const nextCarouselIndex = await page.locator('#cx').getAttribute('data-active');
-  assert.notEqual(nextCarouselIndex, firstCarouselIndex, `${label}: carousel should advance every 1.2s`);
+  assert.notEqual(nextCarouselIndex, firstCarouselIndex, `${label}: carousel should advance every 1.8s`);
 
   const activeCardMotion = await page.locator('.cx-item[data-pos="0"] .cx-float').evaluate((element) => (
     getComputedStyle(element).animationName
