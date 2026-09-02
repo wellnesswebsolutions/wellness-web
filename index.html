@@ -368,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
       uploadedHeroImage = await HeroBrandCompositor.render({
         category: bizTagline.value,
         businessName: name,
+        location: loc,
         output: 'dataURL'
       });
     } catch (error) {
