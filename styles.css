@@ -979,3 +979,14 @@ html,body{max-width:100%;}
    :valid state persists the value on mobile even if focus moves to the arrow. */
 .qa-field:has(input:valid) .qa-ph{opacity:0!important;transform:translateY(calc(-50% - 5px));}
 .qa-field:has(input:valid) input{opacity:1!important;}
+
+
+/* Mobile hero positioning: lower the complete conversational form so the
+   input sits closer to the visual centre below the fixed header. */
+@media(max-width:820px){
+  .hero-conv{padding-top:0!important;}
+  .hero-conv-wrap{transform:translateY(34px);}
+}
+@media(max-width:420px){
+  .hero-conv-wrap{transform:translateY(40px);}
+}
