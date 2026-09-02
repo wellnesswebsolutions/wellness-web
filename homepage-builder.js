@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const creatingVerb = document.getElementById('creatingVerb');
   const creatingName = document.getElementById('creatingName');
   const creatingSub = document.getElementById('creatingSub');
+  const creatingProgress = document.getElementById('creatingProgress');
 
   let selectedTones = null;
   let uploadedHeroImage = null;
@@ -172,41 +173,47 @@ document.addEventListener('DOMContentLoaded', () => {
     opt.textContent = t.label;
     bizTagline.appendChild(opt);
   });
-  // a short, personalised "building your website" transition — business
-  // name is the visual anchor, cycling through 4 short beats.
+  // A quick, polished build transition. The customer's business name stays
+  // fixed while the supporting copy and progress line move smoothly.
   const CREATING_STEPS = [
-    { verb: 'Designing', sub: 'your new website' },
-    { verb: 'Creating', sub: 'your online presence' },
-    { verb: 'Personalising', sub: 'your experience' },
-    { verb: '', sub: 'your website is ready' }
+    { verb: 'Choosing your style', sub: 'matching your business', progress: 22 },
+    { verb: 'Building your homepage', sub: 'adding your content', progress: 58 },
+    { verb: 'Finishing the details', sub: 'optimising every screen', progress: 84 },
+    { verb: 'Ready', sub: 'your preview is complete', progress: 100 }
   ];
   function swapText(el, text) {
-    el.style.opacity = 0;
-    setTimeout(() => { el.textContent = text; el.style.opacity = 1; }, 180);
+    el.classList.add('is-swapping');
+    setTimeout(() => {
+      el.textContent = text;
+      el.classList.remove('is-swapping');
+    }, 130);
   }
   function runCreatingAnimation(name) {
     return new Promise((resolve) => {
       creatingName.textContent = name;
+      creatingProgress.style.width = '6%';
+      creatingOverlay.classList.remove('final');
       creatingOverlay.setAttribute('aria-hidden', 'false');
-      creatingOverlay.classList.add('active');
+      requestAnimationFrame(() => creatingOverlay.classList.add('active'));
       let i = 0;
       function step() {
-        const s = CREATING_STEPS[i];
-        swapText(creatingVerb, s.verb);
-        swapText(creatingSub, s.sub);
+        const currentStep = CREATING_STEPS[i];
+        swapText(creatingVerb, currentStep.verb);
+        swapText(creatingSub, currentStep.sub);
+        creatingProgress.style.width = currentStep.progress + '%';
         creatingOverlay.classList.toggle('final', i === CREATING_STEPS.length - 1);
         i++;
         if (i < CREATING_STEPS.length) {
-          setTimeout(step, 700);
+          setTimeout(step, 540);
         } else {
           setTimeout(() => {
             creatingOverlay.classList.remove('active');
             creatingOverlay.setAttribute('aria-hidden', 'true');
             resolve();
-          }, 750);
+          }, 620);
         }
       }
-      step();
+      setTimeout(step, 80);
     });
   }
 

@@ -650,23 +650,39 @@
     .builder-bar .qa-go{width:44px;height:44px;padding:0;margin-right:0;font-size:18px;touch-action:manipulation}
   }
 
-  /* personalised "building your website" transition, business name as anchor */
+  /* personalised website-build transition */
   .creating-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(110% 90% at 50% 12%,#70A7FF 0%,#3B82F6 48%,#235FC7 100%);
-    opacity:0;pointer-events:none;transition:opacity .5s ease}
+    overflow:hidden;background:radial-gradient(110% 90% at 50% 8%,#74AAFF 0%,#3B82F6 47%,#2059BE 100%);
+    opacity:0;pointer-events:none;transition:opacity .42s cubic-bezier(.22,.7,.3,1)}
+  .creating-overlay:before{content:"";position:absolute;inset:-20%;background:
+    radial-gradient(circle at 25% 30%,rgba(255,255,255,.14),transparent 30%),
+    radial-gradient(circle at 75% 70%,rgba(255,255,255,.1),transparent 32%);
+    transform:scale(1.08);transition:transform 2.7s ease}
   .creating-overlay.active{opacity:1;pointer-events:auto}
-  .creating-inner{text-align:center;padding:0 24px;max-width:90vw}
-  .creating-logo{display:block;width:min(250px,62vw);height:auto;margin:0 auto 34px;
-    filter:brightness(0) invert(1);opacity:.98;}
-  .creating-verb{font-family:var(--body);font-size:clamp(12px,1.6vw,14px);font-weight:700;letter-spacing:.32em;
-    text-transform:uppercase;color:rgba(255,255,255,.78);margin-bottom:18px;min-height:1.2em;transition:opacity .18s ease}
-  .creating-name{font-family:var(--display);font-size:clamp(28px,6vw,60px);font-weight:600;color:#fff;
-    letter-spacing:-.01em;line-height:1.1;margin-bottom:18px;word-break:break-word;
-    text-shadow:0 0 34px rgba(255,255,255,.38),0 0 80px rgba(255,255,255,.2);transition:opacity .18s ease}
-  .creating-overlay.final .creating-name{text-shadow:0 0 46px rgba(255,255,255,.55),0 0 100px rgba(255,255,255,.3)}
-  .creating-sub{font-family:var(--body);font-size:clamp(12px,1.6vw,15px);font-weight:600;letter-spacing:.24em;
-    text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1.2em;transition:opacity .18s ease}
-  @media(prefers-reduced-motion:reduce){.creating-overlay,.creating-verb,.creating-name,.creating-sub{transition:none}}
+  .creating-overlay.active:before{transform:scale(1)}
+  .creating-inner{position:relative;text-align:center;padding:0 24px;width:min(560px,90vw);
+    opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .55s cubic-bezier(.22,.7,.3,1)}
+  .creating-overlay.active .creating-inner{opacity:1;transform:translateY(0)}
+  .creating-logo{display:block;width:min(220px,58vw);height:auto;margin:0 auto 38px;
+    filter:brightness(0) invert(1);opacity:.96}
+  .creating-verb{font-family:var(--body);font-size:clamp(11px,1.5vw,13px);font-weight:750;letter-spacing:.28em;
+    text-transform:uppercase;color:rgba(255,255,255,.76);margin-bottom:16px;min-height:1.25em;
+    transform:translateY(0);transition:opacity .13s ease,transform .13s ease}
+  .creating-name{font-family:var(--display);font-size:clamp(31px,6vw,62px);font-weight:650;color:#fff;
+    letter-spacing:-.025em;line-height:1.06;margin-bottom:16px;word-break:break-word;
+    text-shadow:0 0 34px rgba(255,255,255,.28);transition:text-shadow .35s ease}
+  .creating-overlay.final .creating-name{text-shadow:0 0 44px rgba(255,255,255,.5),0 0 90px rgba(255,255,255,.22)}
+  .creating-sub{font-family:var(--body);font-size:clamp(11px,1.5vw,14px);font-weight:600;letter-spacing:.2em;
+    text-transform:uppercase;color:rgba(255,255,255,.58);min-height:1.25em;
+    transform:translateY(0);transition:opacity .13s ease,transform .13s ease}
+  .creating-verb.is-swapping,.creating-sub.is-swapping{opacity:0;transform:translateY(5px)}
+  .creating-progress{width:min(360px,72vw);height:3px;margin:30px auto 0;border-radius:999px;
+    overflow:hidden;background:rgba(255,255,255,.2)}
+  .creating-progress span{display:block;width:6%;height:100%;border-radius:inherit;background:#fff;
+    box-shadow:0 0 15px rgba(255,255,255,.62);transition:width .5s cubic-bezier(.22,.7,.3,1)}
+  @media(prefers-reduced-motion:reduce){
+    .creating-overlay,.creating-overlay:before,.creating-inner,.creating-verb,.creating-name,.creating-sub,.creating-progress span{transition:none}
+  }
 
   /* three cards side by side on desktop with AI in the centre, then stacked
      with AI first on mobile — compact enough at every size to
