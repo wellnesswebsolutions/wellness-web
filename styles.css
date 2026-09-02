@@ -996,3 +996,14 @@ html,body{max-width:100%;}
 .cx{overflow:visible;}
 #showcase{overflow:visible;}
 .cx-dot{display:block;}
+
+
+/* Correct mobile hero position: restore top breathing room and remove the
+   earlier transform that moved the content in the wrong direction. */
+@media(max-width:820px){
+  .hero-conv{padding-top:100px!important;padding-bottom:28px!important;}
+  .hero-conv-wrap{transform:none!important;}
+}
+@media(max-width:420px){
+  .hero-conv{padding-top:108px!important;}
+}
