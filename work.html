@@ -263,53 +263,6 @@
   },{rootMargin:'400px'});
   frames.forEach(function(f){ io.observe(f); });
 
-  /* De Lacy's door intro is scroll-linked: the site maps window.scrollY onto
-     how far the two doors have swung open. Our preview frames set
-     scrolling="no" and never scroll, so scrollY stays 0 and the doors sit
-     shut — the best bit of that build never showed.
-
-     We cannot scroll a cross-origin frame, but we can change its hash, and
-     the site sets scroll-behavior:smooth. So alternating between an anchor at
-     the very top (#door-intro, doors closed) and the section below the stage
-     (#intro, doors fully open) makes them swing open and closed. Same
-     document, so it is a scroll rather than a reload.
-
-     Only runs while the card is actually on screen, and never when the
-     visitor has asked for reduced motion. */
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var doorFrame = frames.filter(function(f){
-    return (f.dataset.src || f.src || '').indexOf('de-lacy') > -1;
-  })[0];
-
-  if (doorFrame && !reduce) {
-    var base = 'https://de-lacy.vercel.app/';
-    var open = false, timer = null;
-
-    function swing(){
-      open = !open;
-      // same-document hash change → smooth scroll inside the frame
-      doorFrame.src = base + (open ? '#intro' : '#door-intro');
-    }
-    function start(){ if (!timer) { timer = setInterval(swing, 3200); setTimeout(swing, 900); } }
-    function stop(){ if (timer) { clearInterval(timer); timer = null; } }
-
-    // Start on load, not on an observer: the frame only loads once it is
-    // already near the viewport, and tying the loop to a second observer
-    // meant a missed callback left the doors shut for good.
-    doorFrame.addEventListener('load', start, { once: true });
-    if (doorFrame.src && !doorFrame.dataset.src) start();
-
-    // Observers are only an optimisation here — pause off-screen, resume on.
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function(entries){
-        entries.forEach(function(e){ e.isIntersecting ? start() : stop(); });
-      },{threshold:0.2}).observe(doorFrame);
-    }
-    // don't keep swinging in a background tab
-    document.addEventListener('visibilitychange', function(){
-      document.hidden ? stop() : start();
-    });
-  }
 })();
 </script>
 </body>
