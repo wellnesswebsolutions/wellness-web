@@ -836,3 +836,65 @@
   @media(prefers-reduced-motion:reduce){
     .cx-item{transition:none}
   }
+
+
+/* ── mobile layout repair ───────────────────────────────────────────────
+   Keep the landing page inside the viewport, make the showcase carousel
+   readable on narrow screens, and ensure fixed builder controls do not
+   create a second horizontal scroll area. */
+html,body{max-width:100%;}
+@media(max-width:760px){
+  html{overflow-x:hidden;}
+  body{overflow-x:hidden;}
+
+  /* Header: keep the brand, CTA and burger on one usable row. */
+  .top{width:100%;min-height:58px;padding:8px 12px;gap:8px;}
+  .top .brand{min-width:0;max-width:48vw;}
+  .top .brand img{max-width:100%;height:19px;width:auto;}
+  .top-right{gap:4px;min-width:0;}
+  .top .cta{min-height:40px;padding:8px 11px;font-size:10px;letter-spacing:.035em;}
+  .burger{width:42px;height:42px;}
+
+  /* The hero must size to its content instead of clipping the form. */
+  .hero-conv{min-height:0;padding:82px 14px 28px;overflow:visible;}
+  .hero-conv-head{width:100%;margin-bottom:18px;}
+  .hero-conv-head h1{font-size:clamp(30px,9vw,42px);line-height:1.04;}
+  .hero-conv-sub{font-size:16px;line-height:1.45;}
+  .wiz-grid,.wiz-left{width:100%;max-width:none;}
+  .qa-box{width:100%;max-width:none;}
+  .qa-slide{min-width:0;}
+  .qa-field{min-width:0;flex:1;}
+  .qa-field input,.qa-field select{width:100%;max-width:100%;}
+
+  /* Show the carousel as a deliberate peek: centre card plus visible side
+     cards, without clipping them at the carousel's own edge. */
+  #showcase{width:100%;margin-top:0;padding:8px 0 34px;overflow:hidden;}
+  #showcase .wrap{width:100%;}
+  #showcase .sec-head{padding:0 18px;margin-bottom:24px;}
+  .cx{width:100%;overflow:visible;padding:0 0 20px;}
+  .cx-stage{width:min(68vw,300px);min-width:220px;aspect-ratio:16/10;}
+  .cx-item[data-pos="-1"]{transform:translateX(-69%) scale(.70);opacity:.58;}
+  .cx-item[data-pos="1"]{transform:translateX(69%) scale(.70);opacity:.58;}
+  .cx-item[data-pos="hidden"]{opacity:0;pointer-events:none;}
+  .cx-win{border-radius:12px;}
+  .cx-bar{padding:6px 8px;}
+  .cx-bar span{font-size:7px;padding:2px 6px;}
+
+  /* Process cards: full-width, comfortable text and no distorted artwork. */
+  .steps3{display:grid;grid-template-columns:1fr;gap:28px;width:100%;}
+  .step3{width:100%;}
+  .step3-img{width:100%;height:auto;aspect-ratio:16/10;max-height:none;}
+  .step3-img img{object-fit:cover;}
+  .step3 p{max-width:34ch;font-size:14px;line-height:1.55;}
+
+  /* Do not let the fixed builder controls exceed the visual viewport. */
+  .builder-topbar{width:100%;max-width:100%;}
+  .builder-preview{width:100%;max-width:100%;}
+  .builder-bar-wrap{width:100%;max-width:100%;}
+  .builder-bar{min-width:0;}
+}
+@media(max-width:380px){
+  .top .cta{font-size:9px;padding-inline:9px;}
+  .hero-conv{padding-inline:12px;}
+  .cx-stage{width:230px;min-width:0;}
+}
