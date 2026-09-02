@@ -91,12 +91,17 @@ async function runHomepageFlow(label, contextOptions, mobile) {
 
   const nameInput = page.locator('#bizName');
   await nameInput.tap();
-  await nameInput.pressSequentially('lucan test salon', { delay: 20 });
-  assert.equal(await nameInput.inputValue(), 'lucan test salon', `${label}: name should stay typed`);
+  const focusedPlaceholderOpacity = await nameInput.evaluate((element) => (
+    getComputedStyle(element, '::placeholder').opacity
+  ));
+  assert.equal(focusedPlaceholderOpacity, '0', `${label}: question text should clear on focus`);
+  await nameInput.pressSequentially('BrightSite Test Studio', { delay: 20 });
+  assert.equal(await nameInput.inputValue(), 'BrightSite Test Studio', `${label}: name should stay typed`);
 
   await page.locator('#qaNameGo').tap();
   await page.locator('#qaSlideType.qa-active').waitFor();
   await page.locator('#qaSlideName[hidden]').waitFor({ state: 'attached' });
+  assert.equal(await nameInput.inputValue(), 'BrightSite Test Studio', `${label}: intentional capitals should remain`);
 
   await page.locator('#bizTagline').selectOption({ label: 'Hair & Beauty' });
   await page.locator('#qaSlideLocation.qa-active').waitFor();

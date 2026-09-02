@@ -148,18 +148,21 @@ document.addEventListener('DOMContentLoaded', () => {
     window.visualViewport.addEventListener('scroll', syncBuilderBarToKeyboard);
   }
 
-  function toTitleCase(value) {
-    return value
-      .trim()
-      .toLowerCase()
-      .replace(/(^|[\s&/\-’'])([a-z])/g, (_, separator, letter) => separator + letter.toUpperCase());
+  function formatBusinessName(value) {
+    const normalised = value.trim().replace(/\s+/g, ' ');
+    if (normalised !== normalised.toLowerCase()) return normalised;
+
+    return normalised.replace(
+      /(^|[\s&/\-’'])([a-z])/g,
+      (_, separator, letter) => separator + letter.toUpperCase()
+    );
   }
 
   // Show capital initials while typing, then store the same properly-cased
   // value so it is also correct in pills, previews and WhatsApp messages.
   bizNameInput.style.textTransform = 'capitalize';
   bizNameInput.addEventListener('blur', () => {
-    bizNameInput.value = toTitleCase(bizNameInput.value);
+    bizNameInput.value = formatBusinessName(bizNameInput.value);
   });
 
   // populate the type dropdown from the shared generator's BUSINESS_TYPES
@@ -345,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = toTitleCase(bizNameInput.value);
+    const name = formatBusinessName(bizNameInput.value);
     if (!name) return;
     bizNameInput.value = name;
 
