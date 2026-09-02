@@ -655,7 +655,7 @@ Instagram: ${instagram || 'Not provided'}`;
               <div class="qa-slide qa-active" id="qaSlideName" data-step="1">
                 <div class="qa-field" id="qaFieldName">
                   <span class="qa-ph">What's your business called?</span>
-                  <input type="text" id="bizName" name="business_name" required autocomplete="organization" autocapitalize="words" aria-label="Business name">
+                  <input type="text" id="bizName" name="business_name" required autocomplete="organization" autocapitalize="words" aria-label="Business name" placeholder="What's your business called?">
                 </div>
                 <button type="submit" class="qa-go" id="qaNameGo" aria-label="Continue with business name"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h13M12.5 6.2 18.8 12l-6.3 5.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
               </div>
@@ -974,19 +974,22 @@ Instagram: ${instagram || 'Not provided'}`;
     },{threshold:.2}).observe(root);
   }
 
-  // drag / swipe
-  var down = false, x0 = 0, moved = 0;
-  root.addEventListener('pointerdown', function(e){ down = true; x0 = e.clientX; moved = 0; setPaused(true); });
-  root.addEventListener('pointermove', function(e){ if (down) moved = e.clientX - x0; });
-  function release(){
-    if (!down) return;
-    down = false;
-    if (Math.abs(moved) > 40) go(active + (moved < 0 ? 1 : -1));
-    setPaused(false);
+  // Dragging is desktop-only. Touchscreen pointer handlers competed with the
+  // browser's vertical page scrolling, which made the mobile page feel stuck.
+  if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
+    var down = false, x0 = 0, moved = 0;
+    root.addEventListener('pointerdown', function(e){ down = true; x0 = e.clientX; moved = 0; setPaused(true); });
+    root.addEventListener('pointermove', function(e){ if (down) moved = e.clientX - x0; });
+    function release(){
+      if (!down) return;
+      down = false;
+      if (Math.abs(moved) > 40) go(active + (moved < 0 ? 1 : -1));
+      setPaused(false);
+    }
+    root.addEventListener('pointerup', release);
+    root.addEventListener('pointercancel', release);
+    root.addEventListener('pointerleave', release);
   }
-  root.addEventListener('pointerup', release);
-  root.addEventListener('pointercancel', release);
-  root.addEventListener('pointerleave', release);
 
   place();
   start();
