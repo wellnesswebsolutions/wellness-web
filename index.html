@@ -408,8 +408,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // elsewhere, only setting body's overflow doesn't actually stop page
     // scroll (the propagation-to-viewport rule breaks once html has any
     // explicit overflow of its own, so html itself must be locked too).
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
+    // Desktop keeps the builder as a locked full-screen experience. On mobile,
+    // locking the root document prevents Safari from handing vertical swipes
+    // to the fixed preview iframe, so leave the root scroller unlocked.
+    if (window.innerWidth > 820) {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
     resetBuilderBar();
 
     postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
