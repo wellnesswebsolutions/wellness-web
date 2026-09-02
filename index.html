@@ -927,17 +927,19 @@ Instagram: ${instagram || 'Not provided'}`;
   // the card rather than a mocked-up screenshot.
   var DESIGNS = [
     { label:'Hairdressing',  name:'SISK\u014c Hairdressing',    url:'sisko-hairdressing.vercel.app' },
-    { label:'Car valeting',  name:'Kings Valeting Hull',       url:'kings-valeting-hull.vercel.app' },
-    { label:'Hair & beauty', name:'De Lacy',                   url:'de-lacy.vercel.app' },
-    { label:'Hair & beauty', name:'Muse.',                     url:'muse-hull-deploy.vercel.app' },
-    { label:'Garden care',   name:'MGS Beverley',              url:'mgs-beverley.vercel.app' },
-    { label:'Electrician',   name:'Brian Griffin Electrical',  url:'brian-griffin-electrical.vercel.app' }
+    { label:'Car valeting',  name:'Kings Valeting Hull',       url:'kings-valeting-hull.vercel.app',       colour:'#526B78' },
+    { label:'Hair & beauty', name:'De Lacy',                   url:'de-lacy.vercel.app',                   colour:'#9B8290' },
+    { label:'Hair & beauty', name:'Muse.',                     url:'muse-hull-deploy.vercel.app',             colour:'#806A83' },
+    { label:'Garden care',   name:'MGS Beverley',              url:'mgs-beverley.vercel.app',                colour:'#718454' },
+    { label:'Electrician',   name:'Brian Griffin Electrical',  url:'brian-griffin-electrical.vercel.app',     colour:'#4E7180' }
   ];
 
   DESIGNS.forEach(function(d, i){
     var el = document.createElement('article');
     el.className = 'cx-item';
+    el.style.setProperty('--cx-hero-colour', d.colour || '#3B82F6');
     el.innerHTML =
+      '<span class="cx-dot" aria-hidden="true"></span>' +
       '<div class="cx-win">' +
         '<div class="cx-bar"><i></i><i></i><i></i></div>' +
         '<div class="cx-shot">' +
