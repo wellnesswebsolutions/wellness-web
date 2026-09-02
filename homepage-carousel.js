@@ -1,6 +1,11 @@
 /* Six-site homepage carousel. The card transition lasts almost the full
    1.8-second cycle, while the active card has a subtle inner drift, so the
-   presentation keeps moving instead of stopping between designs. */
+   presentation keeps moving instead of stopping between designs.
+
+   Cards show a static screenshot of each site's homepage rather than a live
+   iframe — six live cross-origin pages (each with its own fonts, JS and
+   images) was real weight for a homepage carousel purely decorative in
+   purpose, and the screenshot reads identically at this size. */
 (() => {
   const root = document.getElementById('cx');
   const stage = document.getElementById('cxStage');
@@ -12,15 +17,15 @@
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   const designs = [
-    { name: 'SISKŌ Hairdressing', url: 'sisko-hairdressing.vercel.app', colour: '#C59B7A' },
-    { name: 'Kings Valeting Hull', url: 'kings-valeting-hull.vercel.app', colour: '#315B6D' },
-    { name: 'De Lacy', url: 'de-lacy.vercel.app', colour: '#C58F9F' },
-    { name: 'Muse.', url: 'muse-hull-deploy.vercel.app', colour: '#A9ADB3' },
-    { name: 'MGS Beverley', url: 'mgs-beverley.vercel.app', colour: '#6D8757' },
-    { name: 'Brian Griffin Electrical', url: 'brian-griffin-electrical.vercel.app', colour: '#B94B45' }
+    { name: 'SISKŌ Hairdressing', url: 'sisko-hairdressing.vercel.app', shot: 'sisko', colour: '#C59B7A' },
+    { name: 'Kings Valeting Hull', url: 'kings-valeting-hull.vercel.app', shot: 'kings-valeting', colour: '#315B6D' },
+    { name: 'De Lacy', url: 'de-lacy.vercel.app', shot: 'de-lacy', colour: '#C58F9F' },
+    { name: 'Muse.', url: 'muse-hull-deploy.vercel.app', shot: 'muse', colour: '#A9ADB3' },
+    { name: 'MGS Beverley', url: 'mgs-beverley.vercel.app', shot: 'mgs-beverley', colour: '#6D8757' },
+    { name: 'Brian Griffin Electrical', url: 'brian-griffin-electrical.vercel.app', shot: 'brian-griffin', colour: '#B94B45' }
   ];
 
-  designs.forEach((design) => {
+  designs.forEach((design, index) => {
     const item = document.createElement('article');
     item.className = 'cx-item';
     item.style.setProperty('--cx-hero-colour', design.colour);
@@ -30,14 +35,14 @@
         <div class="cx-win">
           <div class="cx-bar" aria-hidden="true"><i></i><i></i><i></i></div>
           <div class="cx-shot">
-            <iframe
-              data-src="https://${design.url}"
-              title="${design.name} homepage preview"
-              sandbox="allow-scripts allow-same-origin"
-              scrolling="no"
-              tabindex="-1"
-              loading="lazy"
-            ></iframe>
+            <img
+              src="img/work-previews/${design.shot}.webp"
+              alt="${design.name} homepage"
+              width="1440"
+              height="900"
+              loading="${index < 2 ? 'eager' : 'lazy'}"
+              decoding="async"
+            >
             <a
               class="cx-hit"
               href="https://${design.url}"
@@ -52,61 +57,17 @@
   });
 
   const items = [...stage.children];
-  const frames = items.map((item) => item.querySelector('iframe'));
   const itemCount = items.length;
   let activeIndex = 0;
   let timer = null;
   let paused = false;
   let offscreen = false;
-  let framesArmed = false;
-  let loadingFrame = null;
 
   const signedDistance = (index) => {
     let distance = ((index - activeIndex) % itemCount + itemCount) % itemCount;
     if (distance > itemCount / 2) distance -= itemCount;
     return distance;
   };
-
-  function isLive(frame) {
-    const src = frame.getAttribute('src');
-    return Boolean(src && src.startsWith('http'));
-  }
-
-  function syncFrames() {
-    if (!framesArmed) return;
-
-    frames.forEach((frame, index) => {
-      if (Math.abs(signedDistance(index)) > 1 && isLive(frame)) {
-        frame.src = 'about:blank';
-      }
-    });
-
-    if (loadingFrame) return;
-
-    const wantedIndexes = [
-      activeIndex,
-      (activeIndex + 1) % itemCount,
-      (activeIndex - 1 + itemCount) % itemCount
-    ];
-    const nextIndex = wantedIndexes.find((index) => !isLive(frames[index]));
-    if (nextIndex === undefined) return;
-
-    const frame = frames[nextIndex];
-    loadingFrame = frame;
-
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      frame.removeEventListener('load', finish);
-      if (loadingFrame === frame) loadingFrame = null;
-      window.setTimeout(syncFrames, 80);
-    };
-
-    frame.addEventListener('load', finish, { once: true });
-    frame.src = frame.dataset.src;
-    window.setTimeout(finish, 3500);
-  }
 
   function placeItems() {
     items.forEach((item, index) => {
@@ -120,7 +81,6 @@
     });
 
     root.dataset.active = String(activeIndex);
-    syncFrames();
   }
 
   function goTo(index) {
@@ -149,12 +109,6 @@
     else startAutoplay();
   }
 
-  function fitPreview() {
-    if (stage.clientWidth) {
-      stage.style.setProperty('--cx-scale', (stage.clientWidth / 1440).toFixed(4));
-    }
-  }
-
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stopAutoplay();
     else startAutoplay();
@@ -168,20 +122,6 @@
         else startAutoplay();
       });
     }, { threshold: 0.15 }).observe(root);
-
-    const frameObserver = new IntersectionObserver((entries) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
-      framesArmed = true;
-      frameObserver.disconnect();
-      const queue = window.requestIdleCallback
-        ? window.requestIdleCallback.bind(window)
-        : (callback) => window.setTimeout(callback, 120);
-      queue(syncFrames, { timeout: 700 });
-    }, { rootMargin: '180px' });
-    frameObserver.observe(root);
-  } else {
-    framesArmed = true;
-    syncFrames();
   }
 
   /* Fine-pointer dragging stays available without registering touch handlers,
@@ -224,7 +164,5 @@
   }
 
   placeItems();
-  fitPreview();
-  window.addEventListener('resize', fitPreview, { passive: true });
   startAutoplay();
 })();
