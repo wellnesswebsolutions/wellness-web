@@ -23,7 +23,7 @@
     // flat side panel of the van, behind the cab and above the sill
     automotive: { image: 'automotive.webp', panel: { cx: .68, cy: .44, w: .34, h: .17 }, blend: 'multiply', opacity: .84 },
     // van side panel, between the window line and the lower stripe
-    trades: { image: 'trades.webp', panel: { cx: .68, cy: .55, w: .34, h: .15 }, blend: 'multiply', opacity: .84 },
+    trades: { image: 'trades.webp', panel: { cx: .68, cy: .44, w: .34, h: .20 }, blend: 'multiply', opacity: .84 },
     // rendered facade right of the timber doorway
     homegarden: { image: 'home-garden.webp', panel: { cx: .62, cy: .45, w: .26, h: .17 }, blend: 'multiply', opacity: .82 },
     // wall above the counter, below the pendant lights
@@ -174,18 +174,36 @@
       }
     }
 
-    const lineGap = size * 1.12;
-    const blockGap = placeText ? placeSize * 1.5 : 0;
-    const totalHeight = lines.length * lineGap + blockGap;
+    // Centre on the real glyph box, not on em-boxes. Cap height and descender
+    // depth vary with the name, so measuring the actual ink is what keeps the
+    // lockup optically centred whether it is one short word or two long lines.
+    setFont(ctx, 700, size, size * .06);
+    const nameMetrics = lines.map(line => ctx.measureText(line));
+    const nameAscent = Math.max(...nameMetrics.map(m => m.actualBoundingBoxAscent || size * .72));
+    const nameDescent = Math.max(...nameMetrics.map(m => m.actualBoundingBoxDescent || size * .08));
+    const lineStep = nameAscent + nameDescent + size * .22;
+
+    let placeAscent = 0, placeDescent = 0;
+    if (placeText) {
+      setFont(ctx, 500, placeSize, placeSize * .16);
+      const pm = ctx.measureText(placeText);
+      placeAscent = pm.actualBoundingBoxAscent || placeSize * .72;
+      placeDescent = pm.actualBoundingBoxDescent || placeSize * .08;
+    }
+    // gap between the two halves of the lockup: close enough to read as one
+    // unit, open enough to separate them
+    const lockupGap = placeText ? size * .40 : 0;
+
+    const blockHeight =
+      nameAscent + (lines.length - 1) * lineStep + nameDescent +
+      (placeText ? lockupGap + placeAscent + placeDescent : 0);
 
     const surface = readSurface(ctx, box, fallbackLight);
     const ink = surface.light ? '#f7f4ef' : '#23201e';
 
     ctx.save();
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    // Only lift the text off the surface when it actually needs it: a busy or
-    // mid-tone panel. A clean wall reads better with no shadow at all.
+    ctx.textBaseline = 'alphabetic';
     if (surface.busy || (surface.mean > 95 && surface.mean < 165)) {
       ctx.shadowColor = surface.light ? 'rgba(0,0,0,.42)' : 'rgba(255,255,255,.40)';
       ctx.shadowBlur = Math.max(6, size * .12);
@@ -193,16 +211,19 @@
     ctx.fillStyle = ink;
 
     const cx = box.x + box.width / 2;
-    let y = box.y + box.height / 2 - totalHeight / 2 + lineGap / 2;
-    lines.forEach(line => {
-      setFont(ctx, 700, size, size * .06);
-      ctx.fillText(line, cx, y, box.width);
-      y += lineGap;
+    const blockTop = box.y + box.height / 2 - blockHeight / 2;
+    let baseline = blockTop + nameAscent;
+
+    setFont(ctx, 700, size, size * .06);
+    lines.forEach((line, i) => {
+      ctx.fillText(line, cx, baseline, box.width);
+      if (i < lines.length - 1) baseline += lineStep;
     });
+
     if (placeText) {
       setFont(ctx, 500, placeSize, placeSize * .16);
       ctx.globalAlpha = (ctx.globalAlpha || 1) * .82;   // lighter visual weight
-      ctx.fillText(placeText, cx, y - lineGap + blockGap, box.width);
+      ctx.fillText(placeText, cx, baseline + nameDescent + lockupGap + placeAscent, box.width);
     }
     ctx.restore();
   }
