@@ -390,7 +390,11 @@ p{margin:0 0 1.1em}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
 .brand{display:flex;flex-direction:row;align-items:center;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
-.brand span{font-size:.55rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-top:2px}
+/* Scoped to .brand-text, not .brand, on purpose: .brand span would also
+   match .brand-badge (also a span, also inside .brand), overriding its
+   white initials to this same rose-dark tone their own circle is filled
+   with — invisible text on a same-colour background. */
+.brand-text span{font-size:.55rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-top:2px}
 .nav{display:flex;align-items:center;gap:24px}
 .nav a{text-decoration:none;color:var(--ink);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid transparent}
 .nav a:hover{border-bottom-color:var(--ink)}
@@ -447,6 +451,11 @@ ${heroHasPhoto ? `@media(min-width:901px){
     background-position:center top;background-repeat:no-repeat;background-color:var(--ink)}
   .hero::after{inset:0 0 auto;height:var(--mobile-hero-height);
     background:linear-gradient(to top,rgba(28,24,21,.24),rgba(28,24,21,0) 58%)}
+  /* The photo is only the top padding-box of .hero here — the copy panel
+     below adds its own height beneath it — so anchor the note to the photo's
+     own bottom edge (top:mobile-hero-height) rather than .hero's bottom,
+     which would otherwise land past the copy panel and its buttons. */
+  .hero-photo-note{top:calc(var(--mobile-hero-height) - 24px);bottom:auto}
   .hero .hero-copy{padding:1.35em 0 1.55em;text-align:center;background:var(--header-surface);
     border-top:1px solid color-mix(in srgb,var(--rose-dark) 16%,transparent)}
   .hero .inner{display:flex;flex-direction:column;align-items:center;padding:0 18px}
