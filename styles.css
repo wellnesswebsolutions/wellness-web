@@ -64,10 +64,6 @@
   /* must come after the base .top .brand/.cta rules to win on equal specificity */
   @media(max-width:820px){
     .top .brand img{height:20px}
-    .top .cta{padding:7px 12px;font-size:8.5px;letter-spacing:.04em}
-  }
-  @media(max-width:400px){
-    .top .cta{padding:6px 10px;font-size:8px}
   }
 
   #stage{position:relative;height:100vh}
@@ -425,7 +421,9 @@
   @keyframes glow-spin{to{--glow-angle:360deg}}
   @keyframes glow-breathe{0%,100%{opacity:.62}50%{opacity:.92}}
   /* phones: keep the glow, drop the per-frame repaint */
-  @media(max-width:760px){.glow-box:before{animation:glow-breathe 5s ease-in-out infinite}}
+  @media(max-width:820px),(hover:none) and (pointer:coarse){
+    .glow-box:before{animation:glow-breathe 5s ease-in-out infinite}
+  }
   @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
 
 
@@ -467,6 +465,7 @@
   .qa-slide{position:absolute;inset:0;display:flex;align-items:center;gap:12px;padding:0 8px 0 24px;
     opacity:0;transform:translateY(10px);pointer-events:none;
     transition:opacity .45s var(--qa-ease),transform .45s var(--qa-ease)}
+  .qa-slide[hidden]{display:none}
   .qa-slide.qa-active{position:relative;flex:1 1 auto;min-width:0;opacity:1;transform:none;pointer-events:auto}
   .qa-slide.qa-leaving{opacity:0;transform:translateY(-10px);transition-duration:.3s}
   .qa-field{position:relative;flex:1;min-width:0;display:flex;align-items:center;min-height:52px}
@@ -771,9 +770,7 @@
   }
   .top .cta{display:inline-flex;align-items:center;justify-content:center;min-height:40px}
 
-  /* On a narrow screen the pill cannot hold a full question and a wide button
-     side by side — the placeholder was truncating to "What's you...". Stack
-     them so the question always reads in full and the button is full-width. */
+  /* Keep the arrow comfortably tappable beside the field on narrow screens. */
   @media(max-width:560px){
     .qa-box{border-radius:22px}
     .qa-box .glow-box-inner{min-height:0}
@@ -797,12 +794,16 @@
       padding:0 0 clamp(16px,2.4vw,26px)}
   .cx-stage{position:relative;width:min(560px,72vw);margin:0 auto;aspect-ratio:16/10}
   .cx-item{position:absolute;inset:0;margin:auto;will-change:transform,opacity;
-    transition:transform .62s cubic-bezier(.22,.72,.24,1), opacity .62s cubic-bezier(.22,.72,.24,1);
+    transition:transform 1.12s cubic-bezier(.4,0,.2,1), opacity .9s ease;
     backface-visibility:hidden}
   .cx-item[data-pos="0"]{transform:translateX(0) scale(1);opacity:1;z-index:3}
   .cx-item[data-pos="-1"]{transform:translateX(-50%) scale(.74);opacity:.5;z-index:2}
   .cx-item[data-pos="1"]{transform:translateX(50%) scale(.74);opacity:.5;z-index:2}
   .cx-item[data-pos="hidden"]{transform:translateX(0) scale(.6);opacity:0;z-index:1;pointer-events:none}
+
+  /* A nested layer can keep the active card drifting while the parent owns
+     the left/centre/right transition. This avoids competing transforms. */
+  .cx-float{position:relative;width:100%;height:100%;will-change:transform}
 
   /* the mini website itself */
   .cx-win{height:100%;border-radius:14px;overflow:hidden;background:var(--card);
@@ -830,26 +831,22 @@
   .cx-hit{position:absolute;inset:0;z-index:2;display:block}
   .cx-item[data-pos="0"] .cx-hit{cursor:pointer}
   .cx-item:not([data-pos="0"]) .cx-hit{pointer-events:none}
-
-
-  @media(max-width:760px){
-    /* a narrower centre card and a wider push leaves a real, visible sliver of
-       each neighbour on a phone instead of a hairline at the screen edge */
-    .cx-stage{width:min(260px,56vw)}
-    .cx-item[data-pos="-1"]{transform:translateX(-64%) scale(.72);opacity:.62}
-    .cx-item[data-pos="1"]{transform:translateX(64%) scale(.72);opacity:.62}
-  }
   @media(prefers-reduced-motion:reduce){
     .cx-item{transition:none}
   }
 
-/* ── final responsive interaction rules ─────────────────────────────── */
-html,body{max-width:100%;}
+/* ── Homepage interaction and responsive behaviour ─────────────────── */
+html,body{max-width:100%}
 
-/* Give the glow marker its own space inside the carousel wrapper so neither
-   the dot nor its halo is clipped. */
-.cx{padding-top:30px;overflow:hidden;touch-action:pan-y;}
-.cx-stage,.cx-item{overflow:visible;}
+/* The generated preview is modal-like on desktop. Phones keep their native
+   root scroller and scroll inside the preview, so this lock never applies. */
+@media(min-width:821px){
+  html.builder-scroll-lock,body.builder-scroll-lock{overflow:hidden}
+}
+
+/* Reserve enough room above the cards for the colour marker and its halo. */
+.cx{padding-top:30px;overflow:hidden;touch-action:pan-y}
+.cx-stage,.cx-item,.cx-float{overflow:visible}
 .cx-dot{
   position:absolute;left:50%;top:-20px;z-index:6;
   width:11px;height:11px;border-radius:50%;
@@ -858,129 +855,110 @@ html,body{max-width:100%;}
   border:2px solid rgba(255,255,255,.95);
   box-shadow:0 0 8px var(--cx-hero-colour,#3B82F6),0 0 18px var(--cx-hero-colour,#3B82F6);
   opacity:0;pointer-events:none;
-  transition:opacity .62s ease,transform .62s ease;
+  transition:opacity .9s ease,transform 1.12s cubic-bezier(.4,0,.2,1)
 }
-.cx-item[data-pos="0"] .cx-dot{opacity:1;}
-.cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{opacity:.48;transform:translateX(-50%) scale(.8);}
+.cx-item[data-pos="0"] .cx-dot{opacity:1}
+.cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{
+  opacity:.48;transform:translateX(-50%) scale(.8)
+}
+
+/* The 1.2s drift fills the tiny gap between carousel translations, keeping
+   the centre design visibly alive without making the page hard to read. */
+@keyframes cx-centre-drift{
+  from{transform:translate3d(0,2px,0) scale(.997)}
+  to{transform:translate3d(0,-2px,0) scale(1.003)}
+}
+.cx-item[data-pos="0"] .cx-float{animation:cx-centre-drift 1.2s linear infinite}
 
 @media(max-width:820px){
-  html{overflow-x:hidden;overflow-y:auto;}
-  body{overflow-x:hidden;overflow-y:visible;position:static;}
-
-  /* Normal mobile document flow: no sticky or fixed hero layer. */
-  #stage{position:relative;height:66svh;min-height:520px;}
-  #pin{position:relative;top:auto;height:66svh;min-height:520px;overflow:hidden;}
-  #scene{pointer-events:none;}
-
-  /* Keep the requested lower hero position without transforms. */
-  .hero-conv{min-height:72svh;padding:140px 14px 32px;overflow:visible;}
-  .hero-conv-wrap{position:relative;z-index:2;transform:none;}
-
-  /* A plain native input on mobile. No animated layer sits over the field. */
-  #qaFieldName .qa-ph{display:none;}
-  #qaSlideName.qa-active{pointer-events:auto;z-index:3;}
-  #qaSlideName:not(.qa-active),#qaSlideName:not(.qa-active) #qaFieldName,#qaSlideName:not(.qa-active) #bizName{pointer-events:none!important;}
-  #qaSlideName.qa-active #qaFieldName{pointer-events:auto;z-index:4;}
-  #bizName{
-    display:block;position:relative;z-index:5;
-    width:100%;min-height:52px;opacity:1;
-    pointer-events:auto;touch-action:auto;
-    -webkit-appearance:none;appearance:none;
-    -webkit-user-select:text;user-select:text;
-    color:var(--ink);background:transparent;
-  }
-  #bizName::placeholder{color:var(--muted);opacity:1;}
-  #bizName:focus::placeholder{opacity:0;}
-
-  /* The carousel only owns horizontal presentation; page gestures remain
-     vertical and native. */
-  #showcase{overflow:hidden;margin-top:0;padding-top:0;}
-  .cx{padding-top:28px;overflow:hidden;touch-action:pan-y;}
-  .cx-stage{width:min(72vw,300px);min-width:220px;}
-  .cx-shot iframe,.cx-hit{touch-action:pan-y;}
-  .cx-item[data-pos="-1"]{transform:translateX(-67%) scale(.68);opacity:.62;}
-  .cx-item[data-pos="1"]{transform:translateX(67%) scale(.68);opacity:.62;}
-  .cx-dot{top:-18px;width:10px;height:10px;}
-}
-
-@media(max-width:420px){
-  .hero-conv{padding-top:148px;}
-  .cx-stage{width:230px;min-width:0;}
-}
-
-@media(prefers-reduced-motion:reduce){.cx-dot{transition:none;}}
-
-
-/* Mobile uses the browser's normal root scroller. Avoid nested overflow and
-   touch-action declarations, which can stop Safari from choosing a scroll
-   target when a gesture begins over an animated child. */
-@media(max-width:820px){
+  html.nav-open,body.nav-open{overflow:hidden}
   html{
-    /* smooth scroll-behavior animates every programmatic scroll (including
-       focus-driven scrollIntoView on inputs and the anchor links below), and
-       on iOS Safari that animation can fight an in-progress finger-driven
-       scroll, leaving the page feeling like it has stalled mid-swipe. */
-    scroll-behavior:auto!important;
-    height:auto!important;
-    min-height:100%!important;
-    overflow-x:hidden!important;
-    overflow-y:auto!important;
+    scroll-behavior:auto;
+    height:auto;
+    min-height:100%;
+    overflow-x:hidden;
+    overflow-y:auto
   }
   body{
-    position:relative!important;
-    height:auto!important;
-    min-height:100vh!important;
-    overflow-x:hidden!important;
-    overflow-y:visible!important;
+    position:relative;
+    height:auto;
+    min-height:100vh;
+    overflow-x:hidden;
+    overflow-y:visible
   }
-  .cx-shot iframe,.cx-hit{pointer-events:none!important;}
-}
 
+  /* Mobile homepage stays in ordinary document flow. */
+  #stage{position:relative;height:66svh;min-height:520px}
+  #pin{position:relative;top:auto;height:66svh;min-height:520px;overflow:hidden}
+  #scene{pointer-events:none}
+  .hero-conv{min-height:72svh;padding:140px 14px 32px;overflow:visible}
+  .hero-conv-wrap{position:relative;z-index:2;transform:none}
 
-/* Mobile full-page preview: allow native momentum scrolling inside the fixed
-   preview area instead of relying on a locked root document. */
-@media(max-width:820px){
-  .builder-overlay{touch-action:pan-y;}
-  .builder-preview{
-    overflow-y:auto!important;
-    overflow-x:hidden!important;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior-y:contain;
-    touch-action:pan-y!important;
-  }
-  .builder-preview iframe{
-    overflow:auto!important;
-    touch-action:pan-y!important;
-    -webkit-overflow-scrolling:touch;
-  }
-}
-
-
-/* Native mobile controls for every initial form step. The active slide alone
-   receives events; inactive slides and all their controls are inert. */
-@media(max-width:820px){
-  #qaFieldType .qa-ph,#qaFieldLocation .qa-ph{display:none!important;}
+  /* Use native form placeholders and controls on touch devices. Only the
+     active slide is interactive; the other two are removed from layout. */
+  #qaFieldName .qa-ph,#qaFieldType .qa-ph,#qaFieldLocation .qa-ph{display:none}
   .qa-slide:not(.qa-active),
   .qa-slide:not(.qa-active) .qa-field,
   .qa-slide:not(.qa-active) input,
   .qa-slide:not(.qa-active) select,
-  .qa-slide:not(.qa-active) button{pointer-events:none!important;}
+  .qa-slide:not(.qa-active) button{pointer-events:none}
   .qa-slide.qa-active,
   .qa-slide.qa-active .qa-field,
   .qa-slide.qa-active input,
   .qa-slide.qa-active select,
-  .qa-slide.qa-active button{pointer-events:auto!important;}
-  #bizTagline,#bizLocation{
-    display:block!important;
-    position:relative!important;
-    z-index:5!important;
-    width:100%!important;
-    min-height:52px!important;
-    opacity:1!important;
-    touch-action:auto!important;
-    -webkit-user-select:text!important;
-    user-select:text!important;
+  .qa-slide.qa-active button{pointer-events:auto}
+  #bizName,#bizTagline,#bizLocation{
+    display:block;
+    position:relative;
+    z-index:5;
+    width:100%;
+    min-height:52px;
+    opacity:1;
+    pointer-events:auto;
+    touch-action:auto;
+    -webkit-appearance:none;
+    appearance:none;
+    -webkit-user-select:text;
+    user-select:text;
+    color:var(--ink);
+    background-color:transparent
   }
-  #bizLocation::placeholder{color:var(--muted);opacity:1;}
-  #bizLocation:focus::placeholder{opacity:0;}
+  #bizName::placeholder,#bizLocation::placeholder{color:var(--muted);opacity:1}
+  #bizName:focus::placeholder,#bizLocation:focus::placeholder{opacity:0}
+
+  /* The carousel never claims touch gestures. Its live pages are previews,
+     while the centre-card link remains available on pointer devices. */
+  #showcase{overflow:hidden;margin-top:0;padding-top:0}
+  .cx{padding-top:28px;overflow:hidden;touch-action:pan-y}
+  .cx-stage{width:min(72vw,300px);min-width:220px}
+  .cx-shot iframe,.cx-hit{pointer-events:none;touch-action:pan-y}
+  .cx-item[data-pos="-1"]{transform:translateX(-67%) scale(.68);opacity:.62}
+  .cx-item[data-pos="1"]{transform:translateX(67%) scale(.68);opacity:.62}
+  .cx-dot{top:-18px;width:10px;height:10px}
+
+  /* The root page remains unlocked; swipes over the generated page scroll its
+     own full-height iframe with native momentum. */
+  .builder-overlay{touch-action:pan-y}
+  .builder-preview{
+    overflow-x:hidden;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+    touch-action:pan-y
+  }
+  .builder-preview iframe{
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y
+  }
+}
+
+@media(max-width:420px){
+  .hero-conv{padding-top:148px}
+  .cx-stage{width:230px;min-width:0}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .cx-dot{transition:none}
+  .cx-item[data-pos="0"] .cx-float{animation:none}
 }

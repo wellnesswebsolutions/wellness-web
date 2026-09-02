@@ -1,0 +1,11 @@
+{
+  "name": "brightsite-marketing-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/homepage-smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

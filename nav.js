@@ -10,9 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
     tabs.classList.toggle('open', open);
     burger.classList.toggle('open', open);
     burger.setAttribute('aria-expanded', String(open));
-    document.body.style.overflow = open ? 'hidden' : '';
+    document.documentElement.classList.toggle('nav-open', open);
+    document.body.classList.toggle('nav-open', open);
   }
 
   burger.addEventListener('click', () => setOpen(!tabs.classList.contains('open')));
   tabs.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setOpen(false);
+  });
+
+  const desktop = window.matchMedia('(min-width: 821px)');
+  const closeOnDesktop = (event) => {
+    if (event.matches) setOpen(false);
+  };
+  if (desktop.addEventListener) desktop.addEventListener('change', closeOnDesktop);
+  else desktop.addListener(closeOnDesktop);
 });
