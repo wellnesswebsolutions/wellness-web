@@ -751,7 +751,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 <footer class="site-footer">
   <div class="container">
     <a class="brand" href="#">${esc(d.name)}</a>
-    <div class="legal">Auto-generated preview by Aesthetic Intelligence — not a live website.</div>
+    <div class="legal">Auto-generated preview by BrightSite — not a live website.</div>
   </div>
 </footer>
 
