@@ -872,8 +872,9 @@ html,body{max-width:100%;}
 
   /* A plain native input on mobile. No animated layer sits over the field. */
   #qaFieldName .qa-ph{display:none;}
-  #qaSlideName{pointer-events:auto;z-index:3;}
-  #qaFieldName{pointer-events:auto;z-index:4;}
+  #qaSlideName.qa-active{pointer-events:auto;z-index:3;}
+  #qaSlideName:not(.qa-active),#qaSlideName:not(.qa-active) #qaFieldName,#qaSlideName:not(.qa-active) #bizName{pointer-events:none!important;}
+  #qaSlideName.qa-active #qaFieldName{pointer-events:auto;z-index:4;}
   #bizName{
     display:block;position:relative;z-index:5;
     width:100%;min-height:52px;opacity:1;
