@@ -990,3 +990,9 @@ html,body{max-width:100%;}
 @media(max-width:420px){
   .hero-conv-wrap{transform:translateY(40px);}
 }
+
+
+/* Let the hero-colour marker sit visibly above the carousel on desktop. */
+.cx{overflow:visible;}
+#showcase{overflow:visible;}
+.cx-dot{display:block;}
