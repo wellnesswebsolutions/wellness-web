@@ -683,6 +683,25 @@ Instagram: ${instagram || 'Not provided'}`;
       </div>
     </div>
 
+  </div>
+</section>
+
+<section id="showcase">
+  <div class="wrap">
+    <div class="cx-head">
+      <div class="eyebrow">Recent designs</div>
+      <h3>A homepage built around your trade</h3>
+    </div>
+
+    <div class="cx" id="cx" aria-roledescription="carousel" aria-label="Example homepage designs">
+      <div class="cx-stage" id="cxStage"></div>
+      <div class="cx-dots" id="cxDots" role="tablist" aria-label="Choose a design"></div>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
     <div class="conv-row" id="convRow">
       <div class="conv-col conv-col-old">
         <h4>DIY website builders</h4>
@@ -871,6 +890,104 @@ Instagram: ${instagram || 'Not provided'}`;
 
 <script>
 (function(){var b=document.getElementById('bar');if(!b)return;function u(){var m=document.documentElement.scrollHeight-innerHeight;b.style.width=(m>0?Math.min(1,scrollY/m)*100:0)+'%';}addEventListener('scroll',u,{passive:true});addEventListener('resize',u,{passive:true});u();})();
+</script>
+<script>
+/* Homepage design carousel. Six example builds, three on screen: a dominant
+   centre card with the neighbours scaled back and half-tucked behind it.
+   Position is derived from each item's signed distance to the active index,
+   wrapped both ways, so the loop is seamless without cloning nodes. */
+(function(){
+  var stage = document.getElementById('cxStage');
+  var dots  = document.getElementById('cxDots');
+  var root  = document.getElementById('cx');
+  if (!stage) return;
+
+  var DESIGNS = [
+    { label:'Salon',        name:'Bella Hair',      kicker:'Hair salon · Beverley',   cta:'Book now',      url:'bellahair.co.uk',       img:'img/hero-logo-ready/hair-beauty.webp' },
+    { label:'Café',         name:'The Bakehouse',   kicker:'Coffee & bakery · Hull',  cta:'See menu',      url:'thebakehouse.co.uk',    img:'img/hero-logo-ready/food-drink.webp' },
+    { label:'Builder',      name:'Marsh & Son',     kicker:'Builders · East Yorks',   cta:'Get a quote',   url:'marshandson.co.uk',     img:'img/hero-logo-ready/trades.webp' },
+    { label:'Fitness',      name:'Iron Works',      kicker:'Gym & training · Hull',   cta:'Start today',   url:'ironworksgym.co.uk',    img:'img/hero-logo-ready/fitness.webp' },
+    { label:'Photographer', name:'Studio Fern',     kicker:'Photography · Beverley',  cta:'View work',     url:'studiofern.co.uk',      img:'img/hero-logo-ready/creative.webp' },
+    { label:'Garden design',name:'Wilder Gardens',  kicker:'Landscaping · Beverley',  cta:'Get a quote',   url:'wildergardens.co.uk',   img:'img/hero-logo-ready/home-garden.webp' }
+  ];
+
+  DESIGNS.forEach(function(d, i){
+    var el = document.createElement('article');
+    el.className = 'cx-item';
+    el.innerHTML =
+      '<div class="cx-win">' +
+        '<div class="cx-bar"><i></i><i></i><i></i><span>' + d.url + '</span></div>' +
+        '<div class="cx-shot" style="background-image:url(' + d.img + ')">' +
+          '<div class="cx-nav"><b>' + d.name + '</b><em><i></i><i></i><i></i></em></div>' +
+          '<div class="cx-copy"><small>' + d.kicker + '</small><strong>' + d.name + '</strong><u>' + d.cta + '</u></div>' +
+        '</div>' +
+        '<div class="cx-body"><div></div><div></div><div></div></div>' +
+      '</div>' +
+      '<div class="cx-label">' + d.label + '</div>';
+    stage.appendChild(el);
+
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label', d.label + ' example');
+    b.addEventListener('click', function(){ go(i); restart(); });
+    dots.appendChild(b);
+  });
+
+  var items = [].slice.call(stage.children);
+  var n = items.length;
+  var active = 0;
+
+  function place(){
+    items.forEach(function(el, i){
+      // shortest signed distance around the ring
+      var d = ((i - active) % n + n) % n;
+      if (d > n/2) d -= n;
+      el.dataset.pos = (d === 0 || d === 1 || d === -1) ? String(d) : 'hidden';
+      el.setAttribute('aria-hidden', d === 0 ? 'false' : 'true');
+    });
+    [].slice.call(dots.children).forEach(function(b,i){
+      b.setAttribute('aria-selected', i === active ? 'true' : 'false');
+    });
+  }
+  function go(i){ active = ((i % n) + n) % n; place(); }
+  function next(){ go(active + 1); }
+
+  var timer = null;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function start(){ if (!timer && !reduce && !paused) timer = setInterval(next, 1000); }
+  function stop(){ if (timer) { clearInterval(timer); timer = null; } }
+  function restart(){ stop(); start(); }
+
+  // paused covers hover, touch, off-screen and background-tab
+  var paused = false, offscreen = false;
+  function setPaused(v){ paused = v; if (v) stop(); else if (!offscreen) start(); }
+  root.addEventListener('mouseenter', function(){ setPaused(true); });
+  root.addEventListener('mouseleave', function(){ setPaused(false); });
+  document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : (!paused && !offscreen && start()); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(es){
+      es.forEach(function(e){ offscreen = !e.isIntersecting; offscreen ? stop() : (!paused && start()); });
+    },{threshold:.2}).observe(root);
+  }
+
+  // drag / swipe
+  var down = false, x0 = 0, moved = 0;
+  root.addEventListener('pointerdown', function(e){ down = true; x0 = e.clientX; moved = 0; setPaused(true); });
+  root.addEventListener('pointermove', function(e){ if (down) moved = e.clientX - x0; });
+  function release(){
+    if (!down) return;
+    down = false;
+    if (Math.abs(moved) > 40) go(active + (moved < 0 ? 1 : -1));
+    setPaused(false);
+  }
+  root.addEventListener('pointerup', release);
+  root.addEventListener('pointercancel', release);
+  root.addEventListener('pointerleave', release);
+
+  place();
+  start();
+})();
 </script>
 </body>
 </html>
