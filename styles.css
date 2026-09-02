@@ -905,33 +905,24 @@ html,body{max-width:100%;}
 @media(prefers-reduced-motion:reduce){.cx-dot{transition:none;}}
 
 
-/* Mobile page scrolling: keep one root scroll container and make carousel
-   previews presentation-only on touch devices so they cannot swallow swipes. */
+/* Mobile uses the browser's normal root scroller. Avoid nested overflow and
+   touch-action declarations, which can stop Safari from choosing a scroll
+   target when a gesture begins over an animated child. */
 @media(max-width:820px){
   html{
     height:auto!important;
     min-height:100%!important;
     overflow-x:hidden!important;
     overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch;
-    touch-action:pan-y!important;
   }
   body{
-    position:static!important;
+    position:relative!important;
     height:auto!important;
-    min-height:100%!important;
+    min-height:100vh!important;
     overflow-x:hidden!important;
-    overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch;
-    touch-action:pan-y!important;
+    overflow-y:visible!important;
   }
-  main,.after,.hero-conv,#showcase,.cx{
-    touch-action:pan-y!important;
-  }
-  .cx-shot iframe,.cx-hit{
-    pointer-events:none!important;
-    touch-action:pan-y!important;
-  }
+  .cx-shot iframe,.cx-hit{pointer-events:none!important;}
 }
 
 
