@@ -115,6 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.style.setProperty('--builder-topbar-h', `${Math.round(h)}px`);
   }
 
+  // Matches the CSS above: under 900px the desktop control is hidden, so make
+  // sure we are never left stuck in the mobile-view state after a resize or
+  // rotation back up to a wide screen.
+  function syncDeviceControlAvailability() {
+    if (window.innerWidth <= 900 && builderMobileView) setBuilderMobileView(false);
+  }
+
   function sizePreviewToDesktopRatio() {
     if (!builderPreview || builderPreview.classList.contains('mobile-view')) return;
     const pane = builderPreview.getBoundingClientRect();
@@ -128,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateBuilderBottom = () => {
       builderPreview.style.bottom = `${builderBarWrap.getBoundingClientRect().height}px`;
       syncTopbarHeight();
+      syncDeviceControlAvailability();
       sizePreviewToDesktopRatio();
     };
     new ResizeObserver(updateBuilderBottom).observe(builderBarWrap);

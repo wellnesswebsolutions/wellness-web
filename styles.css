@@ -583,6 +583,14 @@
     padding:8px 14px;min-height:36px;font-family:var(--display);font-size:12px;font-weight:700;
     letter-spacing:.04em;color:var(--muted);transition:background .15s,color .15s}
   .builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
+  /* Below the generated site's own 900px desktop breakpoint the frame can never
+     be wider than the pane, so "Desktop" would render the mobile layout anyway
+     — the control would do literally nothing. Hide it rather than offer a
+     button that cannot work. */
+  @media(max-width:900px){
+    .builder-devices{display:none}
+    .builder-topbar{justify-content:flex-start}
+  }
   @media(max-width:560px){
     .builder-topbar{padding:7px 12px}
     .builder-topbar-copy strong{font-size:12.5px}
