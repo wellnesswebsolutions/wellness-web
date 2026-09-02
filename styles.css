@@ -837,232 +837,68 @@
     .cx-item{transition:none}
   }
 
-
-/* ── mobile layout repair ───────────────────────────────────────────────
-   Keep the landing page inside the viewport, make the showcase carousel
-   readable on narrow screens, and ensure fixed builder controls do not
-   create a second horizontal scroll area. */
+/* ── final responsive interaction rules ─────────────────────────────── */
 html,body{max-width:100%;}
-@media(max-width:760px){
-  html{overflow-x:hidden;}
-  body{overflow-x:hidden;}
 
-  /* Header: keep the brand, CTA and burger on one usable row. */
-  .top{width:100%;min-height:58px;padding:8px 12px;gap:8px;}
-  .top .brand{min-width:0;max-width:48vw;}
-  .top .brand img{max-width:100%;height:19px;width:auto;}
-  .top-right{gap:4px;min-width:0;}
-  .top .cta{min-height:40px;padding:8px 11px;font-size:10px;letter-spacing:.035em;}
-  .burger{width:42px;height:42px;}
-
-  /* The hero must size to its content instead of clipping the form. */
-  .hero-conv{min-height:0;padding:82px 14px 28px;overflow:visible;}
-  .hero-conv-head{width:100%;margin-bottom:18px;}
-  .hero-conv-head h1{font-size:clamp(30px,9vw,42px);line-height:1.04;}
-  .hero-conv-sub{font-size:16px;line-height:1.45;}
-  .wiz-grid,.wiz-left{width:100%;max-width:none;}
-  .qa-box{width:100%;max-width:none;}
-  .qa-slide{min-width:0;}
-  .qa-field{min-width:0;flex:1;}
-  .qa-field input,.qa-field select{width:100%;max-width:100%;}
-
-  /* Show the carousel as a deliberate peek: centre card plus visible side
-     cards, without clipping them at the carousel's own edge. */
-  #showcase{width:100%;margin-top:0;padding:8px 0 34px;overflow:hidden;}
-  #showcase .wrap{width:100%;}
-  #showcase .sec-head{padding:0 18px;margin-bottom:24px;}
-  .cx{width:100%;overflow:visible;padding:0 0 20px;}
-  .cx-stage{width:min(68vw,300px);min-width:220px;aspect-ratio:16/10;}
-  .cx-item[data-pos="-1"]{transform:translateX(-69%) scale(.70);opacity:.58;}
-  .cx-item[data-pos="1"]{transform:translateX(69%) scale(.70);opacity:.58;}
-  .cx-item[data-pos="hidden"]{opacity:0;pointer-events:none;}
-  .cx-win{border-radius:12px;}
-  .cx-bar{padding:6px 8px;}
-  .cx-bar span{font-size:7px;padding:2px 6px;}
-
-  /* Process cards: full-width, comfortable text and no distorted artwork. */
-  .steps3{display:grid;grid-template-columns:1fr;gap:28px;width:100%;}
-  .step3{width:100%;}
-  .step3-img{width:100%;height:auto;aspect-ratio:16/10;max-height:none;}
-  .step3-img img{object-fit:cover;}
-  .step3 p{max-width:34ch;font-size:14px;line-height:1.55;}
-
-  /* Do not let the fixed builder controls exceed the visual viewport. */
-  .builder-topbar{width:100%;max-width:100%;}
-  .builder-preview{width:100%;max-width:100%;}
-  .builder-bar-wrap{width:100%;max-width:100%;}
-  .builder-bar{min-width:0;}
+/* Give the glow marker its own space inside the carousel wrapper so neither
+   the dot nor its halo is clipped. */
+.cx{padding-top:30px;overflow:hidden;touch-action:pan-y;}
+.cx-stage,.cx-item{overflow:visible;}
+.cx-dot{
+  position:absolute;left:50%;top:-20px;z-index:6;
+  width:11px;height:11px;border-radius:50%;
+  transform:translateX(-50%);
+  background:var(--cx-hero-colour,#3B82F6);
+  border:2px solid rgba(255,255,255,.95);
+  box-shadow:0 0 8px var(--cx-hero-colour,#3B82F6),0 0 18px var(--cx-hero-colour,#3B82F6);
+  opacity:0;pointer-events:none;
+  transition:opacity .62s ease,transform .62s ease;
 }
-@media(max-width:380px){
-  .top .cta{font-size:9px;padding-inline:9px;}
-  .hero-conv{padding-inline:12px;}
+.cx-item[data-pos="0"] .cx-dot{opacity:1;}
+.cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{opacity:.48;transform:translateX(-50%) scale(.8);}
+
+@media(max-width:820px){
+  html{overflow-x:hidden;overflow-y:auto;}
+  body{overflow-x:hidden;overflow-y:visible;position:static;}
+
+  /* Normal mobile document flow: no sticky or fixed hero layer. */
+  #stage{position:relative;height:66svh;min-height:520px;}
+  #pin{position:relative;top:auto;height:66svh;min-height:520px;overflow:hidden;}
+  #scene{pointer-events:none;}
+
+  /* Keep the requested lower hero position without transforms. */
+  .hero-conv{min-height:72svh;padding:140px 14px 32px;overflow:visible;}
+  .hero-conv-wrap{position:relative;z-index:2;transform:none;}
+
+  /* A plain native input on mobile. No animated layer sits over the field. */
+  #qaFieldName .qa-ph{display:none;}
+  #qaSlideName{pointer-events:auto;z-index:3;}
+  #qaFieldName{pointer-events:auto;z-index:4;}
+  #bizName{
+    display:block;position:relative;z-index:5;
+    width:100%;min-height:52px;opacity:1;
+    pointer-events:auto;touch-action:auto;
+    -webkit-appearance:none;appearance:none;
+    -webkit-user-select:text;user-select:text;
+    color:var(--ink);background:transparent;
+  }
+  #bizName::placeholder{color:var(--muted);opacity:1;}
+  #bizName:focus::placeholder{opacity:0;}
+
+  /* The carousel only owns horizontal presentation; page gestures remain
+     vertical and native. */
+  #showcase{overflow:hidden;margin-top:0;padding-top:0;}
+  .cx{padding-top:28px;overflow:hidden;touch-action:pan-y;}
+  .cx-stage{width:min(72vw,300px);min-width:220px;}
+  .cx-shot iframe,.cx-hit{touch-action:pan-y;}
+  .cx-item[data-pos="-1"]{transform:translateX(-67%) scale(.68);opacity:.62;}
+  .cx-item[data-pos="1"]{transform:translateX(67%) scale(.68);opacity:.62;}
+  .cx-dot{top:-18px;width:10px;height:10px;}
+}
+
+@media(max-width:420px){
+  .hero-conv{padding-top:148px;}
   .cx-stage{width:230px;min-width:0;}
 }
 
-
-/* Final mobile carousel correction: keep the side previews visible while
-   preventing the rest of the page from becoming horizontally scrollable. */
-@media(max-width:760px){
-  #showcase{overflow:visible;}
-  #showcase .cx{overflow:visible;}
-  #showcase .cx-stage{width:min(72vw,300px);}
-  #showcase .cx-item[data-pos="-1"]{transform:translateX(-67%) scale(.68);opacity:.62;}
-  #showcase .cx-item[data-pos="1"]{transform:translateX(67%) scale(.68);opacity:.62;}
-}
-@media(max-width:360px){
-  #showcase .cx-stage{width:220px;}
-  #showcase .cx-item[data-pos="-1"]{transform:translateX(-63%) scale(.64);}
-  #showcase .cx-item[data-pos="1"]{transform:translateX(63%) scale(.64);}
-}
-
-
-/* Fix: the first question must be a native, immediately tappable control on
-   iOS/Android. Do not hide the input itself behind the animated placeholder. */
-.qa-field input{opacity:1!important;pointer-events:auto!important;cursor:text;touch-action:manipulation;}
-.qa-field input:focus{opacity:1!important;}
-.qa-field{pointer-events:auto!important;}
-.qa-slide.qa-active{z-index:5;}
-.qa-slide:not(.qa-active){z-index:0;}
-@media(max-width:760px){
-  .qa-field input{display:block;min-width:0;min-height:52px;padding:0!important;-webkit-user-select:text;user-select:text;}
-  .qa-slide.qa-active{isolation:isolate;}
-}
-
-
-/* Hide the question immediately whenever the field receives native focus.
-   :focus-within is more reliable on mobile Safari than waiting for a JS class. */
-.qa-field:focus-within .qa-ph{opacity:0;transform:translateY(calc(-50% - 5px));}
-.qa-field input:focus + .qa-ph{opacity:0;}
-
-
-/* Mobile scrolling: the desktop hero uses sticky positioning for its scroll
-   animation, but mobile must scroll as ordinary document content. */
-@media(max-width:820px){
-  html,body{overflow-x:hidden;overflow-y:auto;}
-  #stage{height:auto!important;min-height:0!important;}
-  #pin{position:relative!important;top:auto!important;height:auto!important;min-height:0!important;overflow:visible!important;}
-  #scene{position:absolute;inset:0;pointer-events:none;}
-  .after{position:relative;z-index:5;}
-}
-
-
-/* Correct the mobile hero flow: its children are positioned inside the hero,
-   so the parent needs a real height. Keep it in normal document flow, never
-   sticky, so the sections below (including Our Work) remain scrollable. */
-@media(max-width:820px){
-  #stage{position:relative!important;height:66svh!important;min-height:520px!important;}
-  #pin{position:relative!important;top:auto!important;height:66svh!important;min-height:520px!important;overflow:visible!important;}
-  #scene{pointer-events:none!important;}
-  .after{position:relative!important;z-index:5!important;display:block!important;}
-}
-
-
-/* Colour-matched glow marker above each live homepage preview. It belongs to
-   the card, so it travels with the card during every carousel transition. */
-.cx-stage{overflow:visible;}
-.cx-item{overflow:visible;}
-.cx-dot{position:absolute;left:50%;top:-18px;width:11px;height:11px;border-radius:50%;
-  transform:translateX(-50%);background:var(--cx-hero-colour,#3B82F6);
-  box-shadow:0 0 0 3px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 18%,transparent),
-             0 0 12px 4px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 65%,transparent),
-             0 0 28px 8px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 30%,transparent);
-  opacity:0;transition:opacity .62s cubic-bezier(.22,.72,.24,1),transform .62s cubic-bezier(.22,.72,.24,1);
-  pointer-events:none;z-index:5;}
-.cx-item[data-pos="0"] .cx-dot{opacity:1;animation:cx-dot-breathe 1.8s ease-in-out infinite;}
-.cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{opacity:.62;transform:translateX(-50%) scale(.78);}
-@keyframes cx-dot-breathe{0%,100%{filter:brightness(.95);box-shadow:0 0 0 3px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 18%,transparent),0 0 12px 4px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 55%,transparent),0 0 24px 7px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 25%,transparent)}50%{filter:brightness(1.2);box-shadow:0 0 0 4px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 22%,transparent),0 0 16px 6px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 75%,transparent),0 0 34px 11px color-mix(in srgb,var(--cx-hero-colour,#3B82F6) 38%,transparent)}}
-@media(max-width:760px){.cx-dot{top:-15px;width:9px;height:9px;}}
-@media(prefers-reduced-motion:reduce){.cx-dot{animation:none!important;transition:none;}}
-
-
-/* Keep the prompt hidden after a business name has been entered. The native
-   :valid state persists the value on mobile even if focus moves to the arrow. */
-.qa-field:has(input:valid) .qa-ph{opacity:0!important;transform:translateY(calc(-50% - 5px));}
-.qa-field:has(input:valid) input{opacity:1!important;}
-
-
-/* Mobile hero positioning: lower the complete conversational form so the
-   input sits closer to the visual centre below the fixed header. */
-@media(max-width:820px){
-  .hero-conv{padding-top:0!important;}
-  .hero-conv-wrap{transform:translateY(34px);}
-}
-@media(max-width:420px){
-  .hero-conv-wrap{transform:translateY(40px);}
-}
-
-
-/* Let the hero-colour marker sit visibly above the carousel on desktop. */
-.cx{overflow:visible;}
-#showcase{overflow:visible;}
-.cx-dot{display:block;}
-
-
-/* Correct mobile hero position: restore top breathing room and remove the
-   earlier transform that moved the content in the wrong direction. */
-@media(max-width:820px){
-  .hero-conv{padding-top:100px!important;padding-bottom:28px!important;}
-  .hero-conv-wrap{transform:none!important;}
-}
-@media(max-width:420px){
-  .hero-conv{padding-top:108px!important;}
-}
-
-
-/* Lower the mobile hero form further for a more centred starting position. */
-@media(max-width:820px){.hero-conv{padding-top:140px!important;}}
-@media(max-width:420px){.hero-conv{padding-top:148px!important;}}
-
-
-/* Final mobile stability rules: native scrolling and native text entry. */
-@media(max-width:820px){
-  html{overflow-x:hidden!important;overflow-y:auto!important;}
-  body{overflow-x:hidden!important;overflow-y:auto!important;touch-action:pan-y;}
-  #stage,#pin{position:relative!important;top:auto!important;height:66svh!important;min-height:520px!important;overflow:visible!important;}
-  #scene{pointer-events:none!important;}
-  .hero-conv{position:relative!important;z-index:10!important;overflow:visible!important;}
-  .hero-conv-wrap{position:relative!important;z-index:11!important;}
-  #quickLead,.qa-box,.qa-box .glow-box-inner,.qa-slide.qa-active,.qa-field{position:relative;z-index:20;}
-  .qa-field input{position:relative!important;z-index:30!important;display:block!important;opacity:1!important;pointer-events:auto!important;touch-action:auto!important;-webkit-user-select:text!important;user-select:text!important;}
-  .qa-field .qa-ph{pointer-events:none!important;z-index:31;}
-  .qa-field:focus-within .qa-ph,.qa-field:has(input:valid) .qa-ph{opacity:0!important;}
-}
-
-
-/* ── definitive mobile interaction reset ─────────────────────────────── */
-@media(max-width:820px){
-  html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:visible!important;}
-  body{position:static!important;touch-action:auto!important;}
-
-  /* Use a plain native text field on phones. The decorative prompt is removed
-     and the same wording is supplied by the input's real placeholder. */
-  #qaFieldName .qa-ph{display:none!important;}
-  #qaFieldName,#qaSlideName{pointer-events:auto!important;touch-action:auto!important;}
-  #bizName{
-    display:block!important;position:relative!important;z-index:100!important;
-    width:100%!important;min-height:52px!important;opacity:1!important;
-    pointer-events:auto!important;touch-action:auto!important;
-    -webkit-appearance:none!important;appearance:none!important;
-    -webkit-user-select:text!important;user-select:text!important;
-    color:var(--ink)!important;background:transparent!important;
-  }
-  #bizName::placeholder{opacity:1;color:var(--muted);}
-  #bizName:focus::placeholder{opacity:0;}
-
-  /* Carousel may animate automatically, but it must never own vertical touch
-     gestures or create a horizontal scrolling surface. */
-  #showcase,.cx,.cx-stage,.cx-item{touch-action:pan-y!important;}
-  .cx-shot iframe,.cx-hit{touch-action:pan-y!important;}
-}
-
-/* Simple cross-browser glow dot. Avoid color-mix(), which disappears on some
-   older Safari versions. The CSS variable still gives every site its colour. */
-.cx-dot{
-  display:block!important;top:-17px!important;width:11px!important;height:11px!important;
-  background:var(--cx-hero-colour,#3B82F6)!important;
-  border:2px solid rgba(255,255,255,.92)!important;
-  box-shadow:0 0 8px var(--cx-hero-colour,#3B82F6),0 0 20px var(--cx-hero-colour,#3B82F6)!important;
-  filter:none!important;
-}
-.cx-item[data-pos="0"] .cx-dot{opacity:1!important;}
-.cx-item[data-pos="-1"] .cx-dot,.cx-item[data-pos="1"] .cx-dot{opacity:.45!important;}
+@media(prefers-reduced-motion:reduce){.cx-dot{transition:none;}}
