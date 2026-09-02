@@ -944,3 +944,14 @@ html,body{max-width:100%;}
   #scene{position:absolute;inset:0;pointer-events:none;}
   .after{position:relative;z-index:5;}
 }
+
+
+/* Correct the mobile hero flow: its children are positioned inside the hero,
+   so the parent needs a real height. Keep it in normal document flow, never
+   sticky, so the sections below (including Our Work) remain scrollable. */
+@media(max-width:820px){
+  #stage{position:relative!important;height:66svh!important;min-height:520px!important;}
+  #pin{position:relative!important;top:auto!important;height:66svh!important;min-height:520px!important;overflow:visible!important;}
+  #scene{pointer-events:none!important;}
+  .after{position:relative!important;z-index:5!important;display:block!important;}
+}
