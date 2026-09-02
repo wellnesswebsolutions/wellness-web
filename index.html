@@ -252,21 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // gap hits a plain div and would otherwise do nothing at all — which is
     // what made this feel dead on a phone. (A select opens its own picker
     // when tapped, so only redirect taps for text inputs.)
-    // Mobile browsers can deliver a tap to the wrapper rather than the
-    // transparent input while the placeholder is animating. Capture the
-    // pointer before any overlay can swallow it and focus the real control.
-    field.addEventListener('pointerdown', (event) => {
-      if (input.tagName === 'INPUT' && event.pointerType !== 'mouse') {
-        event.preventDefault();
-        input.focus({ preventScroll: true });
-      }
-    }, { capture: true });
-    field.addEventListener('touchstart', (event) => {
-      if (input.tagName === 'INPUT') {
-        event.preventDefault();
-        input.focus({ preventScroll: true });
-      }
-    }, { capture: true, passive: false });
+    // Keep the first field on the browser's native mobile input path.
+    // Do not cancel touchstart/pointerdown: iOS and Android need the original
+    // gesture to open the keyboard and preserve the typed value.
     field.addEventListener('click', (event) => {
       if (event.target !== input && input.tagName === 'INPUT') input.focus();
     });
