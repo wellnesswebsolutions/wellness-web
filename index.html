@@ -688,14 +688,8 @@ Instagram: ${instagram || 'Not provided'}`;
 
 <section id="showcase">
   <div class="wrap">
-    <div class="cx-head">
-      <div class="eyebrow">Recent designs</div>
-      <h3>A homepage built around your trade</h3>
-    </div>
-
     <div class="cx" id="cx" aria-roledescription="carousel" aria-label="Example homepage designs">
       <div class="cx-stage" id="cxStage"></div>
-      <div class="cx-dots" id="cxDots" role="tablist" aria-label="Choose a design"></div>
     </div>
   </div>
 </section>
@@ -898,7 +892,6 @@ Instagram: ${instagram || 'Not provided'}`;
    wrapped both ways, so the loop is seamless without cloning nodes. */
 (function(){
   var stage = document.getElementById('cxStage');
-  var dots  = document.getElementById('cxDots');
   var root  = document.getElementById('cx');
   if (!stage) return;
 
@@ -928,12 +921,6 @@ Instagram: ${instagram || 'Not provided'}`;
       '<div class="cx-label">' + d.name + '</div>';
     stage.appendChild(el);
 
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.setAttribute('role','tab');
-    b.setAttribute('aria-label', d.label + ' example');
-    b.addEventListener('click', function(){ go(i); restart(); });
-    dots.appendChild(b);
   });
 
   var items = [].slice.call(stage.children);
@@ -948,18 +935,14 @@ Instagram: ${instagram || 'Not provided'}`;
       el.dataset.pos = (d === 0 || d === 1 || d === -1) ? String(d) : 'hidden';
       el.setAttribute('aria-hidden', d === 0 ? 'false' : 'true');
     });
-    [].slice.call(dots.children).forEach(function(b,i){
-      b.setAttribute('aria-selected', i === active ? 'true' : 'false');
-    });
   }
   function go(i){ active = ((i % n) + n) % n; place(); }
   function next(){ go(active + 1); }
 
   var timer = null;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  function start(){ if (!timer && !reduce && !paused) timer = setInterval(next, 1000); }
+  function start(){ if (!timer && !reduce && !paused) timer = setInterval(next, 4500); }
   function stop(){ if (timer) { clearInterval(timer); timer = null; } }
-  function restart(){ stop(); start(); }
 
   // paused covers hover, touch, off-screen and background-tab
   var paused = false, offscreen = false;

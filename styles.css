@@ -783,9 +783,6 @@
      a pure transform. Only transform/opacity animate — the same rule that
      keeps the previews and the glow cheap to composite. */
   #showcase{padding-top:clamp(18px,3vh,34px);padding-bottom:clamp(30px,5vh,56px)}
-  .cx-head{text-align:center;max-width:640px;margin:0 auto clamp(16px,2.6vh,26px)}
-  .cx-head h3{font-family:var(--display);font-size:clamp(22px,3.2vw,34px);font-weight:600;line-height:1.15}
-  .cx-head .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:10px}
 
   .cx{position:relative;width:100%;overflow:hidden;touch-action:pan-y;
       /* room for the scaled-down side cards to sit beside the centre one */
@@ -819,10 +816,6 @@
     text-transform:none;color:var(--muted);opacity:0;transition:opacity .4s}
   .cx-item[data-pos="0"] .cx-label{opacity:1;color:var(--accent)}
 
-  .cx-dots{display:flex;justify-content:center;gap:7px;margin-top:clamp(12px,2vw,18px)}
-  .cx-dots button{width:7px;height:7px;padding:0;border:none;border-radius:50%;background:rgba(11,98,228,.22);
-    cursor:pointer;transition:transform .3s,background .3s}
-  .cx-dots button[aria-selected="true"]{background:var(--accent);transform:scale(1.5)}
 
   @media(max-width:760px){
     .cx-stage{width:min(300px,64vw)}
