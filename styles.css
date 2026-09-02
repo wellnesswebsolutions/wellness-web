@@ -643,16 +643,18 @@
 
   /* personalised "building your website" transition, business name as anchor */
   .creating-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(120% 120% at 50% 20%,#332a4a 0%,#1c1626 55%,#120e1a 100%);
+    background:radial-gradient(110% 90% at 50% 12%,#70A7FF 0%,#3B82F6 48%,#235FC7 100%);
     opacity:0;pointer-events:none;transition:opacity .5s ease}
   .creating-overlay.active{opacity:1;pointer-events:auto}
   .creating-inner{text-align:center;padding:0 24px;max-width:90vw}
+  .creating-logo{display:block;width:min(250px,62vw);height:auto;margin:0 auto 34px;
+    filter:brightness(0) invert(1);opacity:.98;}
   .creating-verb{font-family:var(--body);font-size:clamp(12px,1.6vw,14px);font-weight:700;letter-spacing:.32em;
-    text-transform:uppercase;color:rgba(232,205,149,.85);margin-bottom:18px;min-height:1.2em;transition:opacity .18s ease}
+    text-transform:uppercase;color:rgba(255,255,255,.78);margin-bottom:18px;min-height:1.2em;transition:opacity .18s ease}
   .creating-name{font-family:var(--display);font-size:clamp(28px,6vw,60px);font-weight:600;color:#fff;
     letter-spacing:-.01em;line-height:1.1;margin-bottom:18px;word-break:break-word;
-    text-shadow:0 0 40px rgba(158,197,250,.55),0 0 90px rgba(158,197,250,.3);transition:opacity .18s ease}
-  .creating-overlay.final .creating-name{text-shadow:0 0 60px rgba(232,205,149,.75),0 0 120px rgba(232,205,149,.45)}
+    text-shadow:0 0 34px rgba(255,255,255,.38),0 0 80px rgba(255,255,255,.2);transition:opacity .18s ease}
+  .creating-overlay.final .creating-name{text-shadow:0 0 46px rgba(255,255,255,.55),0 0 100px rgba(255,255,255,.3)}
   .creating-sub{font-family:var(--body);font-size:clamp(12px,1.6vw,15px);font-weight:600;letter-spacing:.24em;
     text-transform:uppercase;color:rgba(255,255,255,.55);min-height:1.2em;transition:opacity .18s ease}
   @media(prefers-reduced-motion:reduce){.creating-overlay,.creating-verb,.creating-name,.creating-sub{transition:none}}
