@@ -943,3 +943,33 @@ html,body{max-width:100%;}
     -webkit-overflow-scrolling:touch;
   }
 }
+
+
+/* Native mobile controls for every initial form step. The active slide alone
+   receives events; inactive slides and all their controls are inert. */
+@media(max-width:820px){
+  #qaFieldType .qa-ph,#qaFieldLocation .qa-ph{display:none!important;}
+  .qa-slide:not(.qa-active),
+  .qa-slide:not(.qa-active) .qa-field,
+  .qa-slide:not(.qa-active) input,
+  .qa-slide:not(.qa-active) select,
+  .qa-slide:not(.qa-active) button{pointer-events:none!important;}
+  .qa-slide.qa-active,
+  .qa-slide.qa-active .qa-field,
+  .qa-slide.qa-active input,
+  .qa-slide.qa-active select,
+  .qa-slide.qa-active button{pointer-events:auto!important;}
+  #bizTagline,#bizLocation{
+    display:block!important;
+    position:relative!important;
+    z-index:5!important;
+    width:100%!important;
+    min-height:52px!important;
+    opacity:1!important;
+    touch-action:auto!important;
+    -webkit-user-select:text!important;
+    user-select:text!important;
+  }
+  #bizLocation::placeholder{color:var(--muted);opacity:1;}
+  #bizLocation:focus::placeholder{opacity:0;}
+}
