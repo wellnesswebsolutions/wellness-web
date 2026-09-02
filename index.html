@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#F7F2EC">
 <link rel="canonical" href="https://wellnessweb.co.uk/">
 <link rel="stylesheet" href="styles.css">
@@ -618,7 +618,7 @@ Instagram: ${instagram || 'Not provided'}`;
     <a href="pricing.html">Pricing</a>
   </nav>
   <div class="top-right">
-    <a href="#top" class="cta">Create Preview</a>
+    <a href="/" class="cta" data-totop>Create Preview</a>
     <button type="button" class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -861,7 +861,7 @@ Instagram: ${instagram || 'Not provided'}`;
         <div class="eyebrow">Turn more visitors into enquiries</div>
         <h3>See your website before you decide</h3>
         <p>Answer three quick questions and we'll build you a free personalised preview. No card required.</p>
-        <a class="go" href="#top">Create my preview</a>
+        <a class="go" href="/" data-totop>Create my preview</a>
       </div>
     </div>
   </section>
@@ -882,6 +882,19 @@ Instagram: ${instagram || 'Not provided'}`;
   </footer>
 </div>
 
+<script>
+/* The hero is the top of the page, so these links scroll there rather than
+   navigating — and without a fragment, so the URL stays the bare domain.
+   Without JS they fall back to loading "/", which lands in the same place. */
+(function(){
+  document.addEventListener('click',function(e){
+    var a=e.target.closest && e.target.closest('a[data-totop]');
+    if(!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    e.preventDefault();
+    scrollTo({top:0,behavior:'smooth'});
+  });
+})();
+</script>
 <script>
 (function(){var b=document.getElementById('bar');if(!b)return;function u(){var m=document.documentElement.scrollHeight-innerHeight;b.style.width=(m>0?Math.min(1,scrollY/m)*100:0)+'%';}addEventListener('scroll',u,{passive:true});addEventListener('resize',u,{passive:true});u();})();
 </script>
