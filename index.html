@@ -973,6 +973,14 @@ Instagram: ${instagram || 'Not provided'}`;
   place();
   start();
 
+  // keep the 1440px-wide preview viewport scaled to the card
+  function fit(){
+    var w = stage.clientWidth;
+    if (w) stage.style.setProperty('--cx-scale', (w / 1440).toFixed(4));
+  }
+  fit();
+  addEventListener('resize', fit, {passive:true});
+
   // Six cross-origin documents are expensive, so hold them until the carousel
   // is close to the viewport, then load them all (they swap in and out fast).
   var pending=[].slice.call(stage.querySelectorAll('iframe[data-src]'));

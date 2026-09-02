@@ -782,12 +782,12 @@
      the active index, so the loop never needs cloned nodes and every state is
      a pure transform. Only transform/opacity animate — the same rule that
      keeps the previews and the glow cheap to composite. */
-  #showcase{padding-top:0;padding-bottom:clamp(30px,5vh,56px)}
+  #showcase{padding-top:0;margin-top:clamp(-40px,-4vh,-14px);padding-bottom:clamp(30px,5vh,56px)}
 
   .cx{position:relative;width:100%;overflow:hidden;touch-action:pan-y;
       /* room for the scaled-down side cards to sit beside the centre one */
       padding:0 0 clamp(16px,2.4vw,26px)}
-  .cx-stage{position:relative;width:min(560px,72vw);margin:0 auto;aspect-ratio:16/11}
+  .cx-stage{position:relative;width:min(560px,72vw);margin:0 auto;aspect-ratio:16/10}
   .cx-item{position:absolute;inset:0;margin:auto;will-change:transform,opacity;
     transition:transform .62s cubic-bezier(.22,.72,.24,1), opacity .62s cubic-bezier(.22,.72,.24,1);
     backface-visibility:hidden}
@@ -807,8 +807,11 @@
   /* Real homepage rendered inside the card: a wide viewport scaled down so the
      site shows its desktop layout, held on the homepage with no scroll. */
   .cx-shot{position:relative;flex:1;min-height:0;overflow:hidden;background:#F7F2EC}
-  .cx-shot iframe{position:absolute;top:0;left:0;width:250%;height:250%;border:0;
-    transform:scale(.4);transform-origin:0 0}
+  /* A fixed 1440x900 desktop viewport scaled to the card width (the scale is
+     set in JS), anchored top-left, so every site renders its desktop hero in
+     full instead of dropping to a mobile breakpoint or cropping mid-hero. */
+  .cx-shot iframe{position:absolute;top:0;left:0;width:1440px;height:900px;border:0;
+    transform:scale(var(--cx-scale,.35));transform-origin:0 0}
   .cx-hit{position:absolute;inset:0;z-index:2;display:block}
   .cx-item[data-pos="0"] .cx-hit{cursor:pointer}
   .cx-item:not([data-pos="0"]) .cx-hit{pointer-events:none}
