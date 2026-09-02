@@ -902,3 +902,33 @@ html,body{max-width:100%;}
 }
 
 @media(prefers-reduced-motion:reduce){.cx-dot{transition:none;}}
+
+
+/* Mobile page scrolling: keep one root scroll container and make carousel
+   previews presentation-only on touch devices so they cannot swallow swipes. */
+@media(max-width:820px){
+  html{
+    height:auto!important;
+    min-height:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y!important;
+  }
+  body{
+    position:static!important;
+    height:auto!important;
+    min-height:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y!important;
+  }
+  main,.after,.hero-conv,#showcase,.cx{
+    touch-action:pan-y!important;
+  }
+  .cx-shot iframe,.cx-hit{
+    pointer-events:none!important;
+    touch-action:pan-y!important;
+  }
+}
