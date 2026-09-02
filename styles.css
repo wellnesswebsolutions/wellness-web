@@ -898,3 +898,19 @@ html,body{max-width:100%;}
   .hero-conv{padding-inline:12px;}
   .cx-stage{width:230px;min-width:0;}
 }
+
+
+/* Final mobile carousel correction: keep the side previews visible while
+   preventing the rest of the page from becoming horizontally scrollable. */
+@media(max-width:760px){
+  #showcase{overflow:visible;}
+  #showcase .cx{overflow:visible;}
+  #showcase .cx-stage{width:min(72vw,300px);}
+  #showcase .cx-item[data-pos="-1"]{transform:translateX(-67%) scale(.68);opacity:.62;}
+  #showcase .cx-item[data-pos="1"]{transform:translateX(67%) scale(.68);opacity:.62;}
+}
+@media(max-width:360px){
+  #showcase .cx-stage{width:220px;}
+  #showcase .cx-item[data-pos="-1"]{transform:translateX(-63%) scale(.64);}
+  #showcase .cx-item[data-pos="1"]{transform:translateX(63%) scale(.64);}
+}
