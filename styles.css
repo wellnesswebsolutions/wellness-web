@@ -990,6 +990,7 @@ html,body{max-width:100%}
 }
 .media-modal {
   position: fixed;
+  pointer-events: auto;
   inset: 0;
   z-index: 1200;
   display: grid;
@@ -1003,6 +1004,8 @@ html,body{max-width:100%}
 }
 .media-modal-backdrop {
   position: absolute;
+  z-index: 0;
+  pointer-events: auto;
   inset: 0;
   border: 0;
   background: rgba(8, 19, 39, .58);
@@ -1011,6 +1014,8 @@ html,body{max-width:100%}
 }
 .media-modal-card {
   position: relative;
+  z-index: 1;
+  pointer-events: auto;
   width: min(620px, 100%);
   max-height: min(780px, calc(100dvh - 36px));
   overflow: auto;
