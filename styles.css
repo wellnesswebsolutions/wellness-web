@@ -281,16 +281,21 @@
      everything enters once, softly, and never moves again          */
   /* keep the travel small: a transform doesn't move the layout box, so a
      block still waiting to reveal can otherwise sit over the one below it */
-  .reveal{opacity:0;transform:translateY(12px);
-    transition:opacity .85s cubic-bezier(.22,.61,.36,1),transform .85s cubic-bezier(.22,.61,.36,1)}
-  .reveal.in{opacity:1;transform:none}
+  /* No `transform` here on purpose: a transform transition on these elements
+     reproducibly broke real-finger touch scrolling on iPhone Safari/Chromium
+     (confirmed with CDP-level touch dispatch, not just synthetic events) —
+     once an element had ever transitioned `transform`, a swipe starting on
+     or near it stopped producing any scroll at all, sitewide, matching
+     reports of the page being "stuck" at the top and partway down. Opacity
+     and blur alone give the same soft-appear feel without that risk. */
+  .reveal{opacity:0;
+    transition:opacity .85s cubic-bezier(.22,.61,.36,1)}
+  .reveal.in{opacity:1}
   .reveal-blur{filter:blur(6px);transition:opacity .9s cubic-bezier(.22,.61,.36,1),
-    transform .9s cubic-bezier(.22,.61,.36,1),filter .9s cubic-bezier(.22,.61,.36,1)}
+    filter .9s cubic-bezier(.22,.61,.36,1)}
   .reveal-blur.in{filter:none}
-  /* the display headings draw themselves out of a slight rise */
-  .sec-head h3.reveal,.page-hero h1.reveal{transform:translateY(14px)}
   @media(prefers-reduced-motion:reduce){
-    .reveal,.reveal-blur{opacity:1;transform:none;filter:none;transition:none}
+    .reveal,.reveal-blur{opacity:1;filter:none;transition:none}
   }
   .page-hero{text-align:center;max-width:680px;margin:0 auto 8px}
   .page-hero .eyebrow{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:14px}

@@ -41,7 +41,7 @@
         G('Nutrition', [['Nutrition consultation', 'From £45'], ['Meal planning', 'From £35'], ['Weight management', 'From £40'], ['Food intolerance testing', 'From £75'], ['Follow-up review', 'From £30']]),
         G('Clinics', [['Health screening', 'From £60'], ['Blood pressure check', 'From £15'], ['Vaccination', 'From £25'], ['Travel clinic', 'From £35'], ['General consultation', 'From £40']])
       ] },
-    { label: 'Fitness', cat: 'fitness', photo: 'fitness-hero.jpg', theme: '#a39b94',
+    { label: 'Fitness', cat: 'fitness', photo: 'fitness-hero.jpg', theme: '#414349',
       tagline: 'Training plans built around real life',
       desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.',
       groups: [
@@ -96,7 +96,7 @@
         G('Events & Catering', [['Private events', 'Get a quote'], ['Wedding catering', 'Get a quote'], ['Corporate catering', 'Get a quote'], ['Buffet catering', 'From £12/head'], ['Drinks packages', 'Get a quote']]),
         G('Drinks', [['Cocktails', 'From £9'], ['Wine list', 'From £24/bottle'], ['Craft beer', 'From £5'], ['Coffee subscription', 'From £15/mo'], ['Tasting sessions', 'From £25']])
       ] },
-    { label: 'Professional Services', cat: 'professional', photo: 'professional-services-hero.jpg', theme: '#8a4a3d',
+    { label: 'Professional Services', cat: 'professional', photo: 'professional-services-hero.jpg', theme: '#7a6952',
       tagline: 'Clear advice, no jargon',
       desc: '{name} keeps things straightforward, with clear advice and deadlines that never sneak up on you. One trusted team, from start to finish.',
       groups: [
@@ -107,7 +107,7 @@
         G('Financial', [['Mortgage advice', 'Free'], ['Pension advice', 'From £150'], ['Investment advice', 'Get a quote'], ['Insurance advice', 'Free'], ['Financial planning', 'From £200']]),
         G('Consulting', [['Strategy consulting', 'Get a quote'], ['IT consulting', 'From £85/hr'], ['HR consulting', 'From £75/hr'], ['Marketing consulting', 'From £75/hr'], ['Project management', 'Get a quote']])
       ] },
-    { label: 'Creative', cat: 'creative', photo: 'creative-hero.jpg', theme: '#3f4a3d',
+    { label: 'Creative', cat: 'creative', photo: 'creative-hero.jpg', theme: '#544e45',
       tagline: 'The moments that actually matter',
       desc: '{name} captures the moments that actually matter. A relaxed, professional approach that means natural results every time.',
       groups: [
@@ -118,7 +118,7 @@
         G('Editing & Retouching', [['Photo editing', 'From £5/image'], ['Retouching', 'From £15/image'], ['Album design', 'From £150'], ['Colour grading', 'From £80'], ['Video editing', 'From £50/hr']]),
         G('Prints & Products', [['Framed prints', 'From £35'], ['Photo books', 'From £65'], ['Canvas prints', 'From £45'], ['Digital downloads', 'From £10'], ['Prop hire', 'From £20']])
       ] },
-    { label: 'Pets', cat: 'pets', photo: 'pets-hero.jpg', theme: '#c08a3d',
+    { label: 'Pets', cat: 'pets', photo: 'pets-hero.jpg', theme: '#ca7281',
       tagline: 'Calm, gentle care for your pet',
       desc: '{name} gives your pet a calm, gentle experience from start to finish. Always handled with patience and care.',
       groups: [
@@ -347,6 +347,7 @@
 <title>${esc(d.name)}${d.tagline ? ' | ' + esc(d.tagline) : ''}${d.location ? ' in ' + esc(d.location) : ''}</title>
 <meta name="description" content="${esc(metaDesc)}">
 <meta name="theme-color" content="${t.dark}">
+<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='${t.dark}'/><text x='32' y='33' text-anchor='middle' dominant-baseline='central' font-family='Inter, Arial, sans-serif' font-weight='700' font-size='26' fill='#fff'>${esc(initials)}</text></svg>`)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -546,6 +547,23 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-footer{background:var(--ink);color:rgba(255,255,255,.72);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center}
 .site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
+
+/* ---- a little life: things settle into place as they enter the viewport,
+   and the hero copy leads in on load. Kept to opacity/transform so it's
+   cheap to animate, and dropped entirely for reduced-motion. ---- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.16,.84,.44,1),transform .7s cubic-bezier(.16,.84,.44,1)}
+.reveal.in{opacity:1;transform:none}
+.hero-copy .inner>*{opacity:0;transform:translateY(16px);animation:hero-in .8s cubic-bezier(.16,.84,.44,1) forwards}
+.hero-copy .inner>*:nth-child(1){animation-delay:.05s}
+.hero-copy .inner>*:nth-child(2){animation-delay:.18s}
+.hero-copy .inner>*:nth-child(3){animation-delay:.31s}
+.hero-copy .inner>*:nth-child(4){animation-delay:.44s}
+.hero-copy .inner>*:nth-child(5){animation-delay:.55s}
+@keyframes hero-in{to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .hero-copy .inner>*{opacity:1;transform:none;animation:none}
+}
 </style>
 </head>
 <body>
@@ -572,7 +590,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 <div class="page" data-page="home">
   <section class="hero">
     ${sceneMarkup}
-    ${!d.heroImage ? '<span class="hero-photo-note">(Demo photo — your finished site gets a custom hero image with your logo and brand name)</span>' : ''}
+    ${heroHasPhoto ? '<span class="hero-photo-note">(This picture will be custom made for your business — it\u2019s just a demo picture for now)</span>' : ''}
     <div class="hero-copy">
       <div class="inner">
         <span class="eyebrow">${esc(eyebrowLoc)}</span>
@@ -797,6 +815,33 @@ document.querySelectorAll('a[href^="#svc-group-"]').forEach(function (a) {
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+
+// A little life: sections, cards and tiles settle into place as they scroll
+// into view, staggered by their position within their own row/grid so a
+// group of cards cascades in rather than popping in as one flat block.
+var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (!reduceMotion && 'IntersectionObserver' in window) {
+  var revealGroups = document.querySelectorAll('.grid, .reviews, .gallery');
+  revealGroups.forEach(function (group) {
+    Array.prototype.forEach.call(group.children, function (child, i) {
+      child.classList.add('reveal');
+      child.style.transitionDelay = Math.min(i * 70, 280) + 'ms';
+    });
+  });
+  document.querySelectorAll('.section .center, .section.band > .container, .page-head').forEach(function (el) {
+    el.classList.add('reveal');
+  });
+  var revealIO = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        revealIO.unobserve(entry.target);
+      }
+    });
+  }, { threshold: .12, rootMargin: '0px 0px -6% 0px' });
+  document.querySelectorAll('.reveal').forEach(function (el) { revealIO.observe(el); });
+}
+
 showPage('home');
 <\/script>
 
