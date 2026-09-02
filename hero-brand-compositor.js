@@ -13,27 +13,27 @@
   // so the name cannot drift over windows, doors, wheels or shelving.
   const SCENES = {
     // blank plaster wall right of the mirrors
-    hairbeauty: { image: 'hair-beauty.webp', panel: { cx: .755, cy: .32, w: .30, h: .22 }, blend: 'multiply', opacity: .82 },
+    hairbeauty: { image: 'hair-beauty.webp', panel: { cx: .72, cy: .32, w: .34, h: .23 }, blend: 'multiply', opacity: .82 },
     // wall panel above and behind the reception desk
-    aesthetics: { image: 'aesthetics.webp', panel: { cx: .36, cy: .27, w: .30, h: .20 }, blend: 'multiply', opacity: .80 },
+    aesthetics: { image: 'aesthetics.webp', panel: { cx: .51, cy: .32, w: .38, h: .23 }, blend: 'multiply', opacity: .80 },
     // wide bare wall to the right of the treatment bed
-    health: { image: 'health-wellness.webp', panel: { cx: .68, cy: .30, w: .34, h: .22 }, blend: 'multiply', opacity: .82 },
+    health: { image: 'health-wellness.webp', panel: { cx: .70, cy: .34, w: .34, h: .22 }, blend: 'multiply', opacity: .82 },
     // dark gym wall — light ink, kept clear of the rig on the right
-    fitness: { image: 'fitness.webp', panel: { cx: .40, cy: .33, w: .40, h: .26 }, blend: 'screen', opacity: .88 },
+    fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, blend: 'screen', opacity: .88 },
     // flat side panel of the van, behind the cab and above the sill
-    automotive: { image: 'automotive.webp', panel: { cx: .68, cy: .44, w: .34, h: .17 }, blend: 'multiply', opacity: .84 },
+    automotive: { image: 'automotive.webp', panel: { cx: .69, cy: .44, w: .31, h: .16 }, blend: 'multiply', opacity: .84 },
     // van side panel, between the window line and the lower stripe
-    trades: { image: 'trades.webp', panel: { cx: .68, cy: .44, w: .34, h: .20 }, blend: 'multiply', opacity: .84 },
+    trades: { image: 'trades.webp', panel: { cx: .68, cy: .47, w: .30, h: .17 }, blend: 'multiply', opacity: .84 },
     // rendered facade right of the timber doorway
-    homegarden: { image: 'home-garden.webp', panel: { cx: .62, cy: .45, w: .26, h: .17 }, blend: 'multiply', opacity: .82 },
+    homegarden: { image: 'home-garden.webp', panel: { cx: .69, cy: .43, w: .27, h: .18 }, blend: 'multiply', opacity: .82 },
     // wall above the counter, below the pendant lights
-    fooddrink: { image: 'food-drink.webp', panel: { cx: .52, cy: .34, w: .30, h: .15 }, blend: 'multiply', opacity: .82 },
+    fooddrink: { image: 'food-drink.webp', panel: { cx: .51, cy: .35, w: .34, h: .18 }, blend: 'multiply', opacity: .82 },
     // marble wall behind the reception desk
-    professional: { image: 'professional-services.webp', panel: { cx: .45, cy: .30, w: .30, h: .20 }, blend: 'multiply', opacity: .80 },
+    professional: { image: 'professional-services.webp', panel: { cx: .50, cy: .31, w: .32, h: .21 }, blend: 'multiply', opacity: .80 },
     // large empty studio wall on the right
-    creative: { image: 'creative.webp', panel: { cx: .76, cy: .33, w: .32, h: .24 }, blend: 'multiply', opacity: .82 },
+    creative: { image: 'creative.webp', panel: { cx: .74, cy: .35, w: .34, h: .24 }, blend: 'multiply', opacity: .82 },
     // pink salon wall, clear of the shelf and the plant
-    pets: { image: 'pets.webp', panel: { cx: .72, cy: .28, w: .32, h: .22 }, blend: 'multiply', opacity: .82 }
+    pets: { image: 'pets.webp', panel: { cx: .73, cy: .27, w: .30, h: .20 }, blend: 'multiply', opacity: .82 }
   };
 
   const CATEGORY_ALIASES = {
@@ -143,6 +143,18 @@
   function drawLockup(ctx, name, location, box, fallbackLight) {
     const nameText = String(name || 'Your Business').trim().toUpperCase();
     const placeText = String(location || '').trim().toUpperCase();
+
+    // Keep equal breathing room on every side. All measuring, wrapping and
+    // centring happens inside this inset box, so a short or long name shares
+    // the exact same visual centre and never leans toward an edge.
+    const insetX = box.width * .07;
+    const insetY = box.height * .07;
+    box = {
+      x: box.x + insetX,
+      y: box.y + insetY,
+      width: box.width - insetX * 2,
+      height: box.height - insetY * 2
+    };
 
     // Start from the panel height and shrink until the name fits the width. Try
     // one line first; if that would drive the type too small, use two.
