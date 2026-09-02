@@ -808,7 +808,14 @@
     padding:2px 8px;font-size:8.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* Real homepage rendered inside the card: a wide viewport scaled down so the
      site shows its desktop layout, held on the homepage with no scroll. */
-  .cx-shot{position:relative;flex:1;min-height:0;overflow:hidden;background:#F7F2EC}
+  /* Only a small window of previews is live at a time, so a card whose frame
+     is not loaded would otherwise be a blank rectangle — give it a faint page
+     skeleton so the neighbours still read as websites. */
+  .cx-shot{position:relative;flex:1;min-height:0;overflow:hidden;background:#F4EFE8;
+    background-image:linear-gradient(#E9E1D6 0 0),linear-gradient(#EFE8DE 0 0),linear-gradient(#EFE8DE 0 0);
+    background-repeat:no-repeat;
+    background-size:100% 52%, 46% 7%, 30% 7%;
+    background-position:0 0, 8% 66%, 8% 80%}
   /* A fixed 1440x900 desktop viewport scaled to the card width (the scale is
      set in JS), anchored top-left, so every site renders its desktop hero in
      full instead of dropping to a mobile breakpoint or cropping mid-hero. */
