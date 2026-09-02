@@ -409,9 +409,9 @@ document.addEventListener('DOMContentLoaded', () => {
   qaLocationNext.addEventListener('click', finishLocation);
 
   // gather the initial 3 questions into the shape buildDemoHTML expects.
-  // The builder-bar's WhatsApp number (Q2) doubles as the site's displayed
-  // contact number, since it's the one real piece of site-relevant info in
-  // that contact-details flow — everything else there is for the designer.
+  // Q2 collects an email address for the designer, not a phone number, so the
+  // preview keeps the generator's placeholder number rather than showing an
+  // email where a phone number belongs.
   function gatherData() {
     return {
       name: bizNameInput.value.trim() || 'Your Business Name',
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
       prices: bizPrices.value.split(',').map(s => s.trim()).filter(Boolean),
       goal: bizGoal.value,
       about: '',
-      phone: (builderAnswers[1] || '').trim(),
+      phone: '',
       tones: selectedTones,
       stylePreset: STYLE_BY_TYPE[bizTagline.value] || 'clean-professional',
       logo: null,
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // designer actually needs to get started — the rest are optional.
   const BUILDER_QUESTIONS = [
     { q: 'Full name', type: 'text', required: true },
-    { q: 'WhatsApp number', type: 'tel', required: true },
+    { q: 'Email address', type: 'email', required: true },
     { q: 'Current website', type: 'text', optional: true },
     { q: 'Facebook', type: 'text', optional: true },
     { q: 'Instagram', type: 'text', optional: true }
@@ -520,7 +520,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     builderAnswers[builderIndex] = value;
-    if (builderIndex === 1) refreshPreview(); // WhatsApp number doubles as the site's contact number
     builderIndex++;
     if (builderIndex < BUILDER_QUESTIONS.length) {
       showBuilderQuestion(builderIndex);
@@ -577,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const businessName = bizNameInput.value.trim();
     const businessType = bizTagline.value;
     const location_ = bizLocation.value.trim();
-    const [fullName, whatsapp, website, facebook, instagram] = builderAnswers;
+    const [fullName, email, website, facebook, instagram] = builderAnswers;
 
     const message = `Hi, I'd like you to finish my website.
 
@@ -586,7 +585,7 @@ Industry: ${businessType}
 Location: ${location_}
 
 Name: ${fullName || 'Not provided'}
-WhatsApp number: ${whatsapp || 'Not provided'}
+Email address: ${email || 'Not provided'}
 Current website: ${website || 'Not provided'}
 Facebook: ${facebook || 'Not provided'}
 Instagram: ${instagram || 'Not provided'}`;
