@@ -640,8 +640,6 @@
   /* the middle card is the offer, so give it more width and lift it forward */
   .conv-col-ai{flex:1.35 1 0;z-index:1;padding:clamp(18px,2.2vw,26px) clamp(16px,2vw,24px);
     box-shadow:0 18px 46px rgba(91,58,115,.18)}
-  .conv-strap{margin-top:12px;padding-top:11px;border-top:1px solid rgba(91,58,115,.18);
-    font-size:clamp(11.5px,1.1vw,13px);line-height:1.4;font-weight:600;color:var(--accent)}
   .conv-col-old,.conv-col-new{background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(23,32,31,.05)}
   .conv-col-ai{background:linear-gradient(160deg, rgba(185,143,201,.24), rgba(91,58,115,.1));
     border:1px solid rgba(91,58,115,.18);box-shadow:0 14px 34px rgba(91,58,115,.14)}
