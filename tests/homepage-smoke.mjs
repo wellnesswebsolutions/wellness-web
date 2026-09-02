@@ -52,6 +52,7 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   const errors = [];
+  const activate = (locator) => mobile ? locator.tap() : locator.click();
 
   page.on('pageerror', (error) => errors.push(error.message));
   await page.route('https://*.vercel.app/**', (route) => route.abort());
@@ -90,7 +91,7 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   await page.evaluate(() => window.scrollTo(0, 0));
 
   const nameInput = page.locator('#bizName');
-  await nameInput.tap();
+  await activate(nameInput);
   const focusedPlaceholderOpacity = await nameInput.evaluate((element) => (
     getComputedStyle(element, '::placeholder').opacity
   ));
@@ -98,7 +99,7 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   await nameInput.pressSequentially('BrightSite Test Studio', { delay: 20 });
   assert.equal(await nameInput.inputValue(), 'BrightSite Test Studio', `${label}: name should stay typed`);
 
-  await page.locator('#qaNameGo').tap();
+  await activate(page.locator('#qaNameGo'));
   await page.locator('#qaSlideType.qa-active').waitFor();
   await page.locator('#qaSlideName[hidden]').waitFor({ state: 'attached' });
   assert.equal(await nameInput.inputValue(), 'BrightSite Test Studio', `${label}: intentional capitals should remain`);
@@ -108,18 +109,18 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   await page.locator('#qaSlideType[hidden]').waitFor({ state: 'attached' });
 
   const locationInput = page.locator('#bizLocation');
-  await locationInput.tap();
+  await activate(locationInput);
   await locationInput.pressSequentially('Beverley', { delay: 20 });
   assert.equal(await locationInput.inputValue(), 'Beverley', `${label}: location should stay typed`);
 
-  await page.locator('#qaLocationNext').tap();
+  await activate(page.locator('#qaLocationNext'));
   await page.locator('#builderOverlay:not([hidden])').waitFor({ timeout: 10000 });
 
   const rootLocked = await page.evaluate(() => document.documentElement.classList.contains('builder-scroll-lock'));
   assert.equal(rootLocked, !mobile, `${label}: scroll lock should be desktop-only`);
 
   const builderInput = page.locator('#builderInput');
-  await builderInput.tap();
+  await activate(builderInput);
   await builderInput.pressSequentially('Lucan Tester', { delay: 20 });
   assert.equal(await builderInput.inputValue(), 'Lucan Tester', `${label}: builder input should accept typing`);
 
