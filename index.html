@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let selectedTones = null;
   let uploadedHeroImage = null;
+  // Must exist before the initial mobile sizing pass below. Previously this
+  // was declared much later, so phones hit its temporal dead zone and aborted
+  // the entire form setup before submit/input handlers were attached.
+  let builderMobileView = false;
 
   const STYLE_BY_TYPE = {
     'Hair & Beauty': 'soft-luxury',
@@ -566,7 +570,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // toggles the full-page preview to a centred, phone-width column — since
   // it's a real iframe (not a scaled mockup), the generated site's own
   // responsive CSS just naturally switches to its mobile layout at that width.
-  let builderMobileView = false;
   function setBuilderMobileView(on) {
     builderMobileView = on;
     builderPreview.classList.toggle('mobile-view', on);
