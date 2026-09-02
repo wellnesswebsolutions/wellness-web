@@ -961,5 +961,8 @@ Instagram: ${instagram || 'Not provided'}`;
 })();
 </script>
 
+<script>
+(function(){var b=document.getElementById('bar');if(!b)return;function u(){var m=document.documentElement.scrollHeight-innerHeight;b.style.width=(m>0?Math.min(1,scrollY/m)*100:0)+'%';}addEventListener('scroll',u,{passive:true});addEventListener('resize',u,{passive:true});u();})();
+</script>
 </body>
 </html>
