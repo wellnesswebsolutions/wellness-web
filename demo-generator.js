@@ -441,8 +441,8 @@ ${heroHasPhoto ? `@media(min-width:901px){
   /* Mobile uses the hero photograph as a complete 16:9 image rather than
      cropping a desktop background into a tall portrait panel. The content
      then sits in its own panel below, so buttons never cover the sentence. */
-  .hero{--mobile-hero-height:clamp(270px,75vw,440px);display:block;min-height:0;margin-top:75px;
-    padding-top:var(--mobile-hero-height);background-size:auto var(--mobile-hero-height);
+  .hero{--mobile-hero-height:clamp(180px,56.25vw,440px);display:block;min-height:0;margin-top:75px;
+    padding-top:var(--mobile-hero-height);background-size:contain;
     background-position:center top;background-repeat:no-repeat;background-color:var(--ink)}
   .hero::after{inset:0 0 auto;height:var(--mobile-hero-height);
     background:linear-gradient(to top,rgba(28,24,21,.24),rgba(28,24,21,0) 58%)}
