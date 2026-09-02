@@ -96,13 +96,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // keeps the preview's bottom edge finishing above the floating question
   // bar instead of sliding underneath it — the bar's real height shifts
   // with mobile safe-area padding, so it's measured rather than assumed.
+  // The preview pane is short and wide (the header and question bar eat ~170px
+  // of height), so at full width it has a ~1.9 aspect where a real desktop
+  // viewport is ~1.5. The generated site's hero is a 16:9 band, so at that
+  // stretched ratio it grew taller than the pane and pushed its own CTA
+  // buttons below the fold. Narrow the frame to a realistic desktop shape
+  // instead — never below 960px, or the site would flip to its mobile layout
+  // (breakpoint 900px) and stop being a desktop preview at all.
+  function sizePreviewToDesktopRatio() {
+    if (!builderPreview || builderPreview.classList.contains('mobile-view')) return;
+    const pane = builderPreview.getBoundingClientRect();
+    if (!pane.width || !pane.height) return;
+    const ideal = Math.max(960, Math.round(pane.height * 1.5));
+    previewFrame.style.width = `${Math.min(pane.width, ideal)}px`;
+  }
+
   const builderBarWrap = document.querySelector('.builder-bar-wrap');
   if (builderBarWrap && builderPreview && 'ResizeObserver' in window) {
     const updateBuilderBottom = () => {
       builderPreview.style.bottom = `${builderBarWrap.getBoundingClientRect().height}px`;
+      sizePreviewToDesktopRatio();
     };
     new ResizeObserver(updateBuilderBottom).observe(builderBarWrap);
     updateBuilderBottom();
+    window.addEventListener('resize', updateBuilderBottom);
   }
 
   // On iPhones, a fixed bottom control can sit behind the software keyboard
@@ -523,6 +540,8 @@ document.addEventListener('DOMContentLoaded', () => {
     builderMobileView = on;
     builderPreview.classList.toggle('mobile-view', on);
     builderMobileToggle.classList.toggle('active', on);
+    // hand width back to the stylesheet in mobile view, re-apply it on the way out
+    if (on) previewFrame.style.width = ''; else sizePreviewToDesktopRatio();
   }
   builderMobileToggle.addEventListener('click', () => setBuilderMobileView(!builderMobileView));
 

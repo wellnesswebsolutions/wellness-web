@@ -560,7 +560,9 @@
   .builder-overlay{position:fixed;inset:0;z-index:60;pointer-events:none}
   .builder-preview{position:fixed;top:var(--header-h, 75px);left:0;right:0;overflow:hidden;background:var(--bg);
     pointer-events:auto;transition:padding .3s var(--qa-ease),bottom .2s var(--qa-ease)}
-  .builder-preview iframe{width:100%;height:100%;border:0;display:block;pointer-events:auto;background:#fff;
+  /* centred, because the desktop-ratio sizing above can make it narrower than
+     the pane; the surrounding gutter reads as the space beside a browser window */
+  .builder-preview iframe{width:100%;height:100%;border:0;display:block;margin:0 auto;pointer-events:auto;background:#fff;
     transition:max-width .3s var(--qa-ease)}
   /* real device-width column (not a scaled mockup) — the iframe is simply
      narrower, so the generated site's own responsive CSS switches to its
