@@ -778,91 +778,6 @@ Instagram: ${instagram || 'Not provided'}`;
   </div>
 </section>
 
-<section id="examples">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Our work</div>
-      <h3>Real websites, built and managed by us</h3>
-      <p>A couple of recent builds — both live, both fully managed.</p>
-    </div>
-    <div class="work two-up">
-      <article class="demo">
-        <div class="chrome"><i></i><i></i><i></i><span class="url">ivory-lane.vercel.app</span></div>
-        <div class="frame">
-          <span class="live">Live</span>
-          <iframe data-src="https://ivory-lane.vercel.app" title="Ivory Lane website preview"
-                  sandbox="allow-scripts allow-same-origin" scrolling="no" tabindex="-1" loading="lazy"></iframe>
-          <a class="hit" href="https://ivory-lane.vercel.app" target="_blank" rel="noopener" aria-label="Open the Ivory Lane site"></a>
-        </div>
-        <div class="meta">
-          <div class="kicker">Beauty salon &middot; Example build</div>
-          <h4>Ivory Lane</h4>
-          <p>A bold, grid-built salon site with the full treatment price list and a built-in booking overlay &mdash; striking, and still simple to use.</p>
-          <a class="go" href="https://ivory-lane.vercel.app" target="_blank" rel="noopener">Visit site</a>
-        </div>
-      </article>
-      <article class="demo">
-        <div class="chrome"><i></i><i></i><i></i><span class="url">brian-griffin-electrical.vercel.app</span></div>
-        <div class="frame">
-          <span class="live">Live</span>
-          <iframe data-src="https://brian-griffin-electrical.vercel.app" title="Brian Griffin Electrical website preview"
-                  sandbox="allow-scripts allow-same-origin" scrolling="no" tabindex="-1" loading="lazy"></iframe>
-          <a class="hit" href="https://brian-griffin-electrical.vercel.app" target="_blank" rel="noopener" aria-label="Open the Brian Griffin Electrical site"></a>
-        </div>
-        <div class="meta">
-          <div class="kicker">Electrician &middot; Beverley</div>
-          <h4>Brian Griffin Electrical</h4>
-          <p>A trades site with the things customers look for up front &mdash; services, coverage area and a phone number always in reach.</p>
-          <a class="go" href="https://brian-griffin-electrical.vercel.app" target="_blank" rel="noopener">Visit site</a>
-        </div>
-      </article>
-    </div>
-    <div class="sec-cta"><a class="go" href="work.html">See more of our work</a></div>
-  </div>
-</section>
-
-<section id="pricing">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Pricing</div>
-    </div>
-    <div class="plans two" style="max-width:820px;margin:0 auto">
-      <div class="plan">
-        <div class="kicker">Great value</div>
-        <h4>Essential</h4>
-        <div class="desc">A professional custom website with everything it needs to perform.</div>
-        <div class="price">£199<span class="price-plus">+ £20/mo</span></div>
-        <div class="price-note">One-off build, then hosting &amp; management</div>
-        <ul>
-          <li>Professional custom website</li>
-          <li>SEO &amp; SEO-focused content</li>
-          <li>Mobile optimisation</li>
-          <li>Hosting, security &amp; maintenance</li>
-          <li>Core functionality &amp; booking</li>
-        </ul>
-        <a href="contact.html" class="go">Get started &mdash; £199</a>
-      </div>
-      <div class="plan feature">
-        <div class="badge">Most popular</div>
-        <div class="kicker">Best balance</div>
-        <h4>Pro</h4>
-        <div class="desc">Everything in Essential, with a bigger, more capable site.</div>
-        <div class="price">£399<span class="price-plus">+ £20/mo</span></div>
-        <div class="price-note">One-off build, then hosting &amp; management</div>
-        <ul>
-          <li>Everything in Essential</li>
-          <li>More pages &amp; advanced layouts</li>
-          <li>Custom sections built for you</li>
-          <li>Interactions &amp; animations</li>
-          <li>Third-party integrations</li>
-        </ul>
-        <a href="contact.html" class="go">Get started &mdash; £399</a>
-      </div>
-    </div>
-    <p class="pricing-note">The £20/month covers hosting, security, backups, website updates and ongoing SEO on every plan — including same-day changes and support from a real person. Cancel any time.</p>
-  </div>
-</section>
-
 <section id="how">
   <div class="wrap">
     <div class="sec-head">
@@ -945,21 +860,6 @@ Instagram: ${instagram || 'Not provided'}`;
     <p style="margin-top:14px;font-size:11px;opacity:.6">&copy; 2026 BrightSite &middot; Based in Beverley, serving UK businesses</p>
   </footer>
 </div>
-
-<script>
-// Load the live site previews only once they're near the viewport.
-// (Native loading="lazy" doesn't fire reliably inside the scaled preview frames.)
-(function(){
-  var frames=[].slice.call(document.querySelectorAll('.frame iframe[data-src]'));
-  if(!frames.length) return;
-  function load(f){ if(f.dataset.src){ f.src=f.dataset.src; delete f.dataset.src; } }
-  if(!('IntersectionObserver' in window)){ frames.forEach(load); return; }
-  var io=new IntersectionObserver(function(entries){
-    entries.forEach(function(e){ if(e.isIntersecting){ load(e.target); io.unobserve(e.target); } });
-  },{rootMargin:'400px'});
-  frames.forEach(function(f){ io.observe(f); });
-})();
-</script>
 
 <script>
 (function(){var b=document.getElementById('bar');if(!b)return;function u(){var m=document.documentElement.scrollHeight-innerHeight;b.style.width=(m>0?Math.min(1,scrollY/m)*100:0)+'%';}addEventListener('scroll',u,{passive:true});addEventListener('resize',u,{passive:true});u();})();
