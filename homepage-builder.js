@@ -62,9 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'Trades': ['#6b625c', '#8a6337', '#3f6270', '#59654a'],
     'Home & Garden': ['#6b7a4a', '#827052', '#54736c', '#7e667c'],
     'Food & Drink': ['#7a5c3d', '#8b4540', '#5f7046', '#69506e'],
-    'Professional Services': ['#365875', '#6a4c70', '#4f6659', '#7a5047'],
-    'Creative': ['#3f4a3d', '#704b72', '#9a5a42', '#3f6170'],
-    'Pets': ['#c08a3d', '#4f7d70', '#8a6687', '#9a6650'],
+    'Professional Services': ['#7a6952', '#6a4c70', '#4f6659', '#7a5047'],
+    'Creative': ['#544e45', '#704b72', '#9a5a42', '#3f6170'],
+    'Pets': ['#ca7281', '#4f7d70', '#8a6687', '#9a6650'],
     'Other': ['#5b3a73', '#456c78', '#7a5947', '#596b52']
   };
 
