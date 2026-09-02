@@ -914,3 +914,16 @@ html,body{max-width:100%;}
   #showcase .cx-item[data-pos="-1"]{transform:translateX(-63%) scale(.64);}
   #showcase .cx-item[data-pos="1"]{transform:translateX(63%) scale(.64);}
 }
+
+
+/* Fix: the first question must be a native, immediately tappable control on
+   iOS/Android. Do not hide the input itself behind the animated placeholder. */
+.qa-field input{opacity:1!important;pointer-events:auto!important;cursor:text;touch-action:manipulation;}
+.qa-field input:focus{opacity:1!important;}
+.qa-field{pointer-events:auto!important;}
+.qa-slide.qa-active{z-index:5;}
+.qa-slide:not(.qa-active){z-index:0;}
+@media(max-width:760px){
+  .qa-field input{display:block;min-width:0;min-height:52px;padding:0!important;-webkit-user-select:text;user-select:text;}
+  .qa-slide.qa-active{isolation:isolate;}
+}
