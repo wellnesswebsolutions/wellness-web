@@ -354,7 +354,7 @@
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
-body{margin:0;padding-top:37px;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
+body{margin:0;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
 img{max-width:100%;display:block}
 a{color:var(--rose-dark)}
 h1,h2,h3,h4{font-family:var(--heading-font);color:var(--ink);font-weight:600;line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}
@@ -385,7 +385,7 @@ p{margin:0 0 1.1em}
   .btn-row{flex-direction:column;align-items:stretch;width:100%}
   .btn-row .btn{width:100%;text-align:center}
 }
-.site-header{position:fixed;top:37px;left:0;right:0;z-index:50;background:var(--header-surface);border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
+.site-header{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--header-surface);border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
 .brand{display:flex;flex-direction:row;align-items:center;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
@@ -438,7 +438,6 @@ ${heroHasPhoto ? `@media(min-width:901px){
   box-shadow:0 5px 16px color-mix(in srgb,var(--rose-dark) 28%,transparent);
   font-family:var(--body-font);font-weight:700;letter-spacing:.04em;color:#fff;font-size:.68rem;line-height:1}
 @media(max-width:900px){
-  .site-header{top:64px}
   /* Mobile uses the hero photograph as a complete 16:9 image rather than
      cropping a desktop background into a tall portrait panel. The content
      then sits in its own panel below, so buttons never cover the sentence. */
@@ -547,12 +546,9 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-footer{background:var(--ink);color:rgba(255,255,255,.72);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center}
 .site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
-@media(max-width:900px){body{padding-top:64px}}
-.demo-flag{position:fixed;top:0;left:0;right:0;z-index:99;background:#1c1815;color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:8px 12px}
 </style>
 </head>
 <body>
-<div class="demo-flag">This is an auto-generated preview from your answers — not a finished site.</div>
 
 <header class="site-header">
   <div class="container">
