@@ -400,12 +400,17 @@
      reads as flat next to the animated glow-box below it, so this gives it the
      same "alive" quality at a much lower amplitude. Compositor-only (opacity +
      transform), so it costs nothing extra on scroll. */
-  .hero-conv:after{content:"";position:absolute;inset:-15%;z-index:0;pointer-events:none;
+  /* left/right pinned to 0 rather than a symmetric inset — a negative
+     horizontal inset bled past the hero's edges into real horizontal
+     scroll once mobile switches .hero-conv to overflow:visible (needed
+     for the halo below). Vertical bleed is still fine since nothing
+     sits beside the hero to be pushed by it. */
+  .hero-conv:after{content:"";position:absolute;top:-15%;bottom:-15%;left:0;right:0;z-index:0;pointer-events:none;
     background:radial-gradient(42% 42% at 50% 15%, rgba(40,80,160,.28), transparent 70%);
     animation:hero-glow-drift 26s ease-in-out infinite}
   @keyframes hero-glow-drift{
-    0%,100%{transform:translate(0,0) scale(1);opacity:.65}
-    50%{transform:translate(1.5%,-2%) scale(1.06);opacity:.9}
+    0%,100%{transform:translateY(0);opacity:.65}
+    50%{transform:translateY(-2%);opacity:.9}
   }
   @media(prefers-reduced-motion:reduce){.hero-conv:after{animation:none}}
   .hero-conv-wrap{width:100%;position:relative;z-index:2}

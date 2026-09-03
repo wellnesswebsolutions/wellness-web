@@ -47,7 +47,7 @@
         <div class="ex-notch" aria-hidden="true"></div>
         <div class="ex-view"><iframe title="${ex.name} mobile preview" loading="lazy" tabindex="-1"></iframe></div>
       </div>
-      <div class="ex-meta"><strong>${ex.name}</strong><span>${ex.tag}</span></div>`;
+      <div class="ex-meta"><span>${ex.tag}</span></div>`;
     grid.appendChild(card);
 
     const desktopFrame = card.querySelector('.ex-frame-desktop');
