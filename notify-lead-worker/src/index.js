@@ -54,7 +54,7 @@ export default {
           Authorization: `Bearer ${env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'WellnessWeb Leads <leads@moredaw.com>',
+          from: 'WellnessWeb Leads <leads@wellnessweb.co.uk>',
           to: ['wellnesswebsolutions@gmail.com'],
           subject: `New lead: ${business_name}`,
           text: details || '(no further details)',
