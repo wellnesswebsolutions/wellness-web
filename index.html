@@ -110,7 +110,18 @@
       <div class="eyebrow">Real examples</div>
       <h2>Trusted customers</h2>
     </div>
-    <div class="ex-grid" id="exGrid"></div>
+    <div class="ex-carousel" id="exCarousel">
+      <button type="button" class="ex-nav ex-nav-prev" id="exPrev" aria-label="Previous example">
+        <svg viewBox="0 0 20 20"><path d="M12.5 4 L6 10 L12.5 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="ex-viewport">
+        <div class="ex-grid" id="exGrid"></div>
+      </div>
+      <button type="button" class="ex-nav ex-nav-next" id="exNext" aria-label="Next example">
+        <svg viewBox="0 0 20 20"><path d="M7.5 4 L14 10 L7.5 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="ex-dots" id="exDots"></div>
   </div>
 </section>
 

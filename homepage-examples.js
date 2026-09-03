@@ -82,4 +82,63 @@
     else window.addEventListener('resize', layout);
     layout();
   });
+
+  /* One card visible at a time, autoplay every 6s. Autoplay stops for good
+     the moment a visitor touches the carousel — clicks a card's own
+     Desktop/Mobile toggle, or uses the arrows/dots — since at that point
+     they're driving it themselves and an autoadvance would just yank the
+     card out from under whatever they were looking at. */
+  const carousel = document.getElementById('exCarousel');
+  const dotsWrap = document.getElementById('exDots');
+  const prevBtn = document.getElementById('exPrev');
+  const nextBtn = document.getElementById('exNext');
+  const slides = [...grid.children];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let active = 0;
+  let timer = null;
+
+  const dots = slides.map((_, i) => {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'ex-dot';
+    dot.setAttribute('aria-label', `Show example ${i + 1}`);
+    dotsWrap.appendChild(dot);
+    return dot;
+  });
+
+  function render() {
+    grid.style.transform = `translateX(-${active * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('is-active', i === active));
+  }
+
+  function goTo(index) {
+    active = ((index % slides.length) + slides.length) % slides.length;
+    render();
+  }
+
+  function stopAutoplay() {
+    if (!timer) return;
+    window.clearInterval(timer);
+    timer = null;
+  }
+
+  function startAutoplay() {
+    if (timer || reduceMotion) return;
+    timer = window.setInterval(() => goTo(active + 1), 6000);
+  }
+
+  dots.forEach((dot, i) => dot.addEventListener('click', () => { stopAutoplay(); goTo(i); }));
+  prevBtn.addEventListener('click', () => { stopAutoplay(); goTo(active - 1); });
+  nextBtn.addEventListener('click', () => { stopAutoplay(); goTo(active + 1); });
+  grid.addEventListener('click', (e) => { if (e.target.closest('.ex-card')) stopAutoplay(); });
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      entries.forEach((entry) => (entry.isIntersecting ? startAutoplay() : stopAutoplay()));
+    }, { threshold: 0.4 }).observe(carousel);
+  } else {
+    startAutoplay();
+  }
+
+  render();
 })();

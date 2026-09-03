@@ -823,8 +823,20 @@
      is what makes the live site render its real desktop or mobile layout,
      scaled down to fit via CSS transform. */
   #examples{padding-top:0;margin-top:clamp(-40px,-4vh,-14px)}
-  .ex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1040px;margin:0 auto}
-  .ex-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+  /* one card at a time — see homepage-examples.js for the autoplay/pause
+     controller driving .ex-grid's transform */
+  .ex-carousel{display:flex;align-items:center;gap:10px;max-width:420px;margin:0 auto}
+  .ex-viewport{flex:1;min-width:0;overflow:hidden}
+  .ex-grid{display:flex;transition:transform .5s var(--qa-ease)}
+  .ex-nav{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;box-shadow:0 4px 12px rgba(23,32,31,.06)}
+  .ex-nav svg{width:16px;height:16px}
+  .ex-nav:hover{background:#fff}
+  .ex-dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
+  .ex-dot{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--line);cursor:pointer}
+  .ex-dot.is-active{background:var(--accent)}
+  .ex-card{flex:0 0 100%;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
     box-shadow:0 10px 30px rgba(23,32,31,.05)}
   .ex-toggle{display:flex;justify-content:center;gap:2px;background:rgba(23,32,31,.05);
     border-radius:999px;padding:3px;width:fit-content;margin:0 auto 12px}
@@ -852,8 +864,9 @@
   .ex-meta{text-align:center;margin-top:12px}
   .ex-meta strong{display:block;font-family:var(--display);font-size:14px;font-weight:700}
   .ex-meta span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-  @media(max-width:820px){
-    .ex-grid{grid-template-columns:1fr;max-width:340px;gap:14px}
+  @media(max-width:520px){
+    .ex-carousel{max-width:300px;gap:6px}
+    .ex-nav{width:30px;height:30px}
   }
 
   /* ---- homepage design carousel ----
