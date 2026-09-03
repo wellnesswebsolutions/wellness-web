@@ -413,27 +413,6 @@
   .hero-conv-head .eyebrow{font-size:clamp(11px,1.4vw,13px);letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:clamp(8px,1.4svh,14px)}
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(32px,5.4vw,60px);line-height:1.08}
   .hero-conv-sub{font-size:clamp(16px,2vw,22px);color:var(--muted);margin-top:10px}
-  .hero-price{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:7px 16px;border-radius:999px;
-    background:rgba(255,255,255,.6);border:1px solid rgba(59,130,246,.18);
-    font-size:clamp(12px,1.3vw,13.5px);font-weight:600;color:var(--ink)}
-  .hero-price span{color:var(--muted);font-weight:400}
-
-  /* decorative lowercase "i" glyphs (BrightSite's logo letterform) scattered
-     near the hero's outer edges only — the centre, where the builder sits,
-     stays completely clear. Pure opacity/glow pulsing, no position drift. */
-  .i-deco{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-  .i-glyph{position:absolute;width:calc(var(--s) * .3);height:var(--s);border-radius:999px;
-    background:rgba(255,255,255,.55);pointer-events:auto;
-    animation:i-glyph-breathe 6s ease-in-out infinite;animation-delay:var(--d,0s)}
-  .i-glyph:before{content:"";position:absolute;left:50%;top:calc(var(--s) * -.46);transform:translateX(-50%);
-    width:calc(var(--s) * .46);height:calc(var(--s) * .46);border-radius:50%;
-    background:var(--accent);box-shadow:0 0 6px rgba(59,130,246,.55);transition:box-shadow .3s ease}
-  @keyframes i-glyph-breathe{0%,100%{opacity:.3}50%{opacity:.65}}
-  @media(hover:hover) and (pointer:fine){
-    .i-glyph:hover:before{box-shadow:0 0 14px rgba(59,130,246,.95)}
-  }
-  @media(prefers-reduced-motion:reduce){.i-glyph{animation:none;opacity:.5}}
-  @media(max-width:760px){.i-glyph-mobile-hide{display:none}}
 
   /* ---- futuristic glow box ----
      A single fixed border-radius (not 999px/pill) shared by the outer
@@ -750,10 +729,19 @@
   .opt-card-hi:hover{box-shadow:0 20px 46px rgba(59,130,246,.22)}
   .opt-card-hi p{color:var(--ink);font-weight:600}
   .opt-logo{height:1.7em;width:auto;margin-bottom:10px}
+  .opt-mini{list-style:none;margin:12px 0 0;padding-top:12px;border-top:1px solid rgba(23,32,31,.08);
+    text-align:left;display:flex;flex-direction:column;gap:6px}
+  .opt-mini li{position:relative;padding-left:14px;font-size:clamp(11.5px,1.05vw,12.5px);line-height:1.3;color:var(--muted)}
+  .opt-mini li:before{content:"—";position:absolute;left:0;color:var(--muted);opacity:.6}
+  .opt-mini-pos{border-top-color:rgba(59,130,246,.18)}
+  .opt-mini-pos li{color:var(--ink);font-weight:600}
+  .opt-mini-pos li:before{content:"✓";color:var(--accent);opacity:1}
   @media(max-width:760px){
     .conv-row{flex-direction:column;max-width:420px;gap:10px;margin-top:10px}
     .opt-card{padding:14px 16px}
     .opt-card-hi{order:-1}
+    .opt-mini{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px 12px;text-align:center}
+    .opt-mini li{padding-left:12px}
   }
 
   /* terms & privacy page */
