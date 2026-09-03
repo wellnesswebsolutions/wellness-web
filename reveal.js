@@ -7,7 +7,8 @@
   var TARGETS = [
     ['.hero-conv .eyebrow', 0],
     ['.hero-conv h1', 0],
-    ['.conv-col', 110],
+    ['.opt-card', 110],
+    ['.ex-card', 110],
     ['.sec-head .eyebrow', 0],
     ['.sec-head h3', 0],
     ['.sec-head p', 0],

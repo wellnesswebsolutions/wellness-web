@@ -391,12 +391,49 @@
     background:radial-gradient(50% 50% at 18% 0%, rgba(120,170,250,.85), rgba(247,242,236,0) 68%),
       radial-gradient(50% 50% at 82% 0%, rgba(90,145,250,.72), rgba(247,242,236,0) 68%),
       radial-gradient(110% 115% at 50% -8%, rgba(150,190,253,.85), rgba(247,242,236,0) 92%),
-      radial-gradient(64% 46% at 50% 0%, rgba(255,254,250,.75), rgba(247,242,236,0) 55%), var(--bg)}
-  .hero-conv-wrap{width:100%;position:relative;z-index:1}
+      radial-gradient(64% 46% at 50% 0%, rgba(255,254,250,.75), rgba(247,242,236,0) 55%),
+      /* a deeper blue wash underneath the light highlights, fading to the
+         cream background — reads as richer/more premium at a glance without
+         disturbing the existing highlight composition */
+      linear-gradient(180deg, rgba(22,48,102,.24) 0%, rgba(90,145,250,.09) 45%, rgba(247,242,236,0) 78%), var(--bg)}
+  /* a slow, barely-visible drift on the deep-blue wash — a still hero background
+     reads as flat next to the animated glow-box below it, so this gives it the
+     same "alive" quality at a much lower amplitude. Compositor-only (opacity +
+     transform), so it costs nothing extra on scroll. */
+  .hero-conv:after{content:"";position:absolute;inset:-15%;z-index:0;pointer-events:none;
+    background:radial-gradient(42% 42% at 50% 15%, rgba(40,80,160,.28), transparent 70%);
+    animation:hero-glow-drift 26s ease-in-out infinite}
+  @keyframes hero-glow-drift{
+    0%,100%{transform:translate(0,0) scale(1);opacity:.65}
+    50%{transform:translate(1.5%,-2%) scale(1.06);opacity:.9}
+  }
+  @media(prefers-reduced-motion:reduce){.hero-conv:after{animation:none}}
+  .hero-conv-wrap{width:100%;position:relative;z-index:2}
   .hero-conv-head{max-width:820px;margin:0 auto clamp(12px,2.5svh,22px);text-align:center}
   .hero-conv-head .eyebrow{font-size:clamp(11px,1.4vw,13px);letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:clamp(8px,1.4svh,14px)}
   .hero-conv-head h1{font-family:var(--display);font-weight:600;font-size:clamp(32px,5.4vw,60px);line-height:1.08}
   .hero-conv-sub{font-size:clamp(16px,2vw,22px);color:var(--muted);margin-top:10px}
+  .hero-price{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:7px 16px;border-radius:999px;
+    background:rgba(255,255,255,.6);border:1px solid rgba(59,130,246,.18);
+    font-size:clamp(12px,1.3vw,13.5px);font-weight:600;color:var(--ink)}
+  .hero-price span{color:var(--muted);font-weight:400}
+
+  /* decorative lowercase "i" glyphs (BrightSite's logo letterform) scattered
+     near the hero's outer edges only — the centre, where the builder sits,
+     stays completely clear. Pure opacity/glow pulsing, no position drift. */
+  .i-deco{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+  .i-glyph{position:absolute;width:calc(var(--s) * .3);height:var(--s);border-radius:999px;
+    background:rgba(255,255,255,.55);pointer-events:auto;
+    animation:i-glyph-breathe 6s ease-in-out infinite;animation-delay:var(--d,0s)}
+  .i-glyph:before{content:"";position:absolute;left:50%;top:calc(var(--s) * -.46);transform:translateX(-50%);
+    width:calc(var(--s) * .46);height:calc(var(--s) * .46);border-radius:50%;
+    background:var(--accent);box-shadow:0 0 6px rgba(59,130,246,.55);transition:box-shadow .3s ease}
+  @keyframes i-glyph-breathe{0%,100%{opacity:.3}50%{opacity:.65}}
+  @media(hover:hover) and (pointer:fine){
+    .i-glyph:hover:before{box-shadow:0 0 14px rgba(59,130,246,.95)}
+  }
+  @media(prefers-reduced-motion:reduce){.i-glyph{animation:none;opacity:.5}}
+  @media(max-width:760px){.i-glyph-mobile-hide{display:none}}
 
   /* ---- futuristic glow box ----
      A single fixed border-radius (not 999px/pill) shared by the outer
@@ -532,7 +569,11 @@
      absence of an override. */
   .qa-slide:not(.qa-active) .qa-go{pointer-events:none}
   .qa-go:hover{transform:scale(1.06)}
-  .step1-reassure{text-align:center;font-size:11.5px;letter-spacing:.04em;color:var(--muted);margin-top:14px}
+  .step1-reassure{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+    gap:6px 16px;text-align:center;font-size:11.5px;letter-spacing:.02em;color:var(--muted);margin-top:14px}
+  .step1-reassure .ri-item{display:inline-flex;align-items:center;gap:5px}
+  .step1-reassure .ri{width:13px;height:13px;flex:none;color:var(--accent)}
+  @media(max-width:480px){.step1-reassure{gap:5px 10px;font-size:10.5px}}
   .quick-lead-status{text-align:center;font-size:13px;color:var(--muted);margin-top:10px;min-height:18px}
   .quick-lead-status.ok{color:var(--accent);font-weight:600}
   .quick-lead-status.err{color:#b23b2c}
@@ -692,51 +733,27 @@
     .creating-overlay,.creating-overlay:before,.creating-inner,.creating-verb,.creating-name,.creating-sub,.creating-progress span{transition:none}
   }
 
-  /* three cards side by side on desktop with AI in the centre, then stacked
-     with AI first on mobile — compact enough at every size to
-     sit inside one screen alongside the hero, with no scrolling needed. */
+  /* three compact cards, BrightSite highlighted in the centre — collapsed
+     by the builder (id="convRow") while a live preview is open, hence the
+     height/opacity transition staying on the same element. */
   .conv-row{transition:max-height .5s cubic-bezier(.22,.7,.3,1),opacity .4s ease,margin .5s ease;overflow:hidden;max-height:2400px}
   .conv-row.collapsed{max-height:0;opacity:0;margin-top:0}
-  .conv-row{display:flex;align-items:stretch;gap:clamp(10px,1.6vw,18px);max-width:980px;margin:clamp(14px,2.2svh,24px) auto 0}
-  .conv-col{flex:1 1 0;min-width:0;text-align:center;position:relative;border-radius:16px;padding:clamp(14px,1.8vw,20px)}
-  /* the middle card is the offer, so give it more width and lift it forward */
-  .conv-col-ai{flex:1.35 1 0;z-index:1;padding:clamp(18px,2.2vw,26px) clamp(16px,2vw,24px);
-    box-shadow:0 18px 46px rgba(59,130,246,.18)}
-  .conv-col-old,.conv-col-new{background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(23,32,31,.05)}
-  .conv-col-ai{background:linear-gradient(160deg, rgba(158,197,250,.52), rgba(59,130,246,.16));
-    border:1px solid rgba(59,130,246,.18);box-shadow:0 14px 34px rgba(59,130,246,.14)}
-  .conv-col h4{font-family:var(--display);font-size:clamp(14px,1.5vw,17px);font-weight:700;margin-bottom:10px;
-    display:flex;align-items:center;justify-content:center;gap:6px}
-  .conv-ai-icon{height:1.3em;width:auto}
-  .conv-mini{list-style:none;display:inline-flex;flex-direction:column;gap:clamp(5px,.9svh,8px);text-align:left;margin:0 auto}
-  .conv-mini li{display:flex;align-items:flex-start;gap:7px;font-size:clamp(11px,1.05vw,12.5px);line-height:1.25;color:var(--ink)}
-  .ic{flex:none;width:1.15em;height:1.15em;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
-    margin-top:.1em}
-  .ic svg{width:62%;height:62%}
-  .ic-x{background:rgba(176,52,52,.12);color:#b03434}
-  .ic-check{background:rgba(70,140,90,.14);color:#3f8a56}
-  .conv-mini-pos li{font-weight:600}
-  /* small chevrons pointing from each alternative into the AI card */
-  .conv-arrow{flex:none;align-self:center;display:flex;align-items:center;justify-content:center;
-    color:var(--accent);opacity:.55}
-  .conv-arrow svg{width:clamp(20px,2.4vw,28px);height:auto}
+  .conv-row{display:flex;align-items:stretch;gap:clamp(10px,1.6vw,18px);max-width:820px;margin:clamp(14px,2.2svh,24px) auto 0}
+  .opt-card{flex:1 1 0;min-width:0;text-align:center;border-radius:16px;padding:clamp(18px,2.2vw,26px) clamp(14px,1.8vw,20px);
+    background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(23,32,31,.05);
+    transition:transform .25s var(--qa-ease),box-shadow .25s var(--qa-ease)}
+  .opt-card:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(23,32,31,.09)}
+  .opt-card h3{font-family:var(--display);font-size:clamp(14px,1.5vw,17px);font-weight:700;margin-bottom:8px}
+  .opt-card p{color:var(--muted);font-size:clamp(12.5px,1.2vw,14px)}
+  .opt-card-hi{z-index:1;background:linear-gradient(160deg, rgba(158,197,250,.52), rgba(59,130,246,.16));
+    border:1px solid rgba(59,130,246,.18);box-shadow:0 18px 46px rgba(59,130,246,.18)}
+  .opt-card-hi:hover{box-shadow:0 20px 46px rgba(59,130,246,.22)}
+  .opt-card-hi p{color:var(--ink);font-weight:600}
+  .opt-logo{height:1.7em;width:auto;margin-bottom:10px}
   @media(max-width:760px){
-    .conv-row{flex-direction:column;max-width:420px;gap:7px;margin-top:10px}
-    .conv-col{padding:9px 12px;border-radius:12px}
-    /* AI card in the middle, both arrows rotated to point in at it from
-       above (DIY) and below (agencies) */
-    .conv-col-old{order:1}
-    .conv-arrow{transform:rotate(90deg);margin:-2px 0}
-    .conv-arrow-l{order:2}
-    .conv-col-ai{order:3}
-    .conv-arrow-r{order:4}
-    .conv-col-new{order:5}
-    .conv-col h4{font-size:13px;margin-bottom:5px}
-    /* bullets flow inline (like tags) instead of one per line, so each
-       card stays short even with three of them stacked on a phone */
-    .conv-mini{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px 10px}
-    .conv-mini li{font-size:10.5px;line-height:1.15;gap:4px;width:auto}
-    .ic{width:1.05em;height:1.05em}
+    .conv-row{flex-direction:column;max-width:420px;gap:10px;margin-top:10px}
+    .opt-card{padding:14px 16px}
+    .opt-card-hi{order:-1}
   }
 
   /* terms & privacy page */
@@ -788,9 +805,7 @@
   /* the header CTA had shrunk to 8px, below comfortable reading size */
   @media(max-width:820px){.top .cta{padding:9px 14px;font-size:10.5px;letter-spacing:.06em}}
   @media(max-width:400px){.top .cta{padding:9px 12px;font-size:10px}}
-  .conv-ai-icon{font-size:.62em}
   @media(max-width:820px){
-    .conv-mini li{font-size:12.5px}
     /* keep the three process cards compact rather than a tall stack of 4:3 art */
     .step3-img{aspect-ratio:16/10;margin-bottom:14px}
     .step3 h4{font-size:20px}
@@ -807,6 +822,38 @@
     .qa-field input,.qa-field select{min-height:46px}
     .qa-go{width:46px;height:46px;border-radius:14px;margin-right:0}
     .qa-go svg{width:21px;height:21px}
+  }
+
+  /* ---- three examples, desktop/mobile toggle ----
+     Each card holds two device frames; only the active one is displayed and
+     an iframe's own fixed intrinsic width (not the card's on-screen size)
+     is what makes the live site render its real desktop or mobile layout,
+     scaled down to fit via CSS transform. */
+  #examples{padding-top:0;margin-top:clamp(-40px,-4vh,-14px)}
+  .ex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1040px;margin:0 auto}
+  .ex-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+    box-shadow:0 10px 30px rgba(23,32,31,.05)}
+  .ex-toggle{display:flex;justify-content:center;gap:2px;background:rgba(23,32,31,.05);
+    border-radius:999px;padding:3px;width:fit-content;margin:0 auto 12px}
+  .ex-tab{border:0;background:transparent;padding:6px 14px;border-radius:999px;font-size:11.5px;
+    font-weight:700;color:var(--muted);cursor:pointer;font-family:var(--body)}
+  .ex-tab.is-active{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(23,32,31,.12)}
+  .ex-frame{display:none}
+  .ex-frame.is-active{display:block}
+  .ex-view{position:relative;overflow:hidden;background:#F4EFE8}
+  .ex-view iframe{position:absolute;top:0;left:0;border:0;transform-origin:top left;pointer-events:none}
+  .ex-frame-desktop .ex-view{border-radius:0 0 10px 10px}
+  .ex-bar{height:22px;background:#efe9e0;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:5px;padding:0 8px}
+  .ex-bar i{width:6px;height:6px;border-radius:50%;background:#d9d0c2;flex:none}
+  .ex-frame-mobile{max-width:150px;margin:0 auto}
+  .ex-frame-mobile .ex-view{border-radius:16px;border:5px solid #1a1a1a}
+  .ex-frame-mobile .ex-notch{position:absolute;top:5px;left:50%;transform:translateX(-50%);width:36px;height:5px;
+    border-radius:4px;background:#1a1a1a;z-index:1}
+  .ex-meta{text-align:center;margin-top:12px}
+  .ex-meta strong{display:block;font-family:var(--display);font-size:14px;font-weight:700}
+  .ex-meta span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  @media(max-width:820px){
+    .ex-grid{grid-template-columns:1fr;max-width:340px;gap:14px}
   }
 
   /* ---- homepage design carousel ----
