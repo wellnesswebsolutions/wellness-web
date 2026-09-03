@@ -833,8 +833,15 @@
   .ex-frame-desktop .ex-view{border-radius:0 0 10px 10px}
   .ex-bar{height:22px;background:#efe9e0;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:5px;padding:0 8px}
   .ex-bar i{width:6px;height:6px;border-radius:50%;background:#d9d0c2;flex:none}
-  .ex-frame-mobile{max-width:150px;margin:0 auto}
-  .ex-frame-mobile .ex-view{border-radius:16px;border:5px solid #1a1a1a}
+  .ex-frame-mobile{max-width:190px;margin:0 auto}
+  /* No scale-transform trick here (unlike desktop): a transformed iframe's
+     on-screen size doesn't change its own layout viewport, so some sites'
+     mobile breakpoints weren't reliably firing at a scaled 390px-wide
+     iframe — rendering their desktop hero cropped into a short window
+     instead. A real, un-transformed narrow iframe can't be mistaken for
+     desktop by the framed site's own CSS. */
+  .ex-frame-mobile .ex-view{border-radius:16px;border:5px solid #1a1a1a;aspect-ratio:9/19}
+  .ex-frame-mobile .ex-view iframe{position:static;width:100%;height:100%;transform:none}
   .ex-frame-mobile .ex-notch{position:absolute;top:5px;left:50%;transform:translateX(-50%);width:36px;height:5px;
     border-radius:4px;background:#1a1a1a;z-index:1}
   .ex-meta{text-align:center;margin-top:12px}

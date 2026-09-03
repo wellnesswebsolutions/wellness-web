@@ -1,16 +1,21 @@
-/* Three example homepages, each with a Desktop/Mobile toggle. An iframe's
-   rendered layout depends on its own width, not the viewer's screen — so a
-   fixed-width iframe (1440px for desktop, 390px for mobile) scaled down via
-   CSS transform reliably shows that site's real desktop or mobile layout,
-   whatever size the card actually is on screen. The mobile iframe is only
-   given a src the first time its tab is opened, so a visitor who never
-   toggles never pays for a second cross-origin page load. */
+/* Three example homepages, each with a Desktop/Mobile toggle.
+   Desktop: a fixed 1440x900 iframe scaled down via CSS transform, so a
+   small card still shows the site's real desktop layout.
+   Mobile: NOT the same scale trick — a transformed iframe's on-screen size
+   has no effect on the framed page's own layout viewport, but it turned out
+   some sites' mobile breakpoints didn't reliably kick in at the scaled
+   390x844 anyway, rendering their desktop hero cropped into a short window.
+   So the mobile frame instead gets a genuinely small native iframe (no
+   transform) sized to the phone mockup's actual on-screen box — a real
+   narrow viewport a site's own CSS can't mistake for desktop.
+   The mobile iframe is only given a src the first time its tab is opened,
+   so a visitor who never toggles never pays for a second cross-origin
+   page load. */
 (() => {
   const grid = document.getElementById('exGrid');
   if (!grid) return;
 
   const DESKTOP_W = 1440, DESKTOP_H = 900;
-  const MOBILE_W = 390, MOBILE_H = 844;
 
   const examples = [
     { name: 'SISKŌ Hairdressing', tag: 'Hair salon · Beverley', url: 'https://sisko-hairdressing.vercel.app' },
@@ -54,7 +59,6 @@
 
     function layout() {
       scaleFrame(desktopFrame.querySelector('.ex-view'), desktopIframe, DESKTOP_W, DESKTOP_H);
-      if (mobileLoaded) scaleFrame(mobileFrame.querySelector('.ex-view'), mobileIframe, MOBILE_W, MOBILE_H);
     }
 
     tabs.forEach((tab) => {
