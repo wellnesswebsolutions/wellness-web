@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // best-effort email notification — don't let a failure here block the
     // lead capture itself, which already succeeded above
-    fetch('https://wellnessweb-notify-lead.wellnesswebsolutions.workers.dev/', {
+    fetch('https://wellnessweb-notify-lead.notify-lead-worker.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ business_name, details })
