@@ -425,9 +425,17 @@
   .glow-box-inner{position:relative;z-index:1;border-radius:inherit;background:var(--card)}
   @keyframes glow-spin{to{--glow-angle:360deg}}
   @keyframes glow-breathe{0%,100%{opacity:.62}50%{opacity:.92}}
-  /* phones: keep the glow, drop the per-frame repaint */
+  /* phones: the desktop gradient has wide transparent gaps between its two
+     hotspots, which only reads correctly while it's spinning — frozen, it
+     leaves the left/bottom of the box with no glow at all. A transform:rotate
+     of the static layer isn't a fix either: on a wide pill the far corners of
+     the rotated rectangle sweep a circle much bigger than the box, streaking
+     colour across the page. So mobile gets its own gradient with no gaps —
+     colour fully wraps the box at every moment — and only opacity breathes. */
   @media(max-width:820px),(hover:none) and (pointer:coarse){
-    .glow-box:before{animation:glow-breathe 5s ease-in-out infinite}
+    .glow-box:before{
+      background:conic-gradient(var(--gold), var(--accent), var(--gold));
+      animation:glow-breathe 5s ease-in-out infinite}
   }
   @media(prefers-reduced-motion:reduce){.glow-box:before{animation:none}}
 
@@ -699,10 +707,7 @@
     border:1px solid rgba(59,130,246,.18);box-shadow:0 14px 34px rgba(59,130,246,.14)}
   .conv-col h4{font-family:var(--display);font-size:clamp(14px,1.5vw,17px);font-weight:700;margin-bottom:10px;
     display:flex;align-items:center;justify-content:center;gap:6px}
-  .conv-ai-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;
-    border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), var(--gold) 78%);
-    color:var(--accent);font-size:.55em;font-weight:800;letter-spacing:.02em;
-    box-shadow:0 4px 10px rgba(59,130,246,.3), inset 0 0 0 1px rgba(255,255,255,.7)}
+  .conv-ai-icon{height:1.3em;width:auto}
   .conv-mini{list-style:none;display:inline-flex;flex-direction:column;gap:clamp(5px,.9svh,8px);text-align:left;margin:0 auto}
   .conv-mini li{display:flex;align-items:flex-start;gap:7px;font-size:clamp(11px,1.05vw,12.5px);line-height:1.25;color:var(--ink)}
   .ic{flex:none;width:1.15em;height:1.15em;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
