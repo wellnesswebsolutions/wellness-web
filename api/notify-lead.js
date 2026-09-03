@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: 'WellnessWeb Leads <onboarding@resend.dev>',
+        from: 'WellnessWeb Leads <leads@wellnessweb.co.uk>',
         to: ['wellnesswebsolutions@gmail.com'],
         subject: `New lead: ${business_name}`,
         text: details || '(no further details)',
