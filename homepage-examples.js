@@ -45,28 +45,16 @@
     layout();
   });
 
-  /* One card visible at a time, autoplay every 6s. Autoplay stops for good
-     the moment a visitor touches the carousel — clicks a card's own
-     Desktop/Mobile toggle, or uses the arrows/dots — since at that point
-     they're driving it themselves and an autoadvance would just yank the
-     card out from under whatever they were looking at. */
+  /* One card centred at a time, the neighbours peeking off each edge —
+     no arrows, no dots, just autoplay and drag/swipe, like the original
+     carousel. Autoplay stops for good the moment a visitor drags it or
+     clicks into a card, since at that point they're driving it themselves. */
   const carousel = document.getElementById('exCarousel');
-  const dotsWrap = document.getElementById('exDots');
-  const prevBtn = document.getElementById('exPrev');
-  const nextBtn = document.getElementById('exNext');
   const slides = [...grid.children];
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   let active = 0;
   let timer = null;
-
-  const dots = slides.map((_, i) => {
-    const dot = document.createElement('button');
-    dot.type = 'button';
-    dot.className = 'ex-dot';
-    dot.setAttribute('aria-label', `Show example ${i + 1}`);
-    dotsWrap.appendChild(dot);
-    return dot;
-  });
 
   const VISIBLE_POSITIONS = new Set([-1, 0, 1]);
 
@@ -81,11 +69,9 @@
       const distance = signedDistance(i);
       slide.dataset.pos = VISIBLE_POSITIONS.has(distance) ? String(distance) : 'hidden';
     });
-    dots.forEach((d, i) => d.classList.toggle('is-active', i === active));
     // the stage is a position:relative box sized to the active card, since
     // its absolutely-positioned neighbours can't otherwise give it a height
-    const activeSlide = slides[active];
-    grid.style.height = `${activeSlide.offsetHeight}px`;
+    grid.style.height = `${slides[active].offsetHeight}px`;
   }
 
   function goTo(index) {
@@ -111,9 +97,45 @@
     }).observe(slide));
   }
 
-  dots.forEach((dot, i) => dot.addEventListener('click', () => { stopAutoplay(); goTo(i); }));
-  prevBtn.addEventListener('click', () => { stopAutoplay(); goTo(active - 1); });
-  nextBtn.addEventListener('click', () => { stopAutoplay(); goTo(active + 1); });
+  /* Fine-pointer dragging stays available without registering touch
+     handlers, so vertical swipes on phones always belong to the page
+     scroller (touch users instead just wait for autoplay or tap a peeking
+     neighbour into the centre). */
+  if (finePointer) {
+    let dragging = false;
+    let startX = 0;
+    let deltaX = 0;
+    let suppressClick = false;
+
+    carousel.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      startX = e.clientX;
+      deltaX = 0;
+      suppressClick = false;
+      stopAutoplay();
+    });
+    carousel.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      deltaX = e.clientX - startX;
+      suppressClick = Math.abs(deltaX) > 8;
+    });
+    const release = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (Math.abs(deltaX) > 40) goTo(active + (deltaX < 0 ? 1 : -1));
+    };
+    carousel.addEventListener('pointerup', release);
+    carousel.addEventListener('pointercancel', release);
+    carousel.addEventListener('pointerleave', release);
+    carousel.addEventListener('click', (e) => {
+      if (suppressClick) { e.preventDefault(); suppressClick = false; return; }
+      const card = e.target.closest('.ex-card');
+      if (!card) return;
+      const distance = signedDistance(slides.indexOf(card));
+      if (distance !== 0) { stopAutoplay(); goTo(active + distance); }
+    }, true);
+  }
+
   grid.addEventListener('click', (e) => { if (e.target.closest('.ex-card')) stopAutoplay(); });
 
   if ('IntersectionObserver' in window) {

@@ -823,36 +823,24 @@
      is what makes the live site render its real desktop or mobile layout,
      scaled down to fit via CSS transform. */
   #examples{padding-top:0;margin-top:clamp(-40px,-4vh,-14px)}
-  /* Large centred card, the previous/next ones peeking at reduced scale and
-     opacity to either side — see homepage-examples.js for the position
-     controller. The outer .ex-carousel clips at the FULL section width, so
-     the peeking neighbours (offset off the narrower .ex-grid "stage") are
-     visible without ever pushing the page wider than the viewport. */
-  .ex-carousel{display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto;overflow:hidden}
-  .ex-viewport{flex:1;min-width:0;position:relative}
-  .ex-grid{position:relative;width:min(300px,72vw);margin:0 auto;transition:height .35s var(--qa-ease)}
-  .ex-nav{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
-    background:var(--card);color:var(--ink);display:flex;align-items:center;justify-content:center;
-    cursor:pointer;box-shadow:0 4px 12px rgba(23,32,31,.06);position:relative;z-index:4}
-  .ex-nav svg{width:16px;height:16px}
-  .ex-nav:hover{background:#fff}
-  .ex-dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
-  .ex-dot{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--line);cursor:pointer}
-  .ex-dot.is-active{background:var(--accent)}
+  /* Large centred card, the previous/next ones peeking in half off the
+     edge at reduced scale and opacity — no arrows, no dots, just autoplay
+     and drag (see homepage-examples.js). The outer .ex-carousel clips at
+     the full section width, so the peeking neighbours (offset off the
+     narrower .ex-grid "stage") are visible without ever pushing the page
+     wider than the viewport. */
+  .ex-carousel{max-width:900px;margin:0 auto;overflow:hidden;touch-action:pan-y}
+  .ex-viewport{position:relative}
+  .ex-grid{position:relative;width:min(420px,78vw);margin:0 auto;transition:height .35s var(--qa-ease)}
   .ex-card{position:absolute;inset:0;margin:auto;width:100%;height:fit-content;
     background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
-    box-shadow:0 10px 30px rgba(23,32,31,.05);
+    box-shadow:0 10px 30px rgba(23,32,31,.05);cursor:pointer;
     transition:transform .5s var(--qa-ease),opacity .5s var(--qa-ease)}
-  .ex-card[data-pos="0"]{transform:translateX(0) scale(1);opacity:1;z-index:3}
-  .ex-card[data-pos="-1"]{transform:translateX(-58%) scale(.76);opacity:.45;z-index:2;pointer-events:none}
-  .ex-card[data-pos="1"]{transform:translateX(58%) scale(.76);opacity:.45;z-index:2;pointer-events:none}
+  .ex-card[data-pos="0"]{transform:translateX(0) scale(1);opacity:1;z-index:3;cursor:default}
+  .ex-card[data-pos="-1"]{transform:translateX(-92%) scale(.8);opacity:.5;z-index:2}
+  .ex-card[data-pos="1"]{transform:translateX(92%) scale(.8);opacity:.5;z-index:2}
   .ex-card[data-pos="hidden"]{transform:translateX(0) scale(.6);opacity:0;z-index:1;pointer-events:none}
   @media(prefers-reduced-motion:reduce){.ex-card{transition:opacity .3s ease}}
-  .ex-toggle{display:flex;justify-content:center;gap:2px;background:rgba(23,32,31,.05);
-    border-radius:999px;padding:3px;width:fit-content;margin:0 auto 12px}
-  .ex-tab{border:0;background:transparent;padding:6px 14px;border-radius:999px;font-size:11.5px;
-    font-weight:700;color:var(--muted);cursor:pointer;font-family:var(--body)}
-  .ex-tab.is-active{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(23,32,31,.12)}
   .ex-frame{display:none}
   .ex-frame.is-active{display:block}
   .ex-view{position:relative;overflow:hidden;background:#F4EFE8}
@@ -860,23 +848,12 @@
   .ex-frame-desktop .ex-view{border-radius:0 0 10px 10px}
   .ex-bar{height:22px;background:#efe9e0;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:5px;padding:0 8px}
   .ex-bar i{width:6px;height:6px;border-radius:50%;background:#d9d0c2;flex:none}
-  .ex-frame-mobile{max-width:190px;margin:0 auto}
-  /* No scale-transform trick here (unlike desktop): a transformed iframe's
-     on-screen size doesn't change its own layout viewport, so some sites'
-     mobile breakpoints weren't reliably firing at a scaled 390px-wide
-     iframe — rendering their desktop hero cropped into a short window
-     instead. A real, un-transformed narrow iframe can't be mistaken for
-     desktop by the framed site's own CSS. */
-  .ex-frame-mobile .ex-view{border-radius:16px;border:5px solid #1a1a1a;aspect-ratio:9/19}
-  .ex-frame-mobile .ex-view iframe{position:static;width:100%;height:100%;transform:none}
-  .ex-frame-mobile .ex-notch{position:absolute;top:5px;left:50%;transform:translateX(-50%);width:36px;height:5px;
-    border-radius:4px;background:#1a1a1a;z-index:1}
   .ex-meta{text-align:center;margin-top:12px}
-  .ex-meta strong{display:block;font-family:var(--display);font-size:14px;font-weight:700}
   .ex-meta span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
   @media(max-width:520px){
-    .ex-carousel{max-width:300px;gap:6px}
-    .ex-nav{width:30px;height:30px}
+    .ex-grid{width:80vw}
+    .ex-card[data-pos="-1"]{transform:translateX(-88%) scale(.78)}
+    .ex-card[data-pos="1"]{transform:translateX(88%) scale(.78)}
   }
 
   /* ---- homepage design carousel ----
