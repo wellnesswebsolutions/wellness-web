@@ -860,9 +860,6 @@
   .ex-frame-desktop .ex-view{border-radius:0 0 10px 10px}
   .ex-bar{height:22px;background:#efe9e0;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:5px;padding:0 8px}
   .ex-bar i{width:6px;height:6px;border-radius:50%;background:#d9d0c2;flex:none}
-  .ex-meta{text-align:center;margin-top:12px}
-  .ex-meta span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-
   /* ---- homepage design carousel ----
      Items are absolutely positioned and placed by their signed distance from
      the active index, so the loop never needs cloned nodes and every state is

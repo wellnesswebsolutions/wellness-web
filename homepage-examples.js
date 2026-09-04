@@ -12,9 +12,9 @@
   const HEADER_CROP = 84;
 
   const examples = [
-    { name: 'SISKŌ Hairdressing', tag: 'Hair salon · Beverley', url: 'https://sisko-hairdressing.vercel.app' },
-    { name: 'Brian Griffin Electrical', tag: 'Electrician · Hull', url: 'https://brian-griffin-electrical.vercel.app' },
-    { name: 'MGS Beverley', tag: 'Gardening & landscaping', url: 'https://mgs-beverley.vercel.app' },
+    { url: 'https://sisko-hairdressing.vercel.app' },
+    { url: 'https://brian-griffin-electrical.vercel.app' },
+    { url: 'https://mgs-beverley.vercel.app' },
   ];
 
   function scaleFrame(view, iframe, intrinsicW, intrinsicH, cropTop) {
@@ -31,9 +31,8 @@
     card.innerHTML = `
       <div class="ex-frame ex-frame-desktop is-active">
         <div class="ex-bar" aria-hidden="true"><i></i><i></i><i></i></div>
-        <div class="ex-view"><iframe title="${ex.name} preview" loading="lazy" src="${ex.url}" tabindex="-1"></iframe></div>
-      </div>
-      <div class="ex-meta"><span>${ex.tag}</span></div>`;
+        <div class="ex-view"><iframe title="Example website preview" loading="lazy" src="${ex.url}" tabindex="-1"></iframe></div>
+      </div>`;
     grid.appendChild(card);
 
     const desktopFrame = card.querySelector('.ex-frame-desktop');
