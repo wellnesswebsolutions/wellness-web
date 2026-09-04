@@ -217,8 +217,8 @@
   }
   const SITE_STYLE_PRESETS = {
     'modern': { heading: "'Manrope', sans-serif", body: "'Inter', sans-serif", radius: '16px', space: '5.2em', card: '0 18px 46px rgba(25,35,45,.10)' },
-    'elegant': { heading: "'Cormorant Garamond', Georgia, serif", body: "'DM Sans', sans-serif", radius: '3px', space: '6.2em', card: '0 16px 44px rgba(48,34,24,.09)' },
-    'bold': { heading: "'Space Grotesk', sans-serif", body: "'Inter', sans-serif", radius: '7px', space: '5em', card: '8px 8px 0 color-mix(in srgb, var(--rose-dark) 28%, transparent)' },
+    'elegant': { heading: "'DM Sans', sans-serif", body: "'DM Sans', sans-serif", radius: '32px', space: '5.6em', card: 'none' },
+    'bold': { heading: "'Bebas Neue', 'Arial Narrow', sans-serif", body: "'DM Sans', sans-serif", radius: '40px', space: '5em', card: 'none' },
     'soft-luxury': { heading: "'Cormorant Garamond', Georgia, serif", body: "'Montserrat', sans-serif", radius: '2px', space: '5.8em', card: '0 18px 50px rgba(28,24,21,.10)' },
     'clinical-luxury': { heading: "'DM Sans', sans-serif", body: "'DM Sans', sans-serif", radius: '12px', space: '5.2em', card: '0 16px 40px rgba(28,24,21,.08)' },
     'calm-wellness': { heading: "'Lora', Georgia, serif", body: "'DM Sans', sans-serif", radius: '16px', space: '5.6em', card: '0 18px 48px rgba(28,24,21,.09)' },
@@ -354,7 +354,7 @@
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='${t.dark}'/><text x='32' y='33' text-anchor='middle' dominant-baseline='central' font-family='Inter, Arial, sans-serif' font-weight='700' font-size='26' fill='#fff'>${esc(initials)}</text></svg>`)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
@@ -664,6 +664,82 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .site-style-bold .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
   .site-style-bold .gallery figure,.site-style-bold .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
   .site-style-bold .band{clip-path:none}
+}
+
+/* Final reference-led layouts. Elegant borrows Phantom's airy capsule
+   language; Bold borrows Caldera's warm industrial poster language. The
+   markup and data stay identical across all three styles. */
+.site-style-elegant{background:#fdfcfe;--ink:color-mix(in srgb,var(--rose-dark) 72%,#211b32);--body:#35313e;--muted:#86848d;--champagne:color-mix(in srgb,var(--rose) 20%,#fdfcfe);--line:color-mix(in srgb,var(--rose-dark) 18%,transparent)}
+.site-style-elegant h1,.site-style-elegant h2{font-weight:300;letter-spacing:-.035em;text-transform:none}
+.site-style-elegant .site-header{top:14px;left:4%;right:4%;background:rgba(253,252,254,.9);border:1px solid var(--line);border-radius:999px;box-shadow:none}
+.site-style-elegant .site-header .container{min-height:64px}
+.site-style-elegant .brand-badge,.site-style-elegant .btn,.site-style-elegant .menu-toggle{border-radius:999px}
+.site-style-elegant .hero{width:92%;margin:104px auto 0;border-radius:48px;min-height:min(76vh,720px);box-shadow:none}
+.site-style-elegant .hero::after{background:linear-gradient(to top,color-mix(in srgb,var(--rose-dark) 76%,transparent),transparent 72%)}
+.site-style-elegant .hero .hero-copy{text-align:left;align-self:flex-end;padding:0 0 3.8em}
+.site-style-elegant .hero .inner{align-items:flex-start}
+.site-style-elegant .hero .btn-row{justify-content:flex-start}
+.site-style-elegant .hero .btn{background:#e2dffe;color:#211b32;border-color:#e2dffe;box-shadow:0 0 0 4px rgba(226,223,254,.2)}
+.site-style-elegant .hero .btn--outline-light{background:rgba(253,252,254,.14);color:#fff;border-color:rgba(255,255,255,.7);box-shadow:none}
+.site-style-elegant .grid-3{grid-template-columns:1.25fr .75fr}
+.site-style-elegant .grid-3 .card:first-child{grid-row:span 2;min-height:100%;padding:52px 44px}
+.site-style-elegant .card{border:0;border-radius:48px;background:var(--champagne);padding:34px;box-shadow:none}
+.site-style-elegant .card:nth-child(2){background:color-mix(in srgb,var(--rose) 34%,#ffffc4)}
+.site-style-elegant .card:nth-child(3){background:color-mix(in srgb,var(--rose) 22%,#ffdadc)}
+.site-style-elegant .reviews{display:flex;gap:16px;align-items:stretch}
+.site-style-elegant .review-card{flex:1;border:0;border-radius:48px;background:color-mix(in srgb,var(--rose-dark) 88%,#3c315b);color:#fff;text-align:left;min-height:280px}
+.site-style-elegant .review-card blockquote,.site-style-elegant .review-card p{color:#fff}
+.site-style-elegant .review-card:nth-child(2){min-height:280px;background:color-mix(in srgb,var(--rose) 44%,#ab9ff2)}
+.site-style-elegant .gallery{grid-template-columns:1.25fr .75fr 1fr;grid-auto-rows:160px;gap:14px}
+.site-style-elegant .gallery figure,.site-style-elegant .gallery figure:nth-child(n){border-radius:38px}
+.site-style-elegant .band{margin:0 4%;border-radius:48px;background:color-mix(in srgb,var(--rose-dark) 88%,#3c315b)}
+
+.site-style-bold{background:#e2e2df;--ink:#070607;--body:#202020;--muted:#5f5e5a;--champagne:#f7f6f2;--line:rgba(7,6,7,.2)}
+.site-style-bold h1,.site-style-bold h2,.site-style-bold h3{font-weight:400;letter-spacing:.015em}
+.site-style-bold h1{font-size:clamp(4rem,10vw,8.8rem);line-height:.82}
+.site-style-bold h2{font-size:clamp(3rem,7vw,6.2rem);line-height:.9}
+.site-style-bold .site-header{background:#e2e2df;border-bottom:1px solid #070607}
+.site-style-bold .btn{border-radius:999px;background:var(--rose-dark);border-color:var(--rose-dark);color:#070607}
+.site-style-bold .hero{background-color:#e2e2df;background-size:50% auto;background-position:right center}
+.site-style-bold .hero::before{inset:auto;left:8%;top:15%;width:38%;height:70%;transform:none;border-radius:40px;background:radial-gradient(circle at 2px 2px,color-mix(in srgb,var(--rose-dark) 75%,#524ae9) 1.6px,transparent 1.8px);background-size:11px 11px;filter:none;opacity:.78}
+.site-style-bold .hero::after{background:linear-gradient(to left,rgba(7,6,7,.12),transparent 50%)}
+.site-style-bold .hero .inner{margin-left:max(22px,calc((100vw - 1280px)/2));margin-right:50%}
+.site-style-bold .hero .btn--light{background:var(--rose-dark);color:#070607;border-color:var(--rose-dark)}
+.site-style-bold .hero .btn--outline-light{background:#f7f6f2;color:#070607;border-color:#070607}
+.site-style-bold .grid-3{grid-template-columns:1.2fr .8fr .8fr}
+.site-style-bold .grid-3 .card:nth-child(2){margin-top:70px}
+.site-style-bold .card{border:0;border-radius:40px;background:#f7f6f2;box-shadow:none;padding:42px}
+.site-style-bold .card:first-child{background:var(--rose-dark)}
+.site-style-bold .section--tint{background:#070607;color:#fff;border:0;border-radius:40px;margin:0 2%}
+.site-style-bold .section--tint h2,.site-style-bold .section--tint .eyebrow,.site-style-bold .section--tint .lede{color:#fff}
+.site-style-bold .reviews{grid-template-columns:1.25fr .875fr .875fr}
+.site-style-bold .review-card{border:0;border-radius:40px;background:#f7f6f2;box-shadow:none;padding:40px}
+.site-style-bold .review-card:first-child{background:var(--rose-dark);min-height:330px}
+.site-style-bold .gallery{gap:12px}
+.site-style-bold .gallery figure,.site-style-bold .gallery figure:nth-child(n){border-radius:40px}
+.site-style-bold .band{margin:0 2%;border-radius:40px;background:var(--rose-dark);color:#070607}
+.site-style-bold .band h2,.site-style-bold .band .eyebrow,.site-style-bold .band p{color:#070607}
+
+@media(max-width:900px){
+  .site-style-elegant .site-header{top:0;left:0;right:0;border-radius:0}
+  .site-style-elegant .hero{width:100%;margin-top:68px;border-radius:0}
+  .site-style-elegant .hero .hero-copy{text-align:center}
+  .site-style-elegant .hero .inner{align-items:center}
+  .site-style-elegant .hero .btn-row{justify-content:center}
+  .site-style-elegant .grid-3{grid-template-columns:1fr}
+  .site-style-elegant .reviews{display:flex}
+  .site-style-elegant .review-card{flex:0 0 86%}
+  .site-style-elegant .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
+  .site-style-elegant .gallery figure,.site-style-elegant .gallery figure:nth-child(n){aspect-ratio:4/3;height:auto;grid-row:auto;grid-column:auto;border-radius:24px}
+  .site-style-elegant .band{margin:0;border-radius:0}
+  .site-style-bold .hero{background-size:contain;background-position:center top;background-color:#070607}
+  .site-style-bold .hero::before{display:none}
+  .site-style-bold .hero .inner{margin:0 auto}
+  .site-style-bold .grid-3,.site-style-bold .reviews{grid-template-columns:1fr}
+  .site-style-bold .grid-3 .card:nth-child(2){margin-top:0}
+  .site-style-bold .section--tint,.site-style-bold .band{margin:0;border-radius:0}
+  .site-style-bold .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
+  .site-style-bold .gallery figure,.site-style-bold .gallery figure:nth-child(n){aspect-ratio:4/3;height:auto;grid-row:auto;grid-column:auto;border-radius:24px}
 }
 
 /* ---- a little life: things settle into place as they enter the viewport,
