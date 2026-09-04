@@ -19,8 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const builderForName = document.getElementById('builderForName');
   const builderDeviceDesktop = document.getElementById('builderDeviceDesktop');
   const builderDeviceMobile = document.getElementById('builderDeviceMobile');
-  const builderSignColour = document.getElementById('builderSignColour');
-  const builderSignAuto = document.getElementById('builderSignAuto');
+  const builderSignPalette = document.getElementById('builderSignPalette');
+  const builderSignCurrent = document.getElementById('builderSignCurrent');
+  const builderSignButtons = Array.from(document.querySelectorAll('[data-sign-colour]'));
   const builderProgress = document.getElementById('builderProgress');
   const builderField = document.getElementById('builderField');
   const builderPh = document.getElementById('builderPh');
@@ -58,10 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function updateSignControl() {
-    if (!builderSignAuto) return;
     const isAuto = !selectedSignColour;
-    builderSignAuto.classList.toggle('is-on', isAuto);
-    builderSignAuto.setAttribute('aria-pressed', String(isAuto));
+    builderSignButtons.forEach((button) => {
+      const active = button.dataset.signColour === (selectedSignColour || '');
+      button.classList.toggle('is-on', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    if (builderSignCurrent) {
+      builderSignCurrent.classList.toggle('is-auto', isAuto);
+      builderSignCurrent.style.background = isAuto ? '' : selectedSignColour;
+    }
   }
 
   async function rerenderPersonalisedHero() {
@@ -86,20 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (builderSignColour) {
-    builderSignColour.addEventListener('change', () => {
-      selectedSignColour = builderSignColour.value;
+  builderSignButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedSignColour = button.dataset.signColour || null;
       updateSignControl();
+      if (builderSignPalette) builderSignPalette.open = false;
       rerenderPersonalisedHero();
     });
-  }
-  if (builderSignAuto) {
-    builderSignAuto.addEventListener('click', () => {
-      selectedSignColour = null;
-      updateSignControl();
-      rerenderPersonalisedHero();
-    });
-  }
+  });
 
   const COLOURS_BY_TYPE = {
     'Hair & Beauty': ['#a89a92', '#b07d93', '#847796', '#8d9a82'],
