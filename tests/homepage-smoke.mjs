@@ -159,6 +159,7 @@ async function runHomepageFlow(label, contextOptions, mobile) {
 
   await activate(page.locator('#qaLocationNext'));
   await page.locator('#builderOverlay:not([hidden])').waitFor({ timeout: 10000 });
+  await page.getByText('A quick demo — your final website can be anything you imagine').waitFor();
 
   const rootLocked = await page.evaluate(() => document.documentElement.classList.contains('builder-scroll-lock'));
   assert.equal(rootLocked, !mobile, `${label}: scroll lock should be desktop-only`);
