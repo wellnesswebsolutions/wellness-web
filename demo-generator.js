@@ -732,6 +732,14 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .site-style-elegant .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
   .site-style-elegant .gallery figure,.site-style-elegant .gallery figure:nth-child(n){aspect-ratio:4/3;height:auto;grid-row:auto;grid-column:auto;border-radius:24px}
   .site-style-elegant .band{margin:0;border-radius:0}
+  /* .site-style-elegant .hero .btn--outline-light was set to white text on
+     a translucent white background for the desktop hero's dark photo
+     overlay — on mobile the hero-copy panel sits on a light solid
+     background instead (see the shared .hero .hero-copy mobile rule
+     earlier), so white-on-light was making "View Services" unreadable.
+     This has to be the LAST rule for this selector in the file (same
+     specificity as the desktop one) to actually win the cascade. */
+  .site-style-elegant .hero .btn--outline-light{background:transparent;color:var(--ink);border-color:var(--rose-dark)}
   .site-style-bold .hero{background-size:contain;background-position:center top;background-color:#070607}
   .site-style-bold .hero::before{display:none}
   .site-style-bold .hero .inner{margin:0 auto}
