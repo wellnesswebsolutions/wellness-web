@@ -12,12 +12,12 @@
   const HEADER_CROP = 84;
 
   const examples = [
-    { url: 'https://sisko-hairdressing.vercel.app' },
-    { url: 'https://kings-valeting-hull.vercel.app' },
-    { url: 'https://de-lacy.vercel.app' },
-    { url: 'https://muse-hull-deploy.vercel.app' },
-    { url: 'https://mgs-beverley.vercel.app' },
-    { url: 'https://brian-griffin-electrical.vercel.app' },
+    { url: 'https://sisko-hairdressing.vercel.app', name: 'SISKŌ Hairdressing' },
+    { url: 'https://kings-valeting-hull.vercel.app', name: 'Kings Valeting' },
+    { url: 'https://de-lacy.vercel.app', name: 'De Lacy' },
+    { url: 'https://muse-hull-deploy.vercel.app', name: 'Muse.' },
+    { url: 'https://mgs-beverley.vercel.app', name: 'MGS Beverley' },
+    { url: 'https://brian-griffin-electrical.vercel.app', name: 'Brian Griffin Electrical' },
   ];
 
   function scaleFrame(view, iframe, intrinsicW, intrinsicH, cropTop) {
@@ -35,7 +35,8 @@
       <div class="ex-frame ex-frame-desktop is-active">
         <div class="ex-bar" aria-hidden="true"><i></i><i></i><i></i></div>
         <div class="ex-view"><iframe title="Example website preview" loading="lazy" src="${ex.url}" tabindex="-1"></iframe></div>
-      </div>`;
+      </div>
+      <div class="ex-result"><span>Demonstration</span><b>${ex.name}</b><small>Custom redesign · Mobile optimised · SEO setup</small></div>`;
     grid.appendChild(card);
 
     const desktopFrame = card.querySelector('.ex-frame-desktop');
