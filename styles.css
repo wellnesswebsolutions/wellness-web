@@ -1282,10 +1282,6 @@ html,body{max-width:100%}
 .journey-line{display:flex!important;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 12px;max-width:960px!important;margin:22px auto 0!important;color:var(--ink)!important;font-size:14px!important}
 .journey-line b{font-weight:650}.journey-line span{color:var(--accent);font-size:18px}
 .step3-tom img{object-position:center 20%}
-.ex-result{padding:15px 17px 17px;background:#fff;display:grid;gap:4px;text-align:left}
-.ex-result span{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:800}
-.ex-result b{font-family:var(--display);font-size:17px;color:var(--ink)}
-.ex-result small{font-size:11px;color:var(--muted)}
 #styles-showcase,#before-after,#home-pricing,#faq{border-top:1px solid var(--line)}
 .style-preview-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .style-preview-card{min-width:0;padding:7px 7px 14px;border:1px solid var(--line);border-radius:17px;background:var(--card);box-shadow:0 10px 28px rgba(20,35,50,.07);overflow:hidden}
