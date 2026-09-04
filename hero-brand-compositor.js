@@ -19,7 +19,7 @@
     // wide bare wall to the right of the treatment bed
     health: { image: 'health-wellness.webp', panel: { cx: .70, cy: .34, w: .34, h: .22 }, blend: 'multiply', opacity: .82 },
     // dark gym wall — light ink, kept clear of the rig on the right
-    fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, blend: 'screen', opacity: .88 },
+    fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, blend: 'screen', opacity: .94, filter: 'brightness(1.22) contrast(.92) saturate(1.08)' },
     // flat side panel of the van, behind the cab and above the sill
     automotive: { image: 'automotive.webp', panel: { cx: .69, cy: .44, w: .31, h: .16 }, blend: 'multiply', opacity: .84 },
     // van side panel, between the window line and the lower stripe
@@ -102,6 +102,25 @@
     try { ctx.letterSpacing = `${tracking}px`; } catch (error) { /* older Safari */ }
   }
 
+  function colourParts(value) {
+    const match = /^#([0-9a-f]{6})$/i.exec(String(value || '').trim());
+    if (!match) return null;
+    const number = Number.parseInt(match[1], 16);
+    return { r: number >> 16, g: (number >> 8) & 255, b: number & 255 };
+  }
+
+  function shadeColour(value, amount) {
+    const colour = colourParts(value);
+    if (!colour) return value;
+    const channel = number => Math.max(0, Math.min(255, Math.round(number + (amount < 0 ? number : 255 - number) * amount)));
+    return `rgb(${channel(colour.r)},${channel(colour.g)},${channel(colour.b)})`;
+  }
+
+  function colourAlpha(value, alpha) {
+    const colour = colourParts(value);
+    return colour ? `rgba(${colour.r},${colour.g},${colour.b},${alpha})` : value;
+  }
+
   // Break a name across at most two lines at the most balanced word gap, so a
   // long name gets shorter lines instead of shrinking away to nothing.
   function splitName(words) {
@@ -140,9 +159,11 @@
     }
   }
 
-  function drawLockup(ctx, name, location, box, fallbackLight) {
+  function drawLockup(ctx, name, location, box, fallbackLight, options) {
+    const settings = options || {};
     const nameText = String(name || 'Your Business').trim().toUpperCase();
     const placeText = String(location || '').trim().toUpperCase();
+    const logoHint = String(settings.logoHint || '(Your Custom Logo Here)').trim();
 
     // Keep equal breathing room on every side. All measuring, wrapping and
     // centring happens inside this inset box, so a short or long name shares
@@ -158,7 +179,7 @@
 
     // Start from the panel height and shrink until the name fits the width. Try
     // one line first; if that would drive the type too small, use two.
-    const maxSize = Math.round(box.height * (placeText ? .40 : .46));
+    const maxSize = Math.round(box.height * (placeText || logoHint ? .35 : .46));
     const minSize = Math.max(18, Math.round(box.height * .16));
     let lines = [nameText];
     let size = maxSize;
@@ -174,10 +195,24 @@
       size = maxSize;
       while (size > minSize && !fits(lines, size)) size -= 2;
     }
+    // Two name lines plus the logo hint and location need a slightly tighter
+    // cap so the complete sign always remains inside shallow van/facade panels.
+    if (lines.length > 1 && (placeText || logoHint)) {
+      size = Math.min(size, Math.round(box.height * .29));
+      while (size > minSize && !fits(lines, size)) size -= 2;
+    }
 
-    // Location sits at 40% of the name — inside the 35–45% the brand calls for —
-    // and shrinks further only if it would otherwise run past the panel.
-    let placeSize = Math.round(size * .40);
+    // The logo prompt and location stay deliberately quieter than the raised
+    // business name, preserving a believable sign hierarchy on the wall.
+    let hintSize = Math.max(11, Math.round(size * .27));
+    if (logoHint) {
+      setFont(ctx, 500, hintSize, hintSize * .04);
+      while (hintSize > 10 && ctx.measureText(logoHint).width > box.width) {
+        hintSize -= 1;
+        setFont(ctx, 500, hintSize, hintSize * .04);
+      }
+    }
+    let placeSize = Math.round(size * .34);
     if (placeText) {
       setFont(ctx, 500, placeSize, placeSize * .16);
       while (placeSize > 11 && ctx.measureText(placeText).width > box.width) {
@@ -195,6 +230,13 @@
     const nameDescent = Math.max(...nameMetrics.map(m => m.actualBoundingBoxDescent || size * .08));
     const lineStep = nameAscent + nameDescent + size * .22;
 
+    let hintAscent = 0, hintDescent = 0;
+    if (logoHint) {
+      setFont(ctx, 500, hintSize, hintSize * .04);
+      const hm = ctx.measureText(logoHint);
+      hintAscent = hm.actualBoundingBoxAscent || hintSize * .72;
+      hintDescent = hm.actualBoundingBoxDescent || hintSize * .08;
+    }
     let placeAscent = 0, placeDescent = 0;
     if (placeText) {
       setFont(ctx, 500, placeSize, placeSize * .16);
@@ -204,38 +246,80 @@
     }
     // gap between the two halves of the lockup: close enough to read as one
     // unit, open enough to separate them
-    const lockupGap = placeText ? size * .40 : 0;
+    const hintGap = logoHint ? size * .25 : 0;
+    const placeGap = placeText ? size * .20 : 0;
 
     const blockHeight =
       nameAscent + (lines.length - 1) * lineStep + nameDescent +
-      (placeText ? lockupGap + placeAscent + placeDescent : 0);
+      (logoHint ? hintGap + hintAscent + hintDescent : 0) +
+      (placeText ? placeGap + placeAscent + placeDescent : 0);
 
     const surface = readSurface(ctx, box, fallbackLight);
-    const ink = surface.light ? '#f7f4ef' : '#23201e';
+    const lightLetters = surface.light;
+    const customInk = colourParts(settings.signColour) ? settings.signColour : null;
+    const ink = customInk || (lightLetters ? '#fffdf7' : '#25211f');
+    const edge = customInk ? shadeColour(customInk, -.56) : (lightLetters ? '#c9c5bc' : '#080706');
+    const highlight = customInk ? shadeColour(customInk, .62) : (lightLetters ? 'rgba(255,255,255,.78)' : 'rgba(255,255,255,.32)');
 
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    if (surface.busy || (surface.mean > 95 && surface.mean < 165)) {
-      ctx.shadowColor = surface.light ? 'rgba(0,0,0,.42)' : 'rgba(255,255,255,.40)';
-      ctx.shadowBlur = Math.max(6, size * .12);
-    }
-    ctx.fillStyle = ink;
-
     const cx = box.x + box.width / 2;
     const blockTop = box.y + box.height / 2 - blockHeight / 2;
     let baseline = blockTop + nameAscent;
 
     setFont(ctx, 700, size, size * .06);
+
+    // Build the wordmark as raised dimensional lettering rather than flat
+    // canvas type. Repeated offset passes form the side face, the blurred pass
+    // anchors it to the wall, and a fine top-left stroke catches room light.
+    const depth = Math.max(2, Math.min(8, Math.round(size * .055)));
+    ctx.shadowColor = 'rgba(0,0,0,.48)';
+    ctx.shadowBlur = Math.max(8, size * .11);
+    ctx.shadowOffsetX = depth * 1.25;
+    ctx.shadowOffsetY = depth * 1.55;
+    ctx.fillStyle = edge;
+    for (let layer = depth; layer >= 1; layer--) {
+      lines.forEach((line, i) => {
+        ctx.fillText(line, cx + layer, baseline + i * lineStep + layer, box.width);
+      });
+    }
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = ink;
     lines.forEach((line, i) => {
       ctx.fillText(line, cx, baseline, box.width);
-      if (i < lines.length - 1) baseline += lineStep;
     });
+    ctx.strokeStyle = highlight;
+    ctx.lineWidth = Math.max(.65, size * .009);
+    lines.forEach((line, i) => ctx.strokeText(line, cx - .6, baseline + i * lineStep - .6, box.width));
+
+    baseline += (lines.length - 1) * lineStep;
+
+    if (logoHint) {
+      setFont(ctx, 500, hintSize, hintSize * .04);
+      ctx.fillStyle = colourAlpha(ink, .78);
+      ctx.shadowColor = lightLetters ? 'rgba(0,0,0,.34)' : 'rgba(255,255,255,.22)';
+      ctx.shadowBlur = Math.max(2, hintSize * .08);
+      ctx.shadowOffsetY = 1;
+      baseline += nameDescent + hintGap + hintAscent;
+      ctx.fillText(logoHint, cx, baseline, box.width);
+      baseline += hintDescent;
+    } else {
+      baseline += nameDescent;
+    }
 
     if (placeText) {
       setFont(ctx, 500, placeSize, placeSize * .16);
-      ctx.globalAlpha = (ctx.globalAlpha || 1) * .82;   // lighter visual weight
-      ctx.fillText(placeText, cx, baseline + nameDescent + lockupGap + placeAscent, box.width);
+      ctx.fillStyle = ink;
+      ctx.shadowColor = lightLetters ? 'rgba(0,0,0,.42)' : 'rgba(255,255,255,.30)';
+      ctx.shadowBlur = Math.max(3, placeSize * .1);
+      ctx.shadowOffsetY = 1;
+      ctx.globalAlpha = (ctx.globalAlpha || 1) * .72;   // lighter visual weight
+      ctx.fillText(placeText, cx, baseline + placeGap + placeAscent, box.width);
     }
     ctx.restore();
   }
@@ -277,7 +361,10 @@
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+    ctx.save();
+    if (scene.filter) ctx.filter = scene.filter;
     ctx.drawImage(hero, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
 
     // The panel is the usable surface; clamp it inside the frame so no rounding
     // or custom size can push the lockup off the edge of the image.
@@ -312,7 +399,10 @@
       // rather than through the logo's blend mode.
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
-      drawLockup(ctx, settings.businessName, settings.location, box, lightInk);
+      drawLockup(ctx, settings.businessName, settings.location, box, lightInk, {
+        signColour: settings.signColour,
+        logoHint: settings.logoHint
+      });
     }
     ctx.restore();
 

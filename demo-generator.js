@@ -459,7 +459,9 @@ ${heroHasPhoto ? `@media(min-width:901px){
      below adds its own height beneath it — so anchor the note to the photo's
      own bottom edge (top:mobile-hero-height) rather than .hero's bottom,
      which would otherwise land past the copy panel and its buttons. */
-  .hero-photo-note{top:calc(var(--mobile-hero-height) - 24px);bottom:auto}
+  .hero-photo-note{top:calc(var(--mobile-hero-height) - 10px);bottom:auto;transform:translateY(-100%);
+    width:max-content;max-width:calc(100% - 28px);margin:0 auto;padding:5px 9px;border-radius:999px;
+    background:rgba(16,16,18,.58);color:#fff;line-height:1.25;text-shadow:none;backdrop-filter:blur(7px)}
   .hero .hero-copy{padding:1.35em 0 1.55em;text-align:center;background:var(--header-surface);
     border-top:1px solid color-mix(in srgb,var(--rose-dark) 16%,transparent)}
   .hero .inner{display:flex;flex-direction:column;align-items:center;padding:0 18px}
@@ -673,6 +675,8 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-elegant h1,.site-style-elegant h2{font-weight:300;letter-spacing:-.035em;text-transform:none}
 .site-style-elegant .site-header{top:14px;left:4%;right:4%;background:rgba(253,252,254,.9);border:1px solid var(--line);border-radius:999px;box-shadow:none}
 .site-style-elegant .site-header .container{min-height:64px}
+.site-style-elegant .site-header .nav a.btn{background:var(--ink);border-color:var(--ink);color:#fff}
+.site-style-elegant .site-header .nav a.btn:hover{background:transparent;border-color:var(--ink);color:var(--ink)}
 .site-style-elegant .brand-badge,.site-style-elegant .btn,.site-style-elegant .menu-toggle{border-radius:999px}
 .site-style-elegant .hero{width:92%;margin:104px auto 0;border-radius:48px;min-height:min(76vh,720px);box-shadow:none}
 .site-style-elegant .hero::after{background:linear-gradient(to top,color-mix(in srgb,var(--rose-dark) 76%,transparent),transparent 72%)}
@@ -699,6 +703,8 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-bold h1{font-size:clamp(4rem,10vw,8.8rem);line-height:.82}
 .site-style-bold h2{font-size:clamp(3rem,7vw,6.2rem);line-height:.9}
 .site-style-bold .site-header{background:#e2e2df;border-bottom:1px solid #070607}
+.site-style-bold .site-header .nav a.btn{background:var(--rose-dark);border-color:var(--rose-dark);color:#070607}
+.site-style-bold .site-header .nav a.btn:hover{background:transparent;border-color:#070607;color:#070607}
 .site-style-bold .btn{border-radius:999px;background:var(--rose-dark);border-color:var(--rose-dark);color:#070607}
 .site-style-bold .hero{background-color:#e2e2df;background-size:50% auto;background-position:right center}
 .site-style-bold .hero::before{inset:auto;left:8%;top:15%;width:38%;height:70%;transform:none;border-radius:40px;background:radial-gradient(circle at 2px 2px,color-mix(in srgb,var(--rose-dark) 75%,#524ae9) 1.6px,transparent 1.8px);background-size:11px 11px;filter:none;opacity:.78}

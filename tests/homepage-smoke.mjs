@@ -163,6 +163,22 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   const rootLocked = await page.evaluate(() => document.documentElement.classList.contains('builder-scroll-lock'));
   assert.equal(rootLocked, !mobile, `${label}: scroll lock should be desktop-only`);
 
+  const signColour = page.locator('#builderSignColour');
+  const signAuto = page.locator('#builderSignAuto');
+  assert.equal(await signColour.isVisible(), true, `${label}: sign colour picker should be visible`);
+  assert.equal(await signAuto.getAttribute('aria-pressed'), 'true', `${label}: sign colour should start in auto mode`);
+  const previewBeforeColour = await page.locator('#previewFrame').getAttribute('srcdoc');
+  await signColour.evaluate((element) => {
+    element.value = '#2563eb';
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await page.waitForFunction((before) => (
+    document.querySelector('#previewFrame').getAttribute('srcdoc') !== before
+  ), previewBeforeColour);
+  assert.equal(await signAuto.getAttribute('aria-pressed'), 'false', `${label}: choosing a colour should leave auto mode`);
+  await activate(signAuto);
+  await page.waitForFunction(() => document.querySelector('#builderSignAuto').getAttribute('aria-pressed') === 'true');
+
   if (mobile) {
     const previewFrame = page.locator('#previewFrame');
     const frameBox = await previewFrame.boundingBox();

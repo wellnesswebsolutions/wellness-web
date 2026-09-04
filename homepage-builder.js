@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const builderForName = document.getElementById('builderForName');
   const builderDeviceDesktop = document.getElementById('builderDeviceDesktop');
   const builderDeviceMobile = document.getElementById('builderDeviceMobile');
+  const builderSignColour = document.getElementById('builderSignColour');
+  const builderSignAuto = document.getElementById('builderSignAuto');
   const builderProgress = document.getElementById('builderProgress');
   const builderField = document.getElementById('builderField');
   const builderPh = document.getElementById('builderPh');
@@ -35,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedTones = null;
   let uploadedHeroImage = null;
   let selectedWebsiteStyle = 'modern';
+  let selectedSignColour = null;
+  let heroRenderVersion = 0;
   // Must exist before the initial mobile sizing pass below. Previously this
   // was declared much later, so phones hit its temporal dead zone and aborted
   // the entire form setup before submit/input handlers were attached.
@@ -52,6 +56,50 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshPreview();
     });
   });
+
+  function updateSignControl() {
+    if (!builderSignAuto) return;
+    const isAuto = !selectedSignColour;
+    builderSignAuto.classList.toggle('is-on', isAuto);
+    builderSignAuto.setAttribute('aria-pressed', String(isAuto));
+  }
+
+  async function rerenderPersonalisedHero() {
+    if (!bizNameInput.value.trim() || !bizLocation.value.trim()) return null;
+    const version = ++heroRenderVersion;
+    try {
+      const image = await HeroBrandCompositor.render({
+        category: bizTagline.value,
+        businessName: bizNameInput.value.trim(),
+        location: bizLocation.value.trim(),
+        signColour: selectedSignColour,
+        logoHint: '(Your Custom Logo Here)',
+        output: 'dataURL'
+      });
+      if (version !== heroRenderVersion) return null;
+      uploadedHeroImage = image;
+      refreshPreview();
+      return image;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  if (builderSignColour) {
+    builderSignColour.addEventListener('change', () => {
+      selectedSignColour = builderSignColour.value;
+      updateSignControl();
+      rerenderPersonalisedHero();
+    });
+  }
+  if (builderSignAuto) {
+    builderSignAuto.addEventListener('click', () => {
+      selectedSignColour = null;
+      updateSignControl();
+      rerenderPersonalisedHero();
+    });
+  }
 
   const COLOURS_BY_TYPE = {
     'Hair & Beauty': ['#a89a92', '#b07d93', '#847796', '#8d9a82'],
@@ -412,6 +460,8 @@ document.addEventListener('DOMContentLoaded', () => {
         category: bizTagline.value,
         businessName: name,
         location: loc,
+        signColour: selectedSignColour,
+        logoHint: '(Your Custom Logo Here)',
         output: 'dataURL'
       })).catch((error) => {
         console.error(error);
