@@ -160,6 +160,11 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   await activate(page.locator('#qaLocationNext'));
   await page.locator('#builderOverlay:not([hidden])').waitFor({ timeout: 10000 });
   await page.getByText('A quick demo — your final website can be anything you imagine').waitFor();
+  await page.waitForFunction(() => document.querySelector('#previewFrame').contentDocument?.querySelectorAll('.gallery-demo img').length === 6);
+  const galleryNotice = await page.locator('#previewFrame').evaluate((frame) => (
+    frame.contentDocument.body.textContent.includes('all six will be replaced with your own photographs before launch')
+  ));
+  assert.equal(galleryNotice, true, `${label}: demo gallery should explain that customer photographs replace it`);
 
   const rootLocked = await page.evaluate(() => document.documentElement.classList.contains('builder-scroll-lock'));
   assert.equal(rootLocked, !mobile, `${label}: scroll lock should be desktop-only`);

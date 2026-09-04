@@ -141,6 +141,28 @@
         G('Custom', [['Bespoke project', 'Get a quote'], ['Custom order', 'Get a quote'], ['Special request', 'Get a quote'], ['Tailored package', 'Get a quote'], ['Made to measure', 'Get a quote']])
       ] }
   ];
+
+  // Six real, category-relevant demo photographs for every generated site.
+  // These are deliberately treated as temporary content: the preview labels
+  // them as demo images and promises they will be replaced before launch.
+  const GALLERY_PHOTO_IDS = {
+    hairbeauty: ['1560066984-138dadb4c035','1521590832167-7bcbfaa6381f','1522337360788-8b13dee7a37e','1562322140-8baeececf3df','1487412947147-5cebf100ffc2','1600948836101-f9ffda59d250'],
+    aesthetics: ['1570172619644-dfd03ed5d881','1616394584738-fc6e612e71b9','1515377905703-c4788e51af15','1620916566398-39f1143ab7be','1519823551278-64ac92734fb1','1540555700478-4be289fbecef'],
+    health: ['1576091160399-112ba8d25d1d','1538108149393-fbbd81895907','1579684385127-1ef15d508118','1471864190281-a93a3070b6de','1519494026892-80bbd2d6fd0d','1516841273335-e39b37888115'],
+    fitness: ['1534438327276-14e5300c3a48','1571019613454-1cb2f99b2d8b','1581009146145-b5ef050c2e1e','1517836357463-d25dfeac3438','1534258936925-c58bed479fcb','1540497077202-7c8a3999166f'],
+    automotive: ['1487754180451-c456f719a1fc','1503376780353-7e6692767b70','1492144534655-ae79c964c9d7','1504222490345-c075b6008014','1486262715619-67b85e0b08d3','1525609004556-c46c7d6cf023'],
+    trades: ['1504307651254-35680f356dfd','1541888946425-d81bb19240f5','1503387762-592deb58ef4e','1531835551805-16d864c8d311','1581578731548-c64695cc6952','1504917595217-d4dc5ebe6122'],
+    homegarden: ['1416879595882-3373a0480b5b','1585320806297-9794b3e4eeae','1558904541-efa843a96f01','1598902108854-10e335adac99','1558618666-fcd25c85cd64','1466692476868-aef1dfb1e735'],
+    fooddrink: ['1517248135467-4c7edcad34c4','1552566626-52f8b828add9','1414235077428-338989a2e8c0','1565299624946-b28f40a0ae38','1504674900247-0877df9cc836','1559339352-11d035aa65de'],
+    professional: ['1497366754035-f200968a6e72','1497366811353-6870744d04b2','1524758631624-e2822e304c36','1497366216548-37526070297c','1497366412874-3415097a27e7','1531497865144-0464ef8fb9a9'],
+    creative: ['1549490349-8643362247b5','1541961017774-22349e4a1262','1500530855697-b586d89ba3ee','1455390582262-044cdead277a','1513364776144-60967b0f800f','1547891654-e66ed7ebb968'],
+    pets: ['1552053831-71594a27632d','1587300003388-59208cc962cb','1548199973-03cce0bbc87b','1517849845537-4d257902454a','1537151625747-768eb6cf92b2','1558788353-f76d92427f16'],
+    office: ['1497366754035-f200968a6e72','1497366811353-6870744d04b2','1524758631624-e2822e304c36','1497366216548-37526070297c','1497366412874-3415097a27e7','1531497865144-0464ef8fb9a9']
+  };
+
+  function galleryPhotoUrl(id) {
+    return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=82`;
+  }
   function flattenGroups(t) {
     const items = t.groups.reduce((all, g) => all.concat(g.items), []);
     return { services: items.map(i => i[0]), prices: items.map(i => i[1]) };
@@ -303,16 +325,14 @@
     const styleName = ['modern', 'elegant', 'bold'].includes(d.stylePreset) ? d.stylePreset : 'modern';
     const preset = SITE_STYLE_PRESETS[styleName];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-    const galleryTones = [[t.dark,t.base],[t.base,t.light],[t.light,t.base],[t.dark,t.light],[t.base,t.dark],[t.light,t.dark]];
-    const gallery = galleryTones.map((colors, i) => `
-      <figure class="gallery-placeholder" aria-label="Photo placeholder ${i + 1} for ${esc(d.name)}"
-        style="--gallery-a:${colors[0]};--gallery-b:${colors[1]};--gallery-angle:${125 + i * 23}deg">
-        <span class="gallery-orb gallery-orb--${(i % 3) + 1}" aria-hidden="true"></span>
-        <span class="brand-badge gallery-badge" aria-hidden="true">${esc(initials)}</span>
-        <figcaption>Add your photo</figcaption>
+    const cat = info ? info.cat : 'office';
+    const galleryPhotos = GALLERY_PHOTO_IDS[cat] || GALLERY_PHOTO_IDS.office;
+    const gallery = galleryPhotos.map((photoId, i) => `
+      <figure class="gallery-demo" aria-label="Demo gallery image ${i + 1} for ${esc(d.name)}">
+        <img src="${galleryPhotoUrl(photoId)}" alt="Sample ${esc(info ? info.label : 'business')} photograph ${i + 1}" loading="lazy" referrerpolicy="no-referrer">
+        <figcaption>Demo image</figcaption>
       </figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
-    const cat = info ? info.cat : 'office';
     const defaultDesc = info ? info.desc.replace(/\{name\}/g, d.name) : `${d.name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.`;
     const heroHook = info ? info.tagline : (d.tagline || 'Tell us what makes you different — this line introduces your business.');
     const heroSub = d.tagline ? `${d.tagline} — ${heroHook}` : heroHook;
@@ -520,6 +540,11 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:760px){.gallery{grid-template-columns:repeat(2,1fr);gap:10px}}
 .gallery figure{margin:0;aspect-ratio:4/3;overflow:hidden;border-radius:var(--radius)}
+.gallery-demo{position:relative;background:var(--soft)}
+.gallery-demo img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.gallery-demo:hover img{transform:scale(1.035)}
+.gallery-demo figcaption{position:absolute;right:10px;bottom:10px;padding:5px 8px;border-radius:999px;background:rgba(20,20,20,.62);
+  color:#fff;font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;backdrop-filter:blur(5px)}
 .gallery-placeholder{position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate;background:linear-gradient(var(--gallery-angle),var(--gallery-a),var(--gallery-b));color:#fff}
 .gallery-placeholder::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(28,24,21,.38),transparent 55%);z-index:-1}
 .gallery-orb{position:absolute;width:70%;aspect-ratio:1;border:1px solid rgba(255,255,255,.24);border-radius:50%;z-index:-1}
@@ -844,7 +869,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
       <div class="center" style="margin-bottom:2.4em">
         <span class="eyebrow">Gallery</span>
         <h2>${esc(galleryHeading)}</h2>
-        <p class="lede center">Your six real photographs will replace these branded placeholders.</p>
+        <p class="lede center">Demo images only — all six will be replaced with your own photographs before launch.</p>
       </div>
       <div class="gallery">${gallery}</div>
     </div>
