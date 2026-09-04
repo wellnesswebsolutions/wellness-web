@@ -1044,6 +1044,30 @@ if (!reduceMotion && 'IntersectionObserver' in window) {
   document.querySelectorAll('.reveal').forEach(function (el) { revealIO.observe(el); });
 }
 
+/* Modern-only: the hero copy fades and lifts away as you scroll past it —
+   Elegant and Bold each already have their own distinct hero treatment
+   (the tucked-in card frame, the dot-pattern blob), so Modern gets its own
+   bit of scroll-linked motion instead of a static hero. rAF-throttled so
+   it costs nothing beyond the scroll events themselves. */
+if (!reduceMotion && document.body.classList.contains('site-style-modern')) {
+  var modernHero = document.querySelector('.hero');
+  var modernHeroCopy = document.querySelector('.hero .hero-copy');
+  if (modernHero && modernHeroCopy) {
+    var modernTicking = false;
+    var onModernHeroScroll = function () {
+      modernTicking = false;
+      var heroH = modernHero.offsetHeight || 1;
+      var p = Math.min(1, window.scrollY / heroH);
+      modernHeroCopy.style.transform = 'translateY(' + (p * 40).toFixed(1) + 'px)';
+      modernHeroCopy.style.opacity = (1 - p * 0.9).toFixed(3);
+    };
+    window.addEventListener('scroll', function () {
+      if (!modernTicking) { modernTicking = true; requestAnimationFrame(onModernHeroScroll); }
+    }, { passive: true });
+    onModernHeroScroll();
+  }
+}
+
 showPage('home');
 <\/script>
 
