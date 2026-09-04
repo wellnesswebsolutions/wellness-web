@@ -106,9 +106,24 @@
     return dot;
   });
 
+  const VISIBLE_POSITIONS = new Set([-1, 0, 1]);
+
+  function signedDistance(index) {
+    let distance = ((index - active) % slides.length + slides.length) % slides.length;
+    if (distance > slides.length / 2) distance -= slides.length;
+    return distance;
+  }
+
   function render() {
-    grid.style.transform = `translateX(-${active * 100}%)`;
+    slides.forEach((slide, i) => {
+      const distance = signedDistance(i);
+      slide.dataset.pos = VISIBLE_POSITIONS.has(distance) ? String(distance) : 'hidden';
+    });
     dots.forEach((d, i) => d.classList.toggle('is-active', i === active));
+    // the stage is a position:relative box sized to the active card, since
+    // its absolutely-positioned neighbours can't otherwise give it a height
+    const activeSlide = slides[active];
+    grid.style.height = `${activeSlide.offsetHeight}px`;
   }
 
   function goTo(index) {
@@ -125,6 +140,14 @@
   function startAutoplay() {
     if (timer || reduceMotion) return;
     timer = window.setInterval(() => goTo(active + 1), 6000);
+  }
+
+  // re-measure the stage height if the active card's own content changes
+  // size (e.g. switching that card's Desktop/Mobile tab)
+  if ('ResizeObserver' in window) {
+    slides.forEach((slide) => new ResizeObserver(() => {
+      if (slide === slides[active]) grid.style.height = `${slide.offsetHeight}px`;
+    }).observe(slide));
   }
 
   dots.forEach((dot, i) => dot.addEventListener('click', () => { stopAutoplay(); goTo(i); }));
