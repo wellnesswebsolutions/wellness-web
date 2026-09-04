@@ -161,15 +161,17 @@ async function runHomepageFlow(label, contextOptions, mobile) {
   await page.locator('#builderOverlay:not([hidden])').waitFor({ timeout: 10000 });
   await page.getByText('A quick demo — your final website can be anything you imagine').waitFor();
   assert.equal(await page.locator('.builder-style').count(), 5, `${label}: builder should offer five genuinely different styles`);
-  for (const style of ['minimal', 'studio']) {
+  for (const style of ['dynamic', 'studio']) {
     await activate(page.locator(`.builder-style[data-style="${style}"]`));
     await page.waitForFunction((expected) => document.querySelector('#previewFrame').contentDocument?.body.classList.contains(`site-style-${expected}`), style);
   }
   const foodDemo = await page.evaluate(() => buildDemoHTML({
-    name: 'The Sample Kitchen', tagline: 'Food & Drink', location: 'Beverley', services: [], prices: [], goal: 'Book now', stylePreset: 'minimal'
+    name: 'The Sample Kitchen', tagline: 'Food & Drink', location: 'Beverley', services: [], prices: [], goal: 'Book now', stylePreset: 'dynamic'
   }));
   assert.match(foodDemo, />Menu</, `${label}: food sites should use Menu navigation`);
   assert.match(foodDemo, /Reserve a table/, `${label}: food sites should use a relevant reservation CTA`);
+  assert.doesNotMatch(foodDemo, /wellnessweb\.co\.uk\/img\/hero/, `${label}: Dynamic should not load the wall-logo hero photograph`);
+  assert.doesNotMatch(foodDemo, /class="hero-photo-note"/, `${label}: Dynamic should not describe a hidden hero photograph`);
   await page.waitForFunction(() => document.querySelector('#previewFrame').contentDocument?.querySelectorAll('.gallery-demo img').length === 6);
   const galleryNotice = await page.locator('#previewFrame').evaluate((frame) => (
     frame.contentDocument.body.textContent.includes('all six will be replaced with your own photographs before launch')

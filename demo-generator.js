@@ -249,7 +249,7 @@
     'clean-professional': { heading: "'Manrope', sans-serif", body: "'Inter', sans-serif", radius: '10px', space: '5.2em', card: '0 14px 36px rgba(25,35,45,.10)' },
     'editorial-portfolio': { heading: "'Fraunces', Georgia, serif", body: "'Inter', sans-serif", radius: '0px', space: '6.4em', card: '0 12px 34px rgba(20,24,20,.12)' },
     'friendly-modern': { heading: "'Nunito Sans', sans-serif", body: "'Nunito Sans', sans-serif", radius: '20px', space: '5.2em', card: '0 18px 44px rgba(48,36,24,.10)' },
-    'minimal': { heading: "'Inter', sans-serif", body: "'Inter', sans-serif", radius: '20px', space: '7em', card: 'none' },
+    'dynamic': { heading: "'Space Grotesk', sans-serif", body: "'Inter', sans-serif", radius: '18px', space: '6em', card: 'none' },
     'studio': { heading: "'Space Grotesk', sans-serif", body: "'Inter', sans-serif", radius: '0px', space: '6.2em', card: 'none' }
   };
   function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -340,7 +340,7 @@
     // palette derived from their category's own hero photo (so a demo
     // for e.g. Automotive doesn't default to a rose/taupe salon palette)
     const t = d.tones || (info && info.theme ? tonesFromHex(info.theme) : { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' });
-    const styleName = ['modern', 'elegant', 'bold', 'minimal', 'studio'].includes(d.stylePreset) ? d.stylePreset : 'modern';
+    const styleName = ['modern', 'elegant', 'bold', 'dynamic', 'studio'].includes(d.stylePreset) ? d.stylePreset : 'modern';
     const preset = SITE_STYLE_PRESETS[styleName];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
     const galleryPhotos = GALLERY_PHOTO_IDS[cat] || GALLERY_PHOTO_IDS.office;
@@ -365,14 +365,17 @@
     const metaDesc = (heroHook + '. ' + defaultDesc).slice(0, 155).replace(/\s+\S*$/, '') + '.';
     const categoryPhoto = info && info.photo ? `https://wellnessweb.co.uk/img/hero/${info.photo}` : null;
     const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
-    const sceneMarkup = (d.heroImage || usingCategoryPhoto) ? '' : sceneSVG(cat, t);
-    const heroHasPhoto = !!(d.heroImage || usingCategoryPhoto);
+    const useAbstractHero = styleName === 'dynamic';
+    const sceneMarkup = useAbstractHero || d.heroImage || usingCategoryPhoto ? '' : sceneSVG(cat, t);
+    const heroHasPhoto = !useAbstractHero && !!(d.heroImage || usingCategoryPhoto);
     // `contain`, not `cover`: cover crops the edges off to fill the band,
     // zooming past the business name composited onto the wall. The heroes
     // are 16:9 and the desktop hero box matches that ratio, so contain fills
     // it edge to edge with the whole photograph visible. (Mobile overrides
     // background-size separately, further down.)
-    const heroBg = d.heroImage
+    const heroBg = useAbstractHero
+      ? '#080a10'
+      : d.heroImage
       ? `url('${d.heroImage}') center/contain no-repeat`
       : usingCategoryPhoto
         ? `url('${categoryPhoto}') center/contain no-repeat`
@@ -805,35 +808,45 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .site-style-bold .gallery figure,.site-style-bold .gallery figure:nth-child(n){aspect-ratio:4/3;height:auto;grid-row:auto;grid-column:auto;border-radius:24px}
 }
 
-/* Minimal — inspired by Refero's popular warm editorial systems: eggshell
-   paper, whisper-light display type, hairline borders and restrained pills. */
-.site-style-minimal{background:#fdfcfa;--ink:#080808;--body:#44403b;--muted:#777169;--champagne:#f3f0ec;--line:#e5e0da}
-.site-style-minimal h1,.site-style-minimal h2{font-weight:300;letter-spacing:-.045em}
-.site-style-minimal h1{font-size:clamp(3.4rem,7vw,6.4rem);line-height:.96}
-.site-style-minimal h2{font-size:clamp(2.35rem,4.8vw,4.2rem);line-height:1.02}
-.site-style-minimal .site-header{background:rgba(253,252,250,.94);box-shadow:none;border-color:#e5e0da;backdrop-filter:blur(18px)}
-.site-style-minimal .brand-badge{border-radius:8px;background:#080808;box-shadow:none}
-.site-style-minimal .btn{border-radius:999px;background:#080808;border-color:#080808;box-shadow:none;letter-spacing:.06em;text-transform:none}
-.site-style-minimal .hero{align-items:stretch;background-size:52% auto;background-position:right center;background-color:#fdfcfa}
-.site-style-minimal .hero::after{background:linear-gradient(to right,#fdfcfa 0 47%,transparent 64%)}
-.site-style-minimal .hero .hero-copy{display:flex;align-items:center;padding:5em 0}
-.site-style-minimal .hero .inner{margin-left:max(22px,calc((100vw - 1280px)/2));margin-right:52%;padding-right:5vw}
-.site-style-minimal .hero h1,.site-style-minimal .hero p,.site-style-minimal .hero .eyebrow{color:#080808;text-shadow:none}
-.site-style-minimal .hero .btn--light{background:#080808;color:#fff;border-color:#080808}
-.site-style-minimal .hero .btn--outline-light{background:transparent;color:#080808;border-color:#080808}
-.site-style-minimal .hero-tags{color:#777169;gap:8px 18px}
-.site-style-minimal .section{border-top:1px solid #e5e0da}
-.site-style-minimal .section>.container{max-width:1280px}
-.site-style-minimal .grid-3{grid-template-columns:1.3fr 1fr 1fr}
-.site-style-minimal .card,.site-style-minimal .review-card,.site-style-minimal .hours-card{background:#f3f0ec;border:0;border-radius:20px;box-shadow:none}
-.site-style-minimal .card:first-child{grid-row:span 2;padding:50px 38px}
-.site-style-minimal .reviews{grid-template-columns:repeat(3,1fr)}
-.site-style-minimal .review-card{min-height:250px;padding:36px}
-.site-style-minimal .gallery{grid-template-columns:2fr 1fr 1fr;grid-auto-rows:170px;gap:12px}
-.site-style-minimal .gallery figure{height:100%;aspect-ratio:auto;border-radius:20px}
-.site-style-minimal .gallery figure:first-child{grid-row:span 2}
-.site-style-minimal .gallery figure:nth-child(6){grid-column:span 2}
-.site-style-minimal .band{margin:0 3%;border-radius:24px;background:#080808}
+/* Dynamic — a photo-free identity system for gyms and energetic brands.
+   The hero ignores every uploaded/category wall image and builds its impact
+   from live geometric layers, colour, typography and motion instead. */
+.site-style-dynamic{background:#080a10;--ink:#f7f8fb;--body:#bdc2cf;--muted:#858b99;--champagne:#11151f;--line:rgba(255,255,255,.12)}
+.site-style-dynamic h1,.site-style-dynamic h2{font-weight:600;letter-spacing:-.055em}
+.site-style-dynamic h1{font-size:clamp(4rem,10vw,8.7rem);line-height:.82;text-transform:uppercase}
+.site-style-dynamic h2{font-size:clamp(2.6rem,5.5vw,5rem);line-height:.92}
+.site-style-dynamic .site-header{background:rgba(8,10,16,.82);border-color:rgba(255,255,255,.12);box-shadow:none;backdrop-filter:blur(18px)}
+.site-style-dynamic .site-header .brand,.site-style-dynamic .site-header .nav a{color:#fff}
+.site-style-dynamic .mobile-nav{background:#11151f;border-color:rgba(255,255,255,.14)}
+.site-style-dynamic .mobile-nav a{color:#fff}.site-style-dynamic .mobile-nav a:hover{background:rgba(255,255,255,.08)}
+.site-style-dynamic .brand-badge{border-radius:10px;background:var(--rose-dark);box-shadow:0 0 30px color-mix(in srgb,var(--rose-dark) 55%,transparent)}
+.site-style-dynamic .btn{border-radius:999px;background:var(--rose-dark);border-color:var(--rose-dark);color:#fff;box-shadow:none}
+.site-style-dynamic .hero{min-height:min(82vh,780px);align-items:center;background:#080a10!important;isolation:isolate}
+.site-style-dynamic .hero svg,.site-style-dynamic .hero-photo-note{display:none!important}
+.site-style-dynamic .hero::before{content:"";position:absolute;z-index:0;inset:-20%;background:
+  radial-gradient(circle at 72% 34%,color-mix(in srgb,var(--rose) 85%,#28f0ff) 0 8%,transparent 28%),
+  radial-gradient(circle at 82% 64%,color-mix(in srgb,var(--rose-dark) 72%,#734cff) 0 10%,transparent 32%),
+  repeating-linear-gradient(118deg,transparent 0 42px,rgba(255,255,255,.045) 43px 44px);
+  transform:rotate(-7deg);animation:dynamic-drift 10s ease-in-out infinite alternate}
+.site-style-dynamic .hero::after{z-index:1;background:linear-gradient(90deg,#080a10 0 38%,rgba(8,10,16,.62) 60%,transparent 100%);clip-path:polygon(0 0,100% 0,84% 100%,0 100%)}
+.site-style-dynamic .hero .hero-copy{padding:5.5em 0}
+.site-style-dynamic .hero .inner{max-width:1280px}.site-style-dynamic .hero-title{max-width:9ch}
+.site-style-dynamic .hero h1,.site-style-dynamic .hero p{color:#fff;text-shadow:none}
+.site-style-dynamic .hero .btn--light{background:var(--rose-dark);border-color:var(--rose-dark);color:#fff}
+.site-style-dynamic .hero .btn--outline-light{background:transparent;border-color:rgba(255,255,255,.65);color:#fff}
+.site-style-dynamic .hero-tags{color:#fff}.site-style-dynamic .demo-ribbon{background:rgba(8,10,16,.74)}
+.site-style-dynamic .section{background:#080a10}.site-style-dynamic .section--tint{background:#11151f}
+.site-style-dynamic .section h2,.site-style-dynamic .section h3,.site-style-dynamic .section .lede{color:inherit}
+.site-style-dynamic .section>.container{max-width:1240px}
+.site-style-dynamic .grid-3{grid-template-columns:1.25fr .875fr .875fr;gap:12px!important}
+.site-style-dynamic .card,.site-style-dynamic .review-card,.site-style-dynamic .hours-card{background:#11151f;border:1px solid rgba(255,255,255,.1);border-radius:18px;box-shadow:none;color:#fff}
+.site-style-dynamic .card:first-child{background:linear-gradient(145deg,var(--rose-dark),color-mix(in srgb,var(--rose-dark) 58%,#101522));min-height:310px}
+.site-style-dynamic .card p,.site-style-dynamic .card .num,.site-style-dynamic .review-card p,.site-style-dynamic .review-card blockquote{color:#d8dbe3}
+.site-style-dynamic .reviews{grid-template-columns:1.25fr .875fr .875fr}.site-style-dynamic .review-card:first-child{min-height:310px}
+.site-style-dynamic .gallery{grid-template-columns:1.4fr .8fr .8fr;grid-auto-rows:160px;gap:8px}
+.site-style-dynamic .gallery figure{height:100%;aspect-ratio:auto;border-radius:14px}.site-style-dynamic .gallery figure:first-child{grid-row:span 2}
+.site-style-dynamic .band{margin:0;background:var(--rose-dark);color:#fff;text-align:left}.site-style-dynamic .band .btn-row{justify-content:flex-start!important}
+@keyframes dynamic-drift{to{transform:rotate(2deg) scale(1.08)}}
 
 /* Studio — inspired by Refero's popular Monopo Saigon direction: monumental
    type, monochrome editorial UI and one expressive iridescent hero gesture. */
@@ -881,15 +894,13 @@ ${heroHasPhoto ? `@media(min-width:901px){
 @media(max-width:900px){
   .site-style-modern .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
   .site-style-modern .gallery figure,.site-style-modern .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
-  .site-style-minimal .hero{background-size:contain;background-position:center top;background-color:#fdfcfa}
-  .site-style-minimal .hero::after{background:linear-gradient(to top,rgba(0,0,0,.22),transparent 65%)}
-  .site-style-minimal .hero .inner{margin:0 auto;padding:0 18px}
-  .site-style-minimal .hero h1,.site-style-minimal .hero p,.site-style-minimal .hero .eyebrow{color:var(--ink)}
-  .site-style-minimal .grid-3,.site-style-minimal .reviews{grid-template-columns:1fr}
-  .site-style-minimal .card:first-child{grid-row:auto;padding:34px 28px}
-  .site-style-minimal .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
-  .site-style-minimal .gallery figure,.site-style-minimal .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
-  .site-style-minimal .band{margin:0;border-radius:0}
+  .site-style-dynamic .hero{display:flex;min-height:620px;margin-top:68px;padding-top:0;background:#080a10!important}
+  .site-style-dynamic .hero::before{inset:-10%}.site-style-dynamic .hero::after{inset:0;height:100%;clip-path:none;background:linear-gradient(to top,#080a10 0 18%,rgba(8,10,16,.2) 78%)}
+  .site-style-dynamic .hero .hero-copy{padding:5em 0;background:transparent;color:#fff}
+  .site-style-dynamic .hero .inner{margin:0 auto;padding:0 18px}.site-style-dynamic .hero h1,.site-style-dynamic .hero p,.site-style-dynamic .hero .eyebrow{color:#fff}
+  .site-style-dynamic .grid-3,.site-style-dynamic .reviews{grid-template-columns:1fr}
+  .site-style-dynamic .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
+  .site-style-dynamic .gallery figure,.site-style-dynamic .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
   .site-style-studio .hero-title{font-size:clamp(3.6rem,17vw,6rem)}
   .site-style-studio .hero::before{inset:0 0 auto;height:var(--mobile-hero-height)}
   .site-style-studio .hero .btn{color:#050505;border-color:#050505;background:transparent}
@@ -913,6 +924,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 @media(prefers-reduced-motion:reduce){
   .reveal{opacity:1;transform:none;transition:none}
   .hero-copy .inner>*{opacity:1;transform:none;animation:none}
+  .site-style-dynamic .hero::before{animation:none}
 }
 </style>
 </head>
@@ -1041,7 +1053,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
     <div class="container">
       <div class="contact-split">
         <div class="contact-intro">
-          <span class="eyebrow">Contact &amp; Booking</span>
+          <span class="eyebrow">Contact</span>
           <h1>${esc(d.name)}${d.location ? `, ${esc(d.location)}` : ''}</h1>
           <p class="lede">Questions, bookings or anything else — we'd love to hear from you.</p>
           <div class="contact-rows">
@@ -1060,7 +1072,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
               </div>
             </div>
             <div class="contact-row">
-              <span class="contact-row-label">Booking</span>
+              <span class="contact-row-label">Enquiries</span>
               <div>
                 <h3>${esc(goalLabel)}</h3>
                 <p>Get in touch and we'll find a time that suits you</p>
