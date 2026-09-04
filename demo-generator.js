@@ -561,9 +561,9 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
 
-/* Three visual directions share exactly the same pages, content and section
-   order. These rules only change the design language, so switching style is
-   instant and never discards the customer's answers. */
+/* Three visual directions share the same pages and generated content. Modern
+   preserves the original composition; Elegant and Bold deliberately reshape
+   the hero, cards, reviews and gallery without discarding any answers. */
 .site-style-modern .site-header{backdrop-filter:blur(18px);background:color-mix(in srgb,var(--header-surface) 90%,transparent)}
 .site-style-modern .btn{border-radius:999px;letter-spacing:.12em}
 .site-style-modern .card,.site-style-modern .review-card,.site-style-modern .hours-card{border-color:color-mix(in srgb,var(--rose-dark) 12%,transparent)}
@@ -571,45 +571,99 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-modern .gallery figure:nth-child(2),.site-style-modern .gallery figure:nth-child(5){border-radius:8px 28px 8px 28px}
 .site-style-modern .hero::after{background:linear-gradient(to right,rgba(20,25,30,.62),rgba(20,25,30,.12) 68%),linear-gradient(to top,rgba(20,25,30,.58),transparent 62%)}
 
-.site-style-elegant{background:#fdfbf8}
+.site-style-elegant{background:#fdfcfc;--ink:#000;--body:#44403b;--muted:#777169;--champagne:#f5f3f1;--line:#ebe8e4}
 .site-style-elegant h1,.site-style-elegant h2{letter-spacing:-.025em}
-.site-style-elegant h1{font-size:clamp(2.7rem,6.5vw,5rem)}
-.site-style-elegant h2{font-size:clamp(2rem,4vw,3.2rem)}
-.site-style-elegant .site-header{background:color-mix(in srgb,#fff 88%,var(--taupe));box-shadow:none}
+.site-style-elegant h1{font-size:clamp(3rem,7vw,5.6rem);font-weight:500}
+.site-style-elegant h2{font-size:clamp(2.2rem,4.6vw,3.7rem);font-weight:500}
+.site-style-elegant .site-header{top:14px;left:3%;right:3%;border:1px solid #ebe8e4;background:rgba(253,252,252,.94);box-shadow:0 10px 36px rgba(68,64,59,.08);backdrop-filter:blur(18px)}
+.site-style-elegant .site-header .container{min-height:68px}
+.site-style-elegant .site-header .brand,.site-style-elegant .site-header .nav a{color:#000}
+.site-style-elegant .site-header .brand-text span{color:#777169}
 .site-style-elegant .brand-badge{border-radius:2px;border-width:1px;box-shadow:none}
-.site-style-elegant .btn{background:transparent;color:var(--ink);border-width:1px;letter-spacing:.22em}
-.site-style-elegant .hero .btn{background:#fff;color:var(--ink);border-color:#fff}
+.site-style-elegant .btn{background:#000;color:#fff;border-color:#000;border-width:1px;border-radius:999px;letter-spacing:.12em}
+.site-style-elegant .hero{width:94%;margin:108px auto 0;min-height:min(76vh,760px);border-radius:24px;align-items:center;box-shadow:none}
+.site-style-elegant .hero::after{background:linear-gradient(rgba(9,18,32,.28),rgba(9,18,32,.55))}
+.site-style-elegant .hero .hero-copy{padding:3em 0;text-align:center}
+.site-style-elegant .hero .inner{display:flex;flex-direction:column;align-items:center}
+.site-style-elegant .hero .hero-sub{max-width:42ch}
+.site-style-elegant .hero .btn-row{justify-content:center}
+.site-style-elegant .hero .btn{background:#fff;color:#121d2d;border-color:#fff}
 .site-style-elegant .hero .btn--outline-light{background:transparent;color:#fff}
-.site-style-elegant .card,.site-style-elegant .review-card,.site-style-elegant .hours-card{box-shadow:none;background:color-mix(in srgb,#fff 78%,var(--champagne))}
-.site-style-elegant .card{border-width:0 0 1px;padding:38px 30px}
-.site-style-elegant .review-card{border-width:1px 0;text-align:center;padding:40px 30px}
+.site-style-elegant .section>.container{max-width:1040px}
+.site-style-elegant .grid-3{grid-template-columns:1.35fr 1fr}
+.site-style-elegant .grid-3 .card:first-child{grid-row:span 2;display:flex;flex-direction:column;justify-content:center;padding:60px 44px}
+.site-style-elegant .card,.site-style-elegant .review-card,.site-style-elegant .hours-card{box-shadow:none;background:#f5f3f1;border-color:#ebe8e4}
+.site-style-elegant .card{padding:34px;border-radius:20px}
+.site-style-elegant .reviews{grid-template-columns:1fr 1.35fr 1fr;align-items:center}
+.site-style-elegant .review-card{border:1px solid #ebe8e4;border-radius:20px;text-align:center;padding:42px 28px;min-height:260px}
+.site-style-elegant .review-card:nth-child(2){min-height:320px;background:#000;justify-content:center}
+.site-style-elegant .review-card:nth-child(2) blockquote,.site-style-elegant .review-card:nth-child(2) p{color:#fff}
 .site-style-elegant .review-stars{font-size:.7rem}
-.site-style-elegant .gallery{gap:22px}
-.site-style-elegant .gallery figure{border-radius:0;outline:1px solid rgba(255,255,255,.72);outline-offset:-9px}
-.site-style-elegant .band{background:var(--ink)}
+.site-style-elegant .gallery{grid-template-columns:1.25fr .75fr 1fr;grid-auto-rows:150px;gap:18px}
+.site-style-elegant .gallery figure{aspect-ratio:auto;height:100%;border-radius:20px;outline:1px solid rgba(255,255,255,.72);outline-offset:-9px}
+.site-style-elegant .gallery figure:nth-child(1),.site-style-elegant .gallery figure:nth-child(4){grid-row:span 2}
+.site-style-elegant .gallery figure:nth-child(3){grid-row:span 2}
+.site-style-elegant .band{margin:0 3%;background:#000;border-radius:24px}
 
-.site-style-bold h1,.site-style-bold h2,.site-style-bold h3{text-transform:uppercase;letter-spacing:-.045em}
-.site-style-bold h1{font-size:clamp(2.7rem,7vw,5.4rem);font-weight:700;line-height:.92}
-.site-style-bold h2{font-weight:700}
-.site-style-bold .site-header{background:var(--ink);border:0}
-.site-style-bold .site-header .brand,.site-style-bold .site-header .nav a{color:#fff}
-.site-style-bold .site-header .brand-text span{color:var(--taupe)}
+.site-style-bold{--ink:#1d1d1d;--body:#1d1d1d;--muted:#65625e;--champagne:#cdcdc9;--line:#bfbebe;background:#e5e4e0}
+.site-style-bold h1,.site-style-bold h2,.site-style-bold h3{text-transform:uppercase;letter-spacing:-.055em}
+.site-style-bold h1{font-size:clamp(3rem,7.4vw,6.2rem);font-weight:700;line-height:.88}
+.site-style-bold h2{font-size:clamp(2.2rem,5vw,4.2rem);font-weight:700;line-height:.95}
+.site-style-bold .site-header{background:#e5e4e0;border-bottom:1px solid #bfbebe;box-shadow:none}
+.site-style-bold .site-header .brand,.site-style-bold .site-header .nav a{color:#1d1d1d}
+.site-style-bold .site-header .brand-text span{color:#65625e}
 .site-style-bold .menu-toggle{background:var(--rose-dark);color:#fff;border-color:rgba(255,255,255,.25)}
-.site-style-bold .btn{background:var(--rose-dark);border-color:var(--rose-dark);font-weight:800}
-.site-style-bold .hero::after{background:linear-gradient(100deg,rgba(10,10,12,.82) 0%,rgba(10,10,12,.42) 54%,transparent 78%),linear-gradient(to top,rgba(10,10,12,.72),transparent 60%)}
-.site-style-bold .hero-title{max-width:850px}
-.site-style-bold .card{border:2px solid var(--ink);box-shadow:8px 8px 0 var(--rose-dark)}
-.site-style-bold .card:hover{transform:translate(-3px,-3px);box-shadow:12px 12px 0 var(--rose-dark)}
-.site-style-bold .review-card{background:var(--ink);border:0;color:#fff;box-shadow:8px 8px 0 var(--rose-dark)}
-.site-style-bold .review-card blockquote,.site-style-bold .review-card p{color:#fff}
-.site-style-bold .review-stars{color:var(--taupe);font-size:1rem}
-.site-style-bold .gallery{gap:7px}
-.site-style-bold .gallery figure{border-radius:0}
-.site-style-bold .band{background:var(--rose-dark)}
+.site-style-bold .btn{background:transparent;color:#1d1d1d;border:1px solid #1d1d1d;border-radius:10px;font-weight:700}
+.site-style-bold .hero{align-items:stretch;background-size:50% auto;background-position:right center;background-color:#e5e4e0}
+.site-style-bold .hero::before{content:"";position:absolute;width:min(36vw,520px);aspect-ratio:1;left:24%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff 0 8%,#ffe600 25%,#ff4da6 53%,#5078ff 76%,rgba(255,255,255,.35) 100%);filter:blur(1px);opacity:.78;z-index:0}
+.site-style-bold .hero::after{background:linear-gradient(to left,rgba(0,0,0,.12),transparent 50%)}
+.site-style-bold .hero .hero-copy{display:flex;align-items:center;padding:5em 0}
+.site-style-bold .hero .inner{margin-left:max(22px,calc((100vw - 1140px)/2));margin-right:50%;padding-right:42px}
+.site-style-bold .hero h1,.site-style-bold .hero p,.site-style-bold .hero .eyebrow{color:#1d1d1d;text-shadow:none}
+.site-style-bold .hero .btn--light,.site-style-bold .hero .btn--outline-light{background:rgba(229,228,224,.7);color:#1d1d1d;border-color:#1d1d1d}
+.site-style-bold .hero-title{max-width:600px}
+.site-style-bold .hero-tags{gap:8px}
+.site-style-bold .hero-tags span{border:1px solid rgba(255,255,255,.45);padding:7px 10px}
+.site-style-bold .section>.container{max-width:1200px}
+.site-style-bold .section .center{text-align:left}
+.site-style-bold .section .center .lede{margin-left:0;margin-right:0}
+.site-style-bold .grid-3{grid-template-columns:1.35fr .82fr .82fr;align-items:start}
+.site-style-bold .grid-3 .card:nth-child(2){margin-top:54px}
+.site-style-bold .card{border:1px solid #bfbebe;border-radius:0;box-shadow:none;padding:38px 30px;background:#fff}
+.site-style-bold .card:hover{transform:translateY(-3px);box-shadow:none}
+.site-style-bold .section--tint{background:#cdcdc9;color:#1d1d1d;border-top:1px solid #bfbebe;border-bottom:1px solid #bfbebe}
+.site-style-bold .reviews{grid-template-columns:1.2fr .9fr .9fr}
+.site-style-bold .review-card{background:#fff;border:1px solid #bfbebe;color:var(--ink);box-shadow:none;border-radius:0}
+.site-style-bold .review-card:nth-child(1){min-height:300px}
+.site-style-bold .review-card blockquote,.site-style-bold .review-card p{color:var(--ink)}
+.site-style-bold .review-stars{color:#1d1d1d;font-size:1rem}
+.site-style-bold .gallery{grid-template-columns:1.35fr .65fr .65fr;grid-auto-rows:150px;gap:8px}
+.site-style-bold .gallery figure{aspect-ratio:auto;height:100%;border-radius:0}
+.site-style-bold .gallery figure:nth-child(1),.site-style-bold .gallery figure:nth-child(5){grid-row:span 2}
+.site-style-bold .gallery figure:nth-child(4){grid-column:span 2}
+.site-style-bold .band{background:#1d1d1d;text-align:left;border-radius:0}
+.site-style-bold .band .btn-row{justify-content:flex-start!important}
 
 @media(max-width:900px){
+  .site-style-elegant .site-header{top:0;left:0;right:0}
+  .site-style-elegant .hero{width:100%;margin-top:68px;border-radius:0;box-shadow:none}
   .site-style-elegant .hero .btn--outline-light{color:var(--ink);border-color:var(--rose-dark)}
+  .site-style-elegant .grid-3,.site-style-elegant .reviews{grid-template-columns:1fr}
+  .site-style-elegant .grid-3 .card:first-child{grid-row:auto;padding:38px 30px}
+  .site-style-elegant .review-card:nth-child(2){min-height:260px}
+  .site-style-elegant .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto;gap:10px}
+  .site-style-elegant .gallery figure,.site-style-elegant .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
+  .site-style-elegant .band{margin:0}
+  .site-style-bold .hero{background-size:contain;background-position:center top;background-color:var(--ink)}
+  .site-style-bold .hero::before{display:none}
   .site-style-bold .hero::after{background:linear-gradient(to top,rgba(10,10,12,.32),transparent 65%)}
+  .site-style-bold .hero .inner{margin:0 auto;padding:0 18px}
+  .site-style-bold .grid-3,.site-style-bold .reviews{grid-template-columns:1fr}
+  .site-style-bold .grid-3 .card:nth-child(2){margin-top:0}
+  .site-style-bold .section--tint{clip-path:none}
+  .site-style-bold .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
+  .site-style-bold .gallery figure,.site-style-bold .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
+  .site-style-bold .band{clip-path:none}
 }
 
 /* ---- a little life: things settle into place as they enter the viewport,
