@@ -12,12 +12,12 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#F7F2EC">
 <link rel="canonical" href="https://wellnessweb.co.uk/">
-<link rel="stylesheet" href="styles.css?v=20260904-6">
+<link rel="stylesheet" href="styles.css?v=20260904-7">
 <script src="reveal.js?v=20260902-4" defer></script>
 <script src="nav.js?v=20260902-4" defer></script>
-<script src="demo-generator.js?v=20260902-4" defer></script>
+<script src="demo-generator.js?v=20260904-5" defer></script>
 <script src="hero-brand-compositor.js?v=20260902-4" defer></script>
-<script src="homepage-builder.js?v=20260902-6" defer></script>
+<script src="homepage-builder.js?v=20260904-7" defer></script>
 <script src="homepage-ui.js?v=20260902-4" defer></script>
 <script src="homepage-examples.js?v=20260904-5" defer></script>
 </head>
@@ -149,13 +149,12 @@
       <strong>Here's how your website could look</strong>
       <span id="builderForName"></span>
     </div>
-    <div class="builder-styles" role="group" aria-label="Website style">
-      <span class="builder-styles-label">Style</span>
+    <div class="builder-styles builder-segmented" role="group" aria-label="Website style">
       <button type="button" class="builder-style is-on" data-style="modern" aria-pressed="true">Modern</button>
       <button type="button" class="builder-style" data-style="elegant" aria-pressed="false">Elegant</button>
       <button type="button" class="builder-style" data-style="bold" aria-pressed="false">Bold</button>
     </div>
-    <div class="builder-devices" role="group" aria-label="Preview width">
+    <div class="builder-devices builder-segmented" role="group" aria-label="Preview width">
       <button type="button" class="builder-device is-on" id="builderDeviceDesktop" aria-pressed="true">Desktop</button>
       <button type="button" class="builder-device" id="builderDeviceMobile" aria-pressed="false">Mobile</button>
     </div>
