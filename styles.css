@@ -1110,12 +1110,12 @@ html,body{max-width:100%}
   position: relative;
   z-index: 1;
   pointer-events: auto;
-  width: min(620px, 100%);
+  width: min(540px, 100%);
   max-height: min(780px, calc(100dvh - 36px));
   overflow: auto;
   border: 1px solid rgba(255,255,255,.65);
-  border-radius: 24px;
-  padding: 30px;
+  border-radius: 20px;
+  padding: 22px;
   background: #fff;
   box-shadow: 0 26px 80px rgba(4, 16, 38, .28);
   transform: translateY(14px) scale(.985);
@@ -1149,11 +1149,11 @@ html,body{max-width:100%}
 .media-modal-card h2 {
   margin: 0;
   color: #10203b;
-  font-size: clamp(26px, 5vw, 36px);
+  font-size: clamp(24px, 4vw, 30px);
   line-height: 1.05;
 }
 .media-modal-intro {
-  margin: 10px 42px 22px 0;
+  margin: 7px 42px 14px 0;
   color: #657086;
   line-height: 1.5;
 }
@@ -1164,9 +1164,9 @@ html,body{max-width:100%}
 .media-upload-option {
   display: flex;
   align-items: center;
-  gap: 13px;
-  min-height: 72px;
-  padding: 13px 15px;
+  gap: 10px;
+  min-height: 58px;
+  padding: 9px 11px;
   border: 1px solid #dce4ef;
   border-radius: 15px;
   background: #f8fafd;
@@ -1188,10 +1188,10 @@ html,body{max-width:100%}
 .media-upload-icon {
   display: grid;
   place-items: center;
-  flex: 0 0 42px;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   background: #e8f2ff;
   color: #0877f9;
   font-weight: 850;
@@ -1209,16 +1209,16 @@ html,body{max-width:100%}
   font-size: 12px;
 }
 .media-selection-status {
-  margin: 12px 0;
-  min-height: 20px;
+  margin: 8px 0;
+  min-height: 18px;
   color: #607089;
   font-size: 13px;
 }
 .media-primary-action,
 .media-secondary-action {
-  min-height: 46px;
+  min-height: 40px;
   border-radius: 13px;
-  padding: 11px 16px;
+  padding: 8px 12px;
   font: inherit;
   font-weight: 750;
   cursor: pointer;
@@ -1250,7 +1250,7 @@ html,body{max-width:100%}
   color: #075fbf;
 }
 .media-whatsapp-note {
-  margin: 13px 0 0;
+  margin: 9px 0 0;
   color: #7b8597;
   font-size: 12px;
   line-height: 1.45;
@@ -1266,9 +1266,9 @@ html,body{max-width:100%}
   }
   .media-modal-card {
     width: 100%;
-    max-height: 88dvh;
+    max-height: 84dvh;
     border-radius: 24px 24px 0 0;
-    padding: 24px 18px calc(20px + env(safe-area-inset-bottom));
+    padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
     transform: translateY(28px);
   }
   .media-choice-row {

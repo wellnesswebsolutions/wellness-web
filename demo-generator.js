@@ -848,8 +848,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-dynamic .band{margin:0;background:var(--rose-dark);color:#fff;text-align:left}.site-style-dynamic .band .btn-row{justify-content:flex-start!important}
 @keyframes dynamic-drift{to{transform:rotate(2deg) scale(1.08)}}
 
-/* Studio — inspired by Refero's popular Monopo Saigon direction: monumental
-   type, monochrome editorial UI and one expressive iridescent hero gesture. */
+/* Studio — monumental type and a clean monochrome editorial treatment. */
 .site-style-studio{background:#fff;--ink:#050505;--body:#181818;--muted:#6d6d6d;--champagne:#f2f2f0;--line:#cececa}
 .site-style-studio h1,.site-style-studio h2{font-weight:400;letter-spacing:-.065em}
 .site-style-studio h1{font-size:clamp(4.5rem,11vw,10rem);line-height:.78}
@@ -858,7 +857,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-studio .brand-badge,.site-style-studio .card,.site-style-studio .review-card,.site-style-studio .hours-card{border-radius:0;box-shadow:none}
 .site-style-studio .btn{border-radius:999px;background:transparent;color:#050505;border:1px solid #050505;letter-spacing:.04em;text-transform:none;box-shadow:none}
 .site-style-studio .hero{min-height:min(82vh,780px);background-size:cover;background-position:center}
-.site-style-studio .hero::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(110deg,rgba(36,123,91,.72),rgba(255,153,30,.42) 52%,rgba(120,22,22,.72));mix-blend-mode:color}
+.site-style-studio .hero::before{display:none}
 .site-style-studio .hero::after{z-index:1;background:linear-gradient(to top,rgba(0,0,0,.76),rgba(0,0,0,.06) 75%)}
 .site-style-studio .hero .hero-copy{padding-bottom:4.5em}
 .site-style-studio .hero-title{max-width:10ch}

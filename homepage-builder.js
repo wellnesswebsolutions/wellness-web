@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function postLead(business_name, details) {
-    const res = await fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
+    const databaseRequest = fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -557,15 +557,26 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       body: JSON.stringify({ business_name, details, created_at: new Date().toISOString() })
     });
-    if (!res.ok) throw new Error(await res.text());
-
-    // best-effort email notification — don't let a failure here block the
-    // lead capture itself, which already succeeded above
-    fetch('https://wellnessweb-notify-lead.notify-lead-worker.workers.dev/', {
+    const emailRequest = fetch('https://wellnessweb-notify-lead.notify-lead-worker.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ business_name, details })
-    }).catch(() => {});
+      body: JSON.stringify({ business_name, details }),
+      keepalive: true
+    });
+
+    // Save and notify independently so an unavailable database cannot prevent
+    // the email. Check both responses so failures are visible in diagnostics.
+    const [databaseResult, emailResult] = await Promise.allSettled([databaseRequest, emailRequest]);
+    if (databaseResult.status === 'rejected') {
+      console.error('Lead database capture failed', databaseResult.reason);
+    } else if (!databaseResult.value.ok) {
+      console.error('Lead database capture failed', await databaseResult.value.text());
+    }
+    if (emailResult.status === 'rejected') {
+      console.error('Lead email notification failed', emailResult.reason);
+    } else if (!emailResult.value.ok) {
+      console.error('Lead email notification failed', await emailResult.value.text());
+    }
   }
 
   const designerWhatsAppNumber = '447535928879';

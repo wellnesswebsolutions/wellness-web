@@ -17,13 +17,13 @@
     // wall panel above and behind the reception desk
     aesthetics: { image: 'aesthetics.webp', panel: { cx: .51, cy: .32, w: .38, h: .23 }, blend: 'multiply', opacity: .80 },
     // wide bare wall to the right of the treatment bed
-    health: { image: 'health-wellness.webp', panel: { cx: .70, cy: .34, w: .34, h: .22 }, blend: 'multiply', opacity: .82 },
+    health: { image: 'health-wellness.webp', panel: { cx: .72, cy: .35, w: .38, h: .22 }, blend: 'multiply', opacity: .82 },
     // dark gym wall — light ink, kept clear of the rig on the right
     fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, blend: 'screen', opacity: .94, filter: 'brightness(1.22) contrast(.92) saturate(1.08)' },
     // flat side panel of the van, behind the cab and above the sill
-    automotive: { image: 'automotive.webp', panel: { cx: .69, cy: .44, w: .31, h: .16 }, blend: 'multiply', opacity: .84 },
+    automotive: { image: 'automotive.webp', panel: { cx: .64, cy: .43, w: .30, h: .15 }, blend: 'multiply', opacity: .84 },
     // van side panel, between the window line and the lower stripe
-    trades: { image: 'trades.webp', panel: { cx: .68, cy: .47, w: .30, h: .17 }, blend: 'multiply', opacity: .84 },
+    trades: { image: 'trades.webp', panel: { cx: .64, cy: .42, w: .32, h: .15 }, blend: 'multiply', opacity: .84 },
     // rendered facade right of the timber doorway
     homegarden: { image: 'home-garden.webp', panel: { cx: .69, cy: .43, w: .27, h: .18 }, blend: 'multiply', opacity: .82 },
     // wall above the counter, below the pendant lights
