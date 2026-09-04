@@ -89,7 +89,7 @@
 
   function startAutoplay() {
     if (timer || reduceMotion) return;
-    timer = window.setInterval(() => goTo(active + 1), 3500);
+    timer = window.setInterval(() => goTo(active + 1), 2000);
   }
 
   // re-measure the stage height if the active card's own content changes size
