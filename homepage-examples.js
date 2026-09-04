@@ -7,6 +7,9 @@
   if (!grid) return;
 
   const DESKTOP_W = 1440, DESKTOP_H = 900;
+  // Crops each site's own header off the top of the preview (it's just their
+  // brand/logo — the card already gets its own fake browser chrome above it).
+  const HEADER_CROP = 84;
 
   const examples = [
     { name: 'SISKŌ Hairdressing', tag: 'Hair salon · Beverley', url: 'https://sisko-hairdressing.vercel.app' },
@@ -14,12 +17,12 @@
     { name: 'MGS Beverley', tag: 'Gardening & landscaping', url: 'https://mgs-beverley.vercel.app' },
   ];
 
-  function scaleFrame(view, iframe, intrinsicW, intrinsicH) {
+  function scaleFrame(view, iframe, intrinsicW, intrinsicH, cropTop) {
     const scale = view.clientWidth / intrinsicW;
     iframe.style.width = `${intrinsicW}px`;
     iframe.style.height = `${intrinsicH}px`;
-    iframe.style.transform = `scale(${scale})`;
-    view.style.height = `${Math.round(intrinsicH * scale)}px`;
+    iframe.style.transform = `scale(${scale}) translateY(-${cropTop}px)`;
+    view.style.height = `${Math.round((intrinsicH - cropTop) * scale)}px`;
   }
 
   examples.forEach((ex) => {
@@ -37,7 +40,7 @@
     const desktopIframe = desktopFrame.querySelector('iframe');
 
     function layout() {
-      scaleFrame(desktopFrame.querySelector('.ex-view'), desktopIframe, DESKTOP_W, DESKTOP_H);
+      scaleFrame(desktopFrame.querySelector('.ex-view'), desktopIframe, DESKTOP_W, DESKTOP_H, HEADER_CROP);
     }
 
     if ('ResizeObserver' in window) new ResizeObserver(layout).observe(card);

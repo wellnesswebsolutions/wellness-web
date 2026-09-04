@@ -823,22 +823,25 @@
      is what makes the live site render its real desktop or mobile layout,
      scaled down to fit via CSS transform. */
   #examples{padding-top:0;margin-top:clamp(-40px,-4vh,-14px)}
-  /* Large centred card, the previous/next ones peeking in half off the
-     edge at reduced scale and opacity — no arrows, no dots, just autoplay
-     and drag (see homepage-examples.js). The outer .ex-carousel clips at
-     the full section width, so the peeking neighbours (offset off the
-     narrower .ex-grid "stage") are visible without ever pushing the page
-     wider than the viewport. */
-  .ex-carousel{max-width:900px;margin:0 auto;overflow:hidden;touch-action:pan-y}
+  /* Large centred card, the previous/next ones peeking off the edge at
+     reduced scale and opacity — no arrows, no dots, just autoplay and drag
+     (see homepage-examples.js). The stage width is a PERCENTAGE of the
+     carousel's own container (not vw) specifically so the peek math holds
+     at every screen size: with offset o=.7 and scale s=.8, a neighbour's
+     outer edge sits at stage*(o+.5s)=stage*1.1 from centre, and the
+     container's own half-width is carousel/2 — since stage is a fixed
+     43% of that container at any size, .43*1.1=.473 always clears .5,
+     so the edge never crosses the clip boundary no matter the viewport. */
+  .ex-carousel{max-width:1080px;margin:0 auto;overflow:hidden;touch-action:pan-y}
   .ex-viewport{position:relative}
-  .ex-grid{position:relative;width:min(420px,78vw);margin:0 auto;transition:height .35s var(--qa-ease)}
+  .ex-grid{position:relative;width:min(480px,43%);margin:0 auto;transition:height .35s var(--qa-ease)}
   .ex-card{position:absolute;inset:0;margin:auto;width:100%;height:fit-content;
     background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
     box-shadow:0 10px 30px rgba(23,32,31,.05);cursor:pointer;
     transition:transform .5s var(--qa-ease),opacity .5s var(--qa-ease)}
   .ex-card[data-pos="0"]{transform:translateX(0) scale(1);opacity:1;z-index:3;cursor:default}
-  .ex-card[data-pos="-1"]{transform:translateX(-92%) scale(.8);opacity:.5;z-index:2}
-  .ex-card[data-pos="1"]{transform:translateX(92%) scale(.8);opacity:.5;z-index:2}
+  .ex-card[data-pos="-1"]{transform:translateX(-70%) scale(.8);opacity:.5;z-index:2}
+  .ex-card[data-pos="1"]{transform:translateX(70%) scale(.8);opacity:.5;z-index:2}
   .ex-card[data-pos="hidden"]{transform:translateX(0) scale(.6);opacity:0;z-index:1;pointer-events:none}
   @media(prefers-reduced-motion:reduce){.ex-card{transition:opacity .3s ease}}
   .ex-frame{display:none}
@@ -850,11 +853,6 @@
   .ex-bar i{width:6px;height:6px;border-radius:50%;background:#d9d0c2;flex:none}
   .ex-meta{text-align:center;margin-top:12px}
   .ex-meta span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-  @media(max-width:520px){
-    .ex-grid{width:80vw}
-    .ex-card[data-pos="-1"]{transform:translateX(-88%) scale(.78)}
-    .ex-card[data-pos="1"]{transform:translateX(88%) scale(.78)}
-  }
 
   /* ---- homepage design carousel ----
      Items are absolutely positioned and placed by their signed distance from
