@@ -597,24 +597,27 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .builder-topbar-copy span{font-size:12px;color:var(--accent);font-weight:600;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .builder-devices{flex:none;display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(59,130,246,.08)}
-  .builder-device{border:none;background:transparent;cursor:pointer;border-radius:999px;
+  .builder-segmented{flex:none;display:flex;align-items:center;gap:2px;padding:3px;border-radius:999px;background:rgba(59,130,246,.08)}
+  .builder-style,.builder-device{border:none;background:transparent;cursor:pointer;border-radius:999px;
     padding:8px 14px;min-height:36px;font-family:var(--display);font-size:12px;font-weight:700;
     letter-spacing:.04em;color:var(--muted);transition:background .15s,color .15s}
-  .builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
+  .builder-style:hover,.builder-device:hover{color:var(--ink)}
+  .builder-style.is-on,.builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
   /* Below the generated site's own 900px desktop breakpoint the frame can never
      be wider than the pane, so "Desktop" would render the mobile layout anyway
      — the control would do literally nothing. Hide it rather than offer a
      button that cannot work. */
   @media(max-width:900px){
     .builder-devices{display:none}
-    .builder-topbar{justify-content:flex-start}
+    .builder-topbar{justify-content:space-between}
   }
   @media(max-width:560px){
-    .builder-topbar{padding:7px 12px}
+    .builder-topbar{padding:6px 8px;gap:6px}
     .builder-topbar-copy strong{font-size:12.5px}
     .builder-topbar-copy span{font-size:11px}
     .builder-device{padding:8px 11px;font-size:11.5px}
+    .builder-styles{gap:1px;padding:2px}
+    .builder-style{padding:7px 9px;min-height:32px;font-size:10.5px}
   }
   /* offset by the strip as well as the header, or it would cover the preview's top */
   .builder-preview{position:fixed;top:calc(var(--header-h, 75px) + var(--builder-topbar-h, 0px));left:0;right:0;overflow:hidden;background:var(--bg);
@@ -851,9 +854,6 @@
   .ex-frame-desktop .ex-view{border-radius:0 0 10px 10px}
   .ex-bar{height:22px;background:#efe9e0;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:5px;padding:0 8px}
   .ex-bar i{width:6px;height:6px;border-radius:50%;background:#d9d0c2;flex:none}
-  .ex-meta{text-align:center;margin-top:12px}
-  .ex-meta span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-
   /* ---- homepage design carousel ----
      Items are absolutely positioned and placed by their signed distance from
      the active index, so the loop never needs cloned nodes and every state is
