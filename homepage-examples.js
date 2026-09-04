@@ -13,8 +13,11 @@
 
   const examples = [
     { url: 'https://sisko-hairdressing.vercel.app' },
-    { url: 'https://brian-griffin-electrical.vercel.app' },
+    { url: 'https://kings-valeting-hull.vercel.app' },
+    { url: 'https://de-lacy.vercel.app' },
+    { url: 'https://muse-hull-deploy.vercel.app' },
     { url: 'https://mgs-beverley.vercel.app' },
+    { url: 'https://brian-griffin-electrical.vercel.app' },
   ];
 
   function scaleFrame(view, iframe, intrinsicW, intrinsicH, cropTop) {
