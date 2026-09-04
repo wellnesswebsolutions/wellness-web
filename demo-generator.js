@@ -248,7 +248,9 @@
     'warm-editorial': { heading: "'Fraunces', Georgia, serif", body: "'DM Sans', sans-serif", radius: '4px', space: '6em', card: '0 16px 44px rgba(48,34,24,.10)' },
     'clean-professional': { heading: "'Manrope', sans-serif", body: "'Inter', sans-serif", radius: '10px', space: '5.2em', card: '0 14px 36px rgba(25,35,45,.10)' },
     'editorial-portfolio': { heading: "'Fraunces', Georgia, serif", body: "'Inter', sans-serif", radius: '0px', space: '6.4em', card: '0 12px 34px rgba(20,24,20,.12)' },
-    'friendly-modern': { heading: "'Nunito Sans', sans-serif", body: "'Nunito Sans', sans-serif", radius: '20px', space: '5.2em', card: '0 18px 44px rgba(48,36,24,.10)' }
+    'friendly-modern': { heading: "'Nunito Sans', sans-serif", body: "'Nunito Sans', sans-serif", radius: '20px', space: '5.2em', card: '0 18px 44px rgba(48,36,24,.10)' },
+    'minimal': { heading: "'Inter', sans-serif", body: "'Inter', sans-serif", radius: '20px', space: '7em', card: 'none' },
+    'studio': { heading: "'Space Grotesk', sans-serif", body: "'Inter', sans-serif", radius: '0px', space: '6.2em', card: 'none' }
   };
   function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   // customers type answers however they like ("isla spa", "HULL") — title
@@ -260,9 +262,25 @@
   function buildDemoHTML(rawD) {
     const d = Object.assign({}, rawD, { name: toTitleCase(rawD.name), location: toTitleCase(rawD.location) });
     const info = typeInfo(d.tagline);
+    const cat = info ? info.cat : 'office';
+    const CATEGORY_UI = {
+      hairbeauty:{nav:'Treatments',secondary:'View Treatments',cta:'Book a treatment',pageTitle:'Treatments & prices',cardCta:'View treatment'},
+      aesthetics:{nav:'Treatments',secondary:'View Treatments',cta:'Book a consultation',pageTitle:'Treatments & prices',cardCta:'View treatment'},
+      health:{nav:'Treatments',secondary:'View Treatments',cta:'Book a consultation',pageTitle:'Treatments & therapies',cardCta:'View treatment'},
+      fitness:{nav:'Training',secondary:'View Training',cta:'Join now',pageTitle:'Training & memberships',cardCta:'View option'},
+      automotive:{nav:'Services',secondary:'View Services',cta:'Book a service',pageTitle:'Workshop services',cardCta:'View service'},
+      trades:{nav:'Services',secondary:'View Services',cta:'Get a quote',pageTitle:'Our services',cardCta:'View service'},
+      homegarden:{nav:'Projects',secondary:'View Projects',cta:'Request a quote',pageTitle:'Services & projects',cardCta:'View project'},
+      fooddrink:{nav:'Menu',secondary:'View Menu',cta:'Reserve a table',pageTitle:'Our menu',cardCta:'View menu'},
+      professional:{nav:'Expertise',secondary:'Our Expertise',cta:'Book a consultation',pageTitle:'How we can help',cardCta:'View service'},
+      creative:{nav:'Portfolio',secondary:'View Portfolio',cta:'Start a project',pageTitle:'Creative services',cardCta:'View project'},
+      pets:{nav:'Services',secondary:'View Services',cta:'Book an appointment',pageTitle:'Pet care services',cardCta:'View service'},
+      office:{nav:'Services',secondary:'View Services',cta:'Get in touch',pageTitle:'What we offer',cardCta:'Learn more'}
+    };
+    const categoryUi = CATEGORY_UI[cat] || CATEGORY_UI.office;
     const services = d.services.length ? d.services : ['Service one', 'Service two', 'Service three'];
     const prices = d.prices || [];
-    const goalLabel = d.goal || 'Book now';
+    const goalLabel = d.goal && d.goal !== 'Book now' ? d.goal : categoryUi.cta;
     const cardBlurbs = [
       s => `One of the most requested treatments here — ask about ${esc(s.toLowerCase())} and we'll take it from there.`,
       s => `${esc(s)}, done properly, every time. Get in touch to check availability.`,
@@ -275,7 +293,7 @@
           <span class="num">Most Popular · ${esc(s)}</span>
           <h3>${esc(s)}${prices[i] ? `<span class="card-price">${esc(prices[i])}</span>` : ''}</h3>
           <p>${cardBlurbs[i % cardBlurbs.length](s)}</p>
-          <span class="card-cta">Learn more</span>
+          <span class="card-cta">${esc(categoryUi.cardCta)}</span>
         </a>`).join('');
     // Services page: grouped sections (Bayar-style treatment menu) when
     // the type has groups, otherwise a flat list of whatever's in d.services
@@ -322,10 +340,9 @@
     // palette derived from their category's own hero photo (so a demo
     // for e.g. Automotive doesn't default to a rose/taupe salon palette)
     const t = d.tones || (info && info.theme ? tonesFromHex(info.theme) : { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' });
-    const styleName = ['modern', 'elegant', 'bold'].includes(d.stylePreset) ? d.stylePreset : 'modern';
+    const styleName = ['modern', 'elegant', 'bold', 'minimal', 'studio'].includes(d.stylePreset) ? d.stylePreset : 'modern';
     const preset = SITE_STYLE_PRESETS[styleName];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-    const cat = info ? info.cat : 'office';
     const galleryPhotos = GALLERY_PHOTO_IDS[cat] || GALLERY_PHOTO_IDS.office;
     const gallery = galleryPhotos.map((photoId, i) => `
       <figure class="gallery-demo" aria-label="Demo gallery image ${i + 1} for ${esc(d.name)}">
@@ -453,7 +470,11 @@ ${heroHasPhoto ? `@media(min-width:901px){
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
+.demo-ribbon{position:absolute;z-index:4;top:14px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 28px);
+  padding:7px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(18,18,18,.5);backdrop-filter:blur(10px);
+  color:#fff;font-size:.61rem;font-weight:600;letter-spacing:.08em;text-align:center}
 @media(max-width:760px){.hero-photo-note{left:14px;right:14px;text-align:center}}
+@media(max-width:760px){.demo-ribbon{top:8px;font-size:.55rem;line-height:1.3;padding:6px 9px}}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(28,24,21,.55) 0%,rgba(28,24,21,.28) 34%,rgba(28,24,21,0) 62%),linear-gradient(to top,rgba(28,24,21,.8) 0%,rgba(28,24,21,.6) 26%,rgba(28,24,21,.24) 54%,rgba(28,24,21,0) 82%)}
 .hero .hero-copy{position:relative;z-index:2;width:100%;padding:0 0 3.4em}
 .hero .inner{max-width:1140px;margin:0 auto;padding:0 22px}
@@ -588,14 +609,17 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
 
-/* Three visual directions share the same pages and generated content. Modern
-   preserves the original composition; Elegant and Bold deliberately reshape
-   the hero, cards, reviews and gallery without discarding any answers. */
+/* Five visual directions share the same generated content while deliberately
+   reshaping the hero, cards, reviews and gallery around it. */
 .site-style-modern .site-header{backdrop-filter:blur(18px);background:color-mix(in srgb,var(--header-surface) 90%,transparent)}
 .site-style-modern .btn{border-radius:999px;letter-spacing:.12em}
 .site-style-modern .card,.site-style-modern .review-card,.site-style-modern .hours-card{border-color:color-mix(in srgb,var(--rose-dark) 12%,transparent)}
 .site-style-modern .gallery figure:nth-child(1),.site-style-modern .gallery figure:nth-child(4){border-radius:28px 8px 28px 8px}
 .site-style-modern .gallery figure:nth-child(2),.site-style-modern .gallery figure:nth-child(5){border-radius:8px 28px 8px 28px}
+.site-style-modern .gallery{grid-template-columns:1.35fr .825fr .825fr;grid-auto-rows:160px}
+.site-style-modern .gallery figure{height:100%;aspect-ratio:auto}
+.site-style-modern .gallery figure:first-child{grid-row:span 2}
+.site-style-modern .gallery figure:nth-child(6){grid-column:span 2}
 .site-style-modern .hero::after{background:linear-gradient(to right,rgba(20,25,30,.62),rgba(20,25,30,.12) 68%),linear-gradient(to top,rgba(20,25,30,.58),transparent 62%)}
 
 .site-style-elegant{background:#fdfcfc;--ink:#000;--body:#44403b;--muted:#777169;--champagne:#f5f3f1;--line:#ebe8e4}
@@ -781,6 +805,99 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .site-style-bold .gallery figure,.site-style-bold .gallery figure:nth-child(n){aspect-ratio:4/3;height:auto;grid-row:auto;grid-column:auto;border-radius:24px}
 }
 
+/* Minimal — inspired by Refero's popular warm editorial systems: eggshell
+   paper, whisper-light display type, hairline borders and restrained pills. */
+.site-style-minimal{background:#fdfcfa;--ink:#080808;--body:#44403b;--muted:#777169;--champagne:#f3f0ec;--line:#e5e0da}
+.site-style-minimal h1,.site-style-minimal h2{font-weight:300;letter-spacing:-.045em}
+.site-style-minimal h1{font-size:clamp(3.4rem,7vw,6.4rem);line-height:.96}
+.site-style-minimal h2{font-size:clamp(2.35rem,4.8vw,4.2rem);line-height:1.02}
+.site-style-minimal .site-header{background:rgba(253,252,250,.94);box-shadow:none;border-color:#e5e0da;backdrop-filter:blur(18px)}
+.site-style-minimal .brand-badge{border-radius:8px;background:#080808;box-shadow:none}
+.site-style-minimal .btn{border-radius:999px;background:#080808;border-color:#080808;box-shadow:none;letter-spacing:.06em;text-transform:none}
+.site-style-minimal .hero{align-items:stretch;background-size:52% auto;background-position:right center;background-color:#fdfcfa}
+.site-style-minimal .hero::after{background:linear-gradient(to right,#fdfcfa 0 47%,transparent 64%)}
+.site-style-minimal .hero .hero-copy{display:flex;align-items:center;padding:5em 0}
+.site-style-minimal .hero .inner{margin-left:max(22px,calc((100vw - 1280px)/2));margin-right:52%;padding-right:5vw}
+.site-style-minimal .hero h1,.site-style-minimal .hero p,.site-style-minimal .hero .eyebrow{color:#080808;text-shadow:none}
+.site-style-minimal .hero .btn--light{background:#080808;color:#fff;border-color:#080808}
+.site-style-minimal .hero .btn--outline-light{background:transparent;color:#080808;border-color:#080808}
+.site-style-minimal .hero-tags{color:#777169;gap:8px 18px}
+.site-style-minimal .section{border-top:1px solid #e5e0da}
+.site-style-minimal .section>.container{max-width:1280px}
+.site-style-minimal .grid-3{grid-template-columns:1.3fr 1fr 1fr}
+.site-style-minimal .card,.site-style-minimal .review-card,.site-style-minimal .hours-card{background:#f3f0ec;border:0;border-radius:20px;box-shadow:none}
+.site-style-minimal .card:first-child{grid-row:span 2;padding:50px 38px}
+.site-style-minimal .reviews{grid-template-columns:repeat(3,1fr)}
+.site-style-minimal .review-card{min-height:250px;padding:36px}
+.site-style-minimal .gallery{grid-template-columns:2fr 1fr 1fr;grid-auto-rows:170px;gap:12px}
+.site-style-minimal .gallery figure{height:100%;aspect-ratio:auto;border-radius:20px}
+.site-style-minimal .gallery figure:first-child{grid-row:span 2}
+.site-style-minimal .gallery figure:nth-child(6){grid-column:span 2}
+.site-style-minimal .band{margin:0 3%;border-radius:24px;background:#080808}
+
+/* Studio — inspired by Refero's popular Monopo Saigon direction: monumental
+   type, monochrome editorial UI and one expressive iridescent hero gesture. */
+.site-style-studio{background:#fff;--ink:#050505;--body:#181818;--muted:#6d6d6d;--champagne:#f2f2f0;--line:#cececa}
+.site-style-studio h1,.site-style-studio h2{font-weight:400;letter-spacing:-.065em}
+.site-style-studio h1{font-size:clamp(4.5rem,11vw,10rem);line-height:.78}
+.site-style-studio h2{font-size:clamp(3rem,7vw,6.5rem);line-height:.88}
+.site-style-studio .site-header{background:#fff;border-bottom:1px solid #050505;box-shadow:none}
+.site-style-studio .brand-badge,.site-style-studio .card,.site-style-studio .review-card,.site-style-studio .hours-card{border-radius:0;box-shadow:none}
+.site-style-studio .btn{border-radius:999px;background:transparent;color:#050505;border:1px solid #050505;letter-spacing:.04em;text-transform:none;box-shadow:none}
+.site-style-studio .hero{min-height:min(82vh,780px);background-size:cover;background-position:center}
+.site-style-studio .hero::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(110deg,rgba(36,123,91,.72),rgba(255,153,30,.42) 52%,rgba(120,22,22,.72));mix-blend-mode:color}
+.site-style-studio .hero::after{z-index:1;background:linear-gradient(to top,rgba(0,0,0,.76),rgba(0,0,0,.06) 75%)}
+.site-style-studio .hero .hero-copy{padding-bottom:4.5em}
+.site-style-studio .hero-title{max-width:10ch}
+.site-style-studio .hero .hero-sub{font-size:1.15rem}
+.site-style-studio .hero .btn{color:#fff;border-color:rgba(255,255,255,.72);background:rgba(0,0,0,.08)}
+.site-style-studio .section>.container{max-width:1080px}
+.site-style-studio .section .center{text-align:left}
+.site-style-studio .section .center .lede{margin-left:0;margin-right:0}
+.site-style-studio .grid-3{grid-template-columns:1fr;border-top:1px solid #050505}
+.site-style-studio .card{display:grid;grid-template-columns:170px 1fr auto;align-items:center;gap:25px;padding:28px 0;background:transparent;border:0;border-bottom:1px solid #cececa}
+.site-style-studio .card .num{margin:0}.site-style-studio .card h3{margin:0;font-size:1.5rem}.site-style-studio .card p{margin:0}.site-style-studio .card-cta{justify-self:end}
+.site-style-studio .section--tint{background:#050505;color:#fff}
+.site-style-studio .section--tint h2,.site-style-studio .section--tint .eyebrow,.site-style-studio .section--tint .lede{color:#fff}
+.site-style-studio .reviews{grid-template-columns:1.35fr .825fr .825fr}
+.site-style-studio .review-card{background:#181818;border:1px solid #444;color:#fff;min-height:270px}
+.site-style-studio .review-card blockquote,.site-style-studio .review-card p{color:#fff}
+.site-style-studio .gallery{grid-template-columns:1fr 1fr;gap:1px;background:#050505}
+.site-style-studio .gallery figure{border-radius:0}.site-style-studio .gallery figure:first-child{grid-column:span 2;aspect-ratio:16/7}
+.site-style-studio .band{background:#fff;color:#050505;border-top:1px solid #050505;border-bottom:1px solid #050505;text-align:left}
+.site-style-studio .band h2,.site-style-studio .band .eyebrow,.site-style-studio .band p{color:#050505;margin-left:0}
+.site-style-studio .band .btn-row{justify-content:flex-start!important}
+
+/* Category-specific presentation: the same five systems now behave like the
+   business they represent, not like a generic template with swapped photos. */
+.site-category-fooddrink .service-list{border-top:2px solid var(--ink)}
+.site-category-fooddrink .service-row{position:relative;padding:20px 0}.site-category-fooddrink .service-row-main h3{font-family:var(--heading-font);font-size:1.2rem}
+.site-category-fooddrink .service-row-price{font-size:1.05rem}.site-category-fooddrink .service-group-title{text-transform:uppercase;letter-spacing:.14em;font-size:.8rem}
+.site-category-fitness .card{border-top:4px solid var(--rose-dark)}
+.site-category-trades .card,.site-category-automotive .card{border-radius:min(var(--radius),10px)}
+.site-category-creative .gallery figure:first-child{grid-column:span 2;aspect-ratio:16/7}
+.site-category-hairbeauty .gallery img,.site-category-aesthetics .gallery img{filter:saturate(.88) contrast(.96)}
+
+@media(max-width:900px){
+  .site-style-modern .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
+  .site-style-modern .gallery figure,.site-style-modern .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
+  .site-style-minimal .hero{background-size:contain;background-position:center top;background-color:#fdfcfa}
+  .site-style-minimal .hero::after{background:linear-gradient(to top,rgba(0,0,0,.22),transparent 65%)}
+  .site-style-minimal .hero .inner{margin:0 auto;padding:0 18px}
+  .site-style-minimal .hero h1,.site-style-minimal .hero p,.site-style-minimal .hero .eyebrow{color:var(--ink)}
+  .site-style-minimal .grid-3,.site-style-minimal .reviews{grid-template-columns:1fr}
+  .site-style-minimal .card:first-child{grid-row:auto;padding:34px 28px}
+  .site-style-minimal .gallery{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
+  .site-style-minimal .gallery figure,.site-style-minimal .gallery figure:nth-child(n){height:auto;aspect-ratio:4/3;grid-row:auto;grid-column:auto}
+  .site-style-minimal .band{margin:0;border-radius:0}
+  .site-style-studio .hero-title{font-size:clamp(3.6rem,17vw,6rem)}
+  .site-style-studio .hero::before{inset:0 0 auto;height:var(--mobile-hero-height)}
+  .site-style-studio .hero .btn{color:#050505;border-color:#050505;background:transparent}
+  .site-style-studio .grid-3,.site-style-studio .reviews{grid-template-columns:1fr}
+  .site-style-studio .card{display:block;padding:28px 0}.site-style-studio .card h3,.site-style-studio .card p{margin-bottom:12px}
+  .site-style-studio .gallery{grid-template-columns:1fr 1fr}.site-style-studio .gallery figure:first-child{grid-column:span 2}
+}
+
 /* ---- a little life: things settle into place as they enter the viewport,
    and the hero copy leads in on load. Kept to opacity/transform so it's
    cheap to animate, and dropped entirely for reduced-motion. ---- */
@@ -799,21 +916,21 @@ ${heroHasPhoto ? `@media(min-width:901px){
 }
 </style>
 </head>
-<body class="site-style-${styleName}">
+<body class="site-style-${styleName} site-category-${cat}">
 
 <header class="site-header">
   <div class="container">
     <a class="brand" href="#" data-nav="home"><span class="brand-badge">${esc(initials)}</span><span class="brand-text">${brandMark}${d.tagline ? `<span>${esc(d.tagline)}</span>` : ''}</span></a>
     <nav class="nav">
       <a href="#" data-nav="home">Home</a>
-      <a href="#" data-nav="services">Services</a>
+      <a href="#" data-nav="services">${esc(categoryUi.nav)}</a>
       <a href="#" data-nav="contact">Contact</a>
       <a class="btn" href="#" data-nav="contact">${esc(goalLabel)}</a>
     </nav>
     <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav"><span></span></button>
     <nav class="mobile-nav" id="mobileNav" hidden>
       <a href="#" data-nav="home">Home</a>
-      <a href="#" data-nav="services">Services</a>
+      <a href="#" data-nav="services">${esc(categoryUi.nav)}</a>
       <a href="#" data-nav="contact">Contact</a>
       <a class="btn" href="#" data-nav="contact">${esc(goalLabel)}</a>
     </nav>
@@ -822,6 +939,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 
 <div class="page" data-page="home">
   <section class="hero">
+    <div class="demo-ribbon">Personalised demo · every section, colour and layout can be redesigned</div>
     ${sceneMarkup}
     ${heroHasPhoto ? '<span class="hero-photo-note">(This picture will be custom made for your business — it\u2019s just a demo picture for now)</span>' : ''}
     <div class="hero-copy">
@@ -831,7 +949,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
         <p class="hero-sub">${esc(heroSub)}</p>
         <div class="btn-row">
           <a class="btn btn--light" href="#" data-nav="contact">${esc(goalLabel)}</a>
-          <a class="btn btn--outline-light" href="#" data-nav="services">View Services</a>
+          <a class="btn btn--outline-light" href="#" data-nav="services">${esc(categoryUi.secondary)}</a>
         </div>
         ${tags ? `<div class="hero-tags">${tags}</div>` : ''}
       </div>
@@ -847,7 +965,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
       </div>
       <div class="grid grid-3" style="gap:20px">${popularCards}</div>
       <div class="btn-row" style="justify-content:center;margin-top:2.2em">
-        <a class="btn btn--ghost" href="#" data-nav="services">View All Services</a>
+        <a class="btn btn--ghost" href="#" data-nav="services">${esc(categoryUi.secondary)}</a>
       </div>
     </div>
   </section>
@@ -890,8 +1008,8 @@ ${heroHasPhoto ? `@media(min-width:901px){
 <div class="page" data-page="services" hidden>
   <section class="section page-head">
     <div class="container center">
-      <span class="eyebrow">Services</span>
-      <h1>What we offer</h1>
+      <span class="eyebrow">${esc(categoryUi.nav)}</span>
+      <h1>${esc(categoryUi.pageTitle)}</h1>
       <p class="lede center">${esc(heroHook) || 'A quick look at what we do — get in touch for anything not listed here.'}</p>
     </div>
   </section>
