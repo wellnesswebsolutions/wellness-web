@@ -34,25 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let selectedTones = null;
   let uploadedHeroImage = null;
+  let selectedWebsiteStyle = 'modern';
   // Must exist before the initial mobile sizing pass below. Previously this
   // was declared much later, so phones hit its temporal dead zone and aborted
   // the entire form setup before submit/input handlers were attached.
   let builderMobileView = false;
 
-  const STYLE_BY_TYPE = {
-    'Hair & Beauty': 'soft-luxury',
-    'Aesthetics': 'clinical-luxury',
-    'Health & Wellness': 'calm-wellness',
-    'Fitness': 'bold-modern',
-    'Automotive': 'bold-modern',
-    'Trades': 'bold-modern',
-    'Home & Garden': 'warm-editorial',
-    'Food & Drink': 'warm-editorial',
-    'Professional Services': 'clean-professional',
-    'Creative': 'editorial-portfolio',
-    'Pets': 'friendly-modern',
-    'Other': 'clean-professional'
-  };
+  const builderStyleButtons = Array.from(document.querySelectorAll('.builder-style'));
+  builderStyleButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedWebsiteStyle = button.dataset.style || 'modern';
+      builderStyleButtons.forEach((item) => {
+        const active = item === button;
+        item.classList.toggle('is-on', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      refreshPreview();
+    });
+  });
 
   const COLOURS_BY_TYPE = {
     'Hair & Beauty': ['#a89a92', '#b07d93', '#847796', '#8d9a82'],
@@ -164,6 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
   bizNameInput.style.textTransform = 'capitalize';
   bizNameInput.addEventListener('blur', () => {
     bizNameInput.value = formatBusinessName(bizNameInput.value);
+  });
+  bizLocation.style.textTransform = 'capitalize';
+  bizLocation.addEventListener('blur', () => {
+    bizLocation.value = formatBusinessName(bizLocation.value);
   });
 
   // populate the type dropdown from the shared generator's BUSINESS_TYPES
@@ -384,8 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let isCreatingPreview = false;
 
   async function finishLocation() {
-    const loc = bizLocation.value.trim();
+    const loc = formatBusinessName(bizLocation.value);
     if (!loc || isCreatingPreview) return;
+    bizLocation.value = loc;
     isCreatingPreview = true;
     qaLocationNext.disabled = true;
     bizLocation.readOnly = true;
@@ -476,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
       about: '',
       phone: '',
       tones: selectedTones,
-      stylePreset: STYLE_BY_TYPE[bizTagline.value] || 'clean-professional',
+      stylePreset: selectedWebsiteStyle,
       logo: null,
       heroImage: uploadedHeroImage
     };
@@ -682,12 +686,14 @@ document.addEventListener('DOMContentLoaded', () => {
       openMediaModal();
       return;
     }
-    const value = builderInput.value.trim();
+    const shouldTitleCase = question.q === 'Full name';
+    const value = shouldTitleCase ? formatBusinessName(builderInput.value) : builderInput.value.trim();
     if (question.required && !value) {
       builderField.classList.add('qa-focused');
       builderInput.focus();
       return;
     }
+    builderInput.value = value;
     builderAnswers[builderIndex] = value;
     builderIndex++;
     if (builderIndex < BUILDER_QUESTIONS.length) {
@@ -717,6 +723,9 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(syncBuilderBarToKeyboard);
   });
   builderInput.addEventListener('blur', () => {
+    if (BUILDER_QUESTIONS[builderIndex]?.q === 'Full name') {
+      builderInput.value = formatBusinessName(builderInput.value);
+    }
     builderField.classList.remove('qa-focused');
     setTimeout(() => {
       if (builderBarWrap) builderBarWrap.style.transform = '';

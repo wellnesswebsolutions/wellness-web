@@ -216,6 +216,9 @@
     };
   }
   const SITE_STYLE_PRESETS = {
+    'modern': { heading: "'Manrope', sans-serif", body: "'Inter', sans-serif", radius: '16px', space: '5.2em', card: '0 18px 46px rgba(25,35,45,.10)' },
+    'elegant': { heading: "'Cormorant Garamond', Georgia, serif", body: "'DM Sans', sans-serif", radius: '3px', space: '6.2em', card: '0 16px 44px rgba(48,34,24,.09)' },
+    'bold': { heading: "'Space Grotesk', sans-serif", body: "'Inter', sans-serif", radius: '7px', space: '5em', card: '8px 8px 0 color-mix(in srgb, var(--rose-dark) 28%, transparent)' },
     'soft-luxury': { heading: "'Cormorant Garamond', Georgia, serif", body: "'Montserrat', sans-serif", radius: '2px', space: '5.8em', card: '0 18px 50px rgba(28,24,21,.10)' },
     'clinical-luxury': { heading: "'DM Sans', sans-serif", body: "'DM Sans', sans-serif", radius: '12px', space: '5.2em', card: '0 16px 40px rgba(28,24,21,.08)' },
     'calm-wellness': { heading: "'Lora', Georgia, serif", body: "'DM Sans', sans-serif", radius: '16px', space: '5.6em', card: '0 18px 48px rgba(28,24,21,.09)' },
@@ -297,7 +300,8 @@
     // palette derived from their category's own hero photo (so a demo
     // for e.g. Automotive doesn't default to a rose/taupe salon palette)
     const t = d.tones || (info && info.theme ? tonesFromHex(info.theme) : { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' });
-    const preset = SITE_STYLE_PRESETS[d.stylePreset] || SITE_STYLE_PRESETS['clean-professional'];
+    const styleName = ['modern', 'elegant', 'bold'].includes(d.stylePreset) ? d.stylePreset : 'modern';
+    const preset = SITE_STYLE_PRESETS[styleName];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
     const galleryTones = [[t.dark,t.base],[t.base,t.light],[t.light,t.base],[t.dark,t.light],[t.base,t.dark],[t.light,t.dark]];
     const gallery = galleryTones.map((colors, i) => `
@@ -557,6 +561,57 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
 
+/* Three visual directions share exactly the same pages, content and section
+   order. These rules only change the design language, so switching style is
+   instant and never discards the customer's answers. */
+.site-style-modern .site-header{backdrop-filter:blur(18px);background:color-mix(in srgb,var(--header-surface) 90%,transparent)}
+.site-style-modern .btn{border-radius:999px;letter-spacing:.12em}
+.site-style-modern .card,.site-style-modern .review-card,.site-style-modern .hours-card{border-color:color-mix(in srgb,var(--rose-dark) 12%,transparent)}
+.site-style-modern .gallery figure:nth-child(1),.site-style-modern .gallery figure:nth-child(4){border-radius:28px 8px 28px 8px}
+.site-style-modern .gallery figure:nth-child(2),.site-style-modern .gallery figure:nth-child(5){border-radius:8px 28px 8px 28px}
+.site-style-modern .hero::after{background:linear-gradient(to right,rgba(20,25,30,.62),rgba(20,25,30,.12) 68%),linear-gradient(to top,rgba(20,25,30,.58),transparent 62%)}
+
+.site-style-elegant{background:#fdfbf8}
+.site-style-elegant h1,.site-style-elegant h2{letter-spacing:-.025em}
+.site-style-elegant h1{font-size:clamp(2.7rem,6.5vw,5rem)}
+.site-style-elegant h2{font-size:clamp(2rem,4vw,3.2rem)}
+.site-style-elegant .site-header{background:color-mix(in srgb,#fff 88%,var(--taupe));box-shadow:none}
+.site-style-elegant .brand-badge{border-radius:2px;border-width:1px;box-shadow:none}
+.site-style-elegant .btn{background:transparent;color:var(--ink);border-width:1px;letter-spacing:.22em}
+.site-style-elegant .hero .btn{background:#fff;color:var(--ink);border-color:#fff}
+.site-style-elegant .hero .btn--outline-light{background:transparent;color:#fff}
+.site-style-elegant .card,.site-style-elegant .review-card,.site-style-elegant .hours-card{box-shadow:none;background:color-mix(in srgb,#fff 78%,var(--champagne))}
+.site-style-elegant .card{border-width:0 0 1px;padding:38px 30px}
+.site-style-elegant .review-card{border-width:1px 0;text-align:center;padding:40px 30px}
+.site-style-elegant .review-stars{font-size:.7rem}
+.site-style-elegant .gallery{gap:22px}
+.site-style-elegant .gallery figure{border-radius:0;outline:1px solid rgba(255,255,255,.72);outline-offset:-9px}
+.site-style-elegant .band{background:var(--ink)}
+
+.site-style-bold h1,.site-style-bold h2,.site-style-bold h3{text-transform:uppercase;letter-spacing:-.045em}
+.site-style-bold h1{font-size:clamp(2.7rem,7vw,5.4rem);font-weight:700;line-height:.92}
+.site-style-bold h2{font-weight:700}
+.site-style-bold .site-header{background:var(--ink);border:0}
+.site-style-bold .site-header .brand,.site-style-bold .site-header .nav a{color:#fff}
+.site-style-bold .site-header .brand-text span{color:var(--taupe)}
+.site-style-bold .menu-toggle{background:var(--rose-dark);color:#fff;border-color:rgba(255,255,255,.25)}
+.site-style-bold .btn{background:var(--rose-dark);border-color:var(--rose-dark);font-weight:800}
+.site-style-bold .hero::after{background:linear-gradient(100deg,rgba(10,10,12,.82) 0%,rgba(10,10,12,.42) 54%,transparent 78%),linear-gradient(to top,rgba(10,10,12,.72),transparent 60%)}
+.site-style-bold .hero-title{max-width:850px}
+.site-style-bold .card{border:2px solid var(--ink);box-shadow:8px 8px 0 var(--rose-dark)}
+.site-style-bold .card:hover{transform:translate(-3px,-3px);box-shadow:12px 12px 0 var(--rose-dark)}
+.site-style-bold .review-card{background:var(--ink);border:0;color:#fff;box-shadow:8px 8px 0 var(--rose-dark)}
+.site-style-bold .review-card blockquote,.site-style-bold .review-card p{color:#fff}
+.site-style-bold .review-stars{color:var(--taupe);font-size:1rem}
+.site-style-bold .gallery{gap:7px}
+.site-style-bold .gallery figure{border-radius:0}
+.site-style-bold .band{background:var(--rose-dark)}
+
+@media(max-width:900px){
+  .site-style-elegant .hero .btn--outline-light{color:var(--ink);border-color:var(--rose-dark)}
+  .site-style-bold .hero::after{background:linear-gradient(to top,rgba(10,10,12,.32),transparent 65%)}
+}
+
 /* ---- a little life: things settle into place as they enter the viewport,
    and the hero copy leads in on load. Kept to opacity/transform so it's
    cheap to animate, and dropped entirely for reduced-motion. ---- */
@@ -575,7 +630,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 }
 </style>
 </head>
-<body>
+<body class="site-style-${styleName}">
 
 <header class="site-header">
   <div class="container">
