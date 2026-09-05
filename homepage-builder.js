@@ -577,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (!emailResult.value.ok) {
       console.error('Lead email notification failed', await emailResult.value.text());
     }
+    return emailResult.status === 'fulfilled' && emailResult.value.ok;
   }
 
   const designerWhatsAppNumber = '447535928879';
@@ -845,7 +846,16 @@ Media: ${mediaChoice || selectedMediaSummary}`;
 
     const completeMessage = message;
 
-    postLead(businessName, completeMessage).catch(() => {});
+    const status = document.getElementById('handoffStatus');
+    status.textContent = 'Opening WhatsApp and sending your details…';
+    postLead(businessName, completeMessage).then(sent => {
+      status.textContent = sent
+        ? 'Your details were accepted for email delivery. Press Send inside WhatsApp to message Tom.'
+        : 'Email could not be confirmed. Please press Send inside WhatsApp so Tom receives your details.';
+      if (getSelectedMediaBytes() > 0) status.textContent += ' Files are sent separately; keep this page open and ask Tom to confirm receipt.';
+    }).catch(() => {
+      status.textContent = 'Email could not be confirmed. Please send your details in WhatsApp.';
+    });
 
     if (getSelectedMediaBytes() > 0) {
       mediaEmailBusiness.value = businessName;
