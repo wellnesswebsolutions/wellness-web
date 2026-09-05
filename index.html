@@ -19,7 +19,7 @@
 <script src="hero-brand-compositor.js?v=20260904-6" defer></script>
 <script src="homepage-builder.js?v=20260905-1" defer></script>
 <script src="homepage-ui.js?v=20260902-4" defer></script>
-<script src="homepage-examples.js?v=20260904-7" defer></script>
+<script src="homepage-examples.js?v=20260905-2" defer></script>
 </head>
 <body>
 <div class="bar" id="bar"></div>
@@ -135,7 +135,10 @@
         <p>Tell Tom what you like, what you want changed and how you imagine the final site.</p>
       </div>
       <div class="step3">
-        <div class="step3-img"><img src="img/work-previews/kings-valeting.webp" alt="Kings Valeting Hull homepage demonstration, shown in a browser window" loading="lazy" width="960" height="583"></div>
+        <div class="step3-img step3-live" id="step3LiveFrame">
+          <div class="ex-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="ex-view"><iframe title="Kings Valeting Hull's live homepage" loading="lazy" src="https://kings-valeting-hull.vercel.app" tabindex="-1"></iframe></div>
+        </div>
         <div class="step3-num">3</div>
         <h4>Approve, launch and relax</h4>
         <p>Once you love it, we launch it and handle the hosting, SEO, changes and upkeep.</p>

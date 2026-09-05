@@ -50,6 +50,19 @@
     layout();
   });
 
+  // Step 3 of "How it works" reuses this same live-frame treatment, outside
+  // the carousel, so its Kings Valeting preview actually animates (the foam
+  // wash) instead of being a static screenshot.
+  const step3Frame = document.getElementById('step3LiveFrame');
+  if (step3Frame) {
+    const step3View = step3Frame.querySelector('.ex-view');
+    const step3Iframe = step3View.querySelector('iframe');
+    const layoutStep3 = () => scaleFrame(step3View, step3Iframe, DESKTOP_W, DESKTOP_H, HEADER_CROP);
+    if ('ResizeObserver' in window) new ResizeObserver(layoutStep3).observe(step3Frame);
+    else window.addEventListener('resize', layoutStep3);
+    layoutStep3();
+  }
+
   /* One card centred at a time, the neighbours peeking off each edge —
      no arrows, no dots, just autoplay and drag/swipe, like the original
      carousel. Autoplay stops for good the moment a visitor drags it or
