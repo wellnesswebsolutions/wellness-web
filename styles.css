@@ -144,10 +144,11 @@
   .step3{text-align:center}
   .step3-img{aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:var(--line);margin-bottom:18px}
   .step3-img img{width:100%;height:100%;object-fit:cover;display:block}
-  /* the live Kings Valeting frame in step 3 isn't a fixed-ratio image — it
-     sizes itself the same way the Our Work carousel cards do (see
-     homepage-examples.js), so it can't be squeezed into the aspect-ratio box */
-  .step3-img.step3-live{aspect-ratio:auto}
+  /* the live Kings Valeting frame fills this same fixed box (a "cover" crop
+     of the iframe, see layoutStep3Cover() in homepage-examples.js) instead
+     of sizing itself to its own content, so all three step pictures match */
+  .step3-img.step3-live{display:flex;flex-direction:column}
+  .step3-img.step3-live .ex-view{flex:1 1 auto}
   .step3-num{font-family:var(--display);font-size:15px;font-weight:700;color:var(--accent);
     letter-spacing:.1em;margin-bottom:6px}
   .step3 h4{font-family:var(--display);font-size:clamp(19px,2.2vw,24px);font-weight:600;margin-bottom:8px}

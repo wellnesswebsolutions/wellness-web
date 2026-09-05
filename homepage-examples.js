@@ -28,6 +28,20 @@
     view.style.height = `${Math.round((intrinsicH - cropTop) * scale)}px`;
   }
 
+  // Same idea as scaleFrame, but for a view with its own fixed box (rather
+  // than one sized to fit the content): scales to COVER the box — like
+  // object-fit:cover — cropping whichever edge has spare width or height,
+  // so the card matches its two fixed-aspect-ratio neighbours exactly.
+  function coverFrame(view, iframe, intrinsicW, intrinsicH, cropTop) {
+    const contentH = intrinsicH - cropTop;
+    const scale = Math.max(view.clientWidth / intrinsicW, view.clientHeight / contentH);
+    const scaledW = intrinsicW * scale;
+    iframe.style.width = `${intrinsicW}px`;
+    iframe.style.height = `${intrinsicH}px`;
+    const offsetX = Math.max(0, (scaledW - view.clientWidth) / 2) / scale;
+    iframe.style.transform = `scale(${scale}) translate(-${offsetX}px, -${cropTop}px)`;
+  }
+
   examples.forEach((ex) => {
     const card = document.createElement('article');
     card.className = 'ex-card';
@@ -52,12 +66,14 @@
 
   // Step 3 of "How it works" reuses this same live-frame treatment, outside
   // the carousel, so its Kings Valeting preview actually animates (the foam
-  // wash) instead of being a static screenshot.
+  // wash) instead of being a static screenshot. Unlike the carousel cards,
+  // this one has to fill the same fixed box as its two sibling step
+  // pictures, so it covers rather than sizes-to-fit.
   const step3Frame = document.getElementById('step3LiveFrame');
   if (step3Frame) {
     const step3View = step3Frame.querySelector('.ex-view');
     const step3Iframe = step3View.querySelector('iframe');
-    const layoutStep3 = () => scaleFrame(step3View, step3Iframe, DESKTOP_W, DESKTOP_H, HEADER_CROP);
+    const layoutStep3 = () => coverFrame(step3View, step3Iframe, DESKTOP_W, DESKTOP_H, HEADER_CROP);
     if ('ResizeObserver' in window) new ResizeObserver(layoutStep3).observe(step3Frame);
     else window.addEventListener('resize', layoutStep3);
     layoutStep3();
