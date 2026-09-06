@@ -594,10 +594,10 @@
      which sits at a lower z-index. Only the actual visible pieces re-enable
      pointer events. */
   .builder-overlay{position:fixed;inset:0;z-index:60;pointer-events:none}
-  /* the device toggle, the Q&A pill and the fullscreen button all live in
-     one row anchored to the bottom bar — see .builder-bar-row-outer below —
-     rather than a separate fixed strip under the header, which used to eat
-     extra height from the preview. */
+  /* the device toggle and the Q&A pill (which carries the fullscreen
+     button itself) all live in one row anchored to the bottom bar — see
+     .builder-bar-row-outer below — rather than a separate fixed strip
+     under the header, which used to eat extra height from the preview. */
   .builder-topbar-copy{min-width:0;display:flex;flex-direction:column;line-height:1.25}
   .builder-topbar-copy strong{font-family:var(--display);font-size:14px;font-weight:700;color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -609,9 +609,8 @@
     letter-spacing:.04em;color:var(--muted);transition:background .15s,color .15s}
   .builder-device:hover{color:var(--ink)}
   .builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
-  /* its own control, beside the Q&A pill rather than inside it, so the pill
-     stays just the question flow — visible at every viewport width, since
-     it isn't inside .builder-controls (hidden on mobile below) */
+  /* sits inside the Q&A row itself (next to the go button) so it's beside
+     the question box at every viewport width, mobile included */
   .builder-open-html{flex:none;width:34px;height:34px;border:none;border-radius:50%;cursor:pointer;
     background:rgba(59,130,246,.08);color:var(--accent);display:flex;align-items:center;justify-content:center;
     transition:background .15s,color .15s}
@@ -623,8 +622,7 @@
   .builder-bar-row-outer{display:flex;align-items:center;gap:18px;width:100%;max-width:1180px;margin:0 auto}
   .builder-bar-row-outer .builder-topbar-copy{order:1;flex:0 1 260px;min-width:0}
   .builder-bar-row-outer .builder-bar{order:2;flex:1 1 auto;min-width:0}
-  .builder-bar-row-outer #builderOpenHtml{order:3}
-  .builder-bar-row-outer .builder-controls{order:4}
+  .builder-bar-row-outer .builder-controls{order:3}
   /* Below the generated site's own 900px desktop breakpoint the frame can never
      be wider than the pane, so "Desktop" would render the mobile layout anyway
      — the control would do literally nothing. Hide the whole controls strip
@@ -634,7 +632,6 @@
     .builder-bar-row-outer{flex-direction:column;align-items:stretch;gap:10px}
     .builder-bar-row-outer .builder-topbar-copy{order:0;flex:none;text-align:center}
     .builder-bar-row-outer .builder-bar{order:0}
-    .builder-bar-row-outer #builderOpenHtml{order:1;align-self:center}
   }
   @media(max-width:560px){
     .builder-topbar-copy strong{font-size:12.5px}
