@@ -475,7 +475,14 @@ ${heroHasPhoto ? `@media(min-width:901px){
      the fold. \`cover\` (set above) fills whatever shape this ends up being,
      so unlike \`contain\` this cap no longer needs the box's own width
      capped to match — full width, no side letterboxing, at any height. */
-  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);background-color:var(--ink)}
+  /* width must be explicit, not auto: with only aspect-ratio and a
+     clamped max-height, Chrome recomputes width from the clamped height
+     to preserve the ratio instead of stretching to the container — the
+     same narrowed-box-with-empty-margins result as before, just via
+     width:auto instead of an explicit cap. Forcing width:100% wins over
+     aspect-ratio once max-height also applies; cover doesn't need the
+     ratio preserved anyway. */
+  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);width:100%;background-color:var(--ink)}
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
