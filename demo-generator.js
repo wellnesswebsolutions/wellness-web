@@ -397,7 +397,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
-${heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
+/* --header-surface also paints html's own background (see the
+   overscroll-matching rule below), so it has to be set here at :root —
+   a .site-style-elegant override further down only reaches body and its
+   descendants, never html itself, since custom properties only cascade
+   downward. Elegant's floating pill header is beige, not the dark ink a
+   photo hero normally sets this to, so it gets its own branch rather than
+   showing a black bar behind the pill. */
+${styleName === 'elegant' ? '--header-surface:#e7ddcf;--header-ink:var(--ink);' : heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
 --line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
@@ -880,12 +887,6 @@ ${heroHasPhoto ? `@media(min-width:901px){
      instead of leaving it a different colour or trying to crop it away. */
   .site-style-elegant .hero{background-color:#e7ddcf}
 }
-/* The floating pill header leaves the page's own backdrop visible around
-   it (see the html{background:var(--header-surface)} rule above, meant to
-   match a dark header/footer during overscroll bounce) — on a photo hero
-   that var is dark, so it showed as a stark black bar behind Elegant's
-   light pill instead of matching the page's own off-white. */
-.site-style-elegant{--header-surface:#fdfcfc}
 </style>
 </head>
 <body class="site-style-${styleName} site-category-${cat}">
