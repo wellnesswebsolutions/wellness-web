@@ -392,7 +392,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
+:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
+${heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
+--line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
 body{margin:0;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
@@ -428,7 +430,7 @@ p{margin:0 0 1.1em}
 }
 .site-header{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--header-surface);border-bottom:1px solid rgba(28,24,21,.07);box-shadow:0 1px 14px rgba(28,24,21,.05)}
 .site-header .container{display:flex;align-items:center;gap:16px;min-height:74px}
-.brand{display:flex;flex-direction:row;align-items:center;text-decoration:none;color:var(--ink);margin-right:auto;font-weight:700;font-size:1.2rem}
+.brand{display:flex;flex-direction:row;align-items:center;text-decoration:none;color:var(--header-ink);margin-right:auto;font-weight:700;font-size:1.2rem}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
 /* Scoped to .brand-text, not .brand, on purpose: .brand span would also
    match .brand-badge (also a span, also inside .brand), overriding its
@@ -436,8 +438,8 @@ p{margin:0 0 1.1em}
    with — invisible text on a same-colour background. */
 .brand-text span{font-size:.55rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-top:2px}
 .nav{display:flex;align-items:center;gap:24px}
-.nav a{text-decoration:none;color:var(--ink);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid transparent}
-.nav a:hover{border-bottom-color:var(--ink)}
+.nav a{text-decoration:none;color:var(--header-ink);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid transparent}
+.nav a:hover{border-bottom-color:var(--header-ink)}
 .nav a.btn{padding:11px 20px;color:#fff}
 .nav a.btn:hover{background:transparent;color:var(--ink)}
 .menu-toggle{display:none;width:44px;height:44px;border:1px solid var(--line);border-radius:max(var(--radius),10px);
@@ -499,12 +501,12 @@ ${heroHasPhoto ? `@media(min-width:901px){
      own bottom edge (top:mobile-hero-height) rather than .hero's bottom,
      which would otherwise land past the copy panel and its buttons. */
   .hero-photo-note{top:calc(var(--mobile-hero-height) - 10px);bottom:auto;transform:translateY(-100%);
-    width:max-content;max-width:calc(100% - 28px);margin:0 auto;padding:5px 9px;border-radius:999px;
-    background:rgba(16,16,18,.58);color:#fff;line-height:1.25;text-shadow:none;backdrop-filter:blur(7px)}
+    width:max-content;max-width:calc(100% - 28px);margin:0 auto;color:#fff;line-height:1.25;
+    text-shadow:0 1px 6px rgba(0,0,0,.5)}
   .hero .hero-copy{padding:1.35em 0 1.55em;text-align:center;background:var(--header-surface);
     border-top:1px solid color-mix(in srgb,var(--rose-dark) 16%,transparent)}
   .hero .inner{display:flex;flex-direction:column;align-items:center;padding:0 18px}
-  .hero h1,.hero p{color:var(--ink);text-shadow:none}
+  .hero h1,.hero p{color:var(--header-ink);text-shadow:none}
   .hero .eyebrow{margin-bottom:.65em;color:var(--rose-dark)}
   .hero-title{font-size:clamp(1.9rem,8vw,2.5rem);margin-bottom:.25em}
   .hero .hero-sub{font-size:1rem;line-height:1.5;max-width:31ch;margin:0 auto 1.15em}
@@ -512,7 +514,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .hero .btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:11px 14px;
     border-radius:max(var(--radius),8px);font-size:.66rem;line-height:1.25;letter-spacing:.13em;box-shadow:none}
   .hero .btn--light{background:var(--rose-dark);border-color:var(--rose-dark);color:#fff}
-  .hero .btn--outline-light{background:transparent;border-color:color-mix(in srgb,var(--rose-dark) 62%,transparent);color:var(--ink);backdrop-filter:none}
+  .hero .btn--outline-light{background:transparent;border-color:color-mix(in srgb,var(--rose-dark) 62%,transparent);color:var(--header-ink);backdrop-filter:none}
   .hero-tags{display:none}
 }
 @media(max-width:360px){
