@@ -19,9 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const builderForName = document.getElementById('builderForName');
   const builderDeviceDesktop = document.getElementById('builderDeviceDesktop');
   const builderDeviceMobile = document.getElementById('builderDeviceMobile');
-  const builderSignPalette = document.getElementById('builderSignPalette');
-  const builderSignCurrent = document.getElementById('builderSignCurrent');
-  const builderSignButtons = Array.from(document.querySelectorAll('[data-sign-colour]'));
+  const builderOpenHtml = document.getElementById('builderOpenHtml');
   const builderProgress = document.getElementById('builderProgress');
   const builderField = document.getElementById('builderField');
   const builderPh = document.getElementById('builderPh');
@@ -38,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedTones = null;
   let uploadedHeroImage = null;
   let selectedWebsiteStyle = 'modern';
-  let selectedSignColour = null;
   let heroRenderVersion = 0;
   // Must exist before the initial mobile sizing pass below. Previously this
   // was declared much later, so phones hit its temporal dead zone and aborted
@@ -58,19 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  function updateSignControl() {
-    const isAuto = !selectedSignColour;
-    builderSignButtons.forEach((button) => {
-      const active = button.dataset.signColour === (selectedSignColour || '');
-      button.classList.toggle('is-on', active);
-      button.setAttribute('aria-pressed', String(active));
-    });
-    if (builderSignCurrent) {
-      builderSignCurrent.classList.toggle('is-auto', isAuto);
-      builderSignCurrent.style.background = isAuto ? '' : selectedSignColour;
-    }
-  }
-
   async function rerenderPersonalisedHero() {
     if (!bizNameInput.value.trim() || !bizLocation.value.trim()) return null;
     const version = ++heroRenderVersion;
@@ -79,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         category: bizTagline.value,
         businessName: bizNameInput.value.trim(),
         location: bizLocation.value.trim(),
-        signColour: selectedSignColour,
         logoHint: '(Your Custom Logo Here)',
         output: 'dataURL'
       });
@@ -92,15 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return null;
     }
   }
-
-  builderSignButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      selectedSignColour = button.dataset.signColour || null;
-      updateSignControl();
-      if (builderSignPalette) builderSignPalette.open = false;
-      rerenderPersonalisedHero();
-    });
-  });
 
   const COLOURS_BY_TYPE = {
     'Hair & Beauty': ['#a89a92', '#b07d93', '#847796', '#8d9a82'],
@@ -461,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
         category: bizTagline.value,
         businessName: name,
         location: loc,
-        signColour: selectedSignColour,
         logoHint: '(Your Custom Logo Here)',
         output: 'dataURL'
       })).catch((error) => {
@@ -822,6 +795,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   builderDeviceDesktop.addEventListener('click', () => setBuilderMobileView(false));
   builderDeviceMobile.addEventListener('click', () => setBuilderMobileView(true));
+
+  // opens the exact HTML the iframe is rendering as a real page in its own
+  // tab, so it can be viewed/scrolled/resized outside the builder chrome
+  if (builderOpenHtml) {
+    builderOpenHtml.addEventListener('click', () => {
+      const blob = new Blob([buildDemoHTML(gatherData())], { type: 'text/html' });
+      window.open(URL.createObjectURL(blob), '_blank');
+    });
+  }
 
   // final step: hand everything off to the designer over WhatsApp instead
   // of a checkout/payment page — nothing is charged until the finished

@@ -604,7 +604,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .band h2,.band .eyebrow{color:#fff}
 .band .eyebrow{color:rgba(255,255,255,.8)}
 .band p{color:rgba(255,255,255,.88);max-width:56ch;margin-left:auto;margin-right:auto}
-.site-footer{background:var(--ink);color:rgba(255,255,255,.72);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center}
+.site-footer{background:#100e0c;color:rgba(255,255,255,.72);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center;border-top:1px solid rgba(255,255,255,.08)}
 .site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
 

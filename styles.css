@@ -611,22 +611,10 @@
     letter-spacing:.04em;color:var(--muted);transition:background .15s,color .15s}
   .builder-style:hover,.builder-device:hover{color:var(--ink)}
   .builder-style.is-on,.builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
-  .builder-sign-controls{position:relative;flex:none;font-family:var(--display)}
-  .builder-sign-controls summary{display:flex;align-items:center;gap:7px;padding:6px 8px 6px 11px;min-height:42px;
-    border-radius:999px;background:rgba(59,130,246,.08);cursor:pointer;list-style:none}
-  .builder-sign-controls summary::-webkit-details-marker{display:none}
-  .builder-sign-controls summary span{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
-  .builder-sign-current{width:27px;height:27px;border:2px solid var(--card);border-radius:50%;box-shadow:0 0 0 1px rgba(36,27,46,.16)}
-  .builder-sign-current.is-auto{background:conic-gradient(#fffdf7 0 20%,#2563eb 0 40%,#0f766e 0 60%,#b7791f 0 80%,#7c3aed 0)}
-  .builder-sign-palette{position:absolute;top:calc(100% + 9px);right:0;z-index:5;display:grid;grid-template-columns:repeat(5,30px);
-    gap:8px;padding:11px;border:1px solid var(--line);border-radius:15px;background:var(--card);box-shadow:0 16px 40px rgba(23,32,31,.18)}
-  .builder-sign-auto{border:0;border-radius:999px;padding:7px 9px;background:transparent;color:var(--muted);
-    grid-column:1/-1;font-family:var(--display);font-size:10.5px;font-weight:700;cursor:pointer}
-  .builder-sign-auto.is-on{background:rgba(59,130,246,.1);color:var(--accent)}
-  .builder-sign-swatch{width:30px;height:30px;border:2px solid var(--card);border-radius:50%;background:var(--swatch);cursor:pointer;
-    box-shadow:0 0 0 1px rgba(36,27,46,.18);transition:transform .15s,box-shadow .15s}
-  .builder-sign-swatch:hover{transform:scale(1.1)}
-  .builder-sign-swatch.is-on{box-shadow:0 0 0 2px var(--accent),0 0 0 4px var(--card)}
+  .builder-open-html{flex:none;border:none;cursor:pointer;border-radius:999px;padding:8px 16px;min-height:36px;
+    font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--accent);
+    background:rgba(59,130,246,.08);transition:background .15s,color .15s}
+  .builder-open-html:hover{background:rgba(59,130,246,.16);color:var(--ink)}
   /* Below the generated site's own 900px desktop breakpoint the frame can never
      be wider than the pane, so "Desktop" would render the mobile layout anyway
      — the control would do literally nothing. Hide it rather than offer a
@@ -642,10 +630,7 @@
     .builder-device{padding:8px 11px;font-size:11.5px}
     .builder-styles{max-width:225px;gap:1px;padding:2px}
     .builder-style{padding:7px 9px;min-height:32px;font-size:10.5px}
-    .builder-sign-controls summary{min-height:36px;padding:4px 5px}
-    .builder-sign-controls summary span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-    .builder-sign-current{width:27px;height:27px}
-    .builder-sign-palette{position:fixed;top:calc(var(--header-h, 75px) + var(--builder-topbar-h, 48px) + 8px);right:8px}
+    .builder-open-html{padding:8px 11px;font-size:11.5px}
   }
   /* offset by the strip as well as the header, or it would cover the preview's top */
   .builder-preview{position:fixed;top:calc(var(--header-h, 75px) + var(--builder-topbar-h, 0px));left:0;right:0;overflow:hidden;background:var(--bg);
