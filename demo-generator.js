@@ -757,7 +757,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-category-fitness.site-style-bold .hero{background-color:#0d0d10!important;clip-path:polygon(0 0,100% 0,100% 96%,0 100%)}
 .site-category-fitness.site-style-bold .hero::after{background:linear-gradient(0deg,#0d0d10 0 10%,rgba(13,13,16,.5) 48%,rgba(13,13,16,.15) 100%)}
 .site-category-fitness.site-style-bold .section{background:#0d0d10}.site-category-fitness.site-style-bold .section--tint{background:#1a1a1e}
-.site-category-fitness.site-style-bold .card,.site-category-fitness.site-style-bold .review-card,.site-category-fitness.site-style-bold .hours-card{background:#1a1a1e;border-radius:4px;border-top:4px solid var(--rose-dark)}
+.site-category-fitness.site-style-bold .card,.site-category-fitness.site-style-bold .review-card,.site-category-fitness.site-style-bold .hours-card{background:#1a1a1e;border-radius:4px;border:0;border-top:4px solid var(--rose-dark)}
 .site-category-fitness.site-style-bold .gallery figure{border-radius:4px;filter:contrast(1.08) saturate(1.05)}
 .site-category-fitness.site-style-bold .band{clip-path:polygon(0 6%,100% 0,100% 100%,0 94%)}
 
