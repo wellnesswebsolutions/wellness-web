@@ -397,7 +397,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
-${heroHasPhoto ? '--header-surface:var(--rose-dark);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
+${heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
 --line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
