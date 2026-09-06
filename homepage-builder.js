@@ -34,25 +34,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let selectedTones = null;
   let uploadedHeroImage = null;
-  let selectedWebsiteStyle = 'modern';
   let heroRenderVersion = 0;
   // Must exist before the initial mobile sizing pass below. Previously this
   // was declared much later, so phones hit its temporal dead zone and aborted
   // the entire form setup before submit/input handlers were attached.
   let builderMobileView = false;
 
-  const builderStyleButtons = Array.from(document.querySelectorAll('.builder-style'));
-  builderStyleButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      selectedWebsiteStyle = button.dataset.style || 'modern';
-      builderStyleButtons.forEach((item) => {
-        const active = item === button;
-        item.classList.toggle('is-on', active);
-        item.setAttribute('aria-pressed', String(active));
-      });
-      refreshPreview();
-    });
-  });
+  // No style picker — each business category gets whichever of the four
+  // visual directions fits it best (see demo-generator.js for what each
+  // style actually looks like).
+  const STYLE_BY_CATEGORY = {
+    hairbeauty: 'elegant', aesthetics: 'elegant', health: 'elegant',
+    fitness: 'bold', automotive: 'bold', trades: 'bold',
+    homegarden: 'modern', fooddrink: 'modern', pets: 'modern', office: 'modern',
+    professional: 'studio', creative: 'studio'
+  };
+  function styleForCategory(label) {
+    const info = typeInfo(label);
+    return STYLE_BY_CATEGORY[info ? info.cat : 'office'] || 'modern';
+  }
 
   async function rerenderPersonalisedHero() {
     if (!bizNameInput.value.trim() || !bizLocation.value.trim()) return null;
@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
       about: '',
       phone: '',
       tones: selectedTones,
-      stylePreset: selectedWebsiteStyle,
+      stylePreset: styleForCategory(bizTagline.value),
       logo: null,
       heroImage: uploadedHeroImage
     };

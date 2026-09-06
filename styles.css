@@ -594,53 +594,50 @@
      which sits at a lower z-index. Only the actual visible pieces re-enable
      pointer events. */
   .builder-overlay{position:fixed;inset:0;z-index:60;pointer-events:none}
-  /* the personalised copy, style/device/fullscreen controls and the Q&A
-     pill all live in one row anchored to the bottom bar — see
-     .builder-bar-row-outer below — rather than a separate fixed strip
-     under the header, which used to eat extra height from the preview. */
+  /* the personalised copy, the device toggle and the Q&A pill (which now
+     carries the fullscreen button itself) all live in one row anchored to
+     the bottom bar — see .builder-bar-row-outer below — rather than a
+     separate fixed strip under the header, which used to eat extra height
+     from the preview. */
   .builder-topbar-copy{min-width:0;display:flex;flex-direction:column;line-height:1.25}
   .builder-topbar-copy strong{font-family:var(--display);font-size:14px;font-weight:700;color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .builder-topbar-copy span{font-size:12px;color:var(--accent);font-weight:600;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .builder-segmented{flex:none;display:flex;align-items:center;gap:2px;padding:3px;border-radius:999px;background:rgba(59,130,246,.08)}
-  .builder-styles{max-width:min(46vw,430px);overflow-x:auto;scrollbar-width:none}
-  .builder-styles::-webkit-scrollbar{display:none}
-  .builder-style,.builder-device{border:none;background:transparent;cursor:pointer;border-radius:999px;
+  .builder-device{border:none;background:transparent;cursor:pointer;border-radius:999px;
     padding:8px 14px;min-height:36px;font-family:var(--display);font-size:12px;font-weight:700;
     letter-spacing:.04em;color:var(--muted);transition:background .15s,color .15s}
-  .builder-style:hover,.builder-device:hover{color:var(--ink)}
-  .builder-style.is-on,.builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
-  .builder-open-html{flex:none;width:36px;height:36px;border:none;border-radius:50%;cursor:pointer;
+  .builder-device:hover{color:var(--ink)}
+  .builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
+  /* sits inside the Q&A row itself (next to the go button) so it's beside
+     the question box at every viewport width, mobile included */
+  .builder-open-html{flex:none;width:34px;height:34px;border:none;border-radius:50%;cursor:pointer;
     background:rgba(59,130,246,.08);color:var(--accent);display:flex;align-items:center;justify-content:center;
     transition:background .15s,color .15s}
   .builder-open-html svg{width:17px;height:17px}
   .builder-open-html:hover{background:rgba(59,130,246,.16);color:var(--ink)}
   .builder-controls{flex:none;display:flex;align-items:center;gap:8px}
-  /* copy left, Q&A pill centre, style/device/fullscreen controls right —
-     all in one row anchored to the bottom bar */
+  /* copy left, Q&A pill centre, device toggle right — all in one row
+     anchored to the bottom bar */
   .builder-bar-row-outer{display:flex;align-items:center;gap:18px;width:100%;max-width:1180px;margin:0 auto}
   .builder-bar-row-outer .builder-topbar-copy{order:1;flex:0 1 260px;min-width:0}
   .builder-bar-row-outer .builder-bar{order:2;flex:1 1 auto;min-width:0}
   .builder-bar-row-outer .builder-controls{order:3}
   /* Below the generated site's own 900px desktop breakpoint the frame can never
      be wider than the pane, so "Desktop" would render the mobile layout anyway
-     — the control would do literally nothing. Hide it rather than offer a
-     button that cannot work. */
+     — the control would do literally nothing. Hide the whole controls strip
+     (just the device toggle now) rather than leave an empty row behind. */
   @media(max-width:900px){
-    .builder-devices{display:none}
-    /* controls stack above the Q&A pill instead of sitting beside it */
+    .builder-controls{display:none}
     .builder-bar-row-outer{flex-direction:column;align-items:stretch;gap:10px}
     .builder-bar-row-outer .builder-topbar-copy{order:0;flex:none;text-align:center}
-    .builder-bar-row-outer .builder-controls{order:0;justify-content:center;flex-wrap:wrap}
     .builder-bar-row-outer .builder-bar{order:0}
   }
   @media(max-width:560px){
     .builder-topbar-copy strong{font-size:12.5px}
     .builder-topbar-copy span{font-size:11px}
     .builder-device{padding:8px 11px;font-size:11.5px}
-    .builder-styles{max-width:225px;gap:1px;padding:2px}
-    .builder-style{padding:7px 9px;min-height:32px;font-size:10.5px}
     .builder-open-html{width:32px;height:32px}
   }
   .builder-preview{position:fixed;top:var(--header-h, 75px);left:0;right:0;overflow:hidden;background:var(--bg);
