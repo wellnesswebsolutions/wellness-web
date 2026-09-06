@@ -366,15 +366,19 @@
     const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
     const sceneMarkup = d.heroImage || usingCategoryPhoto ? '' : sceneSVG(cat, t);
     const heroHasPhoto = !!(d.heroImage || usingCategoryPhoto);
-    // `contain`, not `cover`: cover crops the edges off to fill the band,
-    // zooming past the business name composited onto the wall. The heroes
-    // are 16:9 and the desktop hero box matches that ratio, so contain fills
-    // it edge to edge with the whole photograph visible. (Mobile overrides
-    // background-size separately, further down.)
+    // `cover`, not `contain`: the hero box is only nominally 16:9 — its
+    // real ratio depends on the viewport's height too (max-height caps it
+    // on short/wide viewports, and the builder's constrained preview iframe
+    // is often shorter relative to its width than a real desktop window).
+    // Whenever the box isn't exactly 16:9, `contain` letterboxes it — empty
+    // colour bars down the sides instead of the photo reaching the edges.
+    // `cover` always fills the box; the crop it costs is mild since the
+    // composited business name/logo already sits in a clamped-safe central
+    // panel, not spanning the frame's own edges.
     const heroBg = d.heroImage
-      ? `url('${d.heroImage}') center/contain no-repeat`
+      ? `url('${d.heroImage}') center/cover no-repeat`
       : usingCategoryPhoto
-        ? `url('${categoryPhoto}') center/contain no-repeat`
+        ? `url('${categoryPhoto}') center/cover no-repeat`
         : `linear-gradient(155deg,${t.dark},${t.light})`;
     const brandMark = d.logo
       ? `<img src="${d.logo}" alt="${esc(d.name)} logo" style="height:38px;width:auto;display:block">`
@@ -464,19 +468,14 @@ p{margin:0 0 1.1em}
 }
 .hero{position:relative;margin-top:75px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
 ${heroHasPhoto ? `@media(min-width:901px){
-  /* Match the hero band to the photograph's own 16:9 ratio so \`contain\`
-     fills it exactly — the full image, no zoomed-in crop. The background
-     colour only shows if a supplied photo is ever a different shape.
-     Capped at the same height as the non-photo hero below, or on a wide
-     viewport the width-driven 16:9 box grows taller than the screen and
-     pushes the bottom-aligned title/buttons past the fold. Once that cap
-     kicks in, a full-width box is wider than 16:9 for its own clamped
-     height, so \`contain\` letterboxes it — empty colour bars down each
-     side. Capping the width to match keeps the box itself a true 16:9
-     rectangle, centred, so the photo actually fills it edge to edge. */
-  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);
-    width:min(100%,calc(min(72vh,680px) * 16 / 9));margin-left:auto;margin-right:auto;
-    background-color:var(--ink)}
+  /* A 16:9 starting shape for the hero band, same as before, but height is
+     what actually varies here — capped at the same height as the non-photo
+     hero below, or on a wide/short viewport the width-driven 16:9 box grows
+     taller than the screen and pushes the bottom-aligned title/buttons past
+     the fold. \`cover\` (set above) fills whatever shape this ends up being,
+     so unlike \`contain\` this cap no longer needs the box's own width
+     capped to match — full width, no side letterboxing, at any height. */
+  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);background-color:var(--ink)}
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
