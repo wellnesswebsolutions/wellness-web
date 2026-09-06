@@ -469,8 +469,14 @@ ${heroHasPhoto ? `@media(min-width:901px){
      colour only shows if a supplied photo is ever a different shape.
      Capped at the same height as the non-photo hero below, or on a wide
      viewport the width-driven 16:9 box grows taller than the screen and
-     pushes the bottom-aligned title/buttons past the fold. */
-  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);background-color:var(--ink)}
+     pushes the bottom-aligned title/buttons past the fold. Once that cap
+     kicks in, a full-width box is wider than 16:9 for its own clamped
+     height, so \`contain\` letterboxes it — empty colour bars down each
+     side. Capping the width to match keeps the box itself a true 16:9
+     rectangle, centred, so the photo actually fills it edge to edge. */
+  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);
+    width:min(100%,calc(min(72vh,680px) * 16 / 9));margin-left:auto;margin-right:auto;
+    background-color:var(--ink)}
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
@@ -702,8 +708,8 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-bold h1,.site-style-bold h2,.site-style-bold h3{text-transform:uppercase;letter-spacing:.01em}
 .site-style-bold h1{font-size:clamp(3.4rem,8vw,7rem);line-height:.9}
 .site-style-bold h2{font-size:clamp(2.2rem,5vw,4.2rem);line-height:.95}
-.site-style-bold .site-header{background:rgba(11,25,41,.85);border-bottom:1px solid rgba(255,255,255,.12);box-shadow:none;backdrop-filter:blur(18px)}
-.site-style-bold .site-header .brand,.site-style-bold .site-header .nav a{color:#fff}
+.site-style-bold{--header-surface:#0b1929;--header-ink:#fff}
+.site-style-bold .site-header{background:color-mix(in srgb,var(--header-surface) 85%,transparent);border-bottom:1px solid rgba(255,255,255,.12);box-shadow:none;backdrop-filter:blur(18px)}
 .site-style-bold .site-header .nav a.btn{background:var(--rose-dark);border-color:var(--rose-dark);color:#0b1929}
 .site-style-bold .site-header .nav a.btn:hover{background:transparent;border-color:#fff;color:#fff}
 .site-style-bold .mobile-nav{background:#14263c;border-color:rgba(255,255,255,.14)}
