@@ -859,16 +859,26 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .hero-copy .inner>*{opacity:1;transform:none;animation:none}
 }
 
-/* Elegant's header, hero-copy panel and band all read as separate whites/
-   blacks against the hero photo's warm plaster wall. Tying all three to
-   that same beige unifies them into one surface, so the ink needs to be
-   dark everywhere (the band's white-on-dark text doesn't work on a light
-   beige) rather than each section picking its own contrast direction. */
+/* Elegant's header and band read as separate whites/blacks against the hero
+   photo's warm plaster wall. Ties both to that same beige, and darkens the
+   band's text (was white-on-dark, doesn't read on a light beige). The
+   hero-copy panel only gets this treatment on mobile (see media query
+   below) — on desktop it's a transparent overlay sitting directly on the
+   hero photo, so giving it a solid background there would wash the photo
+   out from underneath it. */
 .site-style-elegant .site-header,
-.site-style-elegant .hero .hero-copy,
 .site-style-elegant .band{background:#e7ddcf}
 .site-style-elegant .band{background-image:none;color:#2a2622}
 .site-style-elegant .band h2,.site-style-elegant .band .eyebrow,.site-style-elegant .band p{color:#2a2622}
+@media(max-width:900px){
+  .site-style-elegant .hero .hero-copy{background:#e7ddcf}
+}
+/* The floating pill header leaves the page's own backdrop visible around
+   it (see the html{background:var(--header-surface)} rule above, meant to
+   match a dark header/footer during overscroll bounce) — on a photo hero
+   that var is dark, so it showed as a stark black bar behind Elegant's
+   light pill instead of matching the page's own off-white. */
+.site-style-elegant{--header-surface:#fdfcfc}
 </style>
 </head>
 <body class="site-style-${styleName} site-category-${cat}">
