@@ -620,8 +620,6 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-modern .gallery figure:nth-child(2),.site-style-modern .gallery figure:nth-child(5){border-radius:8px 28px 8px 28px}
 .site-style-modern .gallery{grid-template-columns:1.35fr .825fr .825fr;grid-auto-rows:160px}
 .site-style-modern .gallery figure{height:100%;aspect-ratio:auto}
-.site-style-modern .gallery figure:first-child{grid-row:span 2}
-.site-style-modern .gallery figure:nth-child(6){grid-column:span 2}
 .site-style-modern .hero::after{background:linear-gradient(to right,rgba(20,25,30,.62),rgba(20,25,30,.12) 68%),linear-gradient(to top,rgba(20,25,30,.58),transparent 62%)}
 
 .site-style-elegant{background:#fdfcfc;--ink:#000;--body:#44403b;--muted:#777169;--champagne:#f5f3f1;--line:#ebe8e4}
@@ -654,8 +652,6 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-elegant .review-stars{font-size:.7rem}
 .site-style-elegant .gallery{grid-template-columns:1.25fr .75fr 1fr;grid-auto-rows:150px;gap:18px}
 .site-style-elegant .gallery figure{aspect-ratio:auto;height:100%;border-radius:20px;outline:1px solid rgba(255,255,255,.72);outline-offset:-9px}
-.site-style-elegant .gallery figure:nth-child(1),.site-style-elegant .gallery figure:nth-child(4){grid-row:span 2}
-.site-style-elegant .gallery figure:nth-child(3){grid-row:span 2}
 .site-style-elegant .band{margin:0 3%;background:#000;border-radius:24px}
 
 @media(max-width:900px){
@@ -798,7 +794,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-category-fooddrink .service-row-price{font-size:1.05rem}.site-category-fooddrink .service-group-title{text-transform:uppercase;letter-spacing:.14em;font-size:.8rem}
 .site-category-fitness .card{border-top:4px solid var(--rose-dark)}
 .site-category-trades .card,.site-category-automotive .card{border-radius:min(var(--radius),10px)}
-.site-category-creative .gallery figure:first-child{grid-column:span 2;aspect-ratio:16/7}
+.site-style-studio.site-category-creative .gallery figure:first-child{grid-column:span 2;aspect-ratio:16/7}
 .site-category-hairbeauty .gallery img,.site-category-aesthetics .gallery img{filter:saturate(.88) contrast(.96)}
 
 @media(max-width:900px){
