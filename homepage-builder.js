@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         category: bizTagline.value,
         businessName: bizNameInput.value.trim(),
         location: bizLocation.value.trim(),
-        logoHint: '(Your Custom Logo Here)',
         output: 'dataURL'
       });
       if (version !== heroRenderVersion) return null;
@@ -434,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
         category: bizTagline.value,
         businessName: name,
         location: loc,
-        logoHint: '(Your Custom Logo Here)',
         output: 'dataURL',
         width: isNarrowViewport ? 900 : 1600,
         height: isNarrowViewport ? 506 : 900
