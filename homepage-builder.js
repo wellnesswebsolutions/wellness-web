@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const builderBar = document.getElementById('builderBar');
   const builderBarRow = document.getElementById('builderBarRow');
   const builderBack = document.getElementById('builderBack');
-  const builderTopbar = document.getElementById('builderTopbar');
   const builderForName = document.getElementById('builderForName');
   const builderDeviceDesktop = document.getElementById('builderDeviceDesktop');
   const builderDeviceMobile = document.getElementById('builderDeviceMobile');
@@ -105,21 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // keeps the preview's bottom edge finishing above the floating question
   // bar instead of sliding underneath it — the bar's real height shifts
   // with mobile safe-area padding, so it's measured rather than assumed.
-  // The preview pane is short and wide (the header and question bar eat ~170px
-  // of height), so at full width it has a ~1.9 aspect where a real desktop
+  // The preview pane is short and wide (the question bar eats ~170px of
+  // height), so at full width it has a ~1.9 aspect where a real desktop
   // viewport is ~1.5. The generated site's hero is a 16:9 band, so at that
   // stretched ratio it grew taller than the pane and pushed its own CTA
   // buttons below the fold. Narrow the frame to a realistic desktop shape
   // instead — never below 960px, or the site would flip to its mobile layout
   // (breakpoint 900px) and stop being a desktop preview at all.
-  // The personalised strip sits between the header and the preview, so the
-  // preview's top offset has to account for its real measured height —
-  // otherwise the strip would overlap the top of the generated site.
-  function syncTopbarHeight() {
-    if (!builderTopbar) return;
-    const h = builderOverlay.hidden ? 0 : builderTopbar.getBoundingClientRect().height;
-    document.documentElement.style.setProperty('--builder-topbar-h', `${Math.round(h)}px`);
-  }
 
   // Matches the CSS above: under 900px the desktop control is hidden, so make
   // sure we are never left stuck in the mobile-view state after a resize or
@@ -147,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (builderBarWrap && builderPreview && 'ResizeObserver' in window) {
     const updateBuilderBottom = () => {
       builderPreview.style.bottom = `${builderBarWrap.getBoundingClientRect().height}px`;
-      syncTopbarHeight();
       syncDeviceControlAvailability();
       sizePreviewToDesktopRatio();
     };
@@ -340,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
     convRow.classList.remove('collapsed');
     qaBox.classList.remove('qa-box-done', 'qa-box-finish');
     builderOverlay.hidden = true;
-    syncTopbarHeight();
     setDocumentScrollLock(false);
     resetBuilderBar();
   }
@@ -470,7 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // Must run here, not just at load: while the overlay is hidden the preview
       // pane measures 0x0, so the sizing bails out and the frame would stay at
       // full pane width — the exact case that pushed the hero's CTA off-screen.
-      syncTopbarHeight();
       sizePreviewToDesktopRatio();
       setDocumentScrollLock(true);
       resetBuilderBar();
