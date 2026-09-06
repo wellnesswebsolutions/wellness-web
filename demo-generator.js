@@ -406,8 +406,8 @@ html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:
    shows whatever's behind the page content, and a plain white html/body
    there looked like a jarring, unstyled flash against a dark header or
    footer bordering it. */
-html{background:var(--header-surface)}
-body{margin:0;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
+html{background:var(--header-surface);overscroll-behavior-y:none}
+body{margin:0;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible;overscroll-behavior-y:none}
 img{max-width:100%;display:block}
 a{color:var(--rose-dark)}
 h1,h2,h3,h4{font-family:var(--heading-font);color:var(--ink);font-weight:600;line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}
@@ -642,9 +642,9 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-elegant h1,.site-style-elegant h2{letter-spacing:-.025em}
 .site-style-elegant h1{font-size:clamp(3rem,7vw,5.6rem);font-weight:500}
 .site-style-elegant h2{font-size:clamp(2.2rem,4.6vw,3.7rem);font-weight:500}
+.site-style-elegant{--header-surface:#fdfcfc;--header-ink:#000}
 .site-style-elegant .site-header{top:14px;left:3%;right:3%;border:1px solid #ebe8e4;background:rgba(253,252,252,.94);box-shadow:0 10px 36px rgba(68,64,59,.08);backdrop-filter:blur(18px)}
 .site-style-elegant .site-header .container{min-height:68px}
-.site-style-elegant .site-header .brand,.site-style-elegant .site-header .nav a{color:#000}
 .site-style-elegant .site-header .brand-text span{color:#777169}
 .site-style-elegant .brand-badge{border-radius:2px;border-width:1px;box-shadow:none}
 .site-style-elegant .btn{background:#000;color:#fff;border-color:#000;border-width:1px;border-radius:999px;letter-spacing:.12em}
@@ -775,6 +775,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-studio h1,.site-style-studio h2{font-weight:400;letter-spacing:-.065em}
 .site-style-studio h1{font-size:clamp(4.5rem,11vw,10rem);line-height:.78}
 .site-style-studio h2{font-size:clamp(3rem,7vw,6.5rem);line-height:.88}
+.site-style-studio{--header-surface:#fff;--header-ink:#050505}
 .site-style-studio .site-header{background:#fff;border-bottom:1px solid #050505;box-shadow:none}
 .site-style-studio .brand-badge,.site-style-studio .card,.site-style-studio .review-card,.site-style-studio .hours-card{border-radius:0;box-shadow:none}
 .site-style-studio .btn{border-radius:999px;background:transparent;color:#050505;border:1px solid #050505;letter-spacing:.04em;text-transform:none;box-shadow:none}
