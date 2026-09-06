@@ -41,7 +41,7 @@
         G('Nutrition', [['Nutrition consultation', 'From £45'], ['Meal planning', 'From £35'], ['Weight management', 'From £40'], ['Food intolerance testing', 'From £75'], ['Follow-up review', 'From £30']]),
         G('Clinics', [['Health screening', 'From £60'], ['Blood pressure check', 'From £15'], ['Vaccination', 'From £25'], ['Travel clinic', 'From £35'], ['General consultation', 'From £40']])
       ] },
-    { label: 'Fitness', cat: 'fitness', photo: 'fitness-hero.jpg', theme: '#414349',
+    { label: 'Fitness', cat: 'fitness', photo: 'fitness-hero.jpg', theme: '#c8322a',
       tagline: 'Training plans built around real life',
       desc: '{name} builds training plans around real life, not just the gym. Whether it’s 1-to-1 coaching, group sessions or nutrition advice, the goal is progress you can actually stick to.',
       groups: [

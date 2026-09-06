@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'Hair & Beauty': ['#a89a92', '#b07d93', '#847796', '#8d9a82'],
     'Aesthetics': ['#ada7a3', '#9b8ba6', '#82959a', '#b38d82'],
     'Health & Wellness': ['#9e826b', '#788c7a', '#77899c', '#9a7895'],
-    'Fitness': ['#4d5864', '#914b45', '#526d59', '#5b4d7c'],
+    'Fitness': ['#c8322a', '#e2672a', '#1f6fb2', '#5a3fa0'],
     'Automotive': ['#59636e', '#7a403c', '#36586a', '#4b4b4b'],
     'Trades': ['#6b625c', '#8a6337', '#3f6270', '#59654a'],
     'Home & Garden': ['#6b7a4a', '#827052', '#54736c', '#7e667c'],
