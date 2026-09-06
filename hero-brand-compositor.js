@@ -163,7 +163,7 @@
     const settings = options || {};
     const nameText = String(name || 'Your Business').trim().toUpperCase();
     const placeText = String(location || '').trim().toUpperCase();
-    const logoHint = String(settings.logoHint || '(Your Custom Logo Here)').trim();
+    const logoHint = String(settings.logoHint || '').trim();
 
     // Keep equal breathing room on every side. All measuring, wrapping and
     // centring happens inside this inset box, so a short or long name shares

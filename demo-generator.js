@@ -472,11 +472,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
-.demo-ribbon{position:absolute;z-index:4;top:14px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 28px);
-  padding:7px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(18,18,18,.5);backdrop-filter:blur(10px);
-  color:#fff;font-size:.61rem;font-weight:600;letter-spacing:.08em;text-align:center}
 @media(max-width:760px){.hero-photo-note{left:14px;right:14px;text-align:center}}
-@media(max-width:760px){.demo-ribbon{top:8px;font-size:.55rem;line-height:1.3;padding:6px 9px}}
 .hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(28,24,21,.55) 0%,rgba(28,24,21,.28) 34%,rgba(28,24,21,0) 62%),linear-gradient(to top,rgba(28,24,21,.8) 0%,rgba(28,24,21,.6) 26%,rgba(28,24,21,.24) 54%,rgba(28,24,21,0) 82%)}
 .hero .hero-copy{position:relative;z-index:2;width:100%;padding:0 0 3.4em}
 .hero .inner{max-width:1140px;margin:0 auto;padding:0 22px}
@@ -718,7 +714,6 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-bold .hero .btn--light{background:var(--rose-dark);border-color:var(--rose-dark);color:#0b1929}
 .site-style-bold .hero .btn--outline-light{background:transparent;border-color:rgba(255,255,255,.6);color:#fff}
 .site-style-bold .hero-tags{color:#fff}.site-style-bold .hero-tags span{border:1px solid rgba(255,255,255,.35)}
-.site-style-bold .demo-ribbon{background:rgba(11,25,41,.8)}
 .site-style-bold .section{background:#0b1929}.site-style-bold .section--tint{background:#14263c}
 .site-style-bold .section h2,.site-style-bold .section h3,.site-style-bold .section .lede{color:inherit}
 .site-style-bold .card,.site-style-bold .review-card,.site-style-bold .hours-card{background:#14263c;border:1px solid rgba(255,255,255,.1);border-radius:10px;box-shadow:none;color:#fff}
@@ -849,7 +844,6 @@ ${heroHasPhoto ? `@media(min-width:901px){
 
 <div class="page" data-page="home">
   <section class="hero">
-    <div class="demo-ribbon">Personalised demo · every section, colour and layout can be redesigned</div>
     ${sceneMarkup}
     ${heroHasPhoto ? '<span class="hero-photo-note">(This picture will be custom made for your business — it\u2019s just a demo picture for now)</span>' : ''}
     <div class="hero-copy">
