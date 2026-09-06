@@ -744,7 +744,25 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-bold .band{background:var(--rose-dark);color:#0b1929;text-align:left}
 .site-style-bold .band h2,.site-style-bold .band .eyebrow,.site-style-bold .band p{color:#0b1929}
 
+/* Fitness gets its own read on "bold": near-black instead of navy, sharper
+   corners, a diagonal cut on the hero (the GymLife-style gym-template look)
+   instead of the softer automotive/trades navy. Scoped to .site-category-
+   fitness so Automotive/Trades keep the calmer navy treatment. */
+.site-category-fitness.site-style-bold{background:#0d0d10;--champagne:#1a1a1e;--line:rgba(255,255,255,.1)}
+.site-category-fitness.site-style-bold h1,.site-category-fitness.site-style-bold h2,.site-category-fitness.site-style-bold h3{letter-spacing:.02em}
+.site-category-fitness.site-style-bold{--header-surface:#0d0d10}
+.site-category-fitness.site-style-bold .site-header{border-bottom:1px solid rgba(255,255,255,.08)}
+.site-category-fitness.site-style-bold .btn,.site-category-fitness.site-style-bold .brand-badge{border-radius:3px}
+.site-category-fitness.site-style-bold .btn{box-shadow:0 8px 24px color-mix(in srgb,var(--rose-dark) 45%,transparent)}
+.site-category-fitness.site-style-bold .hero{background-color:#0d0d10!important;clip-path:polygon(0 0,100% 0,100% 96%,0 100%)}
+.site-category-fitness.site-style-bold .hero::after{background:linear-gradient(0deg,#0d0d10 0 10%,rgba(13,13,16,.5) 48%,rgba(13,13,16,.15) 100%)}
+.site-category-fitness.site-style-bold .section{background:#0d0d10}.site-category-fitness.site-style-bold .section--tint{background:#1a1a1e}
+.site-category-fitness.site-style-bold .card,.site-category-fitness.site-style-bold .review-card,.site-category-fitness.site-style-bold .hours-card{background:#1a1a1e;border-radius:4px;border-top:4px solid var(--rose-dark)}
+.site-category-fitness.site-style-bold .gallery figure{border-radius:4px;filter:contrast(1.08) saturate(1.05)}
+.site-category-fitness.site-style-bold .band{clip-path:polygon(0 6%,100% 0,100% 100%,0 94%)}
+
 @media(max-width:900px){
+  .site-category-fitness.site-style-bold .hero{clip-path:none}
   .site-style-elegant .site-header{top:0;left:0;right:0;border-radius:0}
   .site-style-elegant .hero{width:100%;margin-top:68px;border-radius:0}
   .site-style-elegant .hero .hero-copy{text-align:center}
