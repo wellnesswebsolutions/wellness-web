@@ -431,12 +431,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Render the category hero while the timed loading sequence is playing,
       // rather than waiting until the animation has already finished.
+      // On a phone the hero only ever displays at phone width, but the
+      // multi-pass shadow/blur compositing (getImageData, several offset
+      // fillText passes) still costs the same either way — at the full
+      // 1600x900 canvas that was enough to push Safari's per-tab memory
+      // limit over the edge and get the WebContent process jetsam-killed,
+      // which looks exactly like "the page refreshes, then goes black".
+      // Rendering at a smaller canvas on narrow viewports cuts that cost
+      // without any visible loss, since it's downscaled to fit anyway.
+      const isNarrowViewport = window.innerWidth <= 480;
       const heroImagePromise = Promise.resolve().then(() => HeroBrandCompositor.render({
         category: bizTagline.value,
         businessName: name,
         location: loc,
         logoHint: '(Your Custom Logo Here)',
-        output: 'dataURL'
+        output: 'dataURL',
+        width: isNarrowViewport ? 900 : 1600,
+        height: isNarrowViewport ? 506 : 900
       })).catch((error) => {
         console.error(error);
         return null;
