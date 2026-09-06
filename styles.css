@@ -611,9 +611,10 @@
     letter-spacing:.04em;color:var(--muted);transition:background .15s,color .15s}
   .builder-style:hover,.builder-device:hover{color:var(--ink)}
   .builder-style.is-on,.builder-device.is-on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(36,27,46,.14)}
-  .builder-open-html{flex:none;border:none;cursor:pointer;border-radius:999px;padding:8px 16px;min-height:36px;
-    font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--accent);
-    background:rgba(59,130,246,.08);transition:background .15s,color .15s}
+  .builder-open-html{flex:none;width:36px;height:36px;border:none;border-radius:50%;cursor:pointer;
+    background:rgba(59,130,246,.08);color:var(--accent);display:flex;align-items:center;justify-content:center;
+    transition:background .15s,color .15s}
+  .builder-open-html svg{width:17px;height:17px}
   .builder-open-html:hover{background:rgba(59,130,246,.16);color:var(--ink)}
   /* Below the generated site's own 900px desktop breakpoint the frame can never
      be wider than the pane, so "Desktop" would render the mobile layout anyway
@@ -630,7 +631,7 @@
     .builder-device{padding:8px 11px;font-size:11.5px}
     .builder-styles{max-width:225px;gap:1px;padding:2px}
     .builder-style{padding:7px 9px;min-height:32px;font-size:10.5px}
-    .builder-open-html{padding:8px 11px;font-size:11.5px}
+    .builder-open-html{width:32px;height:32px}
   }
   /* offset by the strip as well as the header, or it would cover the preview's top */
   .builder-preview{position:fixed;top:calc(var(--header-h, 75px) + var(--builder-topbar-h, 0px));left:0;right:0;overflow:hidden;background:var(--bg);

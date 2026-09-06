@@ -464,8 +464,11 @@ p{margin:0 0 1.1em}
 ${heroHasPhoto ? `@media(min-width:901px){
   /* Match the hero band to the photograph's own 16:9 ratio so \`contain\`
      fills it exactly — the full image, no zoomed-in crop. The background
-     colour only shows if a supplied photo is ever a different shape. */
-  .hero{aspect-ratio:16/9;min-height:0;background-color:var(--ink)}
+     colour only shows if a supplied photo is ever a different shape.
+     Capped at the same height as the non-photo hero below, or on a wide
+     viewport the width-driven 16:9 box grows taller than the screen and
+     pushes the bottom-aligned title/buttons past the fold. */
+  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);background-color:var(--ink)}
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
