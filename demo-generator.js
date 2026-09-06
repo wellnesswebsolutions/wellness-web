@@ -401,6 +401,12 @@ ${heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-su
 --line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
+/* Matches the header/footer, not the page's own white sections: on a
+   phone the rubber-band overscroll bounce at the very top and bottom
+   shows whatever's behind the page content, and a plain white html/body
+   there looked like a jarring, unstyled flash against a dark header or
+   footer bordering it. */
+html{background:var(--header-surface)}
 body{margin:0;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible}
 img{max-width:100%;display:block}
 a{color:var(--rose-dark)}
@@ -617,8 +623,8 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .band h2,.band .eyebrow{color:#fff}
 .band .eyebrow{color:rgba(255,255,255,.8)}
 .band p{color:rgba(255,255,255,.88);max-width:56ch;margin-left:auto;margin-right:auto}
-.site-footer{background:#100e0c;color:rgba(255,255,255,.72);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center;border-top:1px solid rgba(255,255,255,.08)}
-.site-footer .brand{justify-content:center;display:inline-flex;color:#fff}
+.site-footer{background:var(--header-surface);color:color-mix(in srgb,var(--header-ink) 72%,transparent);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center;border-top:1px solid color-mix(in srgb,var(--header-ink) 8%,transparent)}
+.site-footer .brand{justify-content:center;display:inline-flex;color:var(--header-ink)}
 .legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
 
 /* Five visual directions share the same generated content while deliberately
