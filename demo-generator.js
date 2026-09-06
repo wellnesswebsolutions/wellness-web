@@ -858,6 +858,17 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .reveal{opacity:1;transform:none;transition:none}
   .hero-copy .inner>*{opacity:1;transform:none;animation:none}
 }
+
+/* Elegant's header, hero-copy panel and band all read as separate whites/
+   blacks against the hero photo's warm plaster wall. Tying all three to
+   that same beige unifies them into one surface, so the ink needs to be
+   dark everywhere (the band's white-on-dark text doesn't work on a light
+   beige) rather than each section picking its own contrast direction. */
+.site-style-elegant .site-header,
+.site-style-elegant .hero .hero-copy,
+.site-style-elegant .band{background:#e7ddcf}
+.site-style-elegant .band{background-image:none;color:#2a2622}
+.site-style-elegant .band h2,.site-style-elegant .band .eyebrow,.site-style-elegant .band p{color:#2a2622}
 </style>
 </head>
 <body class="site-style-${styleName} site-category-${cat}">
