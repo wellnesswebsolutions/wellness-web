@@ -880,7 +880,7 @@
      the preview image now form the card's own edge directly, no thick white
      frame around them. */
   .ex-view{position:relative;overflow:hidden;background:#F4EFE8;border-radius:0 0 16px 16px}
-  .ex-view iframe{position:absolute;top:0;left:0;border:0;transform-origin:top left;pointer-events:none}
+  .ex-view iframe,.ex-view img{position:absolute;top:0;left:0;border:0;transform-origin:top left;pointer-events:none}
   .ex-bar{height:26px;background:#efe9e0;border-radius:16px 16px 0 0;display:flex;align-items:center;gap:5px;padding:0 10px}
   .ex-bar i{width:7px;height:7px;border-radius:50%;background:#d9d0c2;flex:none}
   /* ---- homepage design carousel ----

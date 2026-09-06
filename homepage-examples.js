@@ -11,13 +11,21 @@
   // brand/logo — the card already gets its own fake browser chrome above it).
   const HEADER_CROP = 84;
 
+  // Static screenshots, not live iframes: this carousel used to embed all
+  // six sites live at once (each its own full page load, scripts and all),
+  // which on a phone was enough concurrent memory pressure to get Safari's
+  // WebContent process killed — seen as "the page refreshes, then goes
+  // black" within seconds of opening the homepage, before any interaction.
+  // The iframes were pointer-events:none anyway (see .ex-view iframe below),
+  // so nothing interactive was ever reachable inside them — a screenshot
+  // looks identical here and costs one image decode instead of a full page.
   const examples = [
-    { url: 'https://sisko-hairdressing.vercel.app' },
-    { url: 'https://kings-valeting-hull.vercel.app' },
-    { url: 'https://de-lacy.vercel.app' },
-    { url: 'https://muse-hull-deploy.vercel.app' },
-    { url: 'https://mgs-beverley.vercel.app' },
-    { url: 'https://brian-griffin-electrical.vercel.app' },
+    { url: 'https://sisko-hairdressing.vercel.app', image: 'img/work-previews/sisko.webp' },
+    { url: 'https://kings-valeting-hull.vercel.app', image: 'img/work-previews/kings-valeting.webp' },
+    { url: 'https://de-lacy.vercel.app', image: 'img/work-previews/de-lacy.webp' },
+    { url: 'https://muse-hull-deploy.vercel.app', image: 'img/work-previews/muse.webp' },
+    { url: 'https://mgs-beverley.vercel.app', image: 'img/work-previews/mgs-beverley.webp' },
+    { url: 'https://brian-griffin-electrical.vercel.app', image: 'img/work-previews/brian-griffin.webp' },
   ];
 
   function scaleFrame(view, iframe, intrinsicW, intrinsicH, cropTop) {
@@ -48,12 +56,12 @@
     card.innerHTML = `
       <div class="ex-frame ex-frame-desktop is-active">
         <div class="ex-bar" aria-hidden="true"><i></i><i></i><i></i></div>
-        <div class="ex-view"><iframe title="Example website preview" loading="lazy" src="${ex.url}" tabindex="-1"></iframe></div>
+        <div class="ex-view"><img alt="Screenshot of ${ex.url.replace(/^https:\/\/|\.vercel\.app$/g, '')}'s live homepage" loading="lazy" src="${ex.image}"></div>
       </div>`;
     grid.appendChild(card);
 
     const desktopFrame = card.querySelector('.ex-frame-desktop');
-    const desktopIframe = desktopFrame.querySelector('iframe');
+    const desktopIframe = desktopFrame.querySelector('img');
 
     function layout() {
       scaleFrame(desktopFrame.querySelector('.ex-view'), desktopIframe, DESKTOP_W, DESKTOP_H, HEADER_CROP);
