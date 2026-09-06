@@ -872,6 +872,13 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-elegant .band h2,.site-style-elegant .band .eyebrow,.site-style-elegant .band p{color:#2a2622}
 @media(max-width:900px){
   .site-style-elegant .hero .hero-copy{background:#e7ddcf}
+  /* Mobile shows the hero photo uncropped (background-size:contain) rather
+     than covering the box, so a photo whose aspect ratio isn't exactly
+     16:9 leaves a letterboxed gap that falls back to .hero's own
+     background-color — normally --rose-dark, a dark brown that read as a
+     stray solid block under the photo. Match it to the beige panels
+     instead of leaving it a different colour or trying to crop it away. */
+  .site-style-elegant .hero{background-color:#e7ddcf}
 }
 /* The floating pill header leaves the page's own backdrop visible around
    it (see the html{background:var(--header-surface)} rule above, meant to
