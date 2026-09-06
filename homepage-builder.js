@@ -135,12 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const builderBarWrap = document.querySelector('.builder-bar-wrap');
+  function updateBuilderBottom() {
+    if (!builderBarWrap || !builderPreview) return;
+    builderPreview.style.bottom = `${builderBarWrap.getBoundingClientRect().height}px`;
+    syncDeviceControlAvailability();
+    sizePreviewToDesktopRatio();
+  }
   if (builderBarWrap && builderPreview && 'ResizeObserver' in window) {
-    const updateBuilderBottom = () => {
-      builderPreview.style.bottom = `${builderBarWrap.getBoundingClientRect().height}px`;
-      syncDeviceControlAvailability();
-      sizePreviewToDesktopRatio();
-    };
     new ResizeObserver(updateBuilderBottom).observe(builderBarWrap);
     updateBuilderBottom();
     window.addEventListener('resize', updateBuilderBottom);
@@ -459,6 +460,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Must run here, not just at load: while the overlay is hidden the preview
       // pane measures 0x0, so the sizing bails out and the frame would stay at
       // full pane width — the exact case that pushed the hero's CTA off-screen.
+      // updateBuilderBottom also can't wait for its ResizeObserver alone: that
+      // observer doesn't reliably fire for this exact hidden-to-visible
+      // transition, which left the preview's bottom offset at 0 and the whole
+      // pane running under the bar until an actual window resize nudged it.
+      updateBuilderBottom();
       sizePreviewToDesktopRatio();
       setDocumentScrollLock(true);
       resetBuilderBar();
