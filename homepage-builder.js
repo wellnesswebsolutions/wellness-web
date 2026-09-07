@@ -576,9 +576,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const mediaModal = document.getElementById('builderMediaModal');
   const mediaEmailForm = document.getElementById('mediaEmailForm');
+  const mediaEmailSubject = document.getElementById('mediaEmailSubject');
   const mediaEmailBusiness = document.getElementById('mediaEmailBusiness');
   const mediaEmailCustomer = document.getElementById('mediaEmailCustomer');
   const mediaEmailCustomerAddress = document.getElementById('mediaEmailCustomerAddress');
+  const mediaEmailIndustry = document.getElementById('mediaEmailIndustry');
+  const mediaEmailLocation = document.getElementById('mediaEmailLocation');
+  const mediaEmailWebsite = document.getElementById('mediaEmailWebsite');
+  const mediaEmailSocial = document.getElementById('mediaEmailSocial');
+  const mediaEmailMediaNotes = document.getElementById('mediaEmailMediaNotes');
+  const mediaEmailPreviewFile = document.getElementById('mediaEmailPreviewFile');
   const mediaModalBackdrop = document.getElementById('mediaModalBackdrop');
   const mediaModalClose = document.getElementById('mediaModalClose');
   const logoUpload = document.getElementById('builderLogoUpload');
@@ -588,6 +595,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const mediaSaveBtn = document.getElementById('mediaSaveBtn');
   const mediaLaterBtn = document.getElementById('mediaLaterBtn');
   const mediaDesignerBtn = document.getElementById('mediaDesignerBtn');
+  const logoThumb = document.getElementById('builderLogoThumb');
+  const heroThumb = document.getElementById('builderHeroThumb');
+  const galleryThumb = document.getElementById('builderGalleryThumb');
+  const galleryThumbCount = document.getElementById('builderGalleryThumbCount');
 
   function getSelectedMedia() {
     return {
@@ -602,6 +613,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return [media.logo, media.hero, ...media.gallery].filter(Boolean).reduce((total, file) => total + file.size, 0);
   }
 
+  // shows a tiny thumbnail crop of whatever the customer just picked, on
+  // top of the option's letter icon, so it's obvious a file was actually
+  // attached rather than just trusting the text status line below.
+  function setThumb(imgEl, file) {
+    if (imgEl.dataset.objectUrl) {
+      URL.revokeObjectURL(imgEl.dataset.objectUrl);
+      delete imgEl.dataset.objectUrl;
+    }
+    if (!file) {
+      imgEl.hidden = true;
+      imgEl.src = '';
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    imgEl.dataset.objectUrl = url;
+    imgEl.src = url;
+    imgEl.hidden = false;
+  }
+
   function updateMediaSelectionStatus() {
     const media = getSelectedMedia();
     const parts = [];
@@ -610,6 +640,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (media.gallery.length) parts.push(`${media.gallery.length} gallery picture${media.gallery.length === 1 ? '' : 's'} added`);
     mediaSelectionStatus.textContent = parts.length ? parts.join(' · ') : 'No files selected yet.';
     mediaSaveBtn.disabled = !parts.length;
+
+    setThumb(logoThumb, media.logo);
+    setThumb(heroThumb, media.hero);
+    setThumb(galleryThumb, media.gallery[0] || null);
+    if (media.gallery.length > 1) {
+      galleryThumbCount.textContent = `+${media.gallery.length - 1}`;
+      galleryThumbCount.hidden = false;
+    } else {
+      galleryThumbCount.hidden = true;
+    }
   }
 
   function openMediaModal() {
@@ -837,17 +877,32 @@ Media: ${mediaChoice || selectedMediaSummary}`;
       status.textContent = sent
         ? 'Your details were accepted for email delivery. Press Send inside WhatsApp to message Tom.'
         : 'Email could not be confirmed. Please press Send inside WhatsApp so Tom receives your details.';
-      if (getSelectedMediaBytes() > 0) status.textContent += ' Files are sent separately; keep this page open and ask Tom to confirm receipt.';
     }).catch(() => {
       status.textContent = 'Email could not be confirmed. Please send your details in WhatsApp.';
     });
 
-    if (getSelectedMediaBytes() > 0) {
-      mediaEmailBusiness.value = businessName;
-      mediaEmailCustomer.value = fullName || 'Not provided';
-      mediaEmailCustomerAddress.value = email || 'Not provided';
-      mediaEmailForm.submit();
+    // Always send the full handoff email — business details, the exact
+    // generated preview (as an attached HTML file) and any photos the
+    // customer chose to upload — not just when media was attached.
+    mediaEmailSubject.value = `New BrightSite customer handoff — ${businessName}`;
+    mediaEmailBusiness.value = businessName;
+    mediaEmailCustomer.value = fullName || 'Not provided';
+    mediaEmailCustomerAddress.value = email || 'Not provided';
+    mediaEmailIndustry.value = businessType || 'Not provided';
+    mediaEmailLocation.value = location_ || 'Not provided';
+    mediaEmailWebsite.value = website || 'Not provided';
+    mediaEmailSocial.value = socialMedia || 'Not provided';
+    mediaEmailMediaNotes.value = mediaChoice || selectedMediaSummary;
+    try {
+      const previewHtml = buildDemoHTML(gatherData());
+      const previewFile = new File([previewHtml], `${businessName || 'preview'}-site-preview.html`, { type: 'text/html' });
+      const previewTransfer = new DataTransfer();
+      previewTransfer.items.add(previewFile);
+      mediaEmailPreviewFile.files = previewTransfer.files;
+    } catch (err) {
+      console.error('Could not attach site preview to handoff email', err);
     }
+    mediaEmailForm.submit();
 
     const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(completeMessage)}`;
     window.open(whatsappUrl, '_blank');

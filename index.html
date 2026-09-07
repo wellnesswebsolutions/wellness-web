@@ -12,13 +12,13 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#F7F2EC">
 <link rel="canonical" href="https://wellnessweb.co.uk/">
-<link rel="stylesheet" href="styles.css?v=20260907-5">
+<link rel="stylesheet" href="styles.css?v=20260907-6">
 <script src="reveal.js?v=20260902-4" defer></script>
 <script src="nav.js?v=20260902-4" defer></script>
 <script src="img-skeleton.js?v=20260907-1" defer></script>
 <script src="demo-generator.js?v=20260907-4" defer></script>
 <script src="hero-brand-compositor.js?v=20260906-1" defer></script>
-<script src="homepage-builder.js?v=20260906-1" defer></script>
+<script src="homepage-builder.js?v=20260907-2" defer></script>
 <script src="homepage-ui.js?v=20260902-4" defer></script>
 <script src="homepage-examples.js?v=20260906-2" defer></script>
 </head>
@@ -210,11 +210,18 @@
   <div class="media-modal" id="builderMediaModal" hidden>
     <button type="button" class="media-modal-backdrop" id="mediaModalBackdrop" aria-label="Close media options"></button>
     <form class="media-modal-card" id="mediaEmailForm" role="dialog" aria-modal="true" aria-labelledby="mediaModalTitle" action="https://formsubmit.co/wellnesswebsolutions@gmail.com" method="POST" enctype="multipart/form-data" target="mediaEmailTarget">
-      <input type="hidden" name="_subject" value="New BrightSite customer media">
+      <input type="hidden" name="_subject" id="mediaEmailSubject" value="New BrightSite customer handoff">
       <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="table">
       <input type="hidden" name="Business" id="mediaEmailBusiness">
       <input type="hidden" name="Customer" id="mediaEmailCustomer">
       <input type="hidden" name="Customer email" id="mediaEmailCustomerAddress">
+      <input type="hidden" name="Industry" id="mediaEmailIndustry">
+      <input type="hidden" name="Location" id="mediaEmailLocation">
+      <input type="hidden" name="Current website" id="mediaEmailWebsite">
+      <input type="hidden" name="Social media" id="mediaEmailSocial">
+      <input type="hidden" name="Media notes" id="mediaEmailMediaNotes">
+      <input type="file" id="mediaEmailPreviewFile" name="Site preview" hidden>
       <button type="button" class="media-modal-close" id="mediaModalClose" aria-label="Close media options">&times;</button>
       <div class="media-modal-kicker">Optional</div>
       <h2 id="mediaModalTitle">Add your media</h2>
@@ -222,17 +229,17 @@
 
       <div class="media-upload-grid">
         <label class="media-upload-option">
-          <span class="media-upload-icon" aria-hidden="true">L</span>
+          <span class="media-upload-icon" aria-hidden="true"><span class="media-upload-icon-letter">L</span><img class="media-upload-thumb" id="builderLogoThumb" alt="" hidden></span>
           <span><strong>Add your logo</strong><small>PNG, JPG, WEBP or SVG</small></span>
           <input type="file" id="builderLogoUpload" name="Logo" accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml">
         </label>
         <label class="media-upload-option">
-          <span class="media-upload-icon" aria-hidden="true">H</span>
+          <span class="media-upload-icon" aria-hidden="true"><span class="media-upload-icon-letter">H</span><img class="media-upload-thumb" id="builderHeroThumb" alt="" hidden></span>
           <span><strong>Add a homepage picture</strong><small>Your main hero image</small></span>
           <input type="file" id="builderHeroUpload" name="Homepage picture" accept="image/*">
         </label>
         <label class="media-upload-option">
-          <span class="media-upload-icon" aria-hidden="true">G</span>
+          <span class="media-upload-icon" aria-hidden="true"><span class="media-upload-icon-letter">G</span><img class="media-upload-thumb" id="builderGalleryThumb" alt="" hidden><span class="media-upload-thumb-count" id="builderGalleryThumbCount" hidden></span></span>
           <span><strong>Add gallery pictures</strong><small>Choose up to 6 images</small></span>
           <input type="file" id="builderGalleryUpload" name="Gallery pictures" accept="image/*" multiple>
         </label>
