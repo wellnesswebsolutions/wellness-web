@@ -254,6 +254,21 @@
       dark: hslToHex(h, Math.min(s + 2, 70), 44)
     };
   }
+  // Header/section background tint sampled directly off each category's
+  // own hero photo — specifically the same blank wall panel
+  // hero-brand-compositor.js draws the business name onto (see its SCENES
+  // object), averaged over that patch — rather than a generic tint
+  // computed from the category's swatch-picker theme colour. Most of
+  // these walls are a light, usable-as-background neutral on their own.
+  // fitness and automotive are the exception — their panel sits on a dark
+  // gym wall / van side deliberately, so those two are left out here and
+  // fall back to the old theme-derived formula, which gives a light tint
+  // instead of literally backgrounding the page in dark grey.
+  const CATEGORY_CHAMPAGNE = {
+    hairbeauty: '#d4c7b7', aesthetics: '#e0cfc0', health: '#e1d8d1',
+    trades: '#dcdde1', homegarden: '#cabaa9', fooddrink: '#d7c0a9',
+    professional: '#c9c5bf', creative: '#ddd7cf', pets: '#f3cdc5'
+  };
   const SITE_STYLE_PRESETS = {
     'modern': { heading: "'Manrope', sans-serif", body: "'Sora', sans-serif", radius: '16px', space: '5.2em', card: '0 18px 46px rgba(25,35,45,.10)' },
     'elegant': { heading: "'DM Sans', sans-serif", body: "'DM Sans', sans-serif", radius: '32px', space: '5.6em', card: 'none' },
@@ -437,13 +452,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};
-/* Hairbeauty/health don't derive --champagne from the theme colour like
-   every other category — they're sampled directly off the actual plaster
-   wall in their own hero photo (img/hero-logo-ready/hair-beauty.webp and
-   health-wellness.webp, the images the wall-logo compositor draws onto),
-   so the header/section tint is a real match for the photo behind it
-   rather than a same-ballpark approximation computed from the theme. */
---champagne:${cat === 'hairbeauty' ? '#d3c7b7' : cat === 'health' ? '#e5ded7' : 'color-mix(in srgb,var(--rose-dark) 10%,#fff)'};--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
+/* --champagne comes straight off the category's own hero photo (see
+   CATEGORY_CHAMPAGNE above) where that photo has a usable light wall —
+   a real match for the photo behind it, not an approximation computed
+   from the theme colour. */
+--champagne:${CATEGORY_CHAMPAGNE[cat] || 'color-mix(in srgb,var(--rose-dark) 10%,#fff)'};--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
 /* --header-surface also paints html's own background (see the
    overscroll-matching rule below), so it has to be set here at :root —
    a .site-style-elegant override further down only reaches body and its
@@ -452,8 +465,12 @@
    photo hero normally sets this to, so it gets its own branch rather than
    showing a black bar behind the pill. soft-luxury (Kate Bayar's real
    site) is the same story — her header is always solid champagne, fixed
-   at the top, never the dark-ink bar a photo hero otherwise sets this to. */
-${styleName === 'elegant' || styleName === 'soft-luxury' ? '--header-surface:var(--champagne);--header-ink:var(--ink);' : heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
+   at the top, never the dark-ink bar a photo hero otherwise sets this to.
+   Any category with a real sampled CATEGORY_CHAMPAGNE (see above) gets the
+   same treatment regardless of style preset — it's a colour taken from
+   that category's own hero photo, so the header should actually show it
+   rather than going dark-ink just because a photo hero is present. */
+${styleName === 'elegant' || styleName === 'soft-luxury' || CATEGORY_CHAMPAGNE[cat] ? '--header-surface:var(--champagne);--header-ink:var(--ink);' : heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
 --line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
@@ -994,7 +1011,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
     </div>
   </section>
 
-  <section class="section${(cat === 'hairbeauty' || cat === 'health') ? ' section--tint' : ''}">
+  <section class="section${CATEGORY_CHAMPAGNE[cat] ? ' section--tint' : ''}">
     <div class="container">
       ${(cat === 'hairbeauty' || cat === 'health') ? `
       <div class="grid grid-2" style="align-items:center;gap:48px">
