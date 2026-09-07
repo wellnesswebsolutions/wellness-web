@@ -24,7 +24,7 @@
     { url: 'https://kings-valeting-hull.vercel.app', image: 'img/work-previews/kings-valeting.webp' },
     { url: 'https://de-lacy.vercel.app', image: 'img/work-previews/de-lacy.webp' },
     { url: 'https://muse-hull-deploy.vercel.app', image: 'img/work-previews/muse.webp' },
-    { url: 'https://mgs-beverley.vercel.app', image: 'img/work-previews/mgs-beverley.webp' },
+    { url: 'https://mgs-beverley.vercel.app', image: 'img/work-previews/mgs-beverley.webp?v=20260907' },
     { url: 'https://brian-griffin-electrical.vercel.app', image: 'img/work-previews/brian-griffin.webp' },
   ];
 

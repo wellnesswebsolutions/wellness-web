@@ -163,6 +163,23 @@
   function galleryPhotoUrl(id) {
     return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=82`;
   }
+  // spare photos held in reserve per category: if a gallery image fails to
+  // load (dead Unsplash id, hotlink block) the front-end swaps in one of
+  // these rather than leaving a blank/black tile
+  const GALLERY_SPARE_IDS = {
+    hairbeauty: ['1580618672591-eb180b1a973f','1522336572468-97b06e8ef143'],
+    aesthetics: ['1512290923902-8a9f81dc236c','1583911860205-72f8ac8ddcbe'],
+    health: ['1666214280391-8ff5bd3c0bf0','1505751172876-fa1923c5c528'],
+    fitness: ['1517960413843-0aee8e2b3285','1526506118085-60ce8714f8c5'],
+    automotive: ['1478357750242-42c8f26c9d8b','1519641471654-76ce0107ad1b'],
+    trades: ['1541976590-713941681591','1416339306562-c4d80f3f9911'],
+    homegarden: ['1560184897-a6a1e6a76d84','1524758631624-e2822e304c36'],
+    fooddrink: ['1466978913421-dad2ebd01d17','1544148103-0773bf10d330'],
+    professional: ['1521737711867-e3b97375f902','1552664730-d307ca884978'],
+    creative: ['1517245386807-bb43f82c33c4','1454165804606-c3d57bc86b40'],
+    pets: ['1544568100-847a948585b9','1543466835-00a7907e9de1'],
+    office: ['1521737711867-e3b97375f902','1552664730-d307ca884978']
+  };
   function flattenGroups(t) {
     const items = t.groups.reduce((all, g) => all.concat(g.items), []);
     return { services: items.map(i => i[0]), prices: items.map(i => i[1]) };
@@ -238,7 +255,7 @@
     };
   }
   const SITE_STYLE_PRESETS = {
-    'modern': { heading: "'Manrope', sans-serif", body: "'Inter', sans-serif", radius: '16px', space: '5.2em', card: '0 18px 46px rgba(25,35,45,.10)' },
+    'modern': { heading: "'Manrope', sans-serif", body: "'Sora', sans-serif", radius: '16px', space: '5.2em', card: '0 18px 46px rgba(25,35,45,.10)' },
     'elegant': { heading: "'DM Sans', sans-serif", body: "'DM Sans', sans-serif", radius: '32px', space: '5.6em', card: 'none' },
     'bold': { heading: "'Bebas Neue', 'Arial Narrow', sans-serif", body: "'DM Sans', sans-serif", radius: '8px', space: '5em', card: 'none' },
     'soft-luxury': { heading: "'Cormorant Garamond', Georgia, serif", body: "'Montserrat', sans-serif", radius: '2px', space: '5.8em', card: '0 18px 50px rgba(28,24,21,.10)' },
@@ -249,7 +266,7 @@
     'clean-professional': { heading: "'Manrope', sans-serif", body: "'Inter', sans-serif", radius: '10px', space: '5.2em', card: '0 14px 36px rgba(25,35,45,.10)' },
     'editorial-portfolio': { heading: "'Fraunces', Georgia, serif", body: "'Inter', sans-serif", radius: '0px', space: '6.4em', card: '0 12px 34px rgba(20,24,20,.12)' },
     'friendly-modern': { heading: "'Nunito Sans', sans-serif", body: "'Nunito Sans', sans-serif", radius: '20px', space: '5.2em', card: '0 18px 44px rgba(48,36,24,.10)' },
-    'studio': { heading: "'Space Grotesk', sans-serif", body: "'Inter', sans-serif", radius: '0px', space: '6.2em', card: 'none' }
+    'studio': { heading: "'Fraunces', Georgia, serif", body: "'Sora', sans-serif", radius: '0px', space: '6.2em', card: 'none' }
   };
   function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   // customers type answers however they like ("isla spa", "HULL") — title
@@ -343,15 +360,16 @@
     const preset = SITE_STYLE_PRESETS[styleName];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
     const galleryPhotos = GALLERY_PHOTO_IDS[cat] || GALLERY_PHOTO_IDS.office;
+    const gallerySpares = (GALLERY_SPARE_IDS[cat] || GALLERY_SPARE_IDS.office).map(galleryPhotoUrl);
     const gallery = galleryPhotos.map((photoId, i) => `
       <figure class="gallery-demo" aria-label="Demo gallery image ${i + 1} for ${esc(d.name)}">
-        <img src="${galleryPhotoUrl(photoId)}" alt="Sample ${esc(info ? info.label : 'business')} photograph ${i + 1}" loading="lazy" referrerpolicy="no-referrer">
+        <img src="${galleryPhotoUrl(photoId)}" alt="Sample ${esc(info ? info.label : 'business')} photograph ${i + 1}" loading="lazy" referrerpolicy="no-referrer" data-spares="${esc(JSON.stringify(gallerySpares))}">
         <figcaption>Demo image</figcaption>
       </figure>`).join('');
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
     const defaultDesc = info ? info.desc.replace(/\{name\}/g, d.name) : `${d.name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.`;
     const heroHook = info ? info.tagline : (d.tagline || 'Tell us what makes you different — this line introduces your business.');
-    const heroSub = d.tagline ? `${d.tagline} — ${heroHook}` : heroHook;
+    const heroSub = d.tagline ? `${d.name} — ${d.tagline}` : d.name;
     const galleryHeadings = { hairbeauty:'Inside the salon',aesthetics:'Inside the clinic',health:'Inside the practice',fitness:'Inside the studio',automotive:'Inside the workshop',trades:'Recent work',homegarden:'Recent projects',fooddrink:'From our kitchen',professional:'Our work',creative:'Selected work',pets:'Meet our happy clients',office:'Our work' };
     const galleryHeading = galleryHeadings[cat] || 'Our work';
     const reviewCopy = [
@@ -375,10 +393,15 @@
     // `cover` always fills the box; the crop it costs is mild since the
     // composited business name/logo already sits in a clamped-safe central
     // panel, not spanning the frame's own edges.
+    // most category hero photos crop fine from dead centre, but this one is
+    // a long, deep meeting-room shot — a centred crop lands on the ceiling
+    // instead of the table, so it needs its own focal point
+    const HERO_FOCAL_POSITION = { professional: 'center 78%', pets: 'center 22%' };
+    const heroPos = HERO_FOCAL_POSITION[cat] || 'center';
     const heroBg = d.heroImage
       ? `url('${d.heroImage}') center/cover no-repeat`
       : usingCategoryPhoto
-        ? `url('${categoryPhoto}') center/cover no-repeat`
+        ? `url('${categoryPhoto}') ${heroPos}/cover no-repeat`
         : `linear-gradient(155deg,${t.dark},${t.light})`;
     const brandMark = d.logo
       ? `<img src="${d.logo}" alt="${esc(d.name)} logo" style="height:38px;width:auto;display:block">`
@@ -394,7 +417,7 @@
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='${t.dark}'/><text x='32' y='33' text-anchor='middle' dominant-baseline='central' font-family='Inter, Arial, sans-serif' font-weight='700' font-size='26' fill='#fff'>${esc(initials)}</text></svg>`)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
 /* --header-surface also paints html's own background (see the
@@ -495,7 +518,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
      width:auto instead of an explicit cap. Forcing width:100% wins over
      aspect-ratio once max-height also applies; cover doesn't need the
      ratio preserved anyway. */
-  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);width:100%;background-color:var(--ink)}
+  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);width:100%;background-color:var(--rose-dark)}
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
@@ -518,7 +541,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
      then sits in its own panel below, so buttons never cover the sentence. */
   .hero{--mobile-hero-height:clamp(180px,56.25vw,440px);display:block;min-height:0;margin-top:75px;
     padding-top:var(--mobile-hero-height);background-size:contain;
-    background-position:center top;background-repeat:no-repeat;background-color:var(--ink)}
+    background-position:center top;background-repeat:no-repeat;background-color:var(--rose-dark)}
   .hero::after{inset:0 0 auto;height:var(--mobile-hero-height);
     background:linear-gradient(to top,rgba(28,24,21,.24),rgba(28,24,21,0) 58%)}
   /* The photo is only the top padding-box of .hero here — the copy panel
@@ -632,7 +655,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .band p{color:rgba(255,255,255,.88);max-width:56ch;margin-left:auto;margin-right:auto}
 .site-footer{background:var(--header-surface);color:color-mix(in srgb,var(--header-ink) 72%,transparent);padding:3.5em 0 2.5em;font-size:.92rem;text-align:center;border-top:1px solid color-mix(in srgb,var(--header-ink) 8%,transparent)}
 .site-footer .brand{justify-content:center;display:inline-flex;color:var(--header-ink)}
-.legal{margin-top:2em;padding-top:1.6em;border-top:1px solid rgba(255,255,255,.14);font-size:.82rem;color:rgba(255,255,255,.55)}
+.legal{margin-top:2em;padding-top:1.6em;border-top:1px solid color-mix(in srgb,var(--header-ink) 14%,transparent);font-size:.82rem;color:color-mix(in srgb,var(--header-ink) 55%,transparent)}
 
 /* Five visual directions share the same generated content while deliberately
    reshaping the hero, cards, reviews and gallery around it. */
@@ -736,7 +759,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-bold .brand-badge{border-radius:8px;background:var(--rose-dark);box-shadow:0 0 24px color-mix(in srgb,var(--rose-dark) 50%,transparent)}
 .site-style-bold .btn{border-radius:6px;background:var(--rose-dark);border-color:var(--rose-dark);color:#0b1929;font-weight:700;box-shadow:none}
 .site-style-bold .hero{background-color:#0b1929!important}
-.site-style-bold .hero::after{background:linear-gradient(0deg,#0b1929 0 8%,rgba(11,25,41,.55) 45%,rgba(11,25,41,.1) 100%)}
+.site-style-bold .hero::after{background:linear-gradient(0deg,#0b1929 0 4%,rgba(11,25,41,.45) 32%,rgba(11,25,41,.1) 70%,rgba(11,25,41,0) 100%)}
 .site-style-bold .hero h1,.site-style-bold .hero p,.site-style-bold .hero .eyebrow{color:#fff;text-shadow:none}
 .site-style-bold .hero .btn--light{background:var(--rose-dark);border-color:var(--rose-dark);color:#0b1929}
 .site-style-bold .hero .btn--outline-light{background:transparent;border-color:rgba(255,255,255,.6);color:#fff}
@@ -762,11 +785,12 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-category-fitness.site-style-bold .btn,.site-category-fitness.site-style-bold .brand-badge{border-radius:3px}
 .site-category-fitness.site-style-bold .btn{box-shadow:0 8px 24px color-mix(in srgb,var(--rose-dark) 45%,transparent)}
 .site-category-fitness.site-style-bold .hero{background-color:#0d0d10!important;clip-path:polygon(0 0,100% 0,100% 96%,0 100%)}
-.site-category-fitness.site-style-bold .hero::after{background:linear-gradient(0deg,#0d0d10 0 10%,rgba(13,13,16,.5) 48%,rgba(13,13,16,.15) 100%)}
+.site-category-fitness.site-style-bold .hero::after{background:linear-gradient(0deg,#0d0d10 0 4%,rgba(13,13,16,.42) 32%,rgba(13,13,16,.08) 70%,rgba(13,13,16,0) 100%)}
 .site-category-fitness.site-style-bold .section{background:#0d0d10}.site-category-fitness.site-style-bold .section--tint{background:#1a1a1e}
 .site-category-fitness.site-style-bold .card,.site-category-fitness.site-style-bold .review-card,.site-category-fitness.site-style-bold .hours-card{background:#1a1a1e;border-radius:4px;border:0;border-top:4px solid var(--rose-dark)}
 .site-category-fitness.site-style-bold .gallery figure{border-radius:4px;filter:contrast(1.08) saturate(1.05)}
 .site-category-fitness.site-style-bold .band{clip-path:polygon(0 6%,100% 0,100% 100%,0 94%)}
+.site-category-fitness.site-style-bold .band,.site-category-fitness.site-style-bold .band h2,.site-category-fitness.site-style-bold .band .eyebrow,.site-category-fitness.site-style-bold .band p{color:#fff}
 
 @media(max-width:900px){
   .site-category-fitness.site-style-bold .hero{clip-path:none}
@@ -804,6 +828,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-studio .site-header{background:#fff;border-bottom:1px solid #050505;box-shadow:none}
 .site-style-studio .brand-badge,.site-style-studio .card,.site-style-studio .review-card,.site-style-studio .hours-card{border-radius:0;box-shadow:none}
 .site-style-studio .btn{border-radius:999px;background:transparent;color:#050505;border:1px solid #050505;letter-spacing:.04em;text-transform:none;box-shadow:none}
+.site-style-studio .site-header .nav a.btn,.site-style-studio .mobile-nav .btn{color:#050505}
 .site-style-studio .hero{min-height:min(82vh,780px);background-size:cover;background-position:center}
 .site-style-studio .hero::before{display:none}
 .site-style-studio .hero::after{z-index:1;background:linear-gradient(to top,rgba(0,0,0,.76),rgba(0,0,0,.06) 75%)}
@@ -917,7 +942,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
     <div class="hero-copy">
       <div class="inner">
         <span class="eyebrow">${esc(eyebrowLoc)}</span>
-        <h1 class="hero-title">${esc(d.name)}</h1>
+        <h1 class="hero-title">${esc(heroHook)}</h1>
         <p class="hero-sub">${esc(heroSub)}</p>
         <div class="btn-row">
           <a class="btn btn--light" href="#" data-nav="contact">${esc(goalLabel)}</a>
@@ -932,7 +957,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
     <div class="container">
       <div class="center" style="margin-bottom:2.4em">
         <span class="eyebrow">Welcome to ${esc(d.name)}</span>
-        <h2>${esc(heroHook) || 'Everything you need, in one place'}</h2>
+        <h2>Everything you need, in one place</h2>
         <p class="lede center">${esc(d.about) || esc(defaultDesc)}</p>
       </div>
       <div class="grid grid-3" style="gap:20px">${popularCards}</div>
@@ -1098,6 +1123,18 @@ ${heroHasPhoto ? `@media(min-width:901px){
 // and the parent page (showing this in a preview frame) is told which
 // page is active so its address bar can reflect it.
 var slug = ${JSON.stringify(d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'your-business')};
+// a gallery photo that fails to load (dead Unsplash id, hotlink block)
+// gets swapped for a spare rather than left as a blank/black tile
+document.querySelectorAll('.gallery-demo img[data-spares]').forEach(function (img) {
+  img.addEventListener('error', function () {
+    var spares;
+    try { spares = JSON.parse(img.getAttribute('data-spares') || '[]'); } catch (e) { spares = []; }
+    var next = spares.shift();
+    img.setAttribute('data-spares', JSON.stringify(spares));
+    if (next) { img.src = next; }
+    else { img.closest('.gallery-demo').remove(); }
+  }, { once: false });
+});
 var menuToggle = document.querySelector('.menu-toggle');
 var mobileNav = document.getElementById('mobileNav');
 function closeMobileMenu() {
