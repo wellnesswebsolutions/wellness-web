@@ -338,7 +338,12 @@
           <h3>${esc(g.name)}</h3>
         </a>`).join('')
       : '';
-    const tags = services.slice(0, 4).map(s => `<span>${esc(s)}</span>`).join('');
+    // Kate Bayar's hero shows six treatment names in a row (Advanced
+    // Facials · CACI · Massage · Nails · Waxing · Lashes) — match that
+    // count for the two categories now forced onto her template; every
+    // other category keeps the shorter four-tag row it had before.
+    const tagCount = (cat === 'hairbeauty' || cat === 'health') ? 6 : 4;
+    const tags = services.slice(0, tagCount).map(s => `<span>${esc(s)}</span>`).join('');
     // fake but plausible contact details for the demo — Ofcom reserves
     // 07700 900xxx for fictional use, so it's never a real number. Once the
     // customer's given their real number (builder Q3), use that instead.
@@ -356,7 +361,19 @@
     // palette derived from their category's own hero photo (so a demo
     // for e.g. Automotive doesn't default to a rose/taupe salon palette)
     const t = d.tones || (info && info.theme ? tonesFromHex(info.theme) : { light: '#d9cdc1', base: '#a3878b', dark: '#8a6d72' });
-    const styleName = ['modern', 'elegant', 'bold', 'studio'].includes(d.stylePreset) ? d.stylePreset : 'modern';
+    // Hair & Beauty and Health & Wellness always get 'soft-luxury' now —
+    // its tokens (2px radius, Montserrat body, that exact shadow) were
+    // reverse-engineered from katebayar.co.uk's real stylesheet, the site
+    // this whole generator's markup/class-names were modelled on (see the
+    // "(Bayar-style treatment menu)" / "(Bayar Beauty-style)" comments
+    // below). It has no dedicated .site-style-soft-luxury override block,
+    // which is correct: Kate's real site doesn't reshape the base header/
+    // hero/button CSS at all (no floating pill, no rounded hero card, sharp
+    // buttons) — it only swaps fonts/radius/shadow, exactly what this
+    // preset's tokens alone do against the unstyled base rules further down.
+    const styleName = (cat === 'hairbeauty' || cat === 'health')
+      ? 'soft-luxury'
+      : ['modern', 'elegant', 'bold', 'studio'].includes(d.stylePreset) ? d.stylePreset : 'modern';
     const preset = SITE_STYLE_PRESETS[styleName];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
     const galleryPhotos = GALLERY_PHOTO_IDS[cat] || GALLERY_PHOTO_IDS.office;
@@ -426,8 +443,10 @@
    descendants, never html itself, since custom properties only cascade
    downward. Elegant's floating pill header is beige, not the dark ink a
    photo hero normally sets this to, so it gets its own branch rather than
-   showing a black bar behind the pill. */
-${styleName === 'elegant' ? '--header-surface:#e7ddcf;--header-ink:var(--ink);' : heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
+   showing a black bar behind the pill. soft-luxury (Kate Bayar's real
+   site) is the same story — her header is always solid champagne, fixed
+   at the top, never the dark-ink bar a photo hero otherwise sets this to. */
+${styleName === 'elegant' || styleName === 'soft-luxury' ? '--header-surface:var(--champagne);--header-ink:var(--ink);' : heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
 --line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
@@ -535,6 +554,9 @@ ${heroHasPhoto ? `@media(min-width:901px){
   display:flex;align-items:center;justify-content:center;margin-right:11px;border:1px solid rgba(255,255,255,.42);
   box-shadow:0 5px 16px color-mix(in srgb,var(--rose-dark) 28%,transparent);
   font-family:var(--body-font);font-weight:700;letter-spacing:.04em;color:#fff;font-size:.68rem;line-height:1}
+/* Kate Bayar's real header has no circular initials badge, just her
+   logo/name — drop it for the two categories now modelled on her site. */
+.site-category-hairbeauty .brand-badge,.site-category-health .brand-badge{display:none}
 @media(max-width:900px){
   /* Mobile uses the hero photograph as a complete 16:9 image rather than
      cropping a desktop background into a tall portrait panel. The content
@@ -567,6 +589,13 @@ ${heroHasPhoto ? `@media(min-width:901px){
 }
 @media(max-width:360px){
   .hero .btn-row{grid-template-columns:1fr}
+}
+/* Bayar's hero keeps its treatment-name row on mobile instead of hiding
+   it — re-enable it just for the two categories forced onto her template,
+   centred and tightened up to sit under the (also centred) mobile hero copy. */
+@media(max-width:900px){
+  .site-category-hairbeauty .hero-tags,.site-category-health .hero-tags{
+    display:flex;justify-content:center;gap:6px 16px;margin-top:1.3em}
 }
 @media(max-width:760px){.hero{margin-top:68px}}
 .grid{display:grid;gap:26px}
@@ -955,6 +984,18 @@ ${heroHasPhoto ? `@media(min-width:901px){
 
   <section class="section">
     <div class="container">
+      ${(cat === 'hairbeauty' || cat === 'health') ? `
+      <div class="grid grid-2" style="align-items:center;gap:48px">
+        <div>
+          <span class="eyebrow">Welcome to ${esc(d.name)}</span>
+          <h2>Everything you need, in one place</h2>
+          <p class="lede">${esc(d.about) || esc(defaultDesc)}</p>
+          <div class="btn-row">
+            <a class="btn btn--ghost" href="#" data-nav="services">${esc(categoryUi.secondary)}</a>
+          </div>
+        </div>
+        <div class="grid" style="gap:20px">${popularCards}</div>
+      </div>` : `
       <div class="center" style="margin-bottom:2.4em">
         <span class="eyebrow">Welcome to ${esc(d.name)}</span>
         <h2>Everything you need, in one place</h2>
@@ -963,7 +1004,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
       <div class="grid grid-3" style="gap:20px">${popularCards}</div>
       <div class="btn-row" style="justify-content:center;margin-top:2.2em">
         <a class="btn btn--ghost" href="#" data-nav="services">${esc(categoryUi.secondary)}</a>
-      </div>
+      </div>`}
     </div>
   </section>
 
