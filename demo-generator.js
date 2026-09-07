@@ -546,7 +546,9 @@ p{margin:0 0 1.1em}
 }
 .hero{position:relative;margin-top:75px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
 ${heroHasPhoto ? `@media(min-width:901px){
-  /* A 16:9 starting shape for the hero band, same as before, but height is
+  /* A 16:10 starting shape for the hero band — taller than the old 16:9 so
+     less of the source photo gets cropped away top/bottom before cover
+     even gets to it — but height is
      what actually varies here — capped at the same height as the non-photo
      hero below, or on a wide/short viewport the width-driven 16:9 box grows
      taller than the screen and pushes the bottom-aligned title/buttons past
@@ -560,7 +562,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
      width:auto instead of an explicit cap. Forcing width:100% wins over
      aspect-ratio once max-height also applies; cover doesn't need the
      ratio preserved anyway. */
-  .hero{aspect-ratio:16/9;min-height:0;max-height:min(72vh,680px);width:100%;background-color:var(--rose-dark)}
+  .hero{aspect-ratio:16/10;min-height:0;max-height:min(72vh,680px);width:100%;background-color:var(--rose-dark)}
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
