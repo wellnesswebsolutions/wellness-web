@@ -863,14 +863,11 @@
   .pricing-note{max-width:760px;margin:32px auto 0;text-align:center;font-size:13px;line-height:1.6;color:var(--muted)}
   @media(max-width:900px){.plan.feature{transform:none}}
 
-  /* monthly-tier toggle + bigger monthly price */
-  .price-toggle{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--bg2,rgba(0,0,0,.04));margin-bottom:16px}
+  /* monthly-tier toggle (£15/£20) shown under the one-off price */
+  .price-toggle{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--bg2,rgba(0,0,0,.04));margin:12px 0 16px}
   .price-tab{border:none;background:transparent;font:inherit;font-size:12.5px;font-weight:700;
     padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--muted);font-family:var(--body)}
   .price-tab.active{background:var(--accent);color:#fff}
-  .plan .price-mo{font-family:var(--display);font-size:42px;font-weight:700;line-height:1}
-  .plan .price-mo small{font-size:16px;font-weight:600;color:var(--muted);font-family:var(--body)}
-  .plan .price-once{display:inline-block;font-size:14px;font-weight:600;color:var(--muted);font-family:var(--body);margin-left:8px}
   .plan li.extra-feature[hidden]{display:none}
 
   /* ---- mobile polish ---- */

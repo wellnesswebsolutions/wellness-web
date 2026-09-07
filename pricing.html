@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Pricing — BrightSite</title>
-<meta name="description" content="Simple pricing for custom websites: Pro (£199) or Prestige (£399), each with SEO, hosting and management from £10/month.">
+<meta name="description" content="Simple pricing for custom websites: Pro (£199) or Prestige (£399), each with SEO, hosting and £15/month management.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -61,11 +61,11 @@
           <div class="kicker">Great value</div>
           <h4>Pro</h4>
           <div class="desc">A professional custom website with everything it needs to perform.</div>
+          <div class="price">£199<span class="price-plus">+ £15/mo</span></div>
           <div class="price-toggle" role="tablist" aria-label="Monthly plan for Pro">
-            <button type="button" class="price-tab active" data-price="10">£10/mo</button>
+            <button type="button" class="price-tab active" data-price="15">£15/mo</button>
             <button type="button" class="price-tab" data-price="20">£20/mo</button>
           </div>
-          <div class="price"><span class="price-mo">£10<small>/mo</small></span><span class="price-once">+ £199 one-off</span></div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <ul>
             <li>3–5 custom-designed pages</li>
@@ -81,11 +81,11 @@
           <div class="kicker">Best balance</div>
           <h4>Prestige</h4>
           <div class="desc">Everything in Pro, with a bigger, more capable site.</div>
+          <div class="price">£399<span class="price-plus">+ £15/mo</span></div>
           <div class="price-toggle" role="tablist" aria-label="Monthly plan for Prestige">
-            <button type="button" class="price-tab active" data-price="10">£10/mo</button>
+            <button type="button" class="price-tab active" data-price="15">£15/mo</button>
             <button type="button" class="price-tab" data-price="20">£20/mo</button>
           </div>
-          <div class="price"><span class="price-mo">£10<small>/mo</small></span><span class="price-once">+ £399 one-off</span></div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <ul>
             <li>Everything in Pro</li>
@@ -98,20 +98,20 @@
           <a href="contact.html" class="go">Enquire</a>
         </div>
       </div>
-      <p class="pricing-note">£10/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking or advanced enquiry form for £20/month instead. Cancel any time.</p>
+      <p class="pricing-note">£15/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking or advanced enquiry form for £20/month instead. Cancel any time.</p>
     </div>
   </section>
   <script>
     document.querySelectorAll('[data-plan-toggle]').forEach(function(plan){
       var tabs = plan.querySelectorAll('.price-tab');
-      var priceMo = plan.querySelector('.price-mo');
+      var pricePlus = plan.querySelector('.price-plus');
       var extra = plan.querySelector('.extra-feature');
       tabs.forEach(function(tab){
         tab.addEventListener('click', function(){
           tabs.forEach(function(t){ t.classList.remove('active'); });
           tab.classList.add('active');
           var val = tab.getAttribute('data-price');
-          priceMo.innerHTML = '£' + val + '<small>/mo</small>';
+          pricePlus.textContent = '+ £' + val + '/mo';
           if (extra) extra.hidden = val !== '20';
         });
       });
