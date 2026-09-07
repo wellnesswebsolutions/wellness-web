@@ -470,7 +470,7 @@
    same treatment regardless of style preset — it's a colour taken from
    that category's own hero photo, so the header should actually show it
    rather than going dark-ink just because a photo hero is present. */
-${styleName === 'elegant' || styleName === 'soft-luxury' || CATEGORY_CHAMPAGNE[cat] ? '--header-surface:var(--champagne);--header-ink:var(--ink);' : heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
+${styleName === 'elegant' || styleName === 'soft-luxury' || (CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold') ? '--header-surface:var(--champagne);--header-ink:var(--ink);' : heroHasPhoto ? '--header-surface:var(--ink);--header-ink:#fff;' : '--header-surface:color-mix(in srgb,var(--taupe) 28%,var(--champagne));--header-ink:var(--ink);'}
 --line:color-mix(in srgb,var(--rose-dark) 20%,transparent);--radius:${preset.radius};--shadow:${preset.card};--heading-font:${preset.heading};--body-font:${preset.body};--section-space:${preset.space}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:auto}
@@ -774,12 +774,19 @@ ${heroHasPhoto ? `@media(min-width:901px){
    language. The markup and data stay identical across all three styles. */
 .site-style-elegant{background:#fdfcfe;--ink:color-mix(in srgb,var(--rose-dark) 72%,#211b32);--body:#35313e;--muted:#86848d;--champagne:color-mix(in srgb,var(--rose) 20%,#fdfcfe);--line:color-mix(in srgb,var(--rose-dark) 18%,transparent)}
 .site-style-elegant h1,.site-style-elegant h2{font-weight:300;letter-spacing:-.035em;text-transform:none}
-.site-style-elegant .site-header{top:14px;left:4%;right:4%;background:rgba(253,252,254,.9);border:1px solid var(--line);border-radius:999px;box-shadow:none}
+.site-style-elegant .site-header{top:14px;left:4%;right:4%;background:color-mix(in srgb,var(--champagne) 90%,transparent);border:1px solid var(--line);border-radius:999px;box-shadow:none}
 .site-style-elegant .site-header .container{min-height:64px}
 .site-style-elegant .site-header .nav a.btn{background:var(--ink);border-color:var(--ink);color:#fff}
 .site-style-elegant .site-header .nav a.btn:hover{background:transparent;border-color:var(--ink);color:var(--ink)}
 .site-style-elegant .brand-badge,.site-style-elegant .btn,.site-style-elegant .menu-toggle{border-radius:999px}
-.site-style-elegant .hero{width:92%;margin:104px auto 0;border-radius:48px;min-height:min(76vh,720px);box-shadow:none}
+/* clamp's floor matters on short/wide viewports (a laptop window that
+   isn't maximised, the builder's own constrained preview pane): 76vh can
+   shrink well below what the centred eyebrow+heading+buttons+tags stack
+   actually needs, and since the hero sits 104px below the fixed header
+   with no scroll room above it, an undersized box pushes that content up
+   and out through the top of the hero, behind the header, instead of
+   just cropping the photo tighter. */
+.site-style-elegant .hero{width:92%;margin:104px auto 0;border-radius:48px;min-height:clamp(480px,76vh,720px);box-shadow:none}
 .site-style-elegant .hero::after{background:linear-gradient(to top,color-mix(in srgb,var(--rose-dark) 76%,transparent),transparent 72%)}
 .site-style-elegant .hero .hero-copy{text-align:left;align-self:flex-end;padding:0 0 3.8em}
 .site-style-elegant .hero .inner{align-items:flex-start}
@@ -957,19 +964,30 @@ ${heroHasPhoto ? `@media(min-width:901px){
    hero photo, so giving it a solid background there would wash the photo
    out from underneath it. */
 .site-style-elegant .site-header,
-.site-style-elegant .band{background:#e7ddcf}
+.site-style-elegant .band{background:var(--champagne)}
 .site-style-elegant .band{background-image:none;color:#2a2622}
 .site-style-elegant .band h2,.site-style-elegant .band .eyebrow,.site-style-elegant .band p{color:#2a2622}
 @media(max-width:900px){
-  .site-style-elegant .hero .hero-copy{background:#e7ddcf}
+  .site-style-elegant .hero .hero-copy{background:var(--champagne)}
   /* Mobile shows the hero photo uncropped (background-size:contain) rather
      than covering the box, so a photo whose aspect ratio isn't exactly
      16:9 leaves a letterboxed gap that falls back to .hero's own
      background-color — normally --rose-dark, a dark brown that read as a
      stray solid block under the photo. Match it to the beige panels
      instead of leaving it a different colour or trying to crop it away. */
-  .site-style-elegant .hero{background-color:#e7ddcf}
+  .site-style-elegant .hero{background-color:var(--champagne)}
 }
+/* .site-style-elegant/.site-style-studio each hardcode their own
+   --champagne a few lines up — a flat rule beats :root's CATEGORY_CHAMPAGNE
+   value simply by being declared on the element itself rather than
+   inherited, regardless of which came first in the stylesheet. Re-assert
+   the sampled colour here at higher specificity (two classes, not one) so
+   a category with a real sampled wall colour still shows it under
+   whichever style preset this particular demo ended up with. Left out
+   for 'bold': it's the one dark-background style, and forcing a light
+   photo-sampled tint onto a light-text-on-dark theme would just break
+   contrast rather than look like a match. */
+${CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold' ? `.site-category-${cat}.site-style-${styleName}{--champagne:${CATEGORY_CHAMPAGNE[cat]}}` : ''}
 </style>
 </head>
 <body class="site-style-${styleName} site-category-${cat}">
