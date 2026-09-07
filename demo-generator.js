@@ -576,7 +576,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .hero .hero-copy{position:relative;z-index:2;width:100%;padding:0 0 3.4em}
 .hero .inner{max-width:1140px;margin:0 auto;padding:0 22px}
 .hero h1,.hero p{color:#fff}
-.hero-title{font-size:clamp(2.3rem,5.2vw,4rem);font-weight:300;line-height:1.05;margin:0 0 .5em;text-shadow:0 2px 20px rgba(28,24,21,.4)}
+.hero-title{font-size:clamp(2.3rem,5.2vw,4rem);font-weight:300;line-height:1.05;margin:0 0 1.4em;text-shadow:0 2px 20px rgba(28,24,21,.4)}
 .hero .hero-sub{font-size:clamp(1.02rem,1.9vw,1.25rem);font-weight:300;max-width:36ch;margin-bottom:1.8em;text-shadow:0 2px 14px rgba(28,24,21,.35)}
 .hero .eyebrow{color:rgba(255,255,255,.85)}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
