@@ -489,7 +489,7 @@ h3{font-size:1.05rem;font-weight:600}
 p{margin:0 0 1.1em}
 .container{width:100%;max-width:1140px;margin:0 auto;padding:0 22px}
 .section{padding:var(--section-space) 0}
-.section--tint{background:var(--champagne)}
+.section--tint{background:color-mix(in srgb,var(--champagne) 45%,#fff)}
 .page-head{padding-bottom:3.2em}
 @media(max-width:767px){.section{padding:3.5em 0}}
 .eyebrow{display:block;font-size:.7rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--rose-dark);margin-bottom:1em}
@@ -744,6 +744,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-elegant .hero .btn{background:#fff;color:#121d2d;border-color:#fff}
 .site-style-elegant .hero .btn--outline-light{background:transparent;color:#fff}
 .site-style-elegant .section>.container{max-width:1040px}
+.site-style-elegant .section--tint{background:#efece7}
 .site-style-elegant .grid-3{grid-template-columns:1.35fr 1fr}
 .site-style-elegant .grid-3 .card:first-child{grid-row:span 2;display:flex;flex-direction:column;justify-content:center;padding:60px 44px}
 .site-style-elegant .card,.site-style-elegant .review-card,.site-style-elegant .hours-card{box-shadow:none;background:#f5f3f1;border-color:#ebe8e4}
@@ -1027,7 +1028,7 @@ ${CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold' ? `.site-category-${cat}.site-
     </div>
   </section>
 
-  <section class="section${CATEGORY_CHAMPAGNE[cat] ? ' section--tint' : ''}">
+  <section class="section section--tint">
     <div class="container">
       ${(cat === 'hairbeauty' || cat === 'health') ? `
       <div class="grid grid-2" style="align-items:center;gap:48px">
