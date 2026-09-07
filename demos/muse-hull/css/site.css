@@ -1,0 +1,261 @@
+/* ============================================================
+   Muse. — shared site styles (extracted from the original
+   single-page inline <style>, plus multi-page additions)
+   ============================================================ */
+:root{
+  --ink:#141414;
+  --paper:#f7f5f1;
+  --cream:#efeae0;
+  --line:#dedad0;
+  --stone:#a79b86;
+  --muted:#6f6a5f;
+  --sans:'Space Grotesk',Arial,sans-serif;
+  --body:'Inter',Arial,sans-serif;
+  --header-h:90px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{overflow-x:hidden}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased}
+img{display:block;width:100%;height:100%;object-fit:cover}
+h1,h2,h3{font-family:var(--sans);font-weight:600;line-height:1.05;letter-spacing:-.01em}
+a{text-decoration:none;color:inherit}
+.eyebrow{font-family:var(--sans);font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;color:var(--stone);font-weight:600}
+
+/* ---------------- Header / nav ---------------- */
+/* No animation on header itself (dropped the fade-in-on-load effect) — a
+   CSS animation on an element, even one whose keyframes end on
+   transform:none, still establishes a containing block for its
+   position:fixed descendants for as long as the animation (including its
+   forwards fill) is active in at least some engines. That broke the
+   full-screen mobile nav (.nav lives inside header), sizing it to
+   header's own ~74px box instead of the viewport. */
+header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:1.3rem 3rem;background:#fff;border-bottom:1px solid var(--line);transition:box-shadow .3s ease}
+header.scrolled{box-shadow:0 4px 24px rgba(20,20,20,.08)}
+.brand{font-family:var(--sans);font-size:1.7rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);text-transform:uppercase}
+.brand span{color:var(--stone);display:inline-block;animation:dotPulse 2.6s ease-in-out infinite}
+nav{display:flex;gap:2.4rem;align-items:center}
+nav a{position:relative;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-family:var(--sans);font-weight:500;transition:color .3s}
+nav>a::after,.has-drop>a::after{content:"";position:absolute;left:0;right:100%;bottom:-5px;height:1px;background:var(--stone);transition:right .35s cubic-bezier(.2,.8,.2,1)}
+nav>a:hover,.has-drop>a:hover{color:var(--stone)}
+nav>a:hover::after,.has-drop>a:hover::after{right:0}
+nav a[aria-current="page"]{color:var(--stone)}
+.book{border:1px solid var(--ink);padding:.65rem 1.5rem;border-radius:100px;font-family:var(--sans);font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;transition:.3s;background:var(--ink);color:#fff}
+.book:hover{background:var(--stone);border-color:var(--stone);transform:translateY(-2px)}
+
+/* Services dropdown */
+.has-drop{position:relative;display:flex;align-items:center}
+.drop{position:absolute;top:calc(100% + 1.1rem);left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--line);border-radius:4px;padding:.6rem 0;min-width:220px;box-shadow:0 12px 32px rgba(20,20,20,.1);display:none;flex-direction:column}
+.has-drop:hover .drop,.has-drop:focus-within .drop{display:flex}
+.drop a{padding:.65rem 1.4rem;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.drop a::after{display:none}
+.drop a:hover{background:var(--cream);color:var(--ink)}
+
+.nav-toggle{display:none;background:none;border:0;padding:.5rem;cursor:pointer}
+.nav-toggle i{display:block;width:22px;height:2px;background:var(--ink);margin:4px 0;transition:transform .25s ease,opacity .2s ease}
+.nav-toggle[aria-expanded="true"] i:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.nav-toggle[aria-expanded="true"] i:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] i:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+/* ---------------- Buttons ---------------- */
+.btn-solid{background:var(--ink);color:#fff;padding:1rem 2.4rem;border-radius:100px;font-family:var(--sans);font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;transition:.3s;display:inline-block}
+.btn-solid:hover{background:var(--stone);transform:translateY(-2px)}
+.btn-line{font-family:var(--sans);font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;border-bottom:1px solid var(--ink);padding-bottom:.35rem;display:inline-block;transition:.3s}
+.btn-line:hover{color:var(--stone);border-color:var(--stone);transform:translateY(-2px)}
+
+/* ---------------- Hero (home) ---------------- */
+.hero{padding:3.5rem 3rem 6rem;max-width:1100px;margin:0 auto;text-align:center}
+.hero .eyebrow{display:block;margin-bottom:1.4rem}
+.hero h1{font-size:clamp(2.4rem,5.6vw,4.6rem);max-width:16ch;margin:0 auto}
+.hero h1 span{color:var(--stone)}
+.hero p{margin:1.8rem auto 0;max-width:46ch;color:var(--muted);font-size:1.05rem}
+
+/* Storefront hero banner */
+.storefront{width:100%;background:#fff;padding-top:var(--header-h)}
+.storefront-media{position:relative}
+.storefront-media img{width:88%;max-width:1100px;height:auto;max-height:none;display:block;margin:0 auto;animation:heroImageIn 1.2s cubic-bezier(.2,.8,.2,1) both}
+.storefront-media::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(15,14,12,.6) 0%,transparent 42%);pointer-events:none}
+.storefront-actions{position:absolute;left:0;right:0;bottom:1.8rem;z-index:2;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;padding:0 1.5rem;animation:fadeUp .8s cubic-bezier(.2,.8,.2,1) .5s both}
+.storefront-actions .btn-solid,.storefront-actions .btn-line{background:#fff;color:var(--ink);border-radius:0;padding:1rem 2.4rem;border:none}
+.storefront-actions .btn-solid:hover,.storefront-actions .btn-line:hover{background:var(--stone);color:#fff}
+
+/* ---------------- Page hero (services / contact) ---------------- */
+.page-hero{padding:calc(var(--header-h) + 3.5rem) 3rem 4rem;max-width:1100px;margin:0 auto;text-align:center}
+.page-hero .eyebrow{display:block;margin-bottom:1.2rem}
+.page-hero h1{font-size:clamp(2.2rem,4.6vw,3.6rem)}
+.page-hero h1 span{color:var(--stone)}
+.page-hero p{margin:1.4rem auto 0;max-width:46ch;color:var(--muted);font-size:1.02rem}
+.cat-nav{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin-top:2rem}
+.cat-nav a{border:1px solid var(--line);padding:.6rem 1.3rem;border-radius:100px;font-family:var(--sans);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;transition:.25s}
+.cat-nav a:hover{border-color:var(--stone);color:var(--stone)}
+
+/* ---------------- Intro ---------------- */
+.intro{display:grid;grid-template-columns:1.1fr 1fr;gap:5rem;align-items:center;padding:6rem 3rem;max-width:1300px;margin:0 auto}
+.intro>div{min-width:0}
+.intro h2{font-size:clamp(1.9rem,3vw,2.6rem)}
+.intro h2 span{color:var(--stone)}
+.intro p{margin-top:1.6rem;color:var(--muted);max-width:46ch}
+.intro-img{aspect-ratio:4/5;overflow:hidden;border-radius:4px}
+.stats{display:flex;gap:3rem;margin-top:2.6rem}
+.stats div span{font-family:var(--sans);font-size:2.2rem;display:block;color:var(--ink);font-weight:700}
+.stats div small{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------------- Services (home teaser + services page) ---------------- */
+.services{padding:6rem 3rem;max-width:1500px;margin:0 auto}
+.services-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3.2rem;flex-wrap:wrap;gap:1rem}
+.services-head h2{font-size:clamp(1.9rem,3vw,2.6rem)}
+.services-head h2 span{color:var(--stone)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.card{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:4px;cursor:pointer}
+.card img{transition:transform .9s cubic-bezier(.2,.8,.2,1);filter:brightness(.82)}
+.card:hover img{transform:scale(1.06)}
+.card-body{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;padding:2rem;color:#fff;background:linear-gradient(to top,rgba(15,14,12,.82),transparent 55%)}
+.card-body h3{font-size:1.5rem;margin-bottom:.4rem}
+.card-body p{font-size:.85rem;color:rgba(255,255,255,.85);font-weight:300}
+.card-price{font-family:var(--sans);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#e5ddc9;margin-top:1rem;font-weight:500}
+
+/* Price list (services page) */
+.price-list{background:#fff;border:1px solid var(--line);padding:3.5rem;border-radius:4px;margin-top:3rem;scroll-margin-top:calc(var(--header-h) + 1rem)}
+.price-list h3.cat-title{font-family:var(--sans);font-size:1.3rem;margin-bottom:2rem}
+.price-list h3.cat-title span{color:var(--stone)}
+.price-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:3rem}
+.category h3{font-family:var(--sans);text-transform:uppercase;letter-spacing:.1em;font-size:.85rem;color:var(--stone);margin-bottom:1.6rem;font-weight:600}
+.category-items{display:flex;flex-direction:column;gap:1rem}
+.item{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding-bottom:.8rem;border-bottom:1px solid var(--line)}
+.item-name{font-size:.92rem;color:var(--ink);flex:1}
+.item-price{font-family:var(--sans);font-size:1.05rem;color:var(--ink);flex:none;font-weight:600}
+.price-note{font-size:.8rem;color:var(--muted);margin-top:2rem;padding-top:2rem;border-top:1px solid var(--line);font-style:italic}
+
+/* ---------------- Academy feature band ---------------- */
+.feature{position:relative;height:70vh;overflow:hidden;margin:1rem 0;scroll-margin-top:var(--header-h)}
+.feature img{position:absolute;inset:0;filter:brightness(.55)}
+.feature-copy{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;padding:2rem}
+.feature-copy .eyebrow{color:#ddd3bb}
+.feature-copy h2{font-size:clamp(2rem,4.2vw,3.2rem);max-width:20ch;color:#fff}
+.feature-copy p{max-width:44ch;margin-top:1.2rem;color:rgba(255,255,255,.85)}
+.feature-copy .btn-solid{margin-top:2.2rem;background:#fff;color:var(--ink)}
+.feature-copy .btn-solid:hover{background:var(--stone);color:#fff}
+
+/* ---------------- Testimonials ---------------- */
+.reviews{padding:7rem 3rem;max-width:1300px;margin:0 auto;text-align:center}
+.reviews .eyebrow{display:block;margin-bottom:1rem}
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3rem;margin-top:3.5rem;text-align:left}
+.review{border-top:1px solid var(--line);padding-top:1.8rem}
+.review .stars{color:var(--stone);letter-spacing:.25em;font-size:.8rem;margin-bottom:1.2rem}
+.review q{font-family:var(--sans);font-weight:500;font-size:1.1rem;line-height:1.5;display:block;margin-bottom:1.5rem}
+.review cite{font-style:normal;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------------- Booking / visit (find us) ---------------- */
+.visit{max-width:1300px;margin:0 auto;padding:0 3rem 7rem;display:grid;grid-template-columns:1fr 1fr;gap:0;scroll-margin-top:var(--header-h)}
+.visit-info{background:var(--ink);color:var(--paper);padding:4rem;border-radius:4px 0 0 4px}
+.visit-info .eyebrow{color:var(--stone);display:block;margin-bottom:1rem}
+.visit-info h2{color:#fff;font-size:clamp(1.9rem,3vw,2.6rem)}
+.visit-info h2 span{color:var(--stone)}
+.visit-info p{color:rgba(247,245,241,.7);margin-top:1.2rem;max-width:38ch}
+.visit-details{margin-top:2.4rem;display:flex;flex-direction:column;gap:.9rem}
+.visit-details a,.visit-details span{font-size:.92rem;color:rgba(247,245,241,.9)}
+.visit-actions{margin-top:2.4rem;display:flex;gap:1rem;flex-wrap:wrap}
+.visit-actions .btn-solid{background:#fff;color:var(--ink)}
+.visit-actions .btn-solid:hover{background:var(--stone);color:#fff}
+.visit-actions .btn-line{color:#fff;border-color:rgba(247,245,241,.5)}
+.visit-map{border-radius:0 4px 4px 0;overflow:hidden;min-height:340px}
+.visit-map iframe{width:100%;height:100%;min-height:340px;border:0;display:block}
+
+/* ---------------- Contact page details ---------------- */
+.contact-wrap{max-width:1100px;margin:0 auto;padding:0 3rem 6rem;display:grid;grid-template-columns:1.1fr 1fr;gap:4rem}
+.detail{padding:1.4rem 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:.3rem}
+.detail .k{font-family:var(--sans);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);font-weight:600}
+.detail .v{font-size:1.02rem;color:var(--ink)}
+.detail .v small{display:block;color:var(--muted);font-size:.8rem;margin-top:.3rem;font-weight:300}
+.hours-card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:2.6rem}
+.hours-card h3{font-size:1.2rem;margin-bottom:1.6rem}
+table.hours{width:100%;border-collapse:collapse}
+table.hours tr{border-bottom:1px solid var(--line)}
+table.hours tr:last-child{border-bottom:none}
+table.hours th,table.hours td{text-align:left;padding:.7rem 0;font-weight:300;font-size:.92rem}
+table.hours th{font-family:var(--sans);font-weight:500;color:var(--ink)}
+table.hours td{color:var(--muted);text-align:right}
+
+/* ---------------- Closing CTA band ---------------- */
+.band{background:var(--ink);color:#fff;padding:5.5rem 3rem;text-align:center}
+.band .eyebrow{color:var(--stone);display:block;margin-bottom:1rem}
+.band h2{color:#fff;font-size:clamp(1.9rem,3.4vw,2.8rem)}
+.band p{color:rgba(247,245,241,.7);max-width:44ch;margin:1.2rem auto 0}
+.band-actions{margin-top:2.2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.band-actions .btn-solid{background:#fff;color:var(--ink)}
+.band-actions .btn-solid:hover{background:var(--stone);color:#fff}
+.band-actions .btn-line{color:#fff;border-color:rgba(247,245,241,.5)}
+.band-actions .btn-line:hover{color:var(--stone);border-color:var(--stone)}
+
+/* ---------------- Footer ---------------- */
+footer{background:#fff;color:var(--ink);padding:5rem 3rem 2.5rem;border-top:1px solid var(--line)}
+.foot-top{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:3rem;padding-bottom:3.5rem}
+.foot-brand{font-family:var(--sans);font-size:1.6rem;font-weight:700;margin-bottom:1rem}
+.foot-brand span{color:var(--stone)}
+.fcol h4{font-family:var(--sans);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:1.4rem;font-weight:600}
+.fcol p,.fcol a{font-size:.9rem;color:var(--muted);margin-bottom:.6rem;display:block}
+.fcol a:hover{color:var(--ink)}
+.foot-bottom{max-width:1400px;margin:0 auto;padding-top:2.5rem;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:.75rem;letter-spacing:.08em;color:var(--muted);flex-wrap:wrap;gap:.6rem}
+
+/* ---------------- Scroll reveal ---------------- */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}
+
+/* ---------------- Load-in keyframes ---------------- */
+/* ends on transform:none, not translateY(0) — a header with any non-"none"
+   transform (even a numerically-identity one) permanently creates a
+   containing block for its position:fixed descendants, which was sizing
+   the full-screen mobile nav down to the header's own ~74px box instead of
+   the viewport. */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes heroImageIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  header,.brand span,.storefront-media img,.storefront-actions{animation:none}
+}
+
+/* ---------------- Mobile ---------------- */
+@media(max-width:860px){
+  header{padding:1.1rem 1.5rem}
+  .nav-toggle{display:block}
+  nav{position:fixed;top:0;right:0;bottom:0;width:min(320px,86vw);background:#fff;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;padding:6rem 2rem 2rem;transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);box-shadow:-8px 0 32px rgba(20,20,20,.12);overflow-y:auto}
+  nav.open{display:flex;transform:translateX(0)}
+  nav>a,.has-drop{width:100%;padding:1rem 0;border-bottom:1px solid var(--line)}
+  nav>a::after{display:none}
+  .has-drop{flex-direction:column;align-items:flex-start}
+  .has-drop>a{padding:0}
+  .drop{position:static;transform:none;border:0;box-shadow:none;display:none;width:100%;padding:.8rem 0 0;min-width:0}
+  .has-drop.open .drop{display:flex}
+  .drop a{padding:.7rem 0 .7rem .8rem}
+  .book{margin-top:1.5rem}
+  body.nav-open{overflow:hidden}
+
+  .hero{padding:1.6rem 1.5rem 4rem}
+  .page-hero{padding:calc(var(--header-h) + 2rem) 1.5rem 3rem}
+  .storefront{padding:82.5px 0 0}
+  .storefront-media{width:100%}
+  .storefront-media img{max-height:none;width:88%;max-width:1100px;height:auto;margin:0 auto}
+  .storefront-media::after{display:none}
+  .storefront-actions{position:static;margin-top:1.3rem;padding:0 1.5rem}
+  .storefront-actions .btn-solid,.storefront-actions .btn-line{background:var(--ink);color:#fff;border-radius:0;padding:1rem 2.4rem;border:none}
+  .storefront-actions .btn-solid:hover,.storefront-actions .btn-line:hover{background:var(--stone);color:#fff}
+  .intro{grid-template-columns:1fr;gap:2.5rem;padding:4rem 1.5rem}
+  .stats{flex-direction:column;gap:1.4rem}
+  .services{padding:4rem 1.5rem}
+  .grid{grid-template-columns:1fr}
+  .price-list{padding:2rem}
+  .price-categories{grid-template-columns:1fr}
+  .reviews{padding:5rem 1.5rem}
+  .reviews-grid{grid-template-columns:1fr;gap:2rem}
+  .visit{grid-template-columns:1fr;padding:0 1.5rem 5rem}
+  .visit-info{border-radius:4px 4px 0 0;padding:3rem 2rem}
+  .visit-map{border-radius:0 0 4px 4px}
+  .contact-wrap{grid-template-columns:1fr;padding:0 1.5rem 4rem;gap:2.5rem}
+  .band{padding:4rem 1.5rem}
+  .foot-top{grid-template-columns:1fr;gap:2rem}
+  .foot-bottom{flex-direction:column;gap:.6rem}
+}
