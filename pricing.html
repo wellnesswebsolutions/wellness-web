@@ -61,10 +61,12 @@
           <div class="kicker">Great value</div>
           <h4>Pro</h4>
           <div class="desc">A professional custom website with everything it needs to perform.</div>
-          <div class="price">£199<span class="price-plus">+ £15/mo</span></div>
-          <div class="price-toggle" role="tablist" aria-label="Monthly plan for Pro">
-            <button type="button" class="price-tab active" data-price="15">£15/mo</button>
-            <button type="button" class="price-tab" data-price="20">£20/mo</button>
+          <div class="price-row">
+            <span class="price">£199</span>
+            <div class="price-toggle" role="tablist" aria-label="Monthly plan for Pro">
+              <button type="button" class="price-tab active" data-price="15">£15/mo</button>
+              <button type="button" class="price-tab" data-price="30">£30/mo</button>
+            </div>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <ul>
@@ -81,10 +83,12 @@
           <div class="kicker">Best balance</div>
           <h4>Prestige</h4>
           <div class="desc">Everything in Pro, with a bigger, more capable site.</div>
-          <div class="price">£399<span class="price-plus">+ £15/mo</span></div>
-          <div class="price-toggle" role="tablist" aria-label="Monthly plan for Prestige">
-            <button type="button" class="price-tab active" data-price="15">£15/mo</button>
-            <button type="button" class="price-tab" data-price="20">£20/mo</button>
+          <div class="price-row">
+            <span class="price">£399</span>
+            <div class="price-toggle" role="tablist" aria-label="Monthly plan for Prestige">
+              <button type="button" class="price-tab active" data-price="15">£15/mo</button>
+              <button type="button" class="price-tab" data-price="30">£30/mo</button>
+            </div>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <ul>
@@ -98,21 +102,19 @@
           <a href="contact.html" class="go">Enquire</a>
         </div>
       </div>
-      <p class="pricing-note">£15/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking or advanced enquiry form for £20/month instead. Cancel any time.</p>
+      <p class="pricing-note">£15/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking or advanced enquiry form for £30/month instead. Cancel any time.</p>
     </div>
   </section>
   <script>
     document.querySelectorAll('[data-plan-toggle]').forEach(function(plan){
       var tabs = plan.querySelectorAll('.price-tab');
-      var pricePlus = plan.querySelector('.price-plus');
       var extra = plan.querySelector('.extra-feature');
       tabs.forEach(function(tab){
         tab.addEventListener('click', function(){
           tabs.forEach(function(t){ t.classList.remove('active'); });
           tab.classList.add('active');
           var val = tab.getAttribute('data-price');
-          pricePlus.textContent = '+ £' + val + '/mo';
-          if (extra) extra.hidden = val !== '20';
+          if (extra) extra.hidden = val !== '30';
         });
       });
     });
