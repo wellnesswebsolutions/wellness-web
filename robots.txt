@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /terms
 
-Sitemap: https://wellnessweb.co.uk/sitemap.xml
+Sitemap: https://brightsite.app/sitemap.xml

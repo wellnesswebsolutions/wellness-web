@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wellness-web-preview",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "serve.mjs"],
+      "port": 4173
+    },
+    {
+      "name": "local-check",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "4922", "."],
+      "port": 4922,
+      "autoPort": true
+    }
+  ]
+}

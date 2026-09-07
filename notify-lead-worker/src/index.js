@@ -11,12 +11,12 @@
 // customer presses the WhatsApp handoff.
 
 const ALLOWED_ORIGINS = new Set([
-  'https://wellnessweb.co.uk',
-  'https://www.wellnessweb.co.uk',
+  'https://brightsite.app',
+  'https://www.brightsite.app',
 ]);
 
 function corsHeaders(origin) {
-  const allow = ALLOWED_ORIGINS.has(origin) ? origin : 'https://wellnessweb.co.uk';
+  const allow = ALLOWED_ORIGINS.has(origin) ? origin : 'https://brightsite.app';
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -46,7 +46,7 @@ async function handleJsonLead(body, env, cors) {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: 'BrightSite Leads <leads@wellnessweb.co.uk>',
+      from: 'BrightSite Leads <leads@brightsite.app>',
       to: ['wellnesswebsolutions@gmail.com'],
       subject: `New lead: ${business_name}`,
       text: details || '(no further details)',
@@ -86,7 +86,7 @@ async function handleFormLead(form, env, cors) {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: 'BrightSite Leads <leads@wellnessweb.co.uk>',
+      from: 'BrightSite Leads <leads@brightsite.app>',
       to: ['wellnesswebsolutions@gmail.com'],
       subject: `New BrightSite customer handoff — ${business}`,
       text: lines.join('\n') || '(no further details)',

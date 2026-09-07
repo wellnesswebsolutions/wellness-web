@@ -4,8 +4,8 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.wellnessweb.co.uk" }],
-      "destination": "https://wellnessweb.co.uk/:path*",
+      "has": [{ "type": "host", "value": "www.brightsite.app" }],
+      "destination": "https://brightsite.app/:path*",
       "permanent": true
     }
   ]

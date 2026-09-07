@@ -411,7 +411,7 @@
     const reviewNames = ['Amelia','Charlotte','Sophie'];
     const reviews = reviewCopy.map((copy,i)=>`<article class="review-card"><div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div><blockquote>“${esc(copy)}”</blockquote><p><strong>${reviewNames[i]}</strong> · Sample client</p></article>`).join('');
     const metaDesc = (heroHook + '. ' + defaultDesc).slice(0, 155).replace(/\s+\S*$/, '') + '.';
-    const categoryPhoto = info && info.photo ? `https://wellnessweb.co.uk/img/hero/${info.photo}` : null;
+    const categoryPhoto = info && info.photo ? `https://brightsite.app/img/hero/${info.photo}` : null;
     const usingCategoryPhoto = !d.heroImage && !!categoryPhoto;
     const sceneMarkup = d.heroImage || usingCategoryPhoto ? '' : sceneSVG(cat, t);
     const heroHasPhoto = !!(d.heroImage || usingCategoryPhoto);
