@@ -613,7 +613,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .hero .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:390px}
   .hero .btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:11px 14px;
     border-radius:max(var(--radius),8px);font-size:.66rem;line-height:1.25;letter-spacing:.13em;box-shadow:none}
-  .hero .btn--light{background:var(--rose-dark);border-color:var(--rose-dark);color:#fff}
+  .hero .btn--light{background:var(--rose-dark);border-color:var(--rose-dark);color:var(--ink)}
   .hero .btn--outline-light{background:transparent;border-color:color-mix(in srgb,var(--rose-dark) 62%,transparent);color:var(--header-ink);backdrop-filter:none}
   .hero-tags{display:none}
 }
