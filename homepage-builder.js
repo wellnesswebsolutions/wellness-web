@@ -813,7 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openMediaModal();
       return;
     }
-    const shouldTitleCase = question.q === 'Full name';
+    const shouldTitleCase = question.type === 'text';
     const value = shouldTitleCase ? formatBusinessName(builderInput.value) : builderInput.value.trim();
     if (question.required && !value) {
       builderField.classList.add('qa-focused');
