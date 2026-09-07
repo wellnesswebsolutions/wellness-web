@@ -12,6 +12,16 @@
       "source": "/index.html",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/work",
+      "destination": "/ourwork",
+      "permanent": true
+    },
+    {
+      "source": "/work.html",
+      "destination": "/ourwork",
+      "permanent": true
     }
   ]
 }
