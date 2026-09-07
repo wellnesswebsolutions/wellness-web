@@ -546,15 +546,20 @@ p{margin:0 0 1.1em}
 }
 .hero{position:relative;margin-top:75px;background:${heroBg};display:flex;align-items:flex-end;overflow:hidden;min-height:min(72vh,680px)}
 ${heroHasPhoto ? `@media(min-width:901px){
-  /* A 16:10 starting shape for the hero band — taller than the old 16:9 so
-     less of the source photo gets cropped away top/bottom before cover
-     even gets to it — but height is
-     what actually varies here — capped at the same height as the non-photo
-     hero below, or on a wide/short viewport the width-driven 16:9 box grows
-     taller than the screen and pushes the bottom-aligned title/buttons past
-     the fold. \`cover\` (set above) fills whatever shape this ends up being,
-     so unlike \`contain\` this cap no longer needs the box's own width
-     capped to match — full width, no side letterboxing, at any height. */
+  /* A 16:10 starting shape for the hero band, same idea as before, but height is
+     what actually varies here — capped at min(80vh,760px), taller than the
+     non-photo hero's min(72vh,680px) cap. On wide, short viewports this cap
+     is what actually governs the box's rendered shape (aspect-ratio loses
+     to it), so it's the number that decides how much of the source photo
+     cover crops away top/bottom — raised from 680px because 680 was
+     flattening the box to ~2.9:1 on a 2000px-wide screen regardless of the
+     16:9/16:10 aspect-ratio, cropping the top and bottom of every hero
+     photo far more than intended. On a wide/short viewport the
+     width-driven box can still grow taller than the screen and push the
+     bottom-aligned title/buttons past the fold, hence the cap. \`cover\`
+     (set above) fills whatever shape this ends up being, so unlike
+     \`contain\` this cap no longer needs the box's own width capped to
+     match — full width, no side letterboxing, at any height. */
   /* width must be explicit, not auto: with only aspect-ratio and a
      clamped max-height, Chrome recomputes width from the clamped height
      to preserve the ratio instead of stretching to the container — the
@@ -562,7 +567,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
      width:auto instead of an explicit cap. Forcing width:100% wins over
      aspect-ratio once max-height also applies; cover doesn't need the
      ratio preserved anyway. */
-  .hero{aspect-ratio:16/10;min-height:0;max-height:min(72vh,680px);width:100%;background-color:var(--rose-dark)}
+  .hero{aspect-ratio:16/10;min-height:0;max-height:min(80vh,760px);width:100%;background-color:var(--rose-dark)}
 }` : ''}
 .hero-photo-note{position:absolute;z-index:3;right:14px;bottom:14px;font-size:.66rem;font-style:italic;color:rgba(255,255,255,.75);
   text-shadow:0 1px 6px rgba(0,0,0,.5);pointer-events:none}
