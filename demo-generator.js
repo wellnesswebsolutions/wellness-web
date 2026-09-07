@@ -401,7 +401,6 @@
     const eyebrowLoc = d.location ? `Based in ${esc(d.location)}` : 'Now booking';
     const defaultDesc = info ? info.desc.replace(/\{name\}/g, d.name) : `${d.name} is a business that cares about doing things properly — tell us more about what makes you different and this paragraph will describe it.`;
     const heroHook = info ? info.tagline : (d.tagline || 'Tell us what makes you different — this line introduces your business.');
-    const heroSub = d.tagline ? `${d.name} — ${d.tagline}` : d.name;
     const galleryHeadings = { hairbeauty:'Inside the salon',aesthetics:'Inside the clinic',health:'Inside the practice',fitness:'Inside the studio',automotive:'Inside the workshop',trades:'Recent work',homegarden:'Recent projects',fooddrink:'From our kitchen',professional:'Our work',creative:'Selected work',pets:'Meet our happy clients',office:'Our work' };
     const galleryHeading = galleryHeadings[cat] || 'Our work';
     const reviewCopy = [
@@ -570,7 +569,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .hero .hero-copy{position:relative;z-index:2;width:100%;padding:0 0 3.4em}
 .hero .inner{max-width:1140px;margin:0 auto;padding:0 22px}
 .hero h1,.hero p{color:#fff}
-.hero-title{font-size:clamp(2.3rem,5.2vw,4rem);font-weight:300;line-height:1.05;margin:0 0 .3em;text-shadow:0 2px 20px rgba(28,24,21,.4)}
+.hero-title{font-size:clamp(2.3rem,5.2vw,4rem);font-weight:300;line-height:1.05;margin:0 0 1.6em;text-shadow:0 2px 20px rgba(28,24,21,.4)}
 .hero .hero-sub{font-size:clamp(1.02rem,1.9vw,1.25rem);font-weight:300;max-width:36ch;margin-bottom:1.8em;text-shadow:0 2px 14px rgba(28,24,21,.35)}
 .hero .eyebrow{color:rgba(255,255,255,.85)}
 .hero-tags{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:2em;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85)}
@@ -602,7 +601,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
   .hero .inner{display:flex;flex-direction:column;align-items:center;padding:0 18px}
   .hero h1,.hero p{color:var(--header-ink);text-shadow:none}
   .hero .eyebrow{margin-bottom:.65em;color:var(--rose-dark)}
-  .hero-title{font-size:clamp(1.9rem,8vw,2.5rem);margin-bottom:.25em}
+  .hero-title{font-size:clamp(1.9rem,8vw,2.5rem);margin-bottom:1.1em}
   .hero .hero-sub{font-size:1rem;line-height:1.5;max-width:31ch;margin:0 auto 1.15em}
   .hero .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:390px}
   .hero .btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:11px 14px;
@@ -624,7 +623,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 @media(max-width:900px){
   .site-category-hairbeauty .hero-tags,.site-category-health .hero-tags{
     display:flex;justify-content:center;gap:6px 16px;margin-top:1.3em;
-    color:var(--rose-dark)}
+    color:var(--ink)}
 }
 @media(max-width:760px){.hero{margin-top:68px}}
 .grid{display:grid;gap:26px}
@@ -1019,7 +1018,6 @@ ${CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold' ? `.site-category-${cat}.site-
       <div class="inner">
         <span class="eyebrow">${esc(eyebrowLoc)}</span>
         <h1 class="hero-title">${esc(heroHook)}</h1>
-        <p class="hero-sub">${esc(heroSub)}</p>
         <div class="btn-row">
           <a class="btn btn--light" href="#" data-nav="contact">${esc(goalLabel)}</a>
           <a class="btn btn--outline-light" href="#" data-nav="services">${esc(categoryUi.secondary)}</a>
