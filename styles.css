@@ -867,17 +867,19 @@
   .ex-carousel{max-width:1080px;margin:0 auto;overflow:hidden;touch-action:pan-y}
   .ex-viewport{position:relative}
   /* Big enough that it's fine to run past the bottom of the viewport before
-     scrolling — width k=80% of the container, with the side peek's offset/
-     scale (o=.25, s=.75) chosen so o+.5s=.625 stays under 1/(2k)=.625,
-     the same margin-of-safety approach as before, just re-solved for a much
-     bigger centre card. */
-  .ex-grid{position:relative;width:min(640px,80%);margin:0 auto;transition:height .35s var(--qa-ease)}
+     scrolling — width k=68% of the container, with the side peek's offset/
+     scale (o=.38, s=.7) chosen so o+.5s=.73 stays under 1/(2k)=.735,
+     the same margin-of-safety approach as before. k was dropped from 80%
+     to 68% (o/s pushed out to match) purely to widen the margin the
+     neighbour cards peek into — the 640px cap keeps desktop untouched,
+     this only changes how much of the side cards show on narrower screens. */
+  .ex-grid{position:relative;width:min(640px,68%);margin:0 auto;transition:height .35s var(--qa-ease)}
   .ex-card{position:absolute;inset:0;margin:auto;width:100%;height:fit-content;
     border-radius:16px;box-shadow:0 10px 30px rgba(23,32,31,.05);cursor:pointer;
     transition:transform .5s var(--qa-ease),opacity .5s var(--qa-ease)}
   .ex-card[data-pos="0"]{transform:translateX(0) scale(1);opacity:1;z-index:3;cursor:default}
-  .ex-card[data-pos="-1"]{transform:translateX(-25%) scale(.75);opacity:.5;z-index:2}
-  .ex-card[data-pos="1"]{transform:translateX(25%) scale(.75);opacity:.5;z-index:2}
+  .ex-card[data-pos="-1"]{transform:translateX(-38%) scale(.7);opacity:.55;z-index:2}
+  .ex-card[data-pos="1"]{transform:translateX(38%) scale(.7);opacity:.55;z-index:2}
   .ex-card[data-pos="hidden"]{transform:translateX(0) scale(.6);opacity:0;z-index:1;pointer-events:none}
   @media(prefers-reduced-motion:reduce){.ex-card{transition:opacity .3s ease}}
   .ex-frame{display:none}
