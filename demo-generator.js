@@ -456,7 +456,7 @@ html{scroll-behavior:smooth;scroll-padding-top:110px;overflow-x:clip;overflow-y:
    there looked like a jarring, unstyled flash against a dark header or
    footer bordering it. */
 html{background:var(--header-surface);overscroll-behavior-y:none}
-body{margin:0;padding-bottom:150px;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible;overscroll-behavior-y:none}
+body{margin:0;font-family:var(--body-font);font-size:16px;line-height:1.75;color:var(--body);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:clip;overflow-y:visible;overscroll-behavior-y:none}
 img{max-width:100%;display:block}
 a{color:var(--rose-dark)}
 h1,h2,h3,h4{font-family:var(--heading-font);color:var(--ink);font-weight:600;line-height:1.2;margin:0 0 .6em;letter-spacing:-.01em}
@@ -592,10 +592,15 @@ ${heroHasPhoto ? `@media(min-width:901px){
 }
 /* Bayar's hero keeps its treatment-name row on mobile instead of hiding
    it — re-enable it just for the two categories forced onto her template,
-   centred and tightened up to sit under the (also centred) mobile hero copy. */
+   centred and tightened up to sit under the (also centred) mobile hero copy.
+   Its default colour is white for the dark photo overlay behind it on
+   desktop, but on mobile the copy panel switches to a light champagne
+   background (see .hero .hero-copy above) — white-on-white was invisible,
+   so it needs the same dark ink the eyebrow/heading get on mobile. */
 @media(max-width:900px){
   .site-category-hairbeauty .hero-tags,.site-category-health .hero-tags{
-    display:flex;justify-content:center;gap:6px 16px;margin-top:1.3em}
+    display:flex;justify-content:center;gap:6px 16px;margin-top:1.3em;
+    color:var(--rose-dark)}
 }
 @media(max-width:760px){.hero{margin-top:68px}}
 .grid{display:grid;gap:26px}
