@@ -987,7 +987,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
     </div>
   </section>
 
-  <section class="section">
+  <section class="section${(cat === 'hairbeauty' || cat === 'health') ? ' section--tint' : ''}">
     <div class="container">
       ${(cat === 'hairbeauty' || cat === 'health') ? `
       <div class="grid grid-2" style="align-items:center;gap:48px">
