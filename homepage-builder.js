@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const builderPh = document.getElementById('builderPh');
   const builderInput = document.getElementById('builderInput');
   const builderGo = document.getElementById('builderGo');
+  const builderWhatsappRow = document.getElementById('builderWhatsappRow');
   const builderWhatsappBtn = document.getElementById('builderWhatsappBtn');
+  const builderBackFinal = document.getElementById('builderBackFinal');
 
   const creatingOverlay = document.getElementById('creatingOverlay');
   const creatingVerb = document.getElementById('creatingVerb');
@@ -556,6 +558,47 @@ document.addEventListener('DOMContentLoaded', () => {
     return emailResult.status === 'fulfilled' && emailResult.value.ok;
   }
 
+  // the final WhatsApp handoff sends everything — business details, any
+  // uploaded photos and the generated preview — as one real email with
+  // attachments, via the same Cloudflare Worker (Resend) postLead uses.
+  // formsubmit.co previously handled the photos, but it needs a manual
+  // "activate this form" confirmation per recipient and still couldn't
+  // carry the business details or preview, so it's no longer used.
+  async function postLeadWithMedia(fields, files) {
+    const databaseRequest = fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': 'sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
+        'Authorization': 'Bearer sb_publishable_oexuN3loIJTtwF93K_i2iA_OzJSAcHD',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ business_name: fields.Business, details: JSON.stringify(fields), created_at: new Date().toISOString() })
+    });
+
+    const formData = new FormData();
+    Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
+    files.forEach(({ name, file }) => { if (file) formData.append(name, file, file.name); });
+    const emailRequest = fetch('https://wellnessweb-notify-lead.notify-lead-worker.workers.dev/', {
+      method: 'POST',
+      body: formData,
+      keepalive: true
+    });
+
+    const [databaseResult, emailResult] = await Promise.allSettled([databaseRequest, emailRequest]);
+    if (databaseResult.status === 'rejected') {
+      console.error('Lead database capture failed', databaseResult.reason);
+    } else if (!databaseResult.value.ok) {
+      console.error('Lead database capture failed', await databaseResult.value.text());
+    }
+    if (emailResult.status === 'rejected') {
+      console.error('Lead email notification failed', emailResult.reason);
+    } else if (!emailResult.value.ok) {
+      console.error('Lead email notification failed', await emailResult.value.text());
+    }
+    return emailResult.status === 'fulfilled' && emailResult.value.ok;
+  }
+
   const designerWhatsAppNumber = '447535928879';
 
   // the fixed bottom bar: one question at a time, floating over the
@@ -575,17 +618,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedMediaSummary = 'Not provided';
 
   const mediaModal = document.getElementById('builderMediaModal');
-  const mediaEmailForm = document.getElementById('mediaEmailForm');
-  const mediaEmailSubject = document.getElementById('mediaEmailSubject');
-  const mediaEmailBusiness = document.getElementById('mediaEmailBusiness');
-  const mediaEmailCustomer = document.getElementById('mediaEmailCustomer');
-  const mediaEmailCustomerAddress = document.getElementById('mediaEmailCustomerAddress');
-  const mediaEmailIndustry = document.getElementById('mediaEmailIndustry');
-  const mediaEmailLocation = document.getElementById('mediaEmailLocation');
-  const mediaEmailWebsite = document.getElementById('mediaEmailWebsite');
-  const mediaEmailSocial = document.getElementById('mediaEmailSocial');
-  const mediaEmailMediaNotes = document.getElementById('mediaEmailMediaNotes');
-  const mediaEmailPreviewFile = document.getElementById('mediaEmailPreviewFile');
   const mediaModalBackdrop = document.getElementById('mediaModalBackdrop');
   const mediaModalClose = document.getElementById('mediaModalClose');
   const logoUpload = document.getElementById('builderLogoUpload');
@@ -713,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
     galleryUpload.value = '';
     updateMediaSelectionStatus();
     builderBarRow.hidden = false;
-    builderWhatsappBtn.hidden = true;
+    builderWhatsappRow.hidden = true;
     builderBar.classList.remove('builder-bar-done');
     showBuilderQuestion(0, { animate: false });
   }
@@ -755,9 +787,25 @@ document.addEventListener('DOMContentLoaded', () => {
     builderBar.classList.add('builder-bar-done');
     setTimeout(() => {
       builderBarRow.hidden = true;
-      builderWhatsappBtn.hidden = false;
+      builderWhatsappRow.hidden = false;
     }, 220);
   }
+
+  // lets the customer jump back from the "send" button to the last
+  // question (in case they forgot something) without losing anything
+  // they'd already answered earlier in the 5-question bar.
+  function editAnswersFromWhatsapp() {
+    builderBar.classList.remove('builder-bar-done');
+    builderWhatsappRow.hidden = true;
+    builderBarRow.hidden = false;
+    builderIndex = BUILDER_QUESTIONS.length - 1;
+    showBuilderQuestion(builderIndex, { animate: false });
+    if (BUILDER_QUESTIONS[builderIndex].type !== 'media') {
+      builderInput.value = builderAnswers[builderIndex] || '';
+      builderInput.dispatchEvent(new Event('input'));
+    }
+  }
+  builderBackFinal.addEventListener('click', editAnswersFromWhatsapp);
 
   function submitBuilderAnswer() {
     const question = BUILDER_QUESTIONS[builderIndex];
@@ -873,36 +921,41 @@ Media: ${mediaChoice || selectedMediaSummary}`;
 
     const status = document.getElementById('handoffStatus');
     status.textContent = 'Opening WhatsApp and sending your details…';
-    postLead(businessName, completeMessage).then(sent => {
+
+    // Always send the full handoff email — business details, the exact
+    // generated preview (as an attached HTML file) and any photos the
+    // customer chose to upload — in one email, not just when media was
+    // attached.
+    const media = getSelectedMedia();
+    let previewFile = null;
+    try {
+      const previewHtml = buildDemoHTML(gatherData());
+      previewFile = new File([previewHtml], `${businessName || 'preview'}-site-preview.html`, { type: 'text/html' });
+    } catch (err) {
+      console.error('Could not build site preview attachment', err);
+    }
+    const files = [
+      { name: 'Logo', file: media.logo },
+      { name: 'Homepage picture', file: media.hero },
+      { name: 'Site preview', file: previewFile },
+      ...media.gallery.map(file => ({ name: 'Gallery pictures', file })),
+    ];
+    postLeadWithMedia({
+      Business: businessName,
+      Customer: fullName || 'Not provided',
+      'Customer email': email || 'Not provided',
+      Industry: businessType || 'Not provided',
+      Location: location_ || 'Not provided',
+      'Current website': website || 'Not provided',
+      'Social media': socialMedia || 'Not provided',
+      'Media notes': mediaChoice || selectedMediaSummary,
+    }, files).then(sent => {
       status.textContent = sent
         ? 'Your details were accepted for email delivery. Press Send inside WhatsApp to message Tom.'
         : 'Email could not be confirmed. Please press Send inside WhatsApp so Tom receives your details.';
     }).catch(() => {
       status.textContent = 'Email could not be confirmed. Please send your details in WhatsApp.';
     });
-
-    // Always send the full handoff email — business details, the exact
-    // generated preview (as an attached HTML file) and any photos the
-    // customer chose to upload — not just when media was attached.
-    mediaEmailSubject.value = `New BrightSite customer handoff — ${businessName}`;
-    mediaEmailBusiness.value = businessName;
-    mediaEmailCustomer.value = fullName || 'Not provided';
-    mediaEmailCustomerAddress.value = email || 'Not provided';
-    mediaEmailIndustry.value = businessType || 'Not provided';
-    mediaEmailLocation.value = location_ || 'Not provided';
-    mediaEmailWebsite.value = website || 'Not provided';
-    mediaEmailSocial.value = socialMedia || 'Not provided';
-    mediaEmailMediaNotes.value = mediaChoice || selectedMediaSummary;
-    try {
-      const previewHtml = buildDemoHTML(gatherData());
-      const previewFile = new File([previewHtml], `${businessName || 'preview'}-site-preview.html`, { type: 'text/html' });
-      const previewTransfer = new DataTransfer();
-      previewTransfer.items.add(previewFile);
-      mediaEmailPreviewFile.files = previewTransfer.files;
-    } catch (err) {
-      console.error('Could not attach site preview to handoff email', err);
-    }
-    mediaEmailForm.submit();
 
     const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(completeMessage)}`;
     window.open(whatsappUrl, '_blank');

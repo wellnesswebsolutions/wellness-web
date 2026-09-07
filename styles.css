@@ -733,10 +733,13 @@
   .builder-bar-row{opacity:1;transform:none}
   .builder-bar.builder-bar-done .builder-bar-row{position:absolute;inset:0;opacity:0;transform:translateY(-8px);pointer-events:none}
   .builder-bar.builder-bar-done .glow-box-inner{background:#25D366;border-color:#1da851;justify-content:center}
-  .builder-whatsapp{margin:0;width:auto;padding:12px 32px;background:transparent;color:#fff;
-    opacity:0;transform:scale(.96);transition:opacity .3s var(--qa-ease),transform .3s var(--qa-ease)}
-  .builder-bar.builder-bar-done .builder-whatsapp{opacity:1;transform:none}
-  .builder-whatsapp[hidden]{display:none}
+  .builder-whatsapp-row{width:100%;display:flex;align-items:center;justify-content:center;gap:2px;
+    opacity:0;transform:scale(.96);transition:opacity .3s var(--qa-ease),transform .3s var(--qa-ease);pointer-events:none}
+  .builder-bar.builder-bar-done .builder-whatsapp-row{opacity:1;transform:none;pointer-events:auto}
+  .builder-whatsapp-row[hidden]{display:none}
+  .builder-whatsapp{margin:0;width:auto;padding:12px 32px;background:transparent;color:#fff}
+  .builder-back-final{opacity:1;transform:none;pointer-events:auto;color:#fff}
+  .builder-back-final:hover{background:rgba(255,255,255,.18);color:#fff}
 
   .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;
     clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
