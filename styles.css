@@ -570,8 +570,8 @@
      absence of an override. */
   .qa-slide:not(.qa-active) .qa-go{pointer-events:none}
   .qa-go:hover{transform:scale(1.06)}
-  .qa-rating{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 8px;margin:14px 0 6px;font-size:13px;color:var(--muted)}
-  .qa-rating-stars{display:inline-flex;gap:2px;color:#f5a623}
+  .qa-rating{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 8px;margin:10px 0 0;font-size:13px;color:var(--muted)}
+  .qa-rating-stars{display:inline-flex;gap:2px;color:var(--accent)}
   .qa-rating-stars svg{width:14px;height:14px;fill:currentColor}
   .qa-rating-text b{color:var(--ink);font-weight:700}
   .step1-reassure{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
