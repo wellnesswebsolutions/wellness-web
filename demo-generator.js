@@ -741,7 +741,8 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .site-style-elegant .site-header .container{min-height:68px}
 .site-style-elegant .site-header .brand-text span{color:#777169}
 .site-style-elegant .brand-badge{border-radius:2px;border-width:1px;box-shadow:none}
-.site-style-elegant .btn{background:#000;color:#fff;border-color:#000;border-width:1px;border-radius:999px;letter-spacing:.12em}
+.site-style-elegant .btn{background:#fff;color:#000;border-color:#000;border-width:1px;border-radius:999px;letter-spacing:.12em}
+.site-style-elegant .btn:hover{background:#000;color:#fff}
 .site-style-elegant .hero{width:94%;margin:108px auto 0;min-height:min(76vh,760px);border-radius:24px;align-items:center;box-shadow:none}
 .site-style-elegant .hero::after{background:linear-gradient(rgba(9,18,32,.28),rgba(9,18,32,.55))}
 .site-style-elegant .hero .hero-copy{padding:3em 0;text-align:center}
