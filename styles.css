@@ -627,10 +627,19 @@
   .builder-bar-and-fullscreen{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0}
   /* copy left, Q&A pill + fullscreen button centre, device toggle right —
      all in one row anchored to the bottom bar */
-  .builder-bar-row-outer{display:flex;align-items:center;gap:18px;width:100%;max-width:1180px;margin:0 auto}
-  .builder-bar-row-outer .builder-topbar-copy{order:1;flex:0 1 260px;min-width:0}
-  .builder-bar-row-outer .builder-bar-and-fullscreen{order:2;flex:1 1 auto;min-width:0}
-  .builder-bar-row-outer .builder-controls{order:3}
+  /* A 3-column grid, not flex: the Q&A pill needs to sit truly centred on
+     the row regardless of the device toggle's width on the right, and a
+     flex layout can only do that by balancing it against an equal-width
+     element on the left (originally .builder-topbar-copy, since removed
+     from the markup) — remove that counterweight and the "centre" item
+     just fills-and-hugs the leftover space instead of centring in it. The
+     empty first column is that counterweight now: it has no content, but
+     reserves the same width as the toggle on the right, so the middle
+     column is genuinely centred on the row rather than on the leftover
+     space after the toggle. */
+  .builder-bar-row-outer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;width:100%;max-width:1180px;margin:0 auto}
+  .builder-bar-row-outer .builder-bar-and-fullscreen{grid-column:2;justify-self:center;min-width:0}
+  .builder-bar-row-outer .builder-controls{grid-column:3;justify-self:end}
   /* Below the generated site's own 900px desktop breakpoint the frame can never
      be wider than the pane, so "Desktop" would render the mobile layout anyway
      — the control would do literally nothing. Hide the whole controls strip
@@ -639,9 +648,7 @@
      — only its position among these other stacked pieces changes. */
   @media(max-width:900px){
     .builder-controls{display:none}
-    .builder-bar-row-outer{flex-direction:column;align-items:stretch;gap:10px}
-    .builder-bar-row-outer .builder-topbar-copy{order:0;flex:none;text-align:center}
-    .builder-bar-row-outer .builder-bar-and-fullscreen{order:0}
+    .builder-bar-row-outer{display:flex;flex-direction:column;align-items:stretch;gap:10px}
   }
   @media(max-width:560px){
     .builder-topbar-copy strong{font-size:12.5px}

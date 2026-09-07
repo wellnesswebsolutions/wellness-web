@@ -436,7 +436,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&family=Nunito+Sans:wght@400;600;700&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};--champagne:color-mix(in srgb,var(--rose-dark) 10%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
+:root{--ink:#1c1815;--body:#3a3330;--muted:#6f635c;--taupe:${t.light};--rose:${t.base};--rose-dark:${t.dark};
+/* Kate Bayar's real --champagne (#efe4db against her #8a6d72 rose-dark)
+   works out to roughly a 24% mix, not the 10% every other category uses —
+   at 10% it barely tints off the header/section white at all, which read
+   as "not matching the hero photo" rather than the warm beige it should. */
+--champagne:color-mix(in srgb,var(--rose-dark) ${(cat === 'hairbeauty' || cat === 'health') ? '24' : '10'}%,#fff);--champagne-2:color-mix(in srgb,var(--rose) 18%,#fff);
 /* --header-surface also paints html's own background (see the
    overscroll-matching rule below), so it has to be set here at :root —
    a .site-style-elegant override further down only reaches body and its
