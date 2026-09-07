@@ -635,7 +635,7 @@ ${heroHasPhoto ? `@media(min-width:901px){
 .card:hover{transform:translateY(-4px);box-shadow:0 26px 60px rgba(28,24,21,.14)}
 .card .num{display:block;font-size:.7rem;font-weight:700;letter-spacing:.22em;color:var(--rose-dark);margin-bottom:1em}
 .card h3{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.card-price{font-size:.62rem;font-weight:700;letter-spacing:.06em;color:var(--rose-dark);background:var(--champagne);
+.card-price{font-size:.62rem;font-weight:700;letter-spacing:.06em;color:var(--rose-dark);background:transparent;
   border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
 .card-hook{display:block;font-style:italic;font-size:.82rem;color:var(--rose-dark);margin:.3em 0 .9em}
 .card p:last-child{margin-bottom:0}
