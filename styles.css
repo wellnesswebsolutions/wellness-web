@@ -218,7 +218,13 @@
   .plan .desc{color:var(--muted);font-size:14.5px;line-height:1.55;margin-bottom:20px;min-height:3.1em}
   .plan .price{font-family:var(--display);font-size:38px;font-weight:600;line-height:1}
   .plan .price small{font-size:14px;color:var(--muted);font-family:var(--body)}
-  .plan .price-note{font-size:12px;color:var(--muted);margin-bottom:24px}
+  .plan .price-note{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .plan .price-addon{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink);
+    background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);border-radius:10px;
+    padding:9px 12px;margin-bottom:24px;cursor:pointer;user-select:none}
+  .plan .price-addon input{width:16px;height:16px;flex:none;accent-color:var(--accent);cursor:pointer}
+  .plan .price-addon span{flex:1}
+  .plan .price-addon b{font-weight:700;color:var(--accent)}
   .plan ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:28px}
   .plan li{display:flex;gap:10px;font-size:14.5px;align-items:flex-start}
   .plan li:before{content:"✦";color:var(--accent);flex:none;font-size:12px;margin-top:3px}
@@ -1428,6 +1434,12 @@ html,body{max-width:100%}
 .mobile-demo-cta.is-visible{display:block}
 body.builder-scroll-lock .mobile-demo-cta{display:none}
 body:has(.creating-overlay.active) .mobile-demo-cta{display:none}
+/* setDocumentScrollLock skips adding builder-scroll-lock below 820px (the
+   real page still needs to scroll there), so this floating CTA — a
+   leftover from the page behind — stayed visible and showed through
+   over/behind the full-page builder on phones. Hide it directly off the
+   overlay's own hidden state instead, which is accurate at every width. */
+body:has(#builderOverlay:not([hidden])) .mobile-demo-cta{display:none}
 }
 
 /* Skeleton shimmer for lazy-loaded images (img-skeleton.js toggles
