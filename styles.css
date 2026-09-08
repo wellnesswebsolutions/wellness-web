@@ -640,10 +640,10 @@
      instead of stacking away from it. */
   .builder-open-html{flex:none;width:34px;height:34px;border:none;border-radius:50%;cursor:pointer;
     background:rgba(59,130,246,.08);color:var(--accent);display:flex;align-items:center;justify-content:center;
-    transition:background .15s,color .15s}
+    pointer-events:auto;transition:background .15s,color .15s}
   .builder-open-html svg{width:17px;height:17px}
   .builder-open-html:hover{background:rgba(59,130,246,.16);color:var(--ink)}
-  .builder-controls{flex:none;display:flex;align-items:center;gap:8px}
+  .builder-controls{flex:none;display:flex;align-items:center;gap:8px;pointer-events:auto}
   .builder-bar-and-fullscreen{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0}
   /* copy left, Q&A pill + fullscreen button centre, device toggle right —
      all in one row anchored to the bottom bar */
@@ -705,8 +705,14 @@
   }
 
   .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;pointer-events:none;
-    display:flex;align-items:center;justify-content:center;
-    padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px))}
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:14px 22px calc(14px + env(safe-area-inset-bottom, 0px));
+    background:#fff;border-top:1px solid rgba(36,27,46,.1);
+    box-shadow:0 -8px 28px rgba(36,27,46,.08)}
+  @media(max-width:900px){
+    .builder-bar-wrap{padding:0 16px calc(18px + env(safe-area-inset-bottom, 0px));
+      background:transparent;border-top:0;box-shadow:none}
+  }
   .builder-chat-pill{pointer-events:auto;display:inline-flex;align-items:center;gap:9px;
     padding:14px 26px;border-radius:999px;border:none;cursor:pointer;
     background:#25D366;color:#fff;font-family:var(--display);font-size:15px;font-weight:700;
