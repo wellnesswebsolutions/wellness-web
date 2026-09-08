@@ -133,8 +133,8 @@
     var addon = link.closest('.plan').querySelector('.price-addon-check');
     function updateHref(){
       var plan = link.dataset.plan, price = link.dataset.price;
-      var message = 'Hi, I\'d like to enquire about the ' + plan + ' plan (' + price + ')' +
-        (addon && addon.checked ? ' with the booking form add-on' : '') + '.';
+      var message = 'Hi, I\'d like to enquire about the ' + plan + ' plan (' + price + '), ' +
+        (addon && addon.checked ? 'with' : 'without') + ' the booking form add-on.';
       link.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
     }
     if (addon) addon.addEventListener('change', updateHref);
