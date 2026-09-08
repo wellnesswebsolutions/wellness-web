@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const builderForName = document.getElementById('builderForName');
   const builderDeviceDesktop = document.getElementById('builderDeviceDesktop');
   const builderDeviceMobile = document.getElementById('builderDeviceMobile');
-  const builderOpenHtml = document.getElementById('builderOpenHtml');
   const builderChatPill = document.getElementById('builderChatPill');
 
   const creatingOverlay = document.getElementById('creatingOverlay');
@@ -25,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const creatingProgress = document.getElementById('creatingProgress');
 
   let selectedTones = null;
+  let selectedLayout = null;
+  let selectedFont = null;
   let uploadedHeroImage = null;
   let heroRenderVersion = 0;
   // Must exist before the initial mobile sizing pass below. Previously this
@@ -133,9 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const MOBILE_BAR_BREAKPOINT = '(max-width: 900px)';
   function updateBuilderBottom() {
     if (!builderBarWrap || !builderPreview) return;
-    builderPreview.style.bottom = window.matchMedia(MOBILE_BAR_BREAKPOINT).matches
-      ? '0px'
-      : `${builderBarWrap.getBoundingClientRect().height}px`;
+    builderPreview.style.bottom = '0px';
     syncDeviceControlAvailability();
     sizePreviewToDesktopRatio();
   }
@@ -505,6 +504,8 @@ document.addEventListener('DOMContentLoaded', () => {
       about: '',
       phone: '',
       tones: selectedTones,
+      layout: selectedLayout,
+      font: selectedFont,
       stylePreset: styleForCategory(bizTagline.value),
       logo: null,
       heroImage: uploadedHeroImage
@@ -519,6 +520,86 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!previewFrame) return;
     previewFrame.srcdoc = buildDemoHTML(gatherData());
   }
+
+  const controls = document.createElement('div');
+  controls.className = 'builder-glass-tools';
+  const whatsappIcon = builderChatPill.querySelector('svg').outerHTML;
+  controls.innerHTML = `<div class="builder-options" id="builderOptions" hidden></div>
+    <button type="button" class="glass-circle whatsapp-circle" data-tool="send" aria-label="Contact designer" aria-expanded="false">${whatsappIcon}</button>
+    <button type="button" class="glass-circle" data-tool="colour" aria-label="Choose colours" aria-expanded="false"><span class="palette-orb"></span></button>
+    <button type="button" class="glass-circle" data-tool="font" aria-label="Choose fonts" aria-expanded="false"><span class="font-orb">Aa</span></button>
+    <button type="button" class="glass-circle" data-tool="layout" aria-label="Choose layout" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 10h18M12 10v11"/></svg></button>`;
+  builderBarWrap.append(controls);
+  builderChatPill.textContent = 'Send To Designer';
+  builderChatPill.className = 'designer-send';
+  builderChatPill.hidden = true;
+  const options = controls.querySelector('.builder-options');
+  let activeTool = null;
+  const palettes = {
+    Soft: [['Porcelain','#b59b94'],['Rose','#b77988'],['Lavender','#9180a5'],['Cloud','#8b9ca7'],['Sand','#b69b72'],['Pearl','#92918b']],
+    Bold: [['Ruby','#ac2637'],['Cobalt','#245bb0'],['Forest','#286148'],['Ochre','#a97618'],['Plum','#763d67'],['Copper','#a75132']],
+    Natural: [['Sage','#70836a'],['Clay','#a86e52'],['Olive','#797744'],['Ocean','#3d7479'],['Oat','#a29378'],['Moss','#506951']],
+    Bright: [['Coral','#cf5547'],['Azure','#267fba'],['Berry','#b33e7e'],['Tangerine','#c96623'],['Teal','#16847b'],['Violet','#7652b0']],
+    Dark: [['Ink','#26313e'],['Espresso','#4a3630'],['Midnight','#283958'],['Pine','#29473e'],['Charcoal','#3e4145'],['Aubergine','#4f354d']]
+  };
+  let paletteFamily = 'Soft';
+  function closeOptions() {
+    activeTool = null;
+    options.hidden = true;
+    builderChatPill.hidden = true;
+    controls.querySelectorAll('[data-tool]').forEach(button => button.setAttribute('aria-expanded','false'));
+  }
+  function renderOptions() {
+    options.hidden = false;
+    options.setAttribute('aria-label', `Choose ${activeTool}`);
+    if (activeTool === 'send') {
+      options.replaceChildren(builderChatPill);
+      builderChatPill.hidden = false;
+    } else if (activeTool === 'colour') {
+      options.innerHTML = `<div class="palette-tabs" role="group" aria-label="Palette mood">${Object.keys(palettes).map(f => `<button type="button" data-family="${f}" aria-pressed="${f === paletteFamily}">${f}</button>`).join('')}</div><div class="palette-scroll">${palettes[paletteFamily].map(([name,hex]) => { const t = tonesFromHex(hex); return `<button type="button" class="palette-choice" data-colour="${hex}" aria-label="${name} palette"><span style="background:${t.light}"></span><span style="background:${t.base}"></span><span style="background:${t.dark}"></span><small>${name}</small></button>`; }).join('')}</div><p>Swipe to explore colours</p>`;
+    } else if (activeTool === 'font') {
+      options.innerHTML = `<h3>Choose your type</h3><div class="builder-choice-list">${DEMO_FONTS.map(f => `<button type="button" data-font="${f.id}" aria-pressed="${selectedFont === f.id}" style="font-family:${f.family}">${f.name}<span>Aa</span></button>`).join('')}</div>`;
+    } else {
+      const recommended = demoLayoutForCategory(typeInfo(bizTagline.value)?.cat);
+      options.innerHTML = `<h3>Choose your layout</h3><div class="builder-choice-list">${DEMO_LAYOUTS.map(l => `<button type="button" data-layout="${l.id}" aria-pressed="${(selectedLayout || recommended) === l.id}">${l.name}<small>${l.id === recommended ? 'Recommended' : l.detail}</small></button>`).join('')}</div>`;
+    }
+  }
+  controls.addEventListener('click', event => {
+    const button = event.target.closest('button');
+    if (!button) return;
+    if (button.dataset.tool) {
+      const next = button.dataset.tool;
+      const previous = activeTool;
+      closeOptions();
+      if (previous === next) return;
+      activeTool = next;
+      if (next === 'colour') {
+        const cat = typeInfo(bizTagline.value)?.cat;
+        paletteFamily = ['fitness','trades','automotive'].includes(cat) ? 'Bold' : ['fooddrink','homegarden','pets'].includes(cat) ? 'Natural' : cat === 'creative' ? 'Bright' : 'Soft';
+      }
+      button.setAttribute('aria-expanded','true');
+      renderOptions();
+    } else if (button.dataset.family) {
+      paletteFamily = button.dataset.family;
+      renderOptions();
+    } else if (button.dataset.colour) {
+      selectedTones = tonesFromHex(button.dataset.colour);
+      controls.querySelector('.palette-orb').style.background = `conic-gradient(${selectedTones.light} 0 120deg,${selectedTones.base} 120deg 240deg,${selectedTones.dark} 240deg)`;
+      refreshPreview();
+    } else if (button.dataset.font || button.dataset.layout) {
+      if (button.dataset.font) selectedFont = button.dataset.font;
+      if (button.dataset.layout) selectedLayout = button.dataset.layout;
+      refreshPreview();
+      renderOptions();
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && activeTool) {
+      const trigger = controls.querySelector(`[data-tool="${activeTool}"]`);
+      closeOptions();
+      trigger.focus();
+    }
+  });
 
   async function postLead(business_name, details) {
     const databaseRequest = fetch('https://klreehoegatehoubhhog.supabase.co/rest/v1/wellnessweb_leads', {
@@ -655,12 +736,4 @@ Location: ${location_}`;
   builderDeviceDesktop.addEventListener('click', () => setBuilderMobileView(false));
   builderDeviceMobile.addEventListener('click', () => setBuilderMobileView(true));
 
-  // opens the exact HTML the iframe is rendering as a real page in its own
-  // tab, so it can be viewed/scrolled/resized outside the builder chrome
-  if (builderOpenHtml) {
-    builderOpenHtml.addEventListener('click', () => {
-      const blob = new Blob([buildDemoHTML(gatherData())], { type: 'text/html' });
-      window.open(URL.createObjectURL(blob), '_blank');
-    });
-  }
 });

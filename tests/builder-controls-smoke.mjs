@@ -47,7 +47,18 @@ const baseUrl = `http://127.0.0.1:${address.port}`;
 const browser = await chromium.launch({ headless: true });
 
 async function revealBuilder(page) {
+  await page.route('https://brightsite.app/img/**', async route => {
+    const asset = new URL(route.request().url()).pathname;
+    await route.fulfill({path:join(root,asset)});
+  });
+  await page.route('**/rest/v1/**', route => route.fulfill({status:201,body:''}));
+  await page.route('**/wellnessweb-notify-lead.**', route => route.fulfill({status:200,body:'{}'}));
   await page.goto(baseUrl, { waitUntil: 'load' });
+  await page.evaluate(() => {
+    document.getElementById('bizName').value = 'Hull Hair';
+    document.getElementById('bizTagline').value = 'Hair & Beauty';
+    document.getElementById('bizLocation').value = 'Hull';
+  });
   await page.locator('#builderOverlay').evaluate((overlay) => {
     overlay.hidden = false;
     window.dispatchEvent(new Event('resize'));
@@ -61,10 +72,10 @@ try {
 
   assert.equal(
     await desktop.locator('.builder-bar-wrap').evaluate((element) => getComputedStyle(element).backgroundColor),
-    'rgb(255, 255, 255)',
-    'desktop builder dock should be white'
+    'rgba(0, 0, 0, 0)',
+    'desktop controls should float without a dock'
   );
-  assert.equal(await desktop.locator('#builderOpenHtml').isVisible(), true, 'desktop full-screen button should be visible');
+  assert.equal(await desktop.locator('#builderOpenHtml').count(), 0, 'fullscreen removed');
 
   await desktop.locator('#builderDeviceMobile').click();
   assert.equal(await desktop.locator('#builderPreview').evaluate((element) => element.classList.contains('mobile-view')), true);
@@ -74,11 +85,22 @@ try {
   assert.equal(await desktop.locator('#builderPreview').evaluate((element) => element.classList.contains('mobile-view')), false);
   assert.equal(await desktop.locator('#builderDeviceDesktop').getAttribute('aria-pressed'), 'true');
 
-  const popupPromise = desktopContext.waitForEvent('page');
-  await desktop.locator('#builderOpenHtml').click();
-  const popup = await popupPromise;
-  await popup.waitForLoadState('load');
-  assert.match(popup.url(), /^blob:/, 'full-screen button should open the generated site');
+  await desktop.locator('[data-tool="colour"]').click();
+  await desktop.locator('[data-family="Bold"]').click();
+  await desktop.locator('[data-colour]').first().click();
+  await desktop.locator('[data-tool="font"]').click();
+  await desktop.locator('[data-font="editorial"]').click();
+  await desktop.locator('[data-tool="layout"]').click();
+  await desktop.locator('[data-layout="creative"]').click();
+  await desktop.frameLocator('#previewFrame').locator('body.layout-creative').waitFor();
+  await desktop.keyboard.press('Escape');
+  assert.equal(await desktop.locator('#builderOptions').isVisible(), false);
+  await desktop.locator('[data-tool="send"]').click();
+  assert.equal(await desktop.getByRole('button', {name:'Send To Designer',exact:true}).isVisible(),true);
+  await desktop.locator('[data-tool="send"]').click();
+  assert.equal(await desktop.locator('#builderOptions').isVisible(),false);
+  await desktop.frameLocator('#previewFrame').locator('.brand-scene').evaluate(async image => {await image.decode(); await Promise.all(image.getAnimations().map(animation => animation.finished));});
+  await desktop.screenshot({path:'/tmp/brightsite-builder-desktop.png'});
   await desktopContext.close();
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
@@ -90,7 +112,33 @@ try {
     'rgba(0, 0, 0, 0)',
     'mobile builder dock should stay transparent'
   );
-  assert.equal(await mobile.locator('#builderOpenHtml').isVisible(), false, 'mobile full-screen button should be hidden');
+  assert.equal(await mobile.locator('#builderOpenHtml').count(), 0);
+  await mobile.locator('[data-tool="layout"]').click();
+  for (const layout of ['salon','trades','restaurant','fitness','creative','professional','automotive']) {
+    await mobile.locator(`[data-layout="${layout}"]`).click();
+    const frame = mobile.frameLocator('#previewFrame');
+    await frame.locator(`body.layout-${layout}`).waitFor();
+    const geometry = await frame.locator('.brand-scene').evaluate(image => {
+      const photo = image.getBoundingClientRect();
+      const copy = document.querySelector('.hero-copy').getBoundingClientRect();
+      const header = document.querySelector('.site-header').getBoundingClientRect();
+      return {contained:getComputedStyle(image).objectFit === 'contain', separate:copy.top >= photo.bottom - 1, belowHeader:photo.top >= header.bottom - 1, fits:photo.right <= innerWidth + 1};
+    });
+    assert.deepEqual(geometry,{contained:true,separate:true,belowHeader:true,fits:true});
+    assert.equal(await frame.locator('.gallery-demo').count(),6);
+    assert.equal(await frame.locator('.review-card').count(),3);
+    assert.equal(await frame.locator('.header-action').isVisible(),true);
+    await frame.locator('.header-action').click();
+    assert.equal(await frame.locator('[data-page="contact"]').isVisible(),true);
+    assert.equal(await frame.locator('[data-page="contact"] iframe').count(),1);
+    await frame.locator('.menu-toggle').click();
+    await frame.locator('#mobileNav [data-nav="home"]').click();
+    assert.equal(await frame.locator('#mobileNav').isVisible(),false);
+  }
+  await mobile.locator('[data-layout="salon"]').click();
+  await mobile.locator('[data-tool="colour"]').click();
+  await mobile.frameLocator('#previewFrame').locator('.brand-scene').evaluate(async image => {await image.decode(); await Promise.all(image.getAnimations().map(animation => animation.finished));});
+  await mobile.screenshot({path:'/tmp/brightsite-builder-mobile.png'});
   await mobileContext.close();
 
   console.log('Builder controls passed desktop and mobile checks.');

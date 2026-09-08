@@ -6,6 +6,28 @@
   // total), matching a real treatment-menu/price-list page. `services`/
   // `prices` (used for hidden auto-fill + homepage teaser tiles) are
   // derived from the groups by flattenGroups() below.
+  const DEMO_LAYOUTS = [
+    {id:'salon',name:'Salon & clinic',detail:'Treatments & booking'},
+    {id:'trades',name:'Trades',detail:'Callouts & quotes'},
+    {id:'restaurant',name:'Restaurant',detail:'Menu & reservations'},
+    {id:'fitness',name:'Fitness',detail:'Training & memberships'},
+    {id:'creative',name:'Creative',detail:'Portfolio & stories'},
+    {id:'professional',name:'Professional',detail:'Expertise & consultation'},
+    {id:'automotive',name:'Automotive',detail:'Services & vehicles'}
+  ];
+  const DEMO_FONTS = [
+    {id:'classic',name:'Classic',family:'Cormorant Garamond'},
+    {id:'modern',name:'Modern',family:'Manrope'},
+    {id:'editorial',name:'Editorial',family:'Fraunces'},
+    {id:'warm',name:'Warm',family:'Lora'},
+    {id:'strong',name:'Strong',family:'Bebas Neue'},
+    {id:'clean',name:'Clean',family:'Montserrat'},
+    {id:'friendly',name:'Friendly',family:'Nunito Sans'},
+    {id:'graphic',name:'Graphic',family:'Sora'}
+  ];
+  function demoLayoutForCategory(cat) {
+    return ({hairbeauty:'salon',aesthetics:'salon',health:'salon',trades:'trades',homegarden:'trades',fooddrink:'restaurant',fitness:'fitness',creative:'creative',professional:'professional',automotive:'automotive',pets:'salon'})[cat] || 'professional';
+  }
   function G(name, items) { return { name, items }; } // items: [label, price] pairs
   const BUSINESS_TYPES = [
     { label: 'Hair & Beauty', cat: 'hairbeauty', photo: 'hair-beauty-hero.jpg', theme: '#a89a92',
@@ -313,7 +335,7 @@
     const prices = d.prices || [];
     const goalLabel = d.goal && d.goal !== 'Book now' ? d.goal : categoryUi.cta;
     const cardBlurbs = [
-      s => `One of the most requested treatments here — ask about ${esc(s.toLowerCase())} and we'll take it from there.`,
+      s => `Find out more about ${esc(s.toLowerCase())} and we'll take it from there.`,
       s => `${esc(s)}, done properly, every time. Get in touch to check availability.`,
       s => `Popular with regulars. Get in touch and we'll talk you through ${esc(s.toLowerCase())}.`
     ];
@@ -386,9 +408,8 @@
     // hero/button CSS at all (no floating pill, no rounded hero card, sharp
     // buttons) — it only swaps fonts/radius/shadow, exactly what this
     // preset's tokens alone do against the unstyled base rules further down.
-    const styleName = (cat === 'hairbeauty' || cat === 'health')
-      ? 'soft-luxury'
-      : ['modern', 'elegant', 'bold', 'studio'].includes(d.stylePreset) ? d.stylePreset : 'modern';
+    const layout = DEMO_LAYOUTS.some(l => l.id === d.layout) ? d.layout : demoLayoutForCategory(cat);
+    const styleName = ({salon:'soft-luxury',trades:'modern',restaurant:'elegant',fitness:'bold',creative:'studio',professional:'modern',automotive:'bold'})[layout];
     const preset = SITE_STYLE_PRESETS[styleName];
     const initials = d.name.trim().split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
     const galleryPhotos = GALLERY_PHOTO_IDS[cat] || GALLERY_PHOTO_IDS.office;
@@ -434,6 +455,19 @@
       : usingCategoryPhoto
         ? `url('${categoryPhoto}') ${heroPos}/cover no-repeat`
         : `linear-gradient(155deg,${t.dark},${t.light})`;
+    const font = DEMO_FONTS.find(f => f.id === d.font);
+    const itemLinks = services.slice(0,4).map((service,i) => `<a href="#" data-nav="services" class="archetype-item"><span>0${i+1}</span><h3>${esc(service)}</h3><strong>${esc(prices[i] || 'Enquire')} ↗</strong></a>`).join('');
+    const action = (label, page='contact') => `<a class="btn" href="#" data-nav="${page}">${esc(label)}</a>`;
+    const locationLabel = esc(d.location || 'your local area');
+    const modules = {
+      salon:`<div class="archetype-heading"><span class="eyebrow">Your time, beautifully spent</span><h2>Treatments tailored to you</h2><p>Explore the treatment menu, compare prices and plan your next appointment.</p></div><div class="treatment-index">${itemLinks}</div><div class="archetype-bottom"><p>A little guidance before you book? Let's find the right option together.</p>${action('Plan your visit')}</div>`,
+      trades:`<div class="callout-panel"><div><span class="eyebrow">Local help in ${locationLabel}</span><h2>Need help urgently?</h2><p>Call to discuss the job and check the next available callout.</p></div>${action('Ask about a callout')}</div><div class="trade-columns"><div><h2>The right team for the job</h2>${itemLinks}</div><aside><h3>Working across ${locationLabel}</h3><p>Tell us your postcode and we'll confirm coverage before arranging a visit.</p><div class="trust-badges"><span>✓ Clear quotes</span><span>✓ Local service</span><span>✓ Work discussed first</span></div><small>Demo trust badges · qualifications and insurance to be confirmed.</small>${action('Request a quote')}</aside></div>`,
+      restaurant:`<div class="restaurant-intro"><div><span class="eyebrow">A place at our table</span><h2>Good food.<br>Great company.</h2>${action('Explore the menu','services')}</div><div class="menu-preview">${itemLinks}</div></div><div class="reservation-strip"><div><h3>Make an evening of it</h3><p>Sample hours · Tue–Sat 12–10pm · Sun 12–6pm</p></div>${action('Reserve a table')}</div>`,
+      fitness:`<div class="archetype-heading"><span class="eyebrow">Find your next level</span><h2>Your goals. Your pace.</h2></div><div class="membership-grid">${['Start','Build','Unlimited'].map((name,i) => `<article><span>0${i+1}</span><h3>${name}</h3><p>${['A confident first step with guided sessions.','A regular routine with coaching and classes.','More flexibility to train your way.'][i]}</p>${action('Explore membership')}</article>`).join('')}</div><div class="training-schedule"><div><h2>A week with us</h2><p>Sample timetable</p><p>Monday · Strength · 07:00</p><p>Wednesday · Mobility · 18:00</p><p>Saturday · Conditioning · 09:00</p></div><div><span class="eyebrow">Meet your coach</span><h3>Support from the first session</h3><p>Your trainer profile, qualifications and approach will feature here.</p>${action('Meet the team')}</div></div>`,
+      creative:`<div class="archetype-heading"><span class="eyebrow">Selected projects</span><h2>Work with something to say.</h2></div><div class="case-studies">${galleryPhotos.slice(0,2).map((id,i) => `<a href="#" data-nav="services"><img src="${galleryPhotoUrl(id)}" alt="Demo portfolio project ${i+1}" onerror="this.onerror=null;this.src='${categoryPhoto}'"><span>Concept project / 0${i+1}</span><h3>${i ? 'A fresh perspective' : 'An identity with character'} ↗</h3><p>Brief → Creative direction → Final delivery. Sample case study, ready for your own work.</p></a>`).join('')}</div>`,
+      professional:`<div class="expertise-layout"><div><span class="eyebrow">Clarity starts here</span><h2>Expertise for your next step.</h2><p>${esc(defaultDesc)}</p>${action('Arrange a consultation')}</div><div>${itemLinks}</div></div><div class="credentials-strip"><div><h3>Experience & credentials</h3><p>Your professional memberships, qualifications and specialist experience belong here.</p></div><div><h3>A considered approach</h3><p>01 Listen & understand<br>02 Agree a clear plan<br>03 Work together</p></div></div>`,
+      automotive:`<div class="workshop-heading"><div><span class="eyebrow">Keep moving</span><h2>Care for every mile.</h2></div>${action('Book your vehicle in')}</div><div class="vehicle-types"><span>Cars</span><span>Vans</span><span>SUVs</span><span>Ask about your vehicle</span></div><div class="workshop-services">${itemLinks}</div><div class="archetype-bottom"><div><h3>Tell us what you drive</h3><p>Share your registration, the service you need and your preferred date.</p></div>${action('Check availability')}</div>`
+    };
     const brandMark = d.logo
       ? `<img src="${d.logo}" alt="${esc(d.name)} logo" style="height:38px;width:auto;display:block">`
       : esc(d.name);
@@ -996,9 +1030,42 @@ ${heroHasPhoto ? `@media(min-width:901px){
    photo-sampled tint onto a light-text-on-dark theme would just break
    contrast rather than look like a match. */
 ${CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold' ? `.site-category-${cat}.site-style-${styleName}{--champagne:${CATEGORY_CHAMPAGNE[cat]}}` : ''}
+/* Dedicated brand scene: never crop or put copy over the 3D lettering. */
+body .hero{display:flex!important;flex-direction:column;min-height:0!important;width:100%!important;margin:75px 0 0!important;padding:0!important;background:var(--header-surface)!important;border-radius:0!important;clip-path:none!important;overflow:visible}
+body .hero::before,body .hero::after{display:none!important}
+.brand-scene{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;background:var(--header-surface);animation:scene-arrive 1.1s ease both}
+body .hero .hero-copy{position:relative;width:100%;padding:42px 0!important;background:var(--header-surface)!important;text-align:left!important}
+body .hero .inner{align-items:flex-start!important;max-width:1200px;margin:auto;padding:0 28px}
+body .hero h1,body .hero p,body .hero .eyebrow,body .hero-tags{color:var(--header-ink)!important;text-shadow:none!important}
+body .hero .hero-title{max-width:24ch;font-size:clamp(2.3rem,4.8vw,4.6rem);margin:12px 0 26px}
+body .hero .btn-row{justify-content:flex-start!important}
+body .hero .btn{background:var(--header-ink)!important;color:var(--header-surface)!important;border-color:var(--header-ink)!important;box-shadow:none!important}
+body .hero .btn--outline-light{background:transparent!important;color:var(--header-ink)!important}
+.header-action{display:none}
+.gallery-demo{background-image:url('${categoryPhoto || 'https://brightsite.app/img/hero/creative-hero.jpg'}');background-size:cover;background-position:center}
+body .site-header{top:0;left:0;right:0;width:100%;border-radius:0}body .site-header .container{min-height:75px}
+.archetype{padding:80px 0}.archetype h2{font-size:clamp(2rem,4vw,3.7rem)}.archetype p{line-height:1.7}.archetype-heading{max-width:660px;margin-bottom:38px}
+.archetype-item{display:flex;align-items:center;gap:18px;padding:25px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none;transition:padding .25s,background .25s}.archetype-item:hover{padding-left:12px;background:color-mix(in srgb,var(--rose) 8%,transparent)}.archetype-item h3{flex:1;margin:0;font-size:1.3rem}.archetype-item strong{font-size:.85rem}.archetype-item>span{opacity:.55;font-size:.75rem}
+.archetype-bottom,.reservation-strip,.workshop-heading{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-top:32px}.archetype-bottom .btn,.reservation-strip .btn{flex-shrink:0}
+.trade-columns,.restaurant-intro,.expertise-layout,.training-schedule{display:grid;grid-template-columns:1.2fr 1fr;gap:60px;margin-top:40px}.trade-columns aside{padding:32px;background:var(--champagne-2)}
+.callout-panel{padding:32px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:25px}.callout-panel h2,.callout-panel p,.callout-panel .eyebrow{color:#fff}.callout-panel h2{margin:8px 0;font-size:2.5rem}
+.trust-badges{display:grid;gap:12px;margin:24px 0}.trade-columns small{display:block;margin-bottom:24px}.menu-preview{border-top:3px solid var(--rose-dark)}.reservation-strip{border-top:1px solid var(--line);padding-top:30px}
+.membership-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.membership-grid article{border:1px solid var(--line);padding:28px}.membership-grid article:nth-child(2){background:var(--rose-dark)}.membership-grid h3{font-size:2rem}
+.training-schedule{border-top:1px solid var(--line);padding-top:40px}.case-studies{display:grid;grid-template-columns:1.3fr 1fr;gap:32px}.case-studies a{color:inherit;text-decoration:none}.case-studies a:nth-child(2){padding-top:100px}.case-studies img{width:100%;aspect-ratio:4/3;object-fit:cover}.case-studies span{display:block;margin:20px 0;font-size:.75rem}
+.credentials-strip{display:grid;grid-template-columns:1fr 1fr;gap:50px;background:var(--champagne-2);padding:32px;margin-top:50px}.vehicle-types{display:flex;flex-wrap:wrap;gap:12px;margin:32px 0}.vehicle-types span{border:1px solid var(--line);padding:14px 24px}.workshop-services{display:grid;grid-template-columns:1fr 1fr;gap:0 36px}
+.layout-creative .hero-title{font-size:clamp(3rem,7vw,6rem)!important}.layout-restaurant .hero .inner,.layout-salon .hero .inner{align-items:center!important;text-align:center}.layout-restaurant .hero .btn-row,.layout-salon .hero .btn-row{justify-content:center!important}
+${font ? `body{--heading-font:'${font.family}',serif!important}body h1,body h2,body h3{font-family:var(--heading-font)!important}` : ''}
+@keyframes scene-arrive{from{opacity:0;filter:brightness(.8)}to{opacity:1;filter:brightness(1)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(max-width:760px){
+body .hero{margin-top:68px!important}body .hero .hero-copy{padding:26px 0!important}body .hero .inner{padding:0 20px}body .hero .hero-title{font-size:2.2rem}
+body .site-header{top:0!important;left:0!important;width:100%!important;border-radius:0!important}body .site-header .container{min-height:68px;gap:10px;padding-left:16px;padding-right:16px}.brand{min-width:0;flex:1}.brand-text{overflow-wrap:anywhere;max-height:52px;overflow:hidden;font-size:clamp(13px,3.8vw,20px)}.brand-text>span{display:none}.brand-badge{display:none!important}
+.header-action{display:inline-flex!important;align-items:center;justify-content:center;min-height:40px;padding:8px 12px!important;font-size:11px!important;white-space:nowrap}.menu-toggle{flex-shrink:0}.mobile-nav{backdrop-filter:blur(22px);background:color-mix(in srgb,var(--header-surface) 88%,transparent)!important}
+.archetype{padding:44px 0}.trade-columns,.restaurant-intro,.expertise-layout,.training-schedule,.membership-grid,.case-studies,.credentials-strip,.workshop-services{grid-template-columns:1fr;gap:24px}.case-studies a:nth-child(2){padding-top:0}.callout-panel,.archetype-bottom,.reservation-strip,.workshop-heading{align-items:flex-start;flex-direction:column}.archetype-item{gap:12px}.archetype-item h3{font-size:1.1rem}
+}
 </style>
 </head>
-<body class="site-style-${styleName} site-category-${cat}">
+<body class="site-style-${styleName} site-category-${cat} layout-${layout}">
 
 <header class="site-header">
   <div class="container">
@@ -1009,6 +1076,7 @@ ${CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold' ? `.site-category-${cat}.site-
       <a href="#" data-nav="contact">Contact</a>
       <a class="btn" href="#" data-nav="contact">${esc(goalLabel)}</a>
     </nav>
+    <a class="btn header-action" href="#" data-nav="contact">${esc(({salon:'Book now',trades:'Get a quote',restaurant:'Reserve',fitness:'Join now',creative:'Let’s talk',professional:'Consultation',automotive:'Book now'})[layout])}</a>
     <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav"><span></span></button>
     <nav class="mobile-nav" id="mobileNav" hidden>
       <a href="#" data-nav="home">Home</a>
@@ -1021,8 +1089,7 @@ ${CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold' ? `.site-category-${cat}.site-
 
 <div class="page" data-page="home">
   <section class="hero">
-    ${sceneMarkup}
-    ${heroHasPhoto ? '<span class="hero-photo-note">(This picture will be custom made for your business — it\u2019s just a demo picture for now)</span>' : ''}
+    ${heroHasPhoto ? `<img class="brand-scene" src="${esc(d.heroImage || categoryPhoto)}" alt="${esc(d.name)} — personalised business scene" fetchpriority="high">` : sceneMarkup}
     <div class="hero-copy">
       <div class="inner">
         <span class="eyebrow">${esc(eyebrowLoc)}</span>
@@ -1036,7 +1103,8 @@ ${CATEGORY_CHAMPAGNE[cat] && styleName !== 'bold' ? `.site-category-${cat}.site-
     </div>
   </section>
 
-  <section class="section section--tint">
+  <section class="archetype"><div class="container">${modules[layout]}</div></section>
+  <section class="section section--tint" hidden>
     <div class="container">
       ${(cat === 'hairbeauty' || cat === 'health') ? `
       <div class="grid grid-2" style="align-items:center;gap:48px">
@@ -1222,12 +1290,13 @@ var slug = ${JSON.stringify(d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').rep
 // gets swapped for a spare rather than left as a blank/black tile
 document.querySelectorAll('.gallery-demo img[data-spares]').forEach(function (img) {
   img.addEventListener('error', function () {
+    if (img.dataset.finalFallback) return;
     var spares;
     try { spares = JSON.parse(img.getAttribute('data-spares') || '[]'); } catch (e) { spares = []; }
     var next = spares.shift();
     img.setAttribute('data-spares', JSON.stringify(spares));
     if (next) { img.src = next; }
-    else { img.closest('.gallery-demo').remove(); }
+    else { img.dataset.finalFallback = 'true'; img.src = ${JSON.stringify(d.heroImage || categoryPhoto)}; }
   }, { once: false });
 });
 var menuToggle = document.querySelector('.menu-toggle');
@@ -1276,7 +1345,7 @@ document.querySelectorAll('a[href^="#svc-group-"]').forEach(function (a) {
 // group of cards cascades in rather than popping in as one flat block.
 var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (!reduceMotion && 'IntersectionObserver' in window) {
-  var revealGroups = document.querySelectorAll('.grid, .reviews, .gallery');
+  var revealGroups = document.querySelectorAll('.grid, .reviews, .gallery, .membership-grid, .case-studies, .treatment-index, .workshop-services, .trade-columns, .expertise-layout, .credentials-strip, .training-schedule');
   revealGroups.forEach(function (group) {
     Array.prototype.forEach.call(group.children, function (child, i) {
       child.classList.add('reveal');
@@ -1295,30 +1364,6 @@ if (!reduceMotion && 'IntersectionObserver' in window) {
     });
   }, { threshold: .12, rootMargin: '0px 0px -6% 0px' });
   document.querySelectorAll('.reveal').forEach(function (el) { revealIO.observe(el); });
-}
-
-/* Modern-only: the hero copy fades and lifts away as you scroll past it —
-   Elegant and Bold each already have their own distinct hero treatment
-   (the tucked-in card frame, the dot-pattern blob), so Modern gets its own
-   bit of scroll-linked motion instead of a static hero. rAF-throttled so
-   it costs nothing beyond the scroll events themselves. */
-if (!reduceMotion && document.body.classList.contains('site-style-modern')) {
-  var modernHero = document.querySelector('.hero');
-  var modernHeroCopy = document.querySelector('.hero .hero-copy');
-  if (modernHero && modernHeroCopy) {
-    var modernTicking = false;
-    var onModernHeroScroll = function () {
-      modernTicking = false;
-      var heroH = modernHero.offsetHeight || 1;
-      var p = Math.min(1, window.scrollY / heroH);
-      modernHeroCopy.style.transform = 'translateY(' + (p * 40).toFixed(1) + 'px)';
-      modernHeroCopy.style.opacity = (1 - p * 0.9).toFixed(3);
-    };
-    window.addEventListener('scroll', function () {
-      if (!modernTicking) { modernTicking = true; requestAnimationFrame(onModernHeroScroll); }
-    }, { passive: true });
-    onModernHeroScroll();
-  }
 }
 
 showPage('home');
