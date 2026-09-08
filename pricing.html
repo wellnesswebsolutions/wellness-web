@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#F7F2EC">
 <link rel="canonical" href="https://brightsite.app/pricing">
-<link rel="stylesheet" href="styles.css?v=20260908-4">
+<link rel="stylesheet" href="styles.css?v=20260908-5">
 <style>
   .page{padding-top:34px}
   .page-hero{margin-bottom:0}
@@ -73,7 +73,7 @@
             <li>Hosting, security &amp; maintenance</li>
             <li>Contact details &amp; enquiry links</li>
           </ul>
-          <a href="contact.html" class="go">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Essential" data-price="£99" target="_blank" rel="noopener">Enquire</a>
         </div>
         <div class="plan feature">
           <div class="kicker">Best balance</div>
@@ -91,7 +91,7 @@
             <li>Interactions &amp; animations</li>
             <li>Third-party integrations</li>
           </ul>
-          <a href="contact.html" class="go">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Pro" data-price="£199" target="_blank" rel="noopener">Enquire</a>
         </div>
         <div class="plan">
           <div class="kicker">For bigger sites</div>
@@ -108,7 +108,7 @@
             <li>Multi-location or multi-service structure</li>
             <li>Priority same-day support</li>
           </ul>
-          <a href="contact.html" class="go">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Prestige" data-price="£399" target="_blank" rel="noopener">Enquire</a>
         </div>
       </div>
       <p class="pricing-note">£15/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking form for £15/month more. Cancel any time.</p>
@@ -124,6 +124,23 @@
 
 <script>
 (function(){var b=document.getElementById('bar');if(!b)return;function u(){var m=document.documentElement.scrollHeight-innerHeight;b.style.width=(m>0?Math.min(1,scrollY/m)*100:0)+'%';}addEventListener('scroll',u,{passive:true});addEventListener('resize',u,{passive:true});u();})();
+
+// Each Enquire button opens WhatsApp with the plan (and booking-form
+// add-on, if ticked) already in the message, instead of the contact page.
+(function(){
+  var WHATSAPP_NUMBER = '447535928879';
+  document.querySelectorAll('.plan-enquire').forEach(function(link){
+    var addon = link.closest('.plan').querySelector('.price-addon-check');
+    function updateHref(){
+      var plan = link.dataset.plan, price = link.dataset.price;
+      var message = 'Hi, I\'d like to enquire about the ' + plan + ' plan (' + price + ')' +
+        (addon && addon.checked ? ' with the booking form add-on' : '') + '.';
+      link.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
+    }
+    if (addon) addon.addEventListener('change', updateHref);
+    updateHref();
+  });
+})();
 </script>
 </body>
 </html>
