@@ -219,12 +219,17 @@
   .plan .price{font-family:var(--display);font-size:38px;font-weight:600;line-height:1}
   .plan .price small{font-size:14px;color:var(--muted);font-family:var(--body)}
   .plan .price-note{font-size:12px;color:var(--muted);margin-bottom:8px}
-  .plan .price-addon{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink);
-    background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);border-radius:10px;
-    padding:9px 12px;margin-bottom:24px;cursor:pointer;user-select:none}
-  .plan .price-addon input{width:16px;height:16px;flex:none;accent-color:var(--accent);cursor:pointer}
-  .plan .price-addon span{flex:1}
-  .plan .price-addon b{font-weight:700;color:var(--accent)}
+  .plan .price-addon{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:7px 14px 7px 10px;margin-bottom:24px;cursor:pointer;user-select:none;transition:border-color .2s}
+  .plan .price-addon:hover{border-color:var(--accent)}
+  .plan .price-addon input{position:absolute;opacity:0;width:0;height:0}
+  .plan .price-addon .tick{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line);
+    flex:none;position:relative;transition:background .2s,border-color .2s}
+  .plan .price-addon input:checked ~ .tick{background:var(--accent);border-color:var(--accent)}
+  .plan .price-addon input:checked ~ .tick:after{content:"";position:absolute;left:3.5px;top:1px;
+    width:4px;height:7px;border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+  .plan .price-addon b{font-weight:700;color:var(--ink)}
   .plan ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:28px}
   .plan li{display:flex;gap:10px;font-size:14.5px;align-items:flex-start}
   .plan li:before{content:"✦";color:var(--accent);flex:none;font-size:12px;margin-top:3px}
