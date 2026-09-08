@@ -126,9 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const builderBarWrap = document.querySelector('.builder-bar-wrap');
+  // Below 900px the bar collapses to just the floating chat pill (see the
+  // matching breakpoint in styles.css), so the preview should run all the
+  // way to the bottom of the screen behind it instead of leaving a gap of
+  // real page showing above where the bar used to be.
+  const MOBILE_BAR_BREAKPOINT = '(max-width: 900px)';
   function updateBuilderBottom() {
     if (!builderBarWrap || !builderPreview) return;
-    builderPreview.style.bottom = `${builderBarWrap.getBoundingClientRect().height}px`;
+    builderPreview.style.bottom = window.matchMedia(MOBILE_BAR_BREAKPOINT).matches
+      ? '0px'
+      : `${builderBarWrap.getBoundingClientRect().height}px`;
     syncDeviceControlAvailability();
     sizePreviewToDesktopRatio();
   }

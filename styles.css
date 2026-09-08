@@ -658,14 +658,7 @@
      .builder-bar-and-fullscreen keeps its own internal row layout regardless
      — only its position among these other stacked pieces changes. */
   @media(max-width:900px){
-    .builder-controls{display:none}
-    .builder-bar-row-outer{display:flex;flex-direction:column;align-items:stretch;gap:10px}
-  }
-  @media(max-width:560px){
-    .builder-topbar-copy strong{font-size:12.5px}
-    .builder-topbar-copy span{font-size:11px}
-    .builder-device{padding:8px 11px;font-size:11.5px}
-    .builder-open-html{width:32px;height:32px}
+    .builder-controls,.builder-open-html{display:none}
   }
   .builder-preview{position:fixed;top:var(--header-h, 75px);left:0;right:0;overflow:hidden;background:var(--bg);
     pointer-events:auto;transition:padding .3s var(--qa-ease),bottom .2s var(--qa-ease)}
