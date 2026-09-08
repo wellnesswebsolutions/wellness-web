@@ -88,6 +88,18 @@ try {
   await desktop.locator('[data-tool="colour"]').click();
   await desktop.locator('[data-family="Bold"]').click();
   await desktop.locator('[data-colour]').first().click();
+  const surfaceColours = async () => desktop.frameLocator('#previewFrame').locator('body').evaluate(() =>
+    ['body','.site-header','.service-card','.closing'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor));
+  await desktop.frameLocator('#previewFrame').locator('.service-card').first().waitFor();
+  const firstPalette = await surfaceColours();
+  await desktop.locator('[data-colour="#245bb0"]').click();
+  await desktop.frameLocator('#previewFrame').locator('body').evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
+  const secondPalette = await surfaceColours();
+  firstPalette.forEach((colour,index) => assert.notEqual(secondPalette[index],colour,'palette must update every major surface'));
+  await desktop.locator('[data-family="Dark"]').click();
+  await desktop.locator('[data-colour="#26313e"]').click();
+  await desktop.frameLocator('#previewFrame').locator('body').waitFor();
+  assert.equal(await desktop.frameLocator('#previewFrame').locator('html').evaluate(el=>getComputedStyle(el).colorScheme),'dark');
   await desktop.locator('[data-tool="font"]').click();
   await desktop.locator('[data-font="editorial"]').click();
   await desktop.locator('[data-tool="layout"]').click();
@@ -107,6 +119,27 @@ try {
   });
   assert.deepEqual(desktopHero,{overlays:true,logoClear:true,bottomAligned:true});
   await desktop.screenshot({path:'/tmp/brightsite-builder-desktop.png'});
+  // Render the real compositor output into the new renderer, then inspect the
+  // body at desktop and phone widths. No lead or designer messages are sent.
+  const brandedHero = await desktop.evaluate(() => HeroBrandCompositor.render({category:'Hair & Beauty',businessName:'Hull Hair',location:'Hull',output:'dataURL'}));
+  assert.match(brandedHero,/^data:image\//);
+  const site = await desktopContext.newPage();
+  const errors=[];
+  site.on('pageerror',error=>errors.push(error.message));
+  for(const [category,layout] of [['Hair & Beauty','salon'],['Trades','trades'],['Food & Drink','restaurant'],['Fitness','fitness'],['Creative','creative'],['Professional Services','professional'],['Automotive','automotive']]) {
+    const html = await desktop.evaluate(({category,brandedHero}) => buildDemoHTML({name:'Studio North',tagline:category,location:'Hull',heroImage:brandedHero}),{category,brandedHero});
+    await site.setContent(html,{waitUntil:'domcontentloaded'});
+    assert.equal(await site.locator('.brand-scene').getAttribute('src'),brandedHero);
+    await site.emulateMedia({reducedMotion:'reduce'});
+    await site.locator('.signature').scrollIntoViewIfNeeded();
+    await site.waitForFunction(()=>Array.from(document.querySelectorAll('.signature .demo-photo')).filter(img=>img.getBoundingClientRect().top<innerHeight).every(img=>img.complete&&img.naturalWidth>0),{},{timeout:15000});
+    await site.screenshot({path:`/tmp/brightsite-fresh-${layout}.png`});
+    assert.equal(await site.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${layout} should fit desktop`);
+    await site.setViewportSize({width:390,height:844});
+    assert.equal(await site.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${layout} should fit mobile`);
+    await site.setViewportSize({width:1440,height:900});
+  }
+  assert.deepEqual(errors,[],'generated sites must have no script errors');
   await desktopContext.close();
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });

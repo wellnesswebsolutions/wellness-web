@@ -33,20 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // the entire form setup before submit/input handlers were attached.
   let builderMobileView = false;
 
-  // No style picker — each business category gets whichever of the four
-  // visual directions fits it best (see demo-generator.js for what each
-  // style actually looks like).
-  const STYLE_BY_CATEGORY = {
-    hairbeauty: 'elegant', aesthetics: 'elegant', health: 'elegant',
-    fitness: 'bold', automotive: 'bold', trades: 'bold',
-    homegarden: 'modern', fooddrink: 'modern', pets: 'modern', office: 'modern',
-    professional: 'studio', creative: 'studio'
-  };
-  function styleForCategory(label) {
-    const info = typeInfo(label);
-    return STYLE_BY_CATEGORY[info ? info.cat : 'office'] || 'modern';
-  }
-
   async function rerenderPersonalisedHero() {
     if (!bizNameInput.value.trim() || !bizLocation.value.trim()) return null;
     const version = ++heroRenderVersion;
@@ -506,7 +492,6 @@ document.addEventListener('DOMContentLoaded', () => {
       tones: selectedTones,
       layout: selectedLayout,
       font: selectedFont,
-      stylePreset: styleForCategory(bizTagline.value),
       logo: null,
       heroImage: uploadedHeroImage
     };
@@ -583,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
       paletteFamily = button.dataset.family;
       renderOptions();
     } else if (button.dataset.colour) {
-      selectedTones = tonesFromHex(button.dataset.colour);
+      selectedTones = {...tonesFromHex(button.dataset.colour), mode: paletteFamily === 'Dark' ? 'dark' : 'light'};
       controls.querySelector('.palette-orb').style.background = `conic-gradient(${selectedTones.light} 0 120deg,${selectedTones.base} 120deg 240deg,${selectedTones.dark} 240deg)`;
       refreshPreview();
     } else if (button.dataset.font || button.dataset.layout) {
