@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateBuilderBottom() {
     if (!builderBarWrap || !builderPreview) return;
     builderPreview.style.bottom = '0px';
+    builderPreview.style.setProperty('--builder-tools-height', `${builderBarWrap.getBoundingClientRect().height}px`);
     syncDeviceControlAvailability();
     sizePreviewToDesktopRatio();
   }

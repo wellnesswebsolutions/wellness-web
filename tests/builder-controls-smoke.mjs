@@ -80,6 +80,15 @@ try {
   await desktop.locator('#builderDeviceMobile').click();
   assert.equal(await desktop.locator('#builderPreview').evaluate((element) => element.classList.contains('mobile-view')), true);
   assert.equal(await desktop.locator('#builderDeviceMobile').getAttribute('aria-pressed'), 'true');
+  for (const height of [900,700]) {
+    await desktop.setViewportSize({width:1440,height});
+    await desktop.locator('.builder-phone-frame').evaluate(element => Promise.all(element.parentElement.getAnimations().map(animation=>animation.finished)));
+    const phone = await desktop.locator('.builder-phone-frame').boundingBox();
+    const tools = await desktop.locator('.builder-glass-tools').boundingBox();
+    assert.ok(Math.abs(phone.height/phone.width - 2) < .02,'phone preview keeps a compact 2:1 ratio');
+    assert.ok(phone.y+phone.height <= tools.y-12,'phone stays above the floating tools');
+  }
+  await desktop.setViewportSize({width:1440,height:900});
 
   await desktop.locator('#builderDeviceDesktop').click();
   assert.equal(await desktop.locator('#builderPreview').evaluate((element) => element.classList.contains('mobile-view')), false);

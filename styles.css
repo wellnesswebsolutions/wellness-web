@@ -683,7 +683,7 @@
      The frame is also height-constrained to a real phone's aspect ratio
      (not the full pane height) and wrapped in a fake device bezel, so it
      reads as an actual phone rather than a tall narrow strip of the page. */
-  .builder-preview.mobile-view{padding:24px;display:flex;align-items:center;justify-content:center}
+  .builder-preview.mobile-view{padding:20px 24px calc(var(--builder-tools-height,100px) + 16px);display:flex;align-items:center;justify-content:center}
   /* height:100% + aspect-ratio, width:auto (not the reverse): with both
      width and height given explicit lengths, aspect-ratio has nothing
      "auto" left to resolve and is ignored per spec, so the old
@@ -694,7 +694,7 @@
      shape correct at every pane height, and caps out at a real phone's
      max-width once the container is tall enough to hit it. */
   .builder-preview.mobile-view .builder-phone-frame{position:relative;width:auto;
-    height:100%;max-height:844px;max-width:min(390px,100%);aspect-ratio:390/844;flex:none;
+    height:100%;max-height:780px;max-width:min(390px,100%);aspect-ratio:390/780;flex:none;
     padding:14px;border-radius:48px;background:#111;
     box-shadow:0 30px 70px rgba(15,15,20,.4),inset 0 0 0 2px rgba(255,255,255,.06)}
   .builder-preview.mobile-view iframe{max-width:none;width:100%;height:100%;border-radius:28px}
