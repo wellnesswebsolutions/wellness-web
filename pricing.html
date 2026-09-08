@@ -28,7 +28,7 @@
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 24px; }
   .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  input:checked + .slider { background-color: #111; }
+  input:checked + .slider { background-color: #2563eb; }
   input:checked + .slider:before { transform: translateX(20px); }
   .toggle-label.active { color: #111; font-weight: 700; }
   .toggle-label { color: #666; cursor: pointer; transition: color 0.2s; user-select: none; }
@@ -86,7 +86,7 @@
             <span class="price"><span class="setup-price">£49.50</span><small class="hosting-price">+ £180/yr</small></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
-          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b class="addon-price">+£180/yr</b></label>
+          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
           <ul>
             <li>Up to 3 custom-designed pages</li>
             <li>SEO &amp; SEO-focused content</li>
@@ -105,7 +105,7 @@
             <span class="price"><span class="setup-price">£99.50</span><small class="hosting-price">+ £180/yr</small></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
-          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b class="addon-price">+£180/yr</b></label>
+          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
           <ul>
             <li>Everything in Essential</li>
             <li>Up to 5 custom-designed pages</li>
@@ -124,7 +124,7 @@
             <span class="price"><span class="setup-price">£199.50</span><small class="hosting-price">+ £180/yr</small></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
-          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b class="addon-price">+£180/yr</b></label>
+          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
           <ul>
             <li>Everything in Pro</li>
             <li>Up to 7 custom-designed pages</li>
@@ -134,7 +134,7 @@
           <a href="#" class="go plan-enquire" data-plan="Prestige" data-price="£199.50 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
         </div>
       </div>
-      <p class="pricing-note">Hosting covers security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking form for extra functionality. Cancel any time.</p>
+      <p class="pricing-note">Hosting covers security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking form for £15/month extra. Cancel any time.</p>
     </div>
   </section>
 
@@ -171,7 +171,7 @@
       var price = link.dataset.price;
       var billing = checkbox.checked ? 'Annually' : 'Monthly';
       var message = 'Hi, I\'d like to enquire about the ' + plan + ' plan (' + price + ', paid ' + billing + '), ' +
-        (addon && addon.checked ? 'with' : 'without') + ' the booking form add-on.';
+        (addon && addon.checked ? 'with' : 'without') + ' the £15/mo booking form add-on.';
       link.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
     });
   }
@@ -184,19 +184,16 @@
     plans.forEach(function(plan) {
       var setupPrice = plan.querySelector('.setup-price');
       var hostingPrice = plan.querySelector('.hosting-price');
-      var addonPrice = plan.querySelector('.addon-price');
       var btn = plan.querySelector('.plan-enquire');
 
       if (isAnnual) {
         setupPrice.innerHTML = '£' + plan.dataset.setupAnnual;
         hostingPrice.innerHTML = '+ £180/yr';
-        addonPrice.innerHTML = '+£180/yr';
-        btn.dataset.price = '£' + plan.dataset.setupAnnual + ' setup + £180/yr';
+        btn.dataset.price = '£' + plan.dataset.setupAnnual + ' setup + £180/yr hosting';
       } else {
         setupPrice.innerHTML = '£' + plan.dataset.setupMonthly;
         hostingPrice.innerHTML = '+ £15/mo';
-        addonPrice.innerHTML = '+£15/mo';
-        btn.dataset.price = '£' + plan.dataset.setupMonthly + ' setup + £15/mo';
+        btn.dataset.price = '£' + plan.dataset.setupMonthly + ' setup + £15/mo hosting';
       }
     });
     updateWhatsAppLinks();
