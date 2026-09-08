@@ -9,6 +9,7 @@
   const DEMO_LAYOUTS = [
     {id:'minimal',name:'Minimal',detail:'Split hero & image-led portfolio'},
     {id:'soft',name:'Soft',detail:'Rounded cards & generous breathing room',font:'Manrope',round:'28px'},
+    {id:'serene',name:'Serene',detail:'Flowing curves & cinematic serif type',font:'Cormorant Garamond',round:'18px'},
     {id:'editorial',name:'Editorial',detail:'Magazine grids & oversized type'},
     {id:'bold',name:'Bold',detail:'Strong contrast & graphic blocks'},
     {id:'luxe',name:'Luxe',detail:'Sculpted imagery & soft reveals'},

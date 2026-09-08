@@ -184,6 +184,14 @@ try {
     const html = await desktop.evaluate(({layout,brandedHero}) => buildDemoHTML({name:'Hull Hair',tagline:'Hair & Beauty',location:'Hull',layout,heroImage:brandedHero}),{layout,brandedHero});
     await site.setContent(html,{waitUntil:'domcontentloaded'});
     assert.equal(await site.locator('.brand-scene').getAttribute('src'),brandedHero);
+    await site.locator('.brand-scene').evaluate(async image=>{await image.decode();await document.fonts.ready});
+    const logoSafe=await site.locator('.brand-scene').evaluate(image=>{
+      const a=image.getBoundingClientRect(),b=document.querySelector('.hero-copy').getBoundingClientRect();
+      const separate=b.right<=a.left+1||b.left>=a.right-1||b.top>=a.bottom-1||b.bottom<=a.top+1;
+      return separate||b.top>=a.top+a.height*.54;
+    });
+    assert.equal(logoSafe,true,`${layout} must leave the 3D logo area clear`);
+    await site.screenshot({path:`/tmp/brightsite-hero-${layout}.png`});
     await site.emulateMedia({reducedMotion:'reduce'});
     await site.locator('.signature .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
     await site.waitForFunction(()=>Array.from(document.querySelectorAll('.signature .demo-photo')).filter(img=>img.getBoundingClientRect().top<innerHeight).every(img=>img.complete&&img.naturalWidth>0),{},{timeout:15000});
@@ -195,6 +203,13 @@ try {
     assert.ok(await site.locator('.hero .button').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))>=15);
     await site.locator('.signature .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
     await site.screenshot({path:`/tmp/brightsite-fresh-${layout}-mobile.png`});
+    for(const pageName of ['services','contact']){
+      await site.locator('.menu-toggle').click();
+      await site.locator(`#mobileNav [data-nav="${pageName}"]`).first().click();
+      assert.equal(await site.locator(`[data-page="${pageName}"]`).isVisible(),true);
+      assert.equal(await site.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${layout} ${pageName} must fit mobile`);
+      await site.screenshot({path:`/tmp/brightsite-${pageName}-${layout}-mobile.png`});
+    }
     await site.setViewportSize({width:1440,height:900});
   }
   await site.emulateMedia({reducedMotion:'no-preference'});
