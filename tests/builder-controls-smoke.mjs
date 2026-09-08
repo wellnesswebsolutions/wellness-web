@@ -164,7 +164,12 @@ try {
     const copy = document.querySelector('.hero-copy').getBoundingClientRect();
     return {overlays:copy.top < photo.bottom, logoClear:copy.top >= photo.top + photo.height * .52, bottomAligned:Math.abs(copy.bottom-photo.bottom)<2};
   });
-  assert.deepEqual(desktopHero,{overlays:true,logoClear:true,bottomAligned:true});
+  // Minimal now places the copy beside the uncropped scene, not over it.
+  const safeHero = await desktop.frameLocator('#previewFrame').locator('.brand-scene').evaluate(image => {
+    const a=image.getBoundingClientRect(),b=document.querySelector('.hero-copy').getBoundingClientRect();
+    return b.right<=a.left+1||b.left>=a.right-1||b.top>=a.bottom-1||b.bottom<=a.top+1;
+  });
+  assert.equal(safeHero,true,'split hero copy must not overlap any part of the branded photograph');
   await desktop.screenshot({path:'/tmp/brightsite-builder-desktop.png'});
   // Render the real compositor output into the new renderer, then inspect the
   // body at desktop and phone widths. No lead or designer messages are sent.

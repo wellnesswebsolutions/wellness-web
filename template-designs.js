@@ -202,6 +202,57 @@ function templateDesignCSS() {
   @media(max-width:380px){.brand{font-size:18px}.header-inner{gap:7px}.header-action{padding:10px 11px!important}.hero-actions .button{width:100%}}
   @media(prefers-reduced-motion:reduce){.reveal{opacity:1!important;transform:none!important}.motion-track{height:auto!important}.motion-sticky{position:static}.layout-kinetic .motion-rail{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));transform:none!important;will-change:auto}.layout-kinetic .motion-rail> *{min-width:0}.scroll-progress{display:none}}
   @media(prefers-reduced-motion:reduce) and (max-width:760px){.layout-kinetic .motion-rail{grid-template-columns:1fr}}
+  ${studioLayoutCSS()}
+  `;
+}
+
+// Original BrightSite layouts, informed by broad editorial/portfolio design
+// patterns. No Framer source, components, copy or template assets are bundled.
+function studioLayoutCSS() {
+  return `
+  /* Minimal — a quiet information column beside an image-led portfolio. */
+  .layout-minimal .container{width:min(1440px,100% - 48px)}
+  .layout-minimal .site-header{background:var(--bg);border-color:var(--line)}
+  .layout-minimal .hero{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:36px;align-items:center;padding:36px 24px 54px;background:var(--bg)}
+  .layout-minimal .brand-scene{grid-column:2;grid-row:1;border-radius:10px}
+  .layout-minimal .hero-copy{position:static!important;grid-column:1;grid-row:1;padding:20px 12px;background:none}
+  .layout-minimal .hero-title{font-size:clamp(36px,4vw,62px);max-width:16ch;line-height:1.08;color:var(--ink);font-weight:500}
+  .layout-minimal .hero-copy .eyebrow{color:var(--accent);font-size:11px}
+  .layout-minimal .button{border-radius:999px;background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:none;font-size:16px;padding:14px 22px}
+  .layout-minimal .hero-actions .secondary{background:transparent;color:var(--ink);border-color:var(--line)}
+  .layout-minimal .signature>.container{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:48px;align-items:start}
+  .layout-minimal .signature .intro-pair{display:block;position:sticky;top:110px;margin:0}
+  .layout-minimal .signature .intro-pair .text-link{margin-top:28px}
+  .layout-minimal .signature .section-heading{margin-bottom:32px}
+  .layout-minimal .section-heading h2{font-size:clamp(36px,4vw,56px);font-weight:500;line-height:1.1}
+  .layout-minimal .service-grid,.layout-minimal .expertise-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+  .layout-minimal .card-picture{aspect-ratio:4/5}
+  .layout-minimal .service-card{border:0;border-radius:10px;background:var(--surface)}
+  .layout-minimal .card-content{padding:25px}.layout-minimal .card-content h3{font-size:30px}
+  .layout-minimal .gallery{grid-template-columns:1fr 1fr;align-items:start;gap:24px}
+  .layout-minimal .gallery-demo:nth-child(n){aspect-ratio:4/5;border-radius:10px}
+  .layout-minimal .gallery-demo:nth-child(even){aspect-ratio:1}
+  .layout-minimal .review-card:nth-child(n){background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:30px 0}
+  .layout-minimal .closing{background:var(--bg);color:var(--ink);border-top:1px solid var(--line)}
+  .layout-minimal .closing .eyebrow{color:var(--accent)}
+  .layout-minimal .closing .button{background:var(--accent);color:var(--on-accent)}
+  .layout-minimal .closing h2{font-size:clamp(48px,7vw,92px)}
+  .layout-minimal .page-intro{background:var(--bg);border-bottom:1px solid var(--line)}
+  .layout-minimal .directory-card,.layout-minimal .contact-card{border-radius:10px;background:var(--surface)}
+  .layout-minimal .directory-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media(max-width:900px){
+    .layout-minimal .hero{display:flex;flex-direction:column;gap:0;padding:18px 18px 35px;align-items:stretch}
+    .layout-minimal .hero-copy{padding:28px 0 0}.layout-minimal .hero-title{font-size:44px;max-width:18ch}
+    .layout-minimal .signature>.container{display:block}.layout-minimal .signature .intro-pair{position:static;margin-bottom:36px}
+    .layout-minimal .signature .section-heading{margin-bottom:28px}
+    .layout-minimal .container{width:calc(100% - 36px)}
+    .layout-minimal .directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:560px){
+    .layout-minimal .service-grid,.layout-minimal .expertise-cards,.layout-minimal .directory-grid{grid-template-columns:1fr}
+    .layout-minimal .card-picture{aspect-ratio:4/3}.layout-minimal .card-content{padding:26px}
+    .layout-minimal .gallery{gap:12px}.layout-minimal .gallery-demo:nth-child(n){aspect-ratio:3/4}
+  }
   `;
 }
 
