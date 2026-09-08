@@ -702,61 +702,20 @@
     .builder-preview.mobile-view iframe{border-radius:0}
   }
 
-  /* a fixed, full-width white footer strip — reads as part of the page
-     chrome rather than floating over the preview — with the same glowing
-     pill from the first 3 questions sitting inside it. */
-  .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;display:flex;flex-direction:column;align-items:stretch;
-    pointer-events:auto;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(23,32,31,.06);
-    padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px));touch-action:manipulation;will-change:transform}
-  .builder-bar{width:100%;max-width:780px;pointer-events:auto;transition:background .35s var(--qa-ease)}
-  /* a permanent, visible ring around the pill (on top of the animated glow
-     behind it) so it reads clearly against any part of the preview */
-  .builder-bar .glow-box-inner{position:relative;overflow:hidden;min-height:64px;display:flex;align-items:center;
-    border:1.5px solid rgba(59,130,246,.28);transition:background .35s var(--qa-ease),border-color .35s var(--qa-ease)}
-  .builder-bar-row{position:relative;width:100%;display:flex;align-items:center;gap:8px;padding:0 8px 0 10px;
-    transition:opacity .22s var(--qa-ease),transform .22s var(--qa-ease)}
-  .builder-bar-row.builder-leaving{opacity:0;transform:translateY(-8px)}
-  .builder-bar-row.builder-entering{opacity:0;transform:translateY(8px)}
-  .builder-icon-btn{flex:none;width:34px;height:34px;border-radius:50%;border:none;background:transparent;
-    color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;
-    opacity:0;transform:scale(.8);pointer-events:none;transition:opacity .2s var(--qa-ease),transform .2s var(--qa-ease),background .15s,color .15s}
-  .builder-icon-btn svg{width:18px;height:18px}
-  .builder-icon-btn:hover{background:rgba(59,130,246,.08);color:var(--ink)}
-  .builder-mobile-toggle{opacity:1;transform:none;pointer-events:auto}
-  .builder-mobile-toggle.active{background:rgba(59,130,246,.12);color:var(--accent)}
-  .builder-back.visible{opacity:1;transform:none;pointer-events:auto}
-  .builder-progress{flex:none;font-family:var(--display);font-size:11.5px;font-weight:700;color:var(--muted);
-    letter-spacing:.02em;min-width:2.4em}
-  .builder-field{flex:1;min-width:0}
-  /* the row fades/collapses away, the whole pill turns WhatsApp green, and
-     the button fades in centred within it — a soft morph rather than an
-     abrupt swap */
-  .builder-bar-row{opacity:1;transform:none}
-  .builder-bar.builder-bar-done .builder-bar-row{position:absolute;inset:0;opacity:0;transform:translateY(-8px);pointer-events:none}
-  .builder-bar.builder-bar-done .glow-box-inner{background:#25D366;border-color:#1da851;justify-content:center}
-  .builder-whatsapp-row{width:100%;display:flex;align-items:center;justify-content:center;gap:2px;
-    opacity:0;transform:scale(.96);transition:opacity .3s var(--qa-ease),transform .3s var(--qa-ease);pointer-events:none}
-  .builder-bar.builder-bar-done .builder-whatsapp-row{opacity:1;transform:none;pointer-events:auto}
-  .builder-whatsapp-row[hidden]{display:none}
-  .builder-whatsapp{margin:0;width:auto;padding:12px 32px;background:transparent;color:#fff}
-  .builder-back-final{opacity:1;transform:none;pointer-events:auto;color:#fff}
-  .builder-back-final:hover{background:rgba(255,255,255,.18);color:#fff}
+  .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;pointer-events:none;
+    display:flex;align-items:center;justify-content:center;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px))}
+  .builder-chat-pill{pointer-events:auto;display:inline-flex;align-items:center;gap:9px;
+    padding:14px 26px;border-radius:999px;border:none;cursor:pointer;
+    background:#25D366;color:#fff;font-family:var(--display);font-size:15px;font-weight:700;
+    letter-spacing:.01em;white-space:nowrap;box-shadow:0 4px 20px rgba(37,211,102,.45);
+    transition:background .15s,box-shadow .15s,transform .1s}
+  .builder-chat-pill svg{width:20px;height:20px;flex:none}
+  .builder-chat-pill:hover{background:#1da851;box-shadow:0 6px 26px rgba(37,211,102,.55)}
+  .builder-chat-pill:active{transform:scale(.97)}
 
   .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;
     clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-
-  @media(max-width:760px){
-    .builder-bar-wrap{padding:10px 8px calc(10px + env(safe-area-inset-bottom, 0px))}
-    .builder-bar .glow-box-inner{min-height:58px}
-    .builder-bar-row{padding:0 7px;gap:5px}
-    .builder-mobile-toggle{display:none}
-    .builder-icon-btn{width:40px;height:40px}
-    .builder-progress{font-size:10.5px;min-width:2.2em}
-    .builder-field{min-height:48px}
-    .builder-field input{min-height:44px;font-size:16px;line-height:1.25;pointer-events:auto}
-    .builder-field .qa-ph{font-size:16px;font-weight:400}
-    .builder-bar .qa-go{width:44px;height:44px;padding:0;margin-right:0;font-size:18px;touch-action:manipulation}
-  }
 
   /* personalised website-build transition */
   .creating-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;

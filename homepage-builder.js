@@ -12,21 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const builderOverlay = document.getElementById('builderOverlay');
   const builderPreview = document.getElementById('builderPreview');
-  const builderBar = document.getElementById('builderBar');
-  const builderBarRow = document.getElementById('builderBarRow');
-  const builderBack = document.getElementById('builderBack');
   const builderForName = document.getElementById('builderForName');
   const builderDeviceDesktop = document.getElementById('builderDeviceDesktop');
   const builderDeviceMobile = document.getElementById('builderDeviceMobile');
   const builderOpenHtml = document.getElementById('builderOpenHtml');
-  const builderProgress = document.getElementById('builderProgress');
-  const builderField = document.getElementById('builderField');
-  const builderPh = document.getElementById('builderPh');
-  const builderInput = document.getElementById('builderInput');
-  const builderGo = document.getElementById('builderGo');
-  const builderWhatsappRow = document.getElementById('builderWhatsappRow');
-  const builderWhatsappBtn = document.getElementById('builderWhatsappBtn');
-  const builderBackFinal = document.getElementById('builderBackFinal');
+  const builderChatPill = document.getElementById('builderChatPill');
 
   const creatingOverlay = document.getElementById('creatingOverlay');
   const creatingVerb = document.getElementById('creatingVerb');
@@ -467,7 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateBuilderBottom();
       sizePreviewToDesktopRatio();
       setDocumentScrollLock(true);
-      resetBuilderBar();
 
       postLead(name, 'Demo created — ' + bizTagline.value + ' in ' + loc).catch(() => {});
     } catch (error) {
@@ -601,275 +590,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const designerWhatsAppNumber = '447535928879';
 
-  // the fixed bottom bar: one question at a time, floating over the
-  // full-page live preview. Same fading-placeholder / crossfade pattern as
-  // the first 3 questions, just driven by a single reusable field instead
-  // of 5 near-identical slides. Name + WhatsApp are the only two the
-  // designer actually needs to get started — the rest are optional.
-  const BUILDER_QUESTIONS = [
-    { q: 'Full name', type: 'text', required: true },
-    { q: 'Email address', type: 'email', required: true },
-    { q: 'Current website', type: 'text', optional: true },
-    { q: 'Social media', type: 'text', optional: true },
-    { q: 'Add your media', type: 'media', optional: true }
-  ];
-  let builderIndex = 0;
-  let builderAnswers = [];
-  let selectedMediaSummary = 'Not provided';
+  // handoff is a single floating "Chat now" pill over the full-page live
+  // preview — no question flow, straight to WhatsApp with what we already
+  // know from the first 3 questions.
+  if (builderChatPill) {
+    builderChatPill.addEventListener('click', () => {
+      const businessName = bizNameInput.value.trim();
+      const businessType = bizTagline.value;
+      const location_ = bizLocation.value.trim();
 
-  const mediaModal = document.getElementById('builderMediaModal');
-  const mediaModalBackdrop = document.getElementById('mediaModalBackdrop');
-  const mediaModalClose = document.getElementById('mediaModalClose');
-  const logoUpload = document.getElementById('builderLogoUpload');
-  const heroUpload = document.getElementById('builderHeroUpload');
-  const galleryUpload = document.getElementById('builderGalleryUpload');
-  const mediaSelectionStatus = document.getElementById('mediaSelectionStatus');
-  const mediaSaveBtn = document.getElementById('mediaSaveBtn');
-  const mediaLaterBtn = document.getElementById('mediaLaterBtn');
-  const mediaDesignerBtn = document.getElementById('mediaDesignerBtn');
-  const logoThumb = document.getElementById('builderLogoThumb');
-  const heroThumb = document.getElementById('builderHeroThumb');
-  const galleryThumb = document.getElementById('builderGalleryThumb');
-  const galleryThumbCount = document.getElementById('builderGalleryThumbCount');
+      const message = `Hi, I'd like you to finish my website.
 
-  function getSelectedMedia() {
-    return {
-      logo: logoUpload.files[0] || null,
-      hero: heroUpload.files[0] || null,
-      gallery: Array.from(galleryUpload.files || [])
-    };
-  }
+Business: ${businessName}
+Industry: ${businessType}
+Location: ${location_}`;
 
-  function getSelectedMediaBytes() {
-    const media = getSelectedMedia();
-    return [media.logo, media.hero, ...media.gallery].filter(Boolean).reduce((total, file) => total + file.size, 0);
-  }
+      const status = document.getElementById('handoffStatus');
+      status.textContent = 'Opening WhatsApp…';
 
-  // shows a tiny thumbnail crop of whatever the customer just picked, on
-  // top of the option's letter icon, so it's obvious a file was actually
-  // attached rather than just trusting the text status line below.
-  function setThumb(imgEl, file) {
-    if (imgEl.dataset.objectUrl) {
-      URL.revokeObjectURL(imgEl.dataset.objectUrl);
-      delete imgEl.dataset.objectUrl;
-    }
-    if (!file) {
-      imgEl.hidden = true;
-      imgEl.src = '';
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    imgEl.dataset.objectUrl = url;
-    imgEl.src = url;
-    imgEl.hidden = false;
-  }
-
-  function updateMediaSelectionStatus() {
-    const media = getSelectedMedia();
-    const parts = [];
-    if (media.logo) parts.push('Logo added');
-    if (media.hero) parts.push('Homepage picture added');
-    if (media.gallery.length) parts.push(`${media.gallery.length} gallery picture${media.gallery.length === 1 ? '' : 's'} added`);
-    mediaSelectionStatus.textContent = parts.length ? parts.join(' · ') : 'No files selected yet.';
-    mediaSaveBtn.disabled = !parts.length;
-
-    setThumb(logoThumb, media.logo);
-    setThumb(heroThumb, media.hero);
-    setThumb(galleryThumb, media.gallery[0] || null);
-    if (media.gallery.length > 1) {
-      galleryThumbCount.textContent = `+${media.gallery.length - 1}`;
-      galleryThumbCount.hidden = false;
-    } else {
-      galleryThumbCount.hidden = true;
-    }
-  }
-
-  function openMediaModal() {
-    mediaModal.hidden = false;
-    requestAnimationFrame(() => mediaModal.classList.add('is-open'));
-    mediaModalClose.focus();
-  }
-
-  function closeMediaModal() {
-    mediaModal.classList.remove('is-open');
-    setTimeout(() => {
-      mediaModal.hidden = true;
-      builderGo.focus();
-    }, 180);
-  }
-
-  function completeMediaStep(summary) {
-    selectedMediaSummary = summary;
-    builderAnswers[builderIndex] = summary;
-    builderIndex++;
-    closeMediaModal();
-    finishBuilder();
-  }
-
-  [logoUpload, heroUpload].forEach(input => input.addEventListener('change', updateMediaSelectionStatus));
-  galleryUpload.addEventListener('change', () => {
-    if (galleryUpload.files.length > 6) {
-      galleryUpload.value = '';
-      mediaSelectionStatus.textContent = 'Please choose no more than 6 gallery pictures.';
-      mediaSaveBtn.disabled = true;
-      return;
-    }
-    updateMediaSelectionStatus();
-  });
-  mediaSaveBtn.addEventListener('click', () => {
-    const media = getSelectedMedia();
-    if (getSelectedMediaBytes() > 10 * 1024 * 1024) {
-      mediaSelectionStatus.textContent = 'Please keep the total upload below 10 MB.';
-      return;
-    }
-    const parts = [];
-    if (media.logo) parts.push(`logo: ${media.logo.name}`);
-    if (media.hero) parts.push(`homepage picture: ${media.hero.name}`);
-    if (media.gallery.length) parts.push(`gallery: ${media.gallery.map(file => file.name).join(', ')}`);
-    completeMediaStep(`Selected — ${parts.join('; ')}. Files will also be emailed automatically.`);
-  });
-  mediaLaterBtn.addEventListener('click', () => completeMediaStep('Customer will add media later'));
-  mediaDesignerBtn.addEventListener('click', () => completeMediaStep('Please choose suitable images for me'));
-  mediaModalClose.addEventListener('click', closeMediaModal);
-  mediaModalBackdrop.addEventListener('click', closeMediaModal);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && !mediaModal.hidden) closeMediaModal();
-  });
-
-  function resetBuilderBar() {
-    builderIndex = 0;
-    builderAnswers = [];
-    selectedMediaSummary = 'Not provided';
-    logoUpload.value = '';
-    heroUpload.value = '';
-    galleryUpload.value = '';
-    updateMediaSelectionStatus();
-    builderBarRow.hidden = false;
-    builderWhatsappRow.hidden = true;
-    builderBar.classList.remove('builder-bar-done');
-    showBuilderQuestion(0, { animate: false });
-  }
-
-  function showBuilderQuestion(i, { animate = true } = {}) {
-    const question = BUILDER_QUESTIONS[i];
-    const render = () => {
-      const isMediaStep = question.type === 'media';
-      builderPh.textContent = question.q + (question.optional ? ' (optional)' : '');
-      builderInput.setAttribute('aria-label', question.q + (question.optional ? ' (optional)' : ''));
-      builderInput.type = isMediaStep ? 'text' : question.type;
-      builderInput.hidden = isMediaStep;
-      builderInput.disabled = isMediaStep;
-      builderInput.readOnly = isMediaStep;
-      builderField.classList.toggle('builder-media-field', isMediaStep);
-      builderField.setAttribute('role', isMediaStep ? 'button' : 'presentation');
-      builderField.tabIndex = isMediaStep ? 0 : -1;
-      builderGo.setAttribute('aria-label', isMediaStep ? 'Open media options' : 'Next question');
-      builderInput.enterKeyHint = i === BUILDER_QUESTIONS.length - 1 ? 'done' : 'next';
-      builderInput.value = '';
-      builderField.classList.remove('qa-filled', 'qa-focused');
-      builderProgress.textContent = `${i + 1}/${BUILDER_QUESTIONS.length}`;
-      // always visible: on question 1 it steps back out of the full-page
-      // builder into the 3-question wizard (editing location) instead of
-      // just being hidden with nowhere to go.
-      builderBack.classList.add('visible');
-    };
-    if (!animate) { render(); return; }
-    builderBarRow.classList.add('builder-leaving');
-    setTimeout(() => {
-      render();
-      builderBarRow.classList.remove('builder-leaving');
-      builderBarRow.classList.add('builder-entering');
-      requestAnimationFrame(() => requestAnimationFrame(() => builderBarRow.classList.remove('builder-entering')));
-    }, 220);
-  }
-
-  function finishBuilder() {
-    builderBar.classList.add('builder-bar-done');
-    setTimeout(() => {
-      builderBarRow.hidden = true;
-      builderWhatsappRow.hidden = false;
-    }, 220);
-  }
-
-  // lets the customer jump back from the "send" button to the last
-  // question (in case they forgot something) without losing anything
-  // they'd already answered earlier in the 5-question bar.
-  function editAnswersFromWhatsapp() {
-    builderBar.classList.remove('builder-bar-done');
-    builderWhatsappRow.hidden = true;
-    builderBarRow.hidden = false;
-    builderIndex = BUILDER_QUESTIONS.length - 1;
-    showBuilderQuestion(builderIndex, { animate: false });
-    if (BUILDER_QUESTIONS[builderIndex].type !== 'media') {
-      builderInput.value = builderAnswers[builderIndex] || '';
-      builderInput.dispatchEvent(new Event('input'));
-    }
-  }
-  builderBackFinal.addEventListener('click', editAnswersFromWhatsapp);
-
-  function submitBuilderAnswer() {
-    const question = BUILDER_QUESTIONS[builderIndex];
-    if (question.type === 'media') {
-      openMediaModal();
-      return;
-    }
-    const shouldTitleCase = question.type === 'text';
-    const value = shouldTitleCase ? formatBusinessName(builderInput.value) : builderInput.value.trim();
-    if (question.required && !value) {
-      builderField.classList.add('qa-focused');
-      builderInput.focus();
-      return;
-    }
-    builderInput.value = value;
-    builderAnswers[builderIndex] = value;
-    builderIndex++;
-    if (builderIndex < BUILDER_QUESTIONS.length) {
-      showBuilderQuestion(builderIndex);
-    } else {
-      finishBuilder();
-    }
-  }
-  function goToPreviousBuilderQuestion() {
-    if (builderIndex === 0) { goBackToLocation(); return; }
-    builderIndex--;
-    showBuilderQuestion(builderIndex);
-    setTimeout(() => {
-      if (BUILDER_QUESTIONS[builderIndex].type !== 'media') {
-        builderInput.value = builderAnswers[builderIndex] || '';
-        builderInput.dispatchEvent(new Event('input'));
+      let previewFile = null;
+      try {
+        const previewHtml = buildDemoHTML(gatherData());
+        previewFile = new File([previewHtml], `${businessName || 'preview'}-site-preview.html`, { type: 'text/html' });
+      } catch (err) {
+        console.error('Could not build site preview attachment', err);
       }
-    }, 230);
+      postLeadWithMedia({
+        Business: businessName,
+        Industry: businessType || 'Not provided',
+        Location: location_ || 'Not provided',
+      }, [{ name: 'Site preview', file: previewFile }]).then(sent => {
+        status.textContent = sent
+          ? 'Your details were accepted for email delivery. Press Send inside WhatsApp to message Tom.'
+          : 'Email could not be confirmed. Please press Send inside WhatsApp so Tom receives your details.';
+      }).catch(() => {
+        status.textContent = 'Email could not be confirmed. Please send your details in WhatsApp.';
+      });
+
+      const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    });
   }
-  builderGo.addEventListener('click', submitBuilderAnswer);
-  builderBack.addEventListener('click', goToPreviousBuilderQuestion);
-  builderInput.addEventListener('input', () => {
-    builderField.classList.toggle('qa-filled', !!builderInput.value.trim());
-  });
-  builderInput.addEventListener('focus', () => {
-    builderField.classList.add('qa-focused');
-    requestAnimationFrame(syncBuilderBarToKeyboard);
-  });
-  builderInput.addEventListener('blur', () => {
-    if (BUILDER_QUESTIONS[builderIndex]?.q === 'Full name') {
-      builderInput.value = formatBusinessName(builderInput.value);
-    }
-    builderField.classList.remove('qa-focused');
-    setTimeout(() => {
-      if (builderBarWrap) builderBarWrap.style.transform = '';
-    }, 120);
-  });
-  builderInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); submitBuilderAnswer(); }
-  });
-  builderField.addEventListener('click', () => {
-    if (BUILDER_QUESTIONS[builderIndex]?.type === 'media') openMediaModal();
-  });
-  builderField.addEventListener('keydown', e => {
-    if (BUILDER_QUESTIONS[builderIndex]?.type === 'media' && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      openMediaModal();
-    }
-  });
 
   // toggles the full-page preview to a centred, phone-width column — since
   // it's a real iframe (not a scaled mockup), the generated site's own
@@ -895,69 +656,4 @@ document.addEventListener('DOMContentLoaded', () => {
       window.open(URL.createObjectURL(blob), '_blank');
     });
   }
-
-  // final step: hand everything off to the designer over WhatsApp instead
-  // of a checkout/payment page — nothing is charged until the finished
-  // site is approved. The customer still has to press send inside WhatsApp.
-  builderWhatsappBtn.addEventListener('click', () => {
-    const businessName = bizNameInput.value.trim();
-    const businessType = bizTagline.value;
-    const location_ = bizLocation.value.trim();
-    const [fullName, email, website, socialMedia, mediaChoice] = builderAnswers;
-
-    const message = `Hi, I'd like you to finish my website.
-
-Business: ${businessName}
-Industry: ${businessType}
-Location: ${location_}
-
-Name: ${fullName || 'Not provided'}
-Email address: ${email || 'Not provided'}
-Current website: ${website || 'Not provided'}
-Social media: ${socialMedia || 'Not provided'}
-Media: ${mediaChoice || selectedMediaSummary}`;
-
-    const completeMessage = message;
-
-    const status = document.getElementById('handoffStatus');
-    status.textContent = 'Opening WhatsApp and sending your details…';
-
-    // Always send the full handoff email — business details, the exact
-    // generated preview (as an attached HTML file) and any photos the
-    // customer chose to upload — in one email, not just when media was
-    // attached.
-    const media = getSelectedMedia();
-    let previewFile = null;
-    try {
-      const previewHtml = buildDemoHTML(gatherData());
-      previewFile = new File([previewHtml], `${businessName || 'preview'}-site-preview.html`, { type: 'text/html' });
-    } catch (err) {
-      console.error('Could not build site preview attachment', err);
-    }
-    const files = [
-      { name: 'Logo', file: media.logo },
-      { name: 'Homepage picture', file: media.hero },
-      { name: 'Site preview', file: previewFile },
-      ...media.gallery.map(file => ({ name: 'Gallery pictures', file })),
-    ];
-    postLeadWithMedia({
-      Business: businessName,
-      Customer: fullName || 'Not provided',
-      'Customer email': email || 'Not provided',
-      Industry: businessType || 'Not provided',
-      Location: location_ || 'Not provided',
-      'Current website': website || 'Not provided',
-      'Social media': socialMedia || 'Not provided',
-      'Media notes': mediaChoice || selectedMediaSummary,
-    }, files).then(sent => {
-      status.textContent = sent
-        ? 'Your details were accepted for email delivery. Press Send inside WhatsApp to message Tom.'
-        : 'Email could not be confirmed. Please press Send inside WhatsApp so Tom receives your details.';
-    }).catch(() => {
-      status.textContent = 'Email could not be confirmed. Please send your details in WhatsApp.';
-    });
-
-    const whatsappUrl = `https://wa.me/${designerWhatsAppNumber}?text=${encodeURIComponent(completeMessage)}`;
-    window.open(whatsappUrl, '_blank');
-  });
 });

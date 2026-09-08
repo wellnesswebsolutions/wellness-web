@@ -339,81 +339,19 @@
 
   <div class="builder-bar-wrap">
     <p id="handoffStatus" role="status" aria-live="polite"></p>
-    <div class="builder-bar-row-outer">
-      <div class="builder-controls">
-        <div class="builder-devices builder-segmented" role="group" aria-label="Preview width">
-          <button type="button" class="builder-device is-on" id="builderDeviceDesktop" aria-pressed="true">Desktop</button>
-          <button type="button" class="builder-device" id="builderDeviceMobile" aria-pressed="false">Mobile</button>
-        </div>
-      </div>
-
-      <div class="builder-bar-and-fullscreen">
-        <div class="glow-box builder-bar" id="builderBar">
-          <div class="glow-box-inner">
-            <div class="builder-bar-row" id="builderBarRow">
-              <button type="button" class="builder-icon-btn builder-back" id="builderBack" aria-label="Previous question">
-                <svg viewBox="0 0 20 20"><path d="M12.5 4 L6 10 L12.5 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <span class="builder-progress" id="builderProgress">1/5</span>
-              <div class="qa-field builder-field" id="builderField">
-                <span class="qa-ph" id="builderPh">What services do you offer?</span>
-                <input type="text" id="builderInput" autocomplete="off" autocapitalize="words">
-              </div>
-              <button type="button" class="qa-go visible" id="builderGo" aria-label="Next question">→</button>
-            </div>
-            <div class="builder-whatsapp-row" id="builderWhatsappRow" hidden>
-              <button type="button" class="builder-icon-btn builder-back builder-back-final" id="builderBackFinal" aria-label="Go back and edit your answers">
-                <svg viewBox="0 0 20 20"><path d="M12.5 4 L6 10 L12.5 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <button type="button" class="btn-send btn-whatsapp builder-whatsapp" id="builderWhatsappBtn">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.9-1.25-4.78-4.17-4.93-4.36-.15-.2-1.17-1.55-1.17-2.96s.73-2.1.99-2.39c.26-.28.56-.35.75-.35h.53c.17 0 .4-.03.62.47.24.55.8 1.9.87 2.03.07.14.11.3.02.49-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.15.28.68 1.12 1.46 1.82 1 .9 1.85 1.18 2.13 1.31.28.14.44.11.61-.07.16-.18.7-.82.89-1.1.19-.28.38-.23.63-.14.26.09 1.63.77 1.9.91.28.14.46.21.53.33.07.12.07.68-.17 1.35z"/></svg>
-                <span>Send my details to the designer</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <button type="button" class="builder-open-html" id="builderOpenHtml" aria-label="Open full site in a new tab">
-          <svg viewBox="0 0 20 20"><path d="M3 8V4a1 1 0 0 1 1-1h4M17 8V4a1 1 0 0 0-1-1h-4M3 12v4a1 1 0 0 0 1 1h4M17 12v4a1 1 0 0 1-1 1h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+    <div class="builder-controls">
+      <div class="builder-devices builder-segmented" role="group" aria-label="Preview width">
+        <button type="button" class="builder-device is-on" id="builderDeviceDesktop" aria-pressed="true">Desktop</button>
+        <button type="button" class="builder-device" id="builderDeviceMobile" aria-pressed="false">Mobile</button>
       </div>
     </div>
-  </div>
-
-  <div class="media-modal" id="builderMediaModal" hidden>
-    <button type="button" class="media-modal-backdrop" id="mediaModalBackdrop" aria-label="Close media options"></button>
-    <div class="media-modal-card" id="mediaEmailForm" role="dialog" aria-modal="true" aria-labelledby="mediaModalTitle">
-      <button type="button" class="media-modal-close" id="mediaModalClose" aria-label="Close media options">&times;</button>
-      <div class="media-modal-kicker">Optional</div>
-      <h2 id="mediaModalTitle">Add your media</h2>
-      <p class="media-modal-intro">Add what you have now, send it later, or leave the image choices to us.</p>
-
-      <div class="media-upload-grid">
-        <label class="media-upload-option">
-          <span class="media-upload-icon" aria-hidden="true"><span class="media-upload-icon-letter">L</span><img class="media-upload-thumb" id="builderLogoThumb" alt="" hidden></span>
-          <span><strong>Add your logo</strong><small>PNG, JPG, WEBP or SVG</small></span>
-          <input type="file" id="builderLogoUpload" name="Logo" accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml">
-        </label>
-        <label class="media-upload-option">
-          <span class="media-upload-icon" aria-hidden="true"><span class="media-upload-icon-letter">H</span><img class="media-upload-thumb" id="builderHeroThumb" alt="" hidden></span>
-          <span><strong>Add a homepage picture</strong><small>Your main hero image</small></span>
-          <input type="file" id="builderHeroUpload" name="Homepage picture" accept="image/*">
-        </label>
-        <label class="media-upload-option">
-          <span class="media-upload-icon" aria-hidden="true"><span class="media-upload-icon-letter">G</span><img class="media-upload-thumb" id="builderGalleryThumb" alt="" hidden><span class="media-upload-thumb-count" id="builderGalleryThumbCount" hidden></span></span>
-          <span><strong>Add gallery pictures</strong><small>Choose up to 6 images</small></span>
-          <input type="file" id="builderGalleryUpload" name="Gallery pictures" accept="image/*" multiple>
-        </label>
-      </div>
-
-      <div class="media-selection-status" id="mediaSelectionStatus" aria-live="polite">No files selected yet.</div>
-
-      <button type="button" class="media-primary-action" id="mediaSaveBtn">Continue with selected media</button>
-      <div class="media-choice-row">
-        <button type="button" class="media-secondary-action" id="mediaLaterBtn">I’ll add these later</button>
-        <button type="button" class="media-secondary-action media-designer-action" id="mediaDesignerBtn">Choose suitable images for me</button>
-      </div>
-      <p class="media-whatsapp-note">Selected files will be emailed to us automatically when you send your details.</p>
-    </div>
+    <button type="button" class="builder-open-html" id="builderOpenHtml" aria-label="Open full site in a new tab">
+      <svg viewBox="0 0 20 20"><path d="M3 8V4a1 1 0 0 1 1-1h4M17 8V4a1 1 0 0 0-1-1h-4M3 12v4a1 1 0 0 0 1 1h4M17 12v4a1 1 0 0 1-1 1h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button type="button" class="builder-chat-pill" id="builderChatPill">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.32-1.94 1.4-.5.08-1.12.11-1.81-.11-.42-.13-.95-.31-1.64-.6-2.9-1.25-4.78-4.17-4.93-4.36-.15-.2-1.17-1.55-1.17-2.96s.73-2.1.99-2.39c.26-.28.56-.35.75-.35h.53c.17 0 .4-.03.62.47.24.55.8 1.9.87 2.03.07.14.11.3.02.49-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.13-.28.28-.12.55.15.28.68 1.12 1.46 1.82 1 .9 1.85 1.18 2.13 1.31.28.14.44.11.61-.07.16-.18.7-.82.89-1.1.19-.28.38-.23.63-.14.26.09 1.63.77 1.9.91.28.14.46.21.53.33.07.12.07.68-.17 1.35z"/></svg>
+      Chat now
+    </button>
   </div>
 </div>
 
