@@ -23,7 +23,11 @@
 
   /* Billing Toggle Styles */
   .billing-toggle { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 36px; font-size: 15px; font-weight: 500; }
-  .billing-toggle .badge { background: #E1F5E9; color: #108043; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-left: 6px; font-weight: 700; vertical-align: middle; letter-spacing: -0.02em; }
+  .billing-toggle .badge { background: #2563eb; color: #fff; font-size: 12px; padding: 4px 9px; border-radius: 20px; margin-left: 6px; font-weight: 700; vertical-align: middle; letter-spacing: -0.02em; box-shadow: 0 2px 6px rgba(37,99,235,.35); animation: badge-pop .4s ease; }
+  @keyframes badge-pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .price-was { font-size: 15px; color: #999; text-decoration: line-through; margin-right: 4px; display: none; }
+  .price-save { font-size: 11px; font-weight: 700; color: #2563eb; background: #EAF0FE; padding: 2px 7px; border-radius: 20px; margin-left: 8px; vertical-align: middle; letter-spacing: -0.02em; display: none; }
+  .plan[data-annual-active] .price-was, .plan[data-annual-active] .price-save { display: inline-block; }
   .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 24px; }
@@ -83,7 +87,7 @@
           <h4>Essential</h4>
           <div class="desc">A professional custom website with everything it needs to perform.</div>
           <div class="price-row">
-            <span class="price"><span class="setup-price">£49.50</span><small class="hosting-price">+ £180/yr</small></span>
+            <span class="price"><span class="price-was">£99</span><span class="setup-price">£49.50</span><small class="hosting-price">+ £180/yr</small><span class="price-save">Save 50%</span></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
@@ -102,7 +106,7 @@
           <h4>Pro</h4>
           <div class="desc">Everything in Essential, with a bigger, more capable site.</div>
           <div class="price-row">
-            <span class="price"><span class="setup-price">£99.50</span><small class="hosting-price">+ £180/yr</small></span>
+            <span class="price"><span class="price-was">£199</span><span class="setup-price">£99.50</span><small class="hosting-price">+ £180/yr</small><span class="price-save">Save 50%</span></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
@@ -121,7 +125,7 @@
           <h4>Prestige</h4>
           <div class="desc">Everything in Pro, built for bigger, more ambitious sites.</div>
           <div class="price-row">
-            <span class="price"><span class="setup-price">£199.50</span><small class="hosting-price">+ £180/yr</small></span>
+            <span class="price"><span class="price-was">£399</span><span class="setup-price">£199.50</span><small class="hosting-price">+ £180/yr</small><span class="price-save">Save 50%</span></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
@@ -190,10 +194,12 @@
         setupPrice.innerHTML = '£' + plan.dataset.setupAnnual;
         hostingPrice.innerHTML = '+ £180/yr';
         btn.dataset.price = '£' + plan.dataset.setupAnnual + ' setup + £180/yr hosting';
+        plan.setAttribute('data-annual-active', '');
       } else {
         setupPrice.innerHTML = '£' + plan.dataset.setupMonthly;
         hostingPrice.innerHTML = '+ £15/mo';
         btn.dataset.price = '£' + plan.dataset.setupMonthly + ' setup + £15/mo hosting';
+        plan.removeAttribute('data-annual-active');
       }
     });
     updateWhatsAppLinks();
