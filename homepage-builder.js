@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const creatingProgress = document.getElementById('creatingProgress');
 
   let selectedTones = null;
+  let heroMatchedTones = null;
+  let hasManualPalette = false;
+  let previewRenderVersion = 0;
+  let previewPosition = {page:'home',x:0,y:0};
   let selectedLayout = null;
   let selectedFont = null;
   let uploadedHeroImage = null;
@@ -45,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (version !== heroRenderVersion) return null;
       uploadedHeroImage = image;
+      await matchPaletteToHero(image);
       refreshPreview();
       return image;
     } catch (error) {
@@ -369,10 +374,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!bizTagline.value) return;
     const info = typeInfo(bizTagline.value);
     if (info) { const flat = flattenGroups(info); bizServices.value = flat.services.join(', '); bizPrices.value = flat.prices.join(', '); }
-    // Every hero has one art-directed palette. Customers do not need to
-    // choose colours; the generated site automatically matches its image.
+    // Use the category as a fallback until the completed hero is sampled.
     const firstColour = (COLOURS_BY_TYPE[bizTagline.value] || COLOURS_BY_TYPE.Other)[0];
     selectedTones = tonesFromHex(firstColour);
+    heroMatchedTones = null;
+    hasManualPalette = false;
     uploadedHeroImage = null;
     addPill(2, bizTagline.value);
     setProgressStep(3);
@@ -421,7 +427,10 @@ document.addEventListener('DOMContentLoaded', () => {
         output: 'dataURL',
         width: isNarrowViewport ? 900 : 1600,
         height: isNarrowViewport ? 506 : 900
-      })).catch((error) => {
+      })).then(async image => {
+        await matchPaletteToHero(image);
+        return image;
+      }).catch((error) => {
         console.error(error);
         return null;
       });
@@ -502,9 +511,66 @@ document.addEventListener('DOMContentLoaded', () => {
   // size, so the generated site's own responsive CSS applies exactly as
   // it would on a real visit, and normal scrolling (wheel/trackpad/touch)
   // works inside it with no tricks needed.
-  function refreshPreview() {
+  function refreshPreview({appearanceOnly = false} = {}) {
     if (!previewFrame) return;
-    previewFrame.srcdoc = buildDemoHTML(gatherData());
+    const current = previewFrame.contentDocument;
+    const activePage = current?.querySelector('.page:not([hidden])');
+    if (activePage) {
+      previewPosition = {page:activePage.dataset.page,x:previewFrame.contentWindow.scrollX,y:previewFrame.contentWindow.scrollY};
+    }
+    const position = {...previewPosition};
+    const version = ++previewRenderVersion;
+    const html = buildDemoHTML(gatherData());
+    updatePaletteOrb();
+    if (appearanceOnly && activePage) {
+      // Colour and font choices only replace styles, keeping the live document,
+      // open pages, scroll effects and gallery images in place.
+      const next = new DOMParser().parseFromString(html,'text/html');
+      current.querySelector('style').textContent = next.querySelector('style').textContent;
+      const fontLink = current.querySelector('link[rel="stylesheet"]');
+      const nextFont = next.querySelector('link[rel="stylesheet"]');
+      if (fontLink.href !== nextFont.href) fontLink.href = nextFont.href;
+      current.querySelector('meta[name="theme-color"]').content = next.querySelector('meta[name="theme-color"]').content;
+      const win = previewFrame.contentWindow;
+      win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
+      const restoredY = win.scrollY;
+      current.fonts.ready.then(() => win.requestAnimationFrame(() => {
+        if (version === previewRenderVersion && Math.abs(win.scrollY-restoredY)<2) win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
+      }));
+      return;
+    }
+    previewFrame.onload = () => {
+      if (version !== previewRenderVersion) return;
+      const win = previewFrame.contentWindow;
+      const doc = win.document;
+      doc.querySelectorAll('.page').forEach(page => {page.hidden = page.dataset.page !== position.page;});
+      win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
+      const restoredY = win.scrollY;
+      // Font metrics can settle after the frame loads. Reapply the position
+      // only if the visitor hasn't already started scrolling again.
+      doc.fonts.ready.then(() => win.requestAnimationFrame(() => {
+        if (version === previewRenderVersion && Math.abs(win.scrollY-restoredY)<2) {
+          win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
+        }
+      }));
+    };
+    previewFrame.srcdoc = html;
+  }
+
+  function updatePaletteOrb() {
+    const orb = document.querySelector('.palette-orb');
+    if (orb && selectedTones) orb.style.background = `conic-gradient(${selectedTones.light} 0 120deg,${selectedTones.base} 120deg 240deg,${selectedTones.dark} 240deg)`;
+  }
+
+  async function matchPaletteToHero(source) {
+    if (!source) return;
+    try {
+      heroMatchedTones = await HeroPalette.fromImage(source);
+      if (!hasManualPalette) selectedTones = heroMatchedTones;
+    } catch (error) {
+      // Keep the category palette if the image cannot be sampled.
+      console.warn('Could not match the hero palette', error);
+    }
   }
 
   const controls = document.createElement('div');
@@ -543,6 +609,15 @@ document.addEventListener('DOMContentLoaded', () => {
       builderChatPill.hidden = false;
     } else if (activeTool === 'colour') {
       options.innerHTML = `<div class="palette-tabs" role="group" aria-label="Palette mood">${Object.keys(palettes).map(f => `<button type="button" data-family="${f}" aria-pressed="${f === paletteFamily}">${f}</button>`).join('')}</div><div class="palette-scroll">${palettes[paletteFamily].map(([name,hex]) => { const t = tonesFromHex(hex); return `<button type="button" class="palette-choice" data-colour="${hex}" aria-label="${name} palette"><span style="background:${t.light}"></span><span style="background:${t.base}"></span><span style="background:${t.dark}"></span><small>${name}</small></button>`; }).join('')}</div><p>Swipe to explore colours</p>`;
+      if (heroMatchedTones) {
+        const recommendation = document.createElement('button');
+        recommendation.type = 'button';
+        recommendation.className = 'hero-palette-choice';
+        recommendation.dataset.heroPalette = 'true';
+        recommendation.setAttribute('aria-pressed', String(selectedTones?.base === heroMatchedTones.base));
+        recommendation.innerHTML = `<span class="hero-palette-swatches"><i style="background:${heroMatchedTones.light}"></i><i style="background:${heroMatchedTones.base}"></i><i style="background:${heroMatchedTones.dark}"></i></span><span>From your hero photo<small>Recommended</small></span>`;
+        options.prepend(recommendation);
+      }
     } else if (activeTool === 'font') {
       options.innerHTML = `<h3>Choose your type</h3><div class="builder-choice-list">${DEMO_FONTS.map(f => `<button type="button" data-font="${f.id}" aria-pressed="${selectedFont === f.id}" style="font-family:${f.family}">${f.name}<span>Aa</span></button>`).join('')}</div>`;
     } else {
@@ -568,16 +643,23 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (button.dataset.family) {
       paletteFamily = button.dataset.family;
       renderOptions();
+    } else if (button.dataset.heroPalette) {
+      hasManualPalette = true;
+      selectedTones = {...heroMatchedTones};
+      refreshPreview({appearanceOnly:true});
+      closeOptions();
+      controls.querySelector('[data-tool="colour"]').focus();
     } else if (button.dataset.colour) {
+      hasManualPalette = true;
       selectedTones = {...tonesFromHex(button.dataset.colour), mode: paletteFamily === 'Dark' ? 'dark' : 'light'};
       controls.querySelector('.palette-orb').style.background = `conic-gradient(${selectedTones.light} 0 120deg,${selectedTones.base} 120deg 240deg,${selectedTones.dark} 240deg)`;
-      refreshPreview();
+      refreshPreview({appearanceOnly:true});
       closeOptions();
       controls.querySelector('[data-tool="colour"]').focus();
     } else if (button.dataset.font || button.dataset.layout) {
       if (button.dataset.font) selectedFont = button.dataset.font;
       if (button.dataset.layout) selectedLayout = button.dataset.layout;
-      refreshPreview();
+      refreshPreview({appearanceOnly:!!button.dataset.font});
       closeOptions();
       controls.querySelector(`[data-tool="${button.dataset.font ? 'font' : 'layout'}"]`).focus();
     }

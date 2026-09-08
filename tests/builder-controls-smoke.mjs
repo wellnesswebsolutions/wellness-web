@@ -69,6 +69,12 @@ try {
   const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const desktop = await desktopContext.newPage();
   await revealBuilder(desktop);
+  const sampled=await desktop.evaluate(async()=>{
+    const canvas=document.createElement('canvas');canvas.width=80;canvas.height=45;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#528269';ctx.fillRect(0,0,80,45);ctx.fillStyle='#000';ctx.fillRect(0,0,12,45);ctx.fillStyle='#fff';ctx.fillRect(68,0,12,45);
+    return HeroPalette.fromImage(canvas.toDataURL());
+  });
+  assert.equal(sampled.base,'#528269','hero matching should select the dominant surface rather than lettering or highlights');
   const contentChecks = await desktop.evaluate(() => {
     const parser=new DOMParser();
     return BUSINESS_TYPES.map(info=>{
@@ -131,6 +137,21 @@ try {
   await desktop.locator('[data-tool="layout"]').click();
   await desktop.locator('[data-layout="editorial"]').click();
   await desktop.frameLocator('#previewFrame').locator('body.layout-editorial').waitFor();
+  await desktop.frameLocator('#previewFrame').locator('.nav [data-nav="services"]').click();
+  await desktop.frameLocator('#previewFrame').locator('body').evaluate(()=>{window.__livePreviewToken='preserved';window.scrollTo({top:500,behavior:'instant'})});
+  for(const tool of ['colour','font','layout']){
+    await desktop.locator(`[data-tool="${tool}"]`).click();
+    if(tool==='colour')await desktop.locator('[data-colour]').first().click();
+    if(tool==='font')await desktop.locator('[data-font="modern"]').click();
+    if(tool==='layout')await desktop.locator('[data-layout="minimal"]').click();
+    const live=desktop.frameLocator('#previewFrame');
+    await live.locator('[data-page="services"]:not([hidden])').waitFor();
+    await live.locator('body').evaluate(()=>document.fonts.ready);
+    const state=await live.locator('body').evaluate(()=>({y:scrollY,token:window.__livePreviewToken}));
+    assert.ok(Math.abs(state.y-500)<3,`${tool} should preserve the scroll position`);
+    if(tool!=='layout')assert.equal(state.token,'preserved',`${tool} must update the existing document`);
+  }
+  await desktop.frameLocator('#previewFrame').locator('.nav [data-nav="home"]').click();
   await desktop.keyboard.press('Escape');
   assert.equal(await desktop.locator('#builderOptions').isVisible(), false);
   await desktop.locator('[data-tool="send"]').click();
