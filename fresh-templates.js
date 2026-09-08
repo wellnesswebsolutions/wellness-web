@@ -16,7 +16,7 @@ function buildFreshDemoHTML(raw) {
     automotive:{font:'Montserrat',label:'Services',cta:'Book your vehicle in',short:'Book now',title:'Ready for the road ahead.',intro:'Your next mile starts here.',gallery:'Behind the workshop doors',kicker:'Keep moving',round:'10px'}
   };
   const c = settings[contentType];
-  const design = {minimal:{font:'Manrope',round:'12px'},editorial:{font:'Fraunces',round:'0px'},bold:{font:'Bebas Neue',round:'0px'},luxe:{font:'Cormorant Garamond',round:'28px'},kinetic:{font:'Sora',round:'20px'}}[layout];
+  const design = {minimal:{font:'Manrope',round:'12px'},editorial:{font:'Fraunces',round:'0px'},bold:{font:'Bebas Neue',round:'0px'},luxe:{font:'Cormorant Garamond',round:'28px'},kinetic:{font:'Sora',round:'20px'}}[layout] || DEMO_LAYOUTS.find(item => item.id === layout);
   const font = DEMO_FONTS.find(item => item.id === d.font)?.family || design.font;
   const t = d.tones || tonesFromHex(info.theme || '#667a74');
   const [h,s] = hexToHsl(t.base);

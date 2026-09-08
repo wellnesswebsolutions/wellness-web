@@ -7,7 +7,8 @@
   // `prices` (used for hidden auto-fill + homepage teaser tiles) are
   // derived from the groups by flattenGroups() below.
   const DEMO_LAYOUTS = [
-    {id:'minimal',name:'Minimal',detail:'Clean, calm & understated'},
+    {id:'minimal',name:'Minimal',detail:'Split hero & image-led portfolio'},
+    {id:'soft',name:'Soft',detail:'Rounded cards & generous breathing room',font:'Manrope',round:'28px'},
     {id:'editorial',name:'Editorial',detail:'Magazine grids & oversized type'},
     {id:'bold',name:'Bold',detail:'Strong contrast & graphic blocks'},
     {id:'luxe',name:'Luxe',detail:'Sculpted imagery & soft reveals'},

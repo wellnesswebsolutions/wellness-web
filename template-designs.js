@@ -210,6 +210,7 @@ function templateDesignCSS() {
 // patterns. No Framer source, components, copy or template assets are bundled.
 function studioLayoutCSS() {
   return `
+  ${softLayoutCSS()}
   /* Minimal — a quiet information column beside an image-led portfolio. */
   .layout-minimal .container{width:min(1440px,100% - 48px)}
   .layout-minimal .site-header{background:var(--bg);border-color:var(--line)}
@@ -252,6 +253,58 @@ function studioLayoutCSS() {
     .layout-minimal .service-grid,.layout-minimal .expertise-cards,.layout-minimal .directory-grid{grid-template-columns:1fr}
     .layout-minimal .card-picture{aspect-ratio:4/3}.layout-minimal .card-content{padding:26px}
     .layout-minimal .gallery{gap:12px}.layout-minimal .gallery-demo:nth-child(n){aspect-ratio:3/4}
+  }
+  `;
+}
+
+function softLayoutCSS() {
+  return `
+  .layout-soft .container{width:min(1240px,100% - 72px)}
+  .layout-soft .site-header{background:var(--bg)}
+  .layout-soft .hero{display:flex;flex-direction:column-reverse;background:var(--bg);padding:36px 36px 20px;gap:36px}
+  .layout-soft .hero-copy{position:static!important;background:transparent;text-align:center;padding:35px 20px 12px}
+  .layout-soft .hero-copy .inner{max-width:900px}
+  .layout-soft .hero-title{font-size:clamp(48px,6.2vw,86px);line-height:1.04;max-width:18ch;margin:22px auto 32px;color:var(--ink);font-weight:600}
+  .layout-soft .hero-copy .eyebrow{display:inline-block;background:var(--surface);color:var(--accent);padding:10px 22px;border-radius:50px}
+  .layout-soft .hero-actions{justify-content:center}
+  .layout-soft .brand-scene{width:min(1240px,100%);margin:auto;border-radius:32px;border:6px solid var(--card)}
+  .layout-soft .button{border-radius:999px;background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:none}
+  .layout-soft .hero-actions .secondary{background:var(--card);color:var(--ink);border-color:var(--line)}
+  .layout-soft .section-heading h2{font-size:clamp(40px,4.4vw,66px);line-height:1.12;font-weight:600}
+  .layout-soft .signature .intro-pair{flex-direction:column;text-align:center;align-items:center}
+  .layout-soft .signature .section-heading{margin-left:auto;margin-right:auto;text-align:center}
+  .layout-soft .section-heading p{margin-left:auto;margin-right:auto}
+  .layout-soft .service-grid,.layout-soft .expertise-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+  .layout-soft .service-card{border:6px solid var(--card);border-radius:28px;background:var(--surface);box-shadow:none}
+  .layout-soft .service-card:has(.card-picture){display:grid;grid-template-columns:.8fr 1fr}
+  .layout-soft .card-picture{height:100%;aspect-ratio:auto;min-height:280px;border-radius:21px}
+  .layout-soft .card-content{padding:30px 24px}.layout-soft .card-content h3{font-size:30px;line-height:1.12}
+  .layout-soft .card-foot{flex-wrap:wrap;gap:10px}
+  .layout-soft .story{margin:20px 24px;border-radius:40px}
+  .layout-soft .story-photo{border-radius:28px}.layout-soft .story h2{font-size:clamp(38px,4vw,58px);line-height:1.12}
+  .layout-soft .gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .layout-soft .gallery-demo:nth-child(n){grid-column:auto;aspect-ratio:1;border-radius:28px;transform:none;border:5px solid var(--card)}
+  .layout-soft .reviews{grid-template-columns:1.2fr 1fr;gap:20px}
+  .layout-soft .review-card:nth-child(n){display:flex;border:0;border-radius:28px;background:var(--surface);padding:35px}
+  .layout-soft .review-card:first-child{grid-row:span 2;justify-content:center;background:var(--card)}
+  .layout-soft .review-card:first-child blockquote{font-size:38px}.layout-soft .review-card:first-child p{margin-top:15px}
+  .layout-soft .closing{margin:24px;border-radius:40px;text-align:center}
+  .layout-soft .closing-grid{display:flex;align-items:center;flex-direction:column;gap:24px}
+  .layout-soft .closing h2{font-size:clamp(48px,6vw,82px);font-weight:600}
+  .layout-soft .page-intro{background:var(--bg);text-align:center}.layout-soft .page-intro .section-heading{margin:auto}
+  .layout-soft .directory-card,.layout-soft .contact-card{border:4px solid var(--card);border-radius:28px;background:var(--surface)}
+  .layout-soft .category-jumps a{background:var(--card);border-radius:30px}.layout-soft .map{border-radius:28px}
+  @media(max-width:900px){
+    .layout-soft .hero{flex-direction:column;padding:18px;gap:0}.layout-soft .brand-scene{border-radius:20px;border-width:3px}
+    .layout-soft .hero-copy{padding:30px 0 15px}.layout-soft .hero-title{font-size:48px;max-width:18ch}
+    .layout-soft .service-card:has(.card-picture){display:flex}.layout-soft .card-picture{height:auto;min-height:0;aspect-ratio:4/3}
+    .layout-soft .container{width:calc(100% - 36px)}.layout-soft .story{margin:12px;border-radius:28px}
+    .layout-soft .closing{margin:12px;border-radius:28px}
+  }
+  @media(max-width:600px){
+    .layout-soft .service-grid,.layout-soft .expertise-cards,.layout-soft .reviews,.layout-soft .directory-grid{grid-template-columns:1fr}
+    .layout-soft .review-card:first-child{grid-row:auto}.layout-soft .review-card:first-child blockquote{font-size:30px}
+    .layout-soft .gallery{grid-template-columns:1fr 1fr;gap:10px}.layout-soft .gallery-demo:nth-child(n){border-radius:18px;border-width:3px}
   }
   `;
 }

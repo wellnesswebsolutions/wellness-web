@@ -69,6 +69,7 @@ try {
   const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const desktop = await desktopContext.newPage();
   await revealBuilder(desktop);
+  const layouts=await desktop.evaluate(()=>DEMO_LAYOUTS.map(layout=>layout.id));
   const sampled=await desktop.evaluate(async()=>{
     const canvas=document.createElement('canvas');canvas.width=80;canvas.height=45;
     const ctx=canvas.getContext('2d');ctx.fillStyle='#528269';ctx.fillRect(0,0,80,45);ctx.fillStyle='#000';ctx.fillRect(0,0,12,45);ctx.fillStyle='#fff';ctx.fillRect(68,0,12,45);
@@ -179,7 +180,7 @@ try {
   await site.emulateMedia({reducedMotion:'reduce'});
   const errors=[];
   site.on('pageerror',error=>errors.push(error.message));
-  for(const layout of ['minimal','editorial','bold','luxe','kinetic']) {
+  for(const layout of layouts) {
     const html = await desktop.evaluate(({layout,brandedHero}) => buildDemoHTML({name:'Hull Hair',tagline:'Hair & Beauty',location:'Hull',layout,heroImage:brandedHero}),{layout,brandedHero});
     await site.setContent(html,{waitUntil:'domcontentloaded'});
     assert.equal(await site.locator('.brand-scene').getAttribute('src'),brandedHero);
@@ -217,7 +218,7 @@ try {
     'mobile builder dock should stay transparent'
   );
   assert.equal(await mobile.locator('#builderOpenHtml').count(), 0);
-  for (const layout of ['minimal','editorial','bold','luxe','kinetic']) {
+  for (const layout of layouts) {
     await mobile.locator('[data-tool="layout"]').click();
     await mobile.locator(`[data-layout="${layout}"]`).click();
     assert.equal(await mobile.locator('#builderOptions').isVisible(),false);
