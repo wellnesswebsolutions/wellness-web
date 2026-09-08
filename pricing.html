@@ -57,89 +57,63 @@
   <section id="pricing" style="padding-top:0">
     <div class="wrap">
       <div class="plans" style="max-width:1180px;margin:0 auto">
-        <div class="plan" data-plan-toggle>
+        <div class="plan">
           <div class="kicker">Great value</div>
           <h4>Essential</h4>
           <div class="desc">A professional custom website with everything it needs to perform.</div>
           <div class="price-row">
             <span class="price">£99</span>
-            <div class="price-toggle" role="tablist" aria-label="Monthly plan for Essential">
-              <button type="button" class="price-tab active" data-price="15">£15/mo</button>
-              <button type="button" class="price-tab" data-price="30">£30/mo</button>
-            </div>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
+          <div class="price-note">Booking form +£15/mo</div>
           <ul>
             <li>Up to 3 custom-designed pages</li>
             <li>SEO &amp; SEO-focused content</li>
             <li>Mobile optimisation</li>
             <li>Hosting, security &amp; maintenance</li>
             <li>Contact details &amp; enquiry links</li>
-            <li class="extra-feature" hidden>Booking or advanced enquiry form</li>
           </ul>
           <a href="contact.html" class="go">Enquire</a>
         </div>
-        <div class="plan feature" data-plan-toggle>
+        <div class="plan feature">
           <div class="kicker">Best balance</div>
           <h4>Pro</h4>
           <div class="desc">Everything in Essential, with a bigger, more capable site.</div>
           <div class="price-row">
             <span class="price">£199</span>
-            <div class="price-toggle" role="tablist" aria-label="Monthly plan for Pro">
-              <button type="button" class="price-tab active" data-price="15">£15/mo</button>
-              <button type="button" class="price-tab" data-price="30">£30/mo</button>
-            </div>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
+          <div class="price-note">Booking form +£15/mo</div>
           <ul>
             <li>Everything in Essential</li>
             <li>Up to 5 custom-designed pages</li>
             <li>Custom sections built for you</li>
             <li>Interactions &amp; animations</li>
             <li>Third-party integrations</li>
-            <li class="extra-feature" hidden>Booking or advanced enquiry form</li>
           </ul>
           <a href="contact.html" class="go">Enquire</a>
         </div>
-        <div class="plan" data-plan-toggle>
+        <div class="plan">
           <div class="kicker">For bigger sites</div>
           <h4>Prestige</h4>
           <div class="desc">Everything in Pro, built for bigger, more ambitious sites.</div>
           <div class="price-row">
             <span class="price">£399</span>
-            <div class="price-toggle" role="tablist" aria-label="Monthly plan for Prestige">
-              <button type="button" class="price-tab active" data-price="15">£15/mo</button>
-              <button type="button" class="price-tab" data-price="30">£30/mo</button>
-            </div>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
+          <div class="price-note">Booking form +£15/mo</div>
           <ul>
             <li>Everything in Pro</li>
             <li>Up to 7 custom-designed pages</li>
-            <li>Booking or online ordering system</li>
             <li>Multi-location or multi-service structure</li>
             <li>Priority same-day support</li>
           </ul>
           <a href="contact.html" class="go">Enquire</a>
         </div>
       </div>
-      <p class="pricing-note">£15/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking or advanced enquiry form for £30/month instead. Cancel any time.</p>
+      <p class="pricing-note">£15/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking form for £15/month more. Cancel any time.</p>
     </div>
   </section>
-  <script>
-    document.querySelectorAll('[data-plan-toggle]').forEach(function(plan){
-      var tabs = plan.querySelectorAll('.price-tab');
-      var extra = plan.querySelector('.extra-feature');
-      tabs.forEach(function(tab){
-        tab.addEventListener('click', function(){
-          tabs.forEach(function(t){ t.classList.remove('active'); });
-          tab.classList.add('active');
-          var val = tab.getAttribute('data-price');
-          if (extra) extra.hidden = val !== '30';
-        });
-      });
-    });
-  </script>
   <footer>
     <a href="/" class="brand"><img src="img/brightsite-logo.png" alt="BrightSite" width="515" height="72"></a>
     <p style="margin-top:10px">Websites, SEO &amp; social for brands.</p>
