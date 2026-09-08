@@ -1042,6 +1042,24 @@ body .hero .btn-row{justify-content:flex-start!important}
 body .hero .btn{background:var(--header-ink)!important;color:var(--header-surface)!important;border-color:var(--header-ink)!important;box-shadow:none!important}
 body .hero .btn--outline-light{background:transparent!important;color:var(--header-ink)!important}
 .header-action{display:none}
+/* Desktop copy occupies the lower band; compositor logo panels end above 52%. */
+@media(min-width:901px){
+body .hero{position:relative;max-height:none;aspect-ratio:auto}
+body .hero .hero-copy{position:absolute;bottom:0;left:0;padding:clamp(18px,2.2vw,32px) 0!important;background:linear-gradient(0deg,rgba(12,15,18,.88),rgba(12,15,18,.62) 72%,transparent)!important}
+body .hero .hero-copy .inner{align-items:flex-start!important;text-align:left;max-width:1200px}
+body .hero .hero-copy h1,body .hero .hero-copy .eyebrow{color:#fff!important}
+body .hero .hero-copy .hero-title{font-size:clamp(28px,3.4vw,48px)!important;line-height:1.06;max-width:32ch;margin:10px 0 20px}
+body .hero .hero-copy .btn-row{justify-content:flex-start!important}
+body .hero .hero-copy .btn{background:#fff!important;border-color:#fff!important;color:#161b20!important}
+body .hero .hero-copy .btn--outline-light{background:rgba(255,255,255,.08)!important;color:#fff!important;backdrop-filter:blur(8px)}
+body .hero .hero-copy .hero-tags{display:none}
+}
+.treatment-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.treatment-index .archetype-item{display:flex;flex-direction:column;align-items:flex-start;gap:20px;padding:28px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--taupe) 24%,#fff);box-shadow:0 8px 28px rgba(28,24,21,.04);transition:transform .25s,box-shadow .25s}
+.treatment-index .archetype-item:hover{padding:28px;transform:translateY(-5px);box-shadow:0 14px 32px rgba(28,24,21,.09)}
+.treatment-index .archetype-item h3{font-size:1.5rem;line-height:1.25;min-height:2.5em}.treatment-index .archetype-item strong{margin-top:auto;border-top:1px solid var(--line);padding-top:18px;width:100%}
+@media(max-width:1100px){.treatment-index{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.treatment-index{grid-template-columns:1fr}.treatment-index .archetype-item h3{min-height:0}}
 .gallery-demo{background-image:url('${categoryPhoto || 'https://brightsite.app/img/hero/creative-hero.jpg'}');background-size:cover;background-position:center}
 body .site-header{top:0;left:0;right:0;width:100%;border-radius:0}body .site-header .container{min-height:75px}
 .archetype{padding:80px 0}.archetype h2{font-size:clamp(2rem,4vw,3.7rem)}.archetype p{line-height:1.7}.archetype-heading{max-width:660px;margin-bottom:38px}

@@ -100,6 +100,12 @@ try {
   await desktop.locator('[data-tool="send"]').click();
   assert.equal(await desktop.locator('#builderOptions').isVisible(),false);
   await desktop.frameLocator('#previewFrame').locator('.brand-scene').evaluate(async image => {await image.decode(); await Promise.all(image.getAnimations().map(animation => animation.finished));});
+  const desktopHero = await desktop.frameLocator('#previewFrame').locator('.brand-scene').evaluate(image => {
+    const photo = image.getBoundingClientRect();
+    const copy = document.querySelector('.hero-copy').getBoundingClientRect();
+    return {overlays:copy.top < photo.bottom, logoClear:copy.top >= photo.top + photo.height * .52, bottomAligned:Math.abs(copy.bottom-photo.bottom)<2};
+  });
+  assert.deepEqual(desktopHero,{overlays:true,logoClear:true,bottomAligned:true});
   await desktop.screenshot({path:'/tmp/brightsite-builder-desktop.png'});
   await desktopContext.close();
 
