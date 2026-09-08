@@ -69,6 +69,17 @@ try {
   const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const desktop = await desktopContext.newPage();
   await revealBuilder(desktop);
+  const contentChecks = await desktop.evaluate(() => {
+    const parser=new DOMParser();
+    return BUSINESS_TYPES.map(info=>{
+      const variants=DEMO_LAYOUTS.map(layout=>{
+        const doc=parser.parseFromString(buildDemoHTML({name:'Sample Business',tagline:info.label,location:'Hull',layout:layout.id}),'text/html');
+        return doc.querySelector('main').textContent.replace(/\s+/g,' ').trim();
+      });
+      return {category:info.label,identical:variants.every(text=>text===variants[0])};
+    });
+  });
+  contentChecks.forEach(result=>assert.equal(result.identical,true,`${result.category} content must not change with template`));
 
   assert.equal(
     await desktop.locator('.builder-bar-wrap').evaluate((element) => getComputedStyle(element).backgroundColor),
@@ -118,8 +129,8 @@ try {
   assert.equal(await desktop.locator('#builderOptions').isVisible(),false);
   assert.match(await desktop.frameLocator('#previewFrame').locator('.hero .button').first().evaluate(el=>getComputedStyle(el).fontFamily),/Fraunces/);
   await desktop.locator('[data-tool="layout"]').click();
-  await desktop.locator('[data-layout="creative"]').click();
-  await desktop.frameLocator('#previewFrame').locator('body.layout-creative').waitFor();
+  await desktop.locator('[data-layout="editorial"]').click();
+  await desktop.frameLocator('#previewFrame').locator('body.layout-editorial').waitFor();
   await desktop.keyboard.press('Escape');
   assert.equal(await desktop.locator('#builderOptions').isVisible(), false);
   await desktop.locator('[data-tool="send"]').click();
@@ -139,21 +150,34 @@ try {
   const brandedHero = await desktop.evaluate(() => HeroBrandCompositor.render({category:'Hair & Beauty',businessName:'Hull Hair',location:'Hull',output:'dataURL'}));
   assert.match(brandedHero,/^data:image\//);
   const site = await desktopContext.newPage();
+  await site.emulateMedia({reducedMotion:'reduce'});
   const errors=[];
   site.on('pageerror',error=>errors.push(error.message));
-  for(const [category,layout] of [['Hair & Beauty','salon'],['Trades','trades'],['Food & Drink','restaurant'],['Fitness','fitness'],['Creative','creative'],['Professional Services','professional'],['Automotive','automotive']]) {
-    const html = await desktop.evaluate(({category,brandedHero}) => buildDemoHTML({name:'Studio North',tagline:category,location:'Hull',heroImage:brandedHero}),{category,brandedHero});
+  for(const layout of ['minimal','editorial','bold','luxe','kinetic']) {
+    const html = await desktop.evaluate(({layout,brandedHero}) => buildDemoHTML({name:'Hull Hair',tagline:'Hair & Beauty',location:'Hull',layout,heroImage:brandedHero}),{layout,brandedHero});
     await site.setContent(html,{waitUntil:'domcontentloaded'});
     assert.equal(await site.locator('.brand-scene').getAttribute('src'),brandedHero);
     await site.emulateMedia({reducedMotion:'reduce'});
-    await site.locator('.signature').scrollIntoViewIfNeeded();
+    await site.locator('.signature .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
     await site.waitForFunction(()=>Array.from(document.querySelectorAll('.signature .demo-photo')).filter(img=>img.getBoundingClientRect().top<innerHeight).every(img=>img.complete&&img.naturalWidth>0),{},{timeout:15000});
     await site.screenshot({path:`/tmp/brightsite-fresh-${layout}.png`});
     assert.equal(await site.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${layout} should fit desktop`);
     await site.setViewportSize({width:390,height:844});
     assert.equal(await site.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${layout} should fit mobile`);
+    assert.ok(await site.locator('.header-action').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))>=14);
+    assert.ok(await site.locator('.hero .button').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))>=15);
+    await site.locator('.signature .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
+    await site.screenshot({path:`/tmp/brightsite-fresh-${layout}-mobile.png`});
     await site.setViewportSize({width:1440,height:900});
   }
+  await site.emulateMedia({reducedMotion:'no-preference'});
+  await site.goto('about:blank');
+  const kineticHTML=await desktop.evaluate(brandedHero=>buildDemoHTML({name:'Hull Hair',tagline:'Hair & Beauty',location:'Hull',layout:'kinetic',heroImage:brandedHero}),brandedHero);
+  await site.setContent(kineticHTML,{waitUntil:'domcontentloaded'});
+  await site.locator('.motion-rail').waitFor();
+  await site.locator('.motion-track').evaluate(track=>window.scrollTo({top:track.getBoundingClientRect().top+scrollY+250,behavior:'instant'}));
+  await site.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.ok(await site.locator('.motion-rail').evaluate(el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)<0,'Kinetic cards should move with vertical scrolling');
   assert.deepEqual(errors,[],'generated sites must have no script errors');
   await desktopContext.close();
 
@@ -167,7 +191,7 @@ try {
     'mobile builder dock should stay transparent'
   );
   assert.equal(await mobile.locator('#builderOpenHtml').count(), 0);
-  for (const layout of ['salon','trades','restaurant','fitness','creative','professional','automotive']) {
+  for (const layout of ['minimal','editorial','bold','luxe','kinetic']) {
     await mobile.locator('[data-tool="layout"]').click();
     await mobile.locator(`[data-layout="${layout}"]`).click();
     assert.equal(await mobile.locator('#builderOptions').isVisible(),false);
@@ -182,6 +206,8 @@ try {
     assert.deepEqual(geometry,{contained:true,separate:true,belowHeader:true,fits:true});
     assert.equal(await frame.locator('.gallery-demo').count(),6);
     assert.equal(await frame.locator('.review-card').count(),3);
+    assert.match(await frame.locator('[data-page="services"]').textContent(),/Cuts & styling/);
+    assert.doesNotMatch(await frame.locator('main').textContent(),/Reserve a table|Memberships|Book your vehicle/);
     assert.equal(await frame.locator('body').evaluate(el=>el.textContent.includes('↗')),false);
     assert.equal(await frame.locator('.header-action').isVisible(),true);
     await frame.locator('.header-action').click();
@@ -192,7 +218,7 @@ try {
     assert.equal(await frame.locator('#mobileNav').isVisible(),false);
   }
   await mobile.locator('[data-tool="layout"]').click();
-  await mobile.locator('[data-layout="salon"]').click();
+  await mobile.locator('[data-layout="minimal"]').click();
   await mobile.locator('[data-tool="colour"]').click();
   await mobile.frameLocator('#previewFrame').locator('.brand-scene').evaluate(async image => {await image.decode(); await Promise.all(image.getAnimations().map(animation => animation.finished));});
   await mobile.screenshot({path:'/tmp/brightsite-builder-mobile.png'});

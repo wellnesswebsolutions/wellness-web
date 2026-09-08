@@ -7,13 +7,11 @@
   // `prices` (used for hidden auto-fill + homepage teaser tiles) are
   // derived from the groups by flattenGroups() below.
   const DEMO_LAYOUTS = [
-    {id:'salon',name:'Salon & clinic',detail:'Treatments & booking'},
-    {id:'trades',name:'Trades',detail:'Callouts & quotes'},
-    {id:'restaurant',name:'Restaurant',detail:'Menu & reservations'},
-    {id:'fitness',name:'Fitness',detail:'Training & memberships'},
-    {id:'creative',name:'Creative',detail:'Portfolio & stories'},
-    {id:'professional',name:'Professional',detail:'Expertise & consultation'},
-    {id:'automotive',name:'Automotive',detail:'Services & vehicles'}
+    {id:'minimal',name:'Minimal',detail:'Clean, calm & understated'},
+    {id:'editorial',name:'Editorial',detail:'Magazine grids & oversized type'},
+    {id:'bold',name:'Bold',detail:'Strong contrast & graphic blocks'},
+    {id:'luxe',name:'Luxe',detail:'Sculpted imagery & soft reveals'},
+    {id:'kinetic',name:'Kinetic',detail:'Immersive cards & scroll motion'}
   ];
   const DEMO_FONTS = [
     {id:'classic',name:'Classic',family:'Cormorant Garamond'},
@@ -26,6 +24,11 @@
     {id:'graphic',name:'Graphic',family:'Sora'}
   ];
   function demoLayoutForCategory(cat) {
+    return ({hairbeauty:'luxe',aesthetics:'luxe',health:'minimal',trades:'bold',homegarden:'editorial',fooddrink:'editorial',fitness:'kinetic',creative:'kinetic',professional:'minimal',automotive:'bold',pets:'luxe'})[cat] || 'minimal';
+  }
+  // Business content is selected only from the user's industry, never from
+  // their visual template. Keep this mapping independent of recommendations.
+  function demoContentForCategory(cat) {
     return ({hairbeauty:'salon',aesthetics:'salon',health:'salon',trades:'trades',homegarden:'trades',fooddrink:'restaurant',fitness:'fitness',creative:'creative',professional:'professional',automotive:'automotive',pets:'salon'})[cat] || 'professional';
   }
   function G(name, items) { return { name, items }; } // items: [label, price] pairs
