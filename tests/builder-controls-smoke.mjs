@@ -101,16 +101,22 @@ try {
     ['body','.site-header','.service-card','.closing'].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor));
   await desktop.frameLocator('#previewFrame').locator('.service-card').first().waitFor();
   const firstPalette = await surfaceColours();
+  assert.equal(await desktop.locator('#builderOptions').isVisible(),false);
+  await desktop.locator('[data-tool="colour"]').click();
+  await desktop.locator('[data-family="Bold"]').click();
   await desktop.locator('[data-colour="#245bb0"]').click();
   await desktop.frameLocator('#previewFrame').locator('body').evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
   const secondPalette = await surfaceColours();
   firstPalette.forEach((colour,index) => assert.notEqual(secondPalette[index],colour,'palette must update every major surface'));
+  await desktop.locator('[data-tool="colour"]').click();
   await desktop.locator('[data-family="Dark"]').click();
   await desktop.locator('[data-colour="#26313e"]').click();
   await desktop.frameLocator('#previewFrame').locator('body').waitFor();
   assert.equal(await desktop.frameLocator('#previewFrame').locator('html').evaluate(el=>getComputedStyle(el).colorScheme),'dark');
   await desktop.locator('[data-tool="font"]').click();
   await desktop.locator('[data-font="editorial"]').click();
+  assert.equal(await desktop.locator('#builderOptions').isVisible(),false);
+  assert.match(await desktop.frameLocator('#previewFrame').locator('.hero .button').first().evaluate(el=>getComputedStyle(el).fontFamily),/Fraunces/);
   await desktop.locator('[data-tool="layout"]').click();
   await desktop.locator('[data-layout="creative"]').click();
   await desktop.frameLocator('#previewFrame').locator('body.layout-creative').waitFor();
@@ -161,9 +167,10 @@ try {
     'mobile builder dock should stay transparent'
   );
   assert.equal(await mobile.locator('#builderOpenHtml').count(), 0);
-  await mobile.locator('[data-tool="layout"]').click();
   for (const layout of ['salon','trades','restaurant','fitness','creative','professional','automotive']) {
+    await mobile.locator('[data-tool="layout"]').click();
     await mobile.locator(`[data-layout="${layout}"]`).click();
+    assert.equal(await mobile.locator('#builderOptions').isVisible(),false);
     const frame = mobile.frameLocator('#previewFrame');
     await frame.locator(`body.layout-${layout}`).waitFor();
     const geometry = await frame.locator('.brand-scene').evaluate(image => {
@@ -175,6 +182,7 @@ try {
     assert.deepEqual(geometry,{contained:true,separate:true,belowHeader:true,fits:true});
     assert.equal(await frame.locator('.gallery-demo').count(),6);
     assert.equal(await frame.locator('.review-card').count(),3);
+    assert.equal(await frame.locator('body').evaluate(el=>el.textContent.includes('↗')),false);
     assert.equal(await frame.locator('.header-action').isVisible(),true);
     await frame.locator('.header-action').click();
     assert.equal(await frame.locator('[data-page="contact"]').isVisible(),true);
@@ -183,6 +191,7 @@ try {
     await frame.locator('#mobileNav [data-nav="home"]').click();
     assert.equal(await frame.locator('#mobileNav').isVisible(),false);
   }
+  await mobile.locator('[data-tool="layout"]').click();
   await mobile.locator('[data-layout="salon"]').click();
   await mobile.locator('[data-tool="colour"]').click();
   await mobile.frameLocator('#previewFrame').locator('.brand-scene').evaluate(async image => {await image.decode(); await Promise.all(image.getAnimations().map(animation => animation.finished));});

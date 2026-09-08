@@ -572,11 +572,14 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedTones = {...tonesFromHex(button.dataset.colour), mode: paletteFamily === 'Dark' ? 'dark' : 'light'};
       controls.querySelector('.palette-orb').style.background = `conic-gradient(${selectedTones.light} 0 120deg,${selectedTones.base} 120deg 240deg,${selectedTones.dark} 240deg)`;
       refreshPreview();
+      closeOptions();
+      controls.querySelector('[data-tool="colour"]').focus();
     } else if (button.dataset.font || button.dataset.layout) {
       if (button.dataset.font) selectedFont = button.dataset.font;
       if (button.dataset.layout) selectedLayout = button.dataset.layout;
       refreshPreview();
-      renderOptions();
+      closeOptions();
+      controls.querySelector(`[data-tool="${button.dataset.font ? 'font' : 'layout'}"]`).focus();
     }
   });
   document.addEventListener('keydown', event => {
