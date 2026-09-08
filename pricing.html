@@ -21,7 +21,17 @@
   #pricing{padding-top:20px!important;padding-bottom:16px}
   footer{padding:20px 24px!important}
 
-  /* plan badge, price suffix and note now live in styles.css (shared with the homepage) */
+  /* Billing Toggle Styles */
+  .billing-toggle { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 36px; font-size: 15px; font-weight: 500; }
+  .billing-toggle .badge { background: #E1F5E9; color: #108043; font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-left: 6px; font-weight: 700; vertical-align: middle; letter-spacing: -0.02em; }
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  input:checked + .slider { background-color: #111; }
+  input:checked + .slider:before { transform: translateX(20px); }
+  .toggle-label.active { color: #111; font-weight: 700; }
+  .toggle-label { color: #666; cursor: pointer; transition: color 0.2s; user-select: none; }
 </style>
 <script src="reveal.js?v=20260902-3" defer></script>
 <script src="nav.js?v=20260902-3" defer></script>
@@ -56,16 +66,27 @@
   </section>
   <section id="pricing" style="padding-top:0">
     <div class="wrap">
+
+      <!-- Billing Toggle -->
+      <div class="billing-toggle">
+        <span id="label-monthly" class="toggle-label">Pay Monthly</span>
+        <label class="switch">
+          <input type="checkbox" id="billing-checkbox" checked aria-label="Toggle annual billing">
+          <span class="slider round"></span>
+        </label>
+        <span id="label-annual" class="toggle-label active">Pay Annually <span class="badge">50% Off Setup</span></span>
+      </div>
+
       <div class="plans" style="max-width:1180px;margin:0 auto">
-        <div class="plan">
+        <div class="plan" data-setup-monthly="99" data-setup-annual="49.50">
           <div class="kicker">Great value</div>
           <h4>Essential</h4>
           <div class="desc">A professional custom website with everything it needs to perform.</div>
           <div class="price-row">
-            <span class="price">£99<small>+ £15/mo</small></span>
+            <span class="price"><span class="setup-price">£49.50</span><small class="hosting-price">+ £180/yr</small></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
-          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
+          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b class="addon-price">+£180/yr</b></label>
           <ul>
             <li>Up to 3 custom-designed pages</li>
             <li>SEO &amp; SEO-focused content</li>
@@ -73,17 +94,18 @@
             <li>Hosting, security &amp; maintenance</li>
             <li>Contact details &amp; enquiry links</li>
           </ul>
-          <a href="#" class="go plan-enquire" data-plan="Essential" data-price="£99" target="_blank" rel="noopener">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Essential" data-price="£49.50 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
         </div>
-        <div class="plan feature">
+
+        <div class="plan feature" data-setup-monthly="199" data-setup-annual="99.50">
           <div class="kicker">Best balance</div>
           <h4>Pro</h4>
           <div class="desc">Everything in Essential, with a bigger, more capable site.</div>
           <div class="price-row">
-            <span class="price">£199<small>+ £15/mo</small></span>
+            <span class="price"><span class="setup-price">£99.50</span><small class="hosting-price">+ £180/yr</small></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
-          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
+          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b class="addon-price">+£180/yr</b></label>
           <ul>
             <li>Everything in Essential</li>
             <li>Up to 5 custom-designed pages</li>
@@ -91,29 +113,31 @@
             <li>Interactions &amp; animations</li>
             <li>Third-party integrations</li>
           </ul>
-          <a href="#" class="go plan-enquire" data-plan="Pro" data-price="£199" target="_blank" rel="noopener">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Pro" data-price="£99.50 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
         </div>
-        <div class="plan">
+
+        <div class="plan" data-setup-monthly="399" data-setup-annual="199.50">
           <div class="kicker">For bigger sites</div>
           <h4>Prestige</h4>
           <div class="desc">Everything in Pro, built for bigger, more ambitious sites.</div>
           <div class="price-row">
-            <span class="price">£399<small>+ £15/mo</small></span>
+            <span class="price"><span class="setup-price">£199.50</span><small class="hosting-price">+ £180/yr</small></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
-          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
+          <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b class="addon-price">+£180/yr</b></label>
           <ul>
             <li>Everything in Pro</li>
             <li>Up to 7 custom-designed pages</li>
             <li>Multi-location or multi-service structure</li>
             <li>Priority same-day support</li>
           </ul>
-          <a href="#" class="go plan-enquire" data-plan="Prestige" data-price="£399" target="_blank" rel="noopener">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Prestige" data-price="£199.50 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
         </div>
       </div>
-      <p class="pricing-note">£15/month covers hosting, security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking form for £15/month more. Cancel any time.</p>
+      <p class="pricing-note">Hosting covers security, updates and ongoing management on every plan — same-day changes, ongoing SEO and 24/7 support. Add a booking form for extra functionality. Cancel any time.</p>
     </div>
   </section>
+
   <footer>
     <a href="/" class="brand"><img src="img/brightsite-logo.png" alt="BrightSite" width="515" height="72"></a>
     <p style="margin-top:10px">Websites, SEO &amp; social for brands.</p>
@@ -123,23 +147,72 @@
 </div>
 
 <script>
-(function(){var b=document.getElementById('bar');if(!b)return;function u(){var m=document.documentElement.scrollHeight-innerHeight;b.style.width=(m>0?Math.min(1,scrollY/m)*100:0)+'%';}addEventListener('scroll',u,{passive:true});addEventListener('resize',u,{passive:true});u();})();
+// Scroll Progress Bar
+(function(){
+  var b=document.getElementById('bar');if(!b)return;
+  function u(){var m=document.documentElement.scrollHeight-innerHeight;b.style.width=(m>0?Math.min(1,scrollY/m)*100:0)+'%';}
+  addEventListener('scroll',u,{passive:true});
+  addEventListener('resize',u,{passive:true});
+  u();
+})();
 
-// Each Enquire button opens WhatsApp with the plan (and booking-form
-// add-on, if ticked) already in the message, instead of the contact page.
+// Pricing Toggle & WhatsApp Link Updater
 (function(){
   var WHATSAPP_NUMBER = '447535928879';
-  document.querySelectorAll('.plan-enquire').forEach(function(link){
-    var addon = link.closest('.plan').querySelector('.price-addon-check');
-    function updateHref(){
-      var plan = link.dataset.plan, price = link.dataset.price;
-      var message = 'Hi, I\'d like to enquire about the ' + plan + ' plan (' + price + '), ' +
+  var checkbox = document.getElementById('billing-checkbox');
+  var labelMonthly = document.getElementById('label-monthly');
+  var labelAnnual = document.getElementById('label-annual');
+  var plans = document.querySelectorAll('.plan');
+
+  function updateWhatsAppLinks() {
+    document.querySelectorAll('.plan-enquire').forEach(function(link){
+      var addon = link.closest('.plan').querySelector('.price-addon-check');
+      var plan = link.dataset.plan;
+      var price = link.dataset.price;
+      var billing = checkbox.checked ? 'Annually' : 'Monthly';
+      var message = 'Hi, I\'d like to enquire about the ' + plan + ' plan (' + price + ', paid ' + billing + '), ' +
         (addon && addon.checked ? 'with' : 'without') + ' the booking form add-on.';
       link.href = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
-    }
-    if (addon) addon.addEventListener('change', updateHref);
-    updateHref();
+    });
+  }
+
+  function updatePricing() {
+    var isAnnual = checkbox.checked;
+    labelMonthly.classList.toggle('active', !isAnnual);
+    labelAnnual.classList.toggle('active', isAnnual);
+
+    plans.forEach(function(plan) {
+      var setupPrice = plan.querySelector('.setup-price');
+      var hostingPrice = plan.querySelector('.hosting-price');
+      var addonPrice = plan.querySelector('.addon-price');
+      var btn = plan.querySelector('.plan-enquire');
+
+      if (isAnnual) {
+        setupPrice.innerHTML = '£' + plan.dataset.setupAnnual;
+        hostingPrice.innerHTML = '+ £180/yr';
+        addonPrice.innerHTML = '+£180/yr';
+        btn.dataset.price = '£' + plan.dataset.setupAnnual + ' setup + £180/yr';
+      } else {
+        setupPrice.innerHTML = '£' + plan.dataset.setupMonthly;
+        hostingPrice.innerHTML = '+ £15/mo';
+        addonPrice.innerHTML = '+£15/mo';
+        btn.dataset.price = '£' + plan.dataset.setupMonthly + ' setup + £15/mo';
+      }
+    });
+    updateWhatsAppLinks();
+  }
+
+  // Event Listeners
+  checkbox.addEventListener('change', updatePricing);
+  labelMonthly.addEventListener('click', function() { checkbox.checked = false; updatePricing(); });
+  labelAnnual.addEventListener('click', function() { checkbox.checked = true; updatePricing(); });
+
+  document.querySelectorAll('.price-addon-check').forEach(function(chk){
+    chk.addEventListener('change', updateWhatsAppLinks);
   });
+
+  // Initialize links on load
+  updatePricing();
 })();
 </script>
 </body>
