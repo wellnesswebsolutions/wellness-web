@@ -428,13 +428,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let googleProfile = null;
   let facebookProfile = null;
   let personalisingTimer = null;
+  const enrichmentApiBase = 'https://wellnessweb-coral.vercel.app';
 
   async function findBusiness(source, name, location, timeoutMs) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const query = new URLSearchParams({ name, location });
-      const response = await fetch(`/api/${source}-lookup?${query}`, { signal: controller.signal });
+      const response = await fetch(`${enrichmentApiBase}/api/${source}-lookup?${query}`, { signal: controller.signal });
       if (!response.ok) return null;
       const data = await response.json();
       return data.match || null;
@@ -801,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fallbackFontByLayout = {
       minimal: 'Manrope', soft: 'Manrope', serene: 'Cormorant Garamond',
       organic: 'Manrope', editorial: 'Fraunces', bold: 'Cormorant Garamond',
-      luxe: 'Cormorant Garamond', kinetic: 'Lora', lume: 'Cormorant Garamond',
+      luxe: 'Cormorant Garamond', kinetic: 'Lora',
       index: 'Manrope', studio: 'Bebas Neue'
     };
     const chosenFont = DEMO_FONTS.find(item => item.id === selectedFont);

@@ -75,6 +75,11 @@ function mapPlace(place) {
 }
 
 export default async function handler(request, response) {
+  const origin = request.headers.origin;
+  if (origin === 'https://brightsite.app' || origin === 'https://www.brightsite.app') {
+    response.setHeader('Access-Control-Allow-Origin', origin);
+    response.setHeader('Vary', 'Origin');
+  }
   if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed' });
   const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) return response.status(503).json({ error: 'Business lookup is not configured' });

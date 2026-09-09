@@ -40,6 +40,11 @@ async function graph(path, params, token) {
 }
 
 export default async function handler(request, response) {
+  const origin = request.headers.origin;
+  if (origin === 'https://brightsite.app' || origin === 'https://www.brightsite.app') {
+    response.setHeader('Access-Control-Allow-Origin', origin);
+    response.setHeader('Vary', 'Origin');
+  }
   if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed' });
   const token = process.env.FACEBOOK_ACCESS_TOKEN;
   if (!token) return response.status(503).json({ error: 'Facebook lookup is not configured' });
