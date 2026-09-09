@@ -15,33 +15,28 @@ function supabaseHeaders(key) {
 }
 
 async function getCachedMatch(baseUrl, key, lookupKey) {
-  const url = new URL(`${baseUrl}/rest/v1/business_lookup_cache`);
-  url.searchParams.set('lookup_key', `eq.${lookupKey}`);
-  url.searchParams.set('expires_at', `gt.${new Date().toISOString()}`);
-  url.searchParams.set('select', 'payload');
-  url.searchParams.set('limit', '1');
-  const result = await fetch(url, { headers: supabaseHeaders(key) });
+  const result = await fetch(`${baseUrl}/rest/v1/rpc/get_business_lookup_cache`, {
+    method: 'POST', headers: supabaseHeaders(key), body: JSON.stringify({ requested_key: lookupKey })
+  });
   if (!result.ok) throw new Error(`Cache read failed: ${result.status}`);
-  const rows = await result.json();
-  return rows[0]?.payload || null;
+  return result.json();
 }
 
 async function claimLookup(baseUrl, key) {
   const result = await fetch(`${baseUrl}/rest/v1/rpc/claim_google_lookup`, {
-    method: 'POST', headers: supabaseHeaders(key),
-    body: JSON.stringify({ daily_limit: DAILY_LIMIT, monthly_limit: MONTHLY_LIMIT })
+    method: 'POST', headers: supabaseHeaders(key), body: '{}'
   });
   if (!result.ok) throw new Error(`Quota check failed: ${result.status}`);
   return result.json();
 }
 
 async function storeCachedMatch(baseUrl, key, lookupKey, payload) {
-  const expires = new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString();
-  await fetch(`${baseUrl}/rest/v1/business_lookup_cache?on_conflict=lookup_key`, {
+  const result = await fetch(`${baseUrl}/rest/v1/rpc/store_business_lookup_cache`, {
     method: 'POST',
-    headers: { ...supabaseHeaders(key), Prefer: 'resolution=merge-duplicates' },
-    body: JSON.stringify({ lookup_key: lookupKey, payload, expires_at: expires, updated_at: new Date().toISOString() })
+    headers: supabaseHeaders(key),
+    body: JSON.stringify({ requested_key: lookupKey, requested_payload: payload })
   });
+  if (!result.ok) throw new Error(`Cache write failed: ${result.status}`);
 }
 
 function tokenScore(expected, actual) {
@@ -84,7 +79,7 @@ export default async function handler(request, response) {
   const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) return response.status(503).json({ error: 'Business lookup is not configured' });
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseKey) return response.status(503).json({ error: 'Safe lookup quota is not configured' });
 
   const name = String(request.query.name || '').trim().slice(0, 120);

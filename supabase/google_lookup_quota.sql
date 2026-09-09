@@ -17,10 +17,9 @@ alter table public.business_lookup_cache enable row level security;
 revoke all on public.google_lookup_quota from anon, authenticated;
 revoke all on public.business_lookup_cache from anon, authenticated;
 
-create or replace function public.claim_google_lookup(
-  daily_limit integer default 25,
-  monthly_limit integer default 850
-) returns boolean
+drop function if exists public.claim_google_lookup(integer, integer);
+
+create or replace function public.claim_google_lookup() returns boolean
 language plpgsql
 security definer
 set search_path = public
@@ -40,7 +39,7 @@ begin
   select request_count into month_count from google_lookup_quota
     where period_type = 'month' and period_start = month_start for update;
 
-  if today_count >= daily_limit or month_count >= monthly_limit then
+  if today_count >= 25 or month_count >= 850 then
     return false;
   end if;
 
@@ -51,5 +50,37 @@ begin
 end;
 $$;
 
-revoke all on function public.claim_google_lookup(integer, integer) from public, anon, authenticated;
-grant execute on function public.claim_google_lookup(integer, integer) to service_role;
+create or replace function public.get_business_lookup_cache(requested_key text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select payload from business_lookup_cache
+  where lookup_key = left(requested_key, 240) and expires_at > now()
+  limit 1;
+$$;
+
+create or replace function public.store_business_lookup_cache(requested_key text, requested_payload jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if length(requested_key) > 240 or pg_column_size(requested_payload) > 65536 then
+    raise exception 'Invalid cache payload';
+  end if;
+  insert into business_lookup_cache(lookup_key, payload, expires_at, updated_at)
+    values (requested_key, requested_payload, now() + interval '29 days', now())
+  on conflict (lookup_key) do update
+    set payload = excluded.payload, expires_at = excluded.expires_at, updated_at = excluded.updated_at;
+end;
+$$;
+
+revoke all on function public.claim_google_lookup() from public, authenticated;
+revoke all on function public.get_business_lookup_cache(text) from public, authenticated;
+revoke all on function public.store_business_lookup_cache(text, jsonb) from public, authenticated;
+grant execute on function public.claim_google_lookup() to anon, service_role;
+grant execute on function public.get_business_lookup_cache(text) to anon, service_role;
+grant execute on function public.store_business_lookup_cache(text, jsonb) to anon, service_role;

@@ -39,7 +39,7 @@ Google photos are not requested.
 The Google fallback also fails closed behind an atomic Supabase counter: 25
 lookups per day and 850 per calendar month. Run
 `supabase/google_lookup_quota.sql`, then add `SUPABASE_URL` and
-`SUPABASE_SERVICE_ROLE_KEY` to Vercel. If the counter or cache is unavailable,
+`SUPABASE_ANON_KEY` to Vercel. If the counter or cache is unavailable,
 BrightSite skips Google rather than risking an uncounted request. Successful
 matches are cached for 29 days.
 
