@@ -223,6 +223,7 @@ function studioLayoutCSS() {
   ${perspectiveLayoutCSS()}
   ${lumeLayoutCSS()}
   ${indexLayoutCSS()}
+  @media(max-width:760px){.layout-lume .button,.layout-index .button{font-size:15px}.layout-lume .header-action,.layout-index .header-action{font-size:14px}}
   /* Minimal — a quiet information column beside an image-led portfolio. */
   .layout-minimal .container{width:min(1440px,100% - 48px)}
   .layout-minimal .site-header{background:var(--bg);border-color:var(--line)}
@@ -579,7 +580,14 @@ function lumeLayoutCSS() {
   .layout-lume .closing{background:var(--header);padding:130px 0}.layout-lume .closing h2{font-size:clamp(70px,10vw,150px);font-weight:400;line-height:.86}
   .layout-lume .page-intro{background:var(--header);color:#fff}.layout-lume .page-intro p{color:rgba(255,255,255,.7)}
   .layout-lume .directory-card,.layout-lume .contact-card,.layout-lume .map{border-radius:0}
-  @media(max-width:760px){.layout-lume .container{width:calc(100% - 36px)}.layout-lume .hero{min-height:0;display:flex;flex-direction:column}.layout-lume .brand-scene{height:auto}.layout-lume .hero-copy{position:relative!important;inset:auto;padding:34px 18px;background:var(--header)}.layout-lume .hero-title{font-size:52px}.lume-trust{grid-template-columns:1fr}.lume-trust span{border-right:0;border-bottom:1px solid var(--line)}.layout-lume .signature .intro-pair{display:flex}.layout-lume .service-grid,.layout-lume .expertise-cards{grid-template-columns:1fr}.layout-lume .gallery{grid-auto-columns:80%}.layout-lume .reviews{grid-template-columns:1fr}.layout-lume .closing{padding:80px 0}}
+  .layout-lume .lume-difference{padding:150px 0}.lume-title-row{display:flex;justify-content:space-between;gap:50px;align-items:end;margin-bottom:72px}.layout-lume .lume-title-row .section-heading{max-width:920px}
+  .lume-feature{display:grid;grid-template-columns:1.3fr .7fr;gap:48px;align-items:start}.lume-feature-image{position:sticky;top:110px;min-height:690px;overflow:hidden}.lume-feature-image img{width:100%;height:100%;min-height:690px;object-fit:cover}
+  .lume-service-list{display:grid}.lume-service{display:grid;grid-template-columns:38px 110px 1fr;grid-template-rows:auto auto;gap:8px 18px;align-items:center;padding:24px 0;border-top:1px solid var(--line)}.lume-service>span{font-size:9px;letter-spacing:.15em}.lume-service-photo{grid-row:1/3;grid-column:2;aspect-ratio:1;overflow:hidden}.lume-service-photo img{width:100%;height:100%;object-fit:cover}.lume-service h3{font-size:26px;font-weight:400}.lume-service p{font-size:11px}
+  .layout-lume .lume-legacy{background:var(--header);color:#fff;padding:150px 0}.lume-legacy-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:10vw;align-items:center}.lume-legacy-grid h2{font-size:clamp(58px,7vw,108px);font-weight:400;line-height:.88}.lume-legacy-grid p{color:rgba(255,255,255,.7);max-width:46ch;margin:34px 0}.lume-legacy-image{min-height:720px}.lume-legacy-image img{width:100%;height:100%;min-height:720px;object-fit:cover}
+  .lume-facts{background:var(--header);color:#fff;border-top:1px solid rgba(255,255,255,.2)}.lume-facts>.container{display:grid;grid-template-columns:repeat(3,1fr)}.lume-facts article{padding:55px 35px;border-right:1px solid rgba(255,255,255,.2);display:grid;gap:28px}.lume-facts article:last-child{border:0}.lume-facts strong{font-family:var(--heading);font-size:74px;font-weight:400}.lume-facts span{font-size:10px;text-transform:uppercase;letter-spacing:.14em}
+  .layout-lume .lume-process{padding:150px 0}.lume-process-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}.lume-process-grid article{padding:48px 38px 70px 0;border-right:1px solid var(--line)}.lume-process-grid article+article{padding-left:38px}.lume-process-grid article:last-child{border:0}.lume-process-grid span{font-size:10px}.lume-process-grid h3{font-size:38px;font-weight:400;margin:70px 0 20px}.lume-process-grid p{font-size:13px}
+  .layout-lume .lume-heritage{padding:150px 0;background:var(--surface)}.lume-heritage-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:9vw;align-items:center}.lume-heritage-image{min-height:650px}.lume-heritage-image img{width:100%;height:100%;min-height:650px;object-fit:cover}.lume-heritage-grid h2{font-size:clamp(56px,6.5vw,96px);font-weight:400;line-height:.9}.lume-heritage-grid p{margin:30px 0;max-width:42ch}
+  @media(max-width:760px){.layout-lume .container{width:calc(100% - 36px)}.layout-lume .hero{min-height:0;display:flex;flex-direction:column}.layout-lume .brand-scene{height:auto}.layout-lume .hero-copy{position:relative!important;inset:auto;padding:34px 18px;background:var(--header)}.layout-lume .hero-title{font-size:52px}.lume-trust{grid-template-columns:1fr}.lume-trust span{border-right:0;border-bottom:1px solid var(--line)}.lume-title-row{display:flex;align-items:flex-start;margin-bottom:40px}.lume-feature,.lume-legacy-grid,.lume-heritage-grid{grid-template-columns:1fr;gap:42px}.lume-feature-image{position:static;min-height:0}.lume-feature-image img,.lume-legacy-image img,.lume-heritage-image img{min-height:0;aspect-ratio:4/3}.lume-service{grid-template-columns:28px 80px 1fr}.lume-facts>.container,.lume-process-grid{grid-template-columns:1fr}.lume-facts article,.lume-process-grid article,.lume-process-grid article+article{border-right:0;border-bottom:1px solid rgba(255,255,255,.2);padding:34px 0}.lume-facts strong{font-size:55px}.lume-process-grid h3{margin:35px 0 15px}.layout-lume .lume-difference,.layout-lume .lume-legacy,.layout-lume .lume-process,.layout-lume .lume-heritage{padding:85px 0}.layout-lume .gallery{grid-auto-columns:80%}.layout-lume .reviews{grid-template-columns:1fr}.layout-lume .closing{padding:80px 0}}
   `;
 }
 
@@ -672,10 +680,6 @@ function templateDesignMotion(layout) {
   const motionPreference=matchMedia('(prefers-reduced-motion:reduce)');
   if(visualStyle==='lume'){
     const hero=document.querySelector('.hero');
-    const trust=document.createElement('div');trust.className='lume-trust';
-    const category=document.querySelector('.brand small')?.textContent||'Independent business';
-    ['Tailored to your needs',category,'A personal local service'].forEach(text=>{const item=document.createElement('span');item.textContent=text;trust.append(item)});
-    hero.after(trust);
     document.querySelector('.gallery')?.setAttribute('aria-label','Featured collection — scroll to explore');
     if(!motionPreference.matches){
       let frame=0;const move=()=>{frame=0;const image=hero.querySelector('.brand-scene');const progress=Math.min(1,Math.max(0,scrollY/Math.max(1,hero.offsetHeight)));image.style.transform='scale('+(1+progress*.045)+')'};

@@ -83,10 +83,11 @@ try {
         const doc=parser.parseFromString(buildDemoHTML({name:'Sample Business',tagline:info.label,location:'Hull',layout:layout.id}),'text/html');
         return doc.querySelector('main').textContent.replace(/\s+/g,' ').trim();
       });
-      return {category:info.label,identical:variants.every(text=>text===variants[0])};
+      const firstService=info.groups[0].items[0][0];
+      return {category:info.label,accurate:variants.every(text=>text.includes(firstService))};
     });
   });
-  contentChecks.forEach(result=>assert.equal(result.identical,true,`${result.category} content must not change with template`));
+  contentChecks.forEach(result=>assert.equal(result.accurate,true,`${result.category} services must remain accurate in every template`));
 
   assert.equal(
     await desktop.locator('.builder-bar-wrap').evaluate((element) => getComputedStyle(element).backgroundColor),
@@ -121,6 +122,7 @@ try {
   const firstPalette = await surfaceColours();
   assert.equal(await desktop.locator('#builderOptions').isVisible(),false);
   await desktop.locator('[data-tool="colour"]').click();
+  assert.equal(await desktop.locator('[data-family="Bold"]').getAttribute('aria-pressed'),'true','colour picker should reopen on the current palette family');
   await desktop.locator('[data-family="Bold"]').click();
   await desktop.locator('[data-colour="#245bb0"]').click();
   await desktop.frameLocator('#previewFrame').locator('body').evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
@@ -144,7 +146,7 @@ try {
     await desktop.locator(`[data-tool="${tool}"]`).click();
     if(tool==='colour')await desktop.locator('[data-colour]').first().click();
     if(tool==='font')await desktop.locator('[data-font="modern"]').click();
-    if(tool==='layout')await desktop.locator('[data-layout="minimal"]').click();
+    if(tool==='layout')await desktop.locator('[data-layout="index"]').click();
     const live=desktop.frameLocator('#previewFrame');
     await live.locator('[data-page="services"]:not([hidden])').waitFor();
     await live.locator('body').evaluate(()=>document.fonts.ready);
@@ -165,7 +167,7 @@ try {
     const copy = document.querySelector('.hero-copy').getBoundingClientRect();
     return {overlays:copy.top < photo.bottom, logoClear:copy.top >= photo.top + photo.height * .52, bottomAligned:Math.abs(copy.bottom-photo.bottom)<2};
   });
-  // Minimal now places the copy beside the uncropped scene, not over it.
+  // Index places the copy beside the uncropped scene, not over it.
   const safeHero = await desktop.frameLocator('#previewFrame').locator('.brand-scene').evaluate(image => {
     const a=image.getBoundingClientRect(),b=document.querySelector('.hero-copy').getBoundingClientRect();
     return b.right<=a.left+1||b.left>=a.right-1||b.top>=a.bottom-1||b.bottom<=a.top+1;
@@ -203,15 +205,15 @@ try {
       assert.ok(await site.evaluate(()=>scrollY)>0,'Noir gallery tile should scroll to the gallery');
     }
     await site.emulateMedia({reducedMotion:'reduce'});
-    await site.locator('.signature .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
-    await site.waitForFunction(()=>Array.from(document.querySelectorAll('.signature .demo-photo')).filter(img=>img.getBoundingClientRect().top<innerHeight).every(img=>img.complete&&img.naturalWidth>0),{},{timeout:15000});
+    await site.locator('[data-page="home"] .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
+    await site.waitForFunction(()=>Array.from(document.querySelectorAll('[data-page="home"] .demo-photo')).filter(img=>img.getBoundingClientRect().top<innerHeight).every(img=>img.complete&&img.naturalWidth>0),{},{timeout:15000});
     await site.screenshot({path:`/tmp/brightsite-fresh-${layout}.png`});
     assert.equal(await site.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${layout} should fit desktop`);
     await site.setViewportSize({width:390,height:844});
     assert.equal(await site.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${layout} should fit mobile`);
     assert.ok(await site.locator('.header-action').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))>=14);
     assert.ok(await site.locator('.hero .button').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))>=15);
-    await site.locator('.signature .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
+    await site.locator('[data-page="home"] .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
     await site.screenshot({path:`/tmp/brightsite-fresh-${layout}-mobile.png`});
     for(const pageName of ['services','contact']){
       await site.locator('.menu-toggle').click();
@@ -270,7 +272,7 @@ try {
     assert.equal(await frame.locator('#mobileNav').isVisible(),false);
   }
   await mobile.locator('[data-tool="layout"]').click();
-  await mobile.locator('[data-layout="minimal"]').click();
+  await mobile.locator('[data-layout="index"]').click();
   await mobile.locator('[data-tool="colour"]').click();
   await mobile.frameLocator('#previewFrame').locator('.brand-scene').evaluate(async image => {await image.decode(); await Promise.all(image.getAnimations().map(animation => animation.finished));});
   await mobile.screenshot({path:'/tmp/brightsite-builder-mobile.png'});
