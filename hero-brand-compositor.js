@@ -13,27 +13,27 @@
   // so the name cannot drift over windows, doors, wheels or shelving.
   const SCENES = {
     // blank plaster wall right of the mirrors
-    hairbeauty: { image: 'hair-beauty.webp', panel: { cx: .72, cy: .32, w: .34, h: .23 }, blend: 'multiply', opacity: .82 },
+    hairbeauty: { image: 'hair-beauty.webp', panel: { cx: .72, cy: .32, w: .34, h: .23 }, surface: 'luxury-wall', light: 'upper-left', perspective: -.018, blend: 'multiply', opacity: .82 },
     // wall panel above and behind the reception desk
-    aesthetics: { image: 'aesthetics.webp', panel: { cx: .51, cy: .32, w: .38, h: .23 }, blend: 'multiply', opacity: .80 },
+    aesthetics: { image: 'aesthetics.webp', panel: { cx: .51, cy: .32, w: .38, h: .23 }, surface: 'luxury-wall', light: 'upper-right', perspective: .012, blend: 'multiply', opacity: .80 },
     // wide bare wall to the right of the treatment bed
-    health: { image: 'health-wellness.webp', panel: { cx: .72, cy: .35, w: .38, h: .22 }, blend: 'multiply', opacity: .82 },
+    health: { image: 'health-wellness.webp', panel: { cx: .72, cy: .35, w: .38, h: .22 }, surface: 'interior-wall', light: 'upper-left', perspective: -.014, blend: 'multiply', opacity: .82 },
     // dark gym wall — light ink, kept clear of the rig on the right
-    fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, blend: 'screen', opacity: .94, filter: 'brightness(1.22) contrast(.92) saturate(1.08)' },
+    fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, surface: 'industrial-wall', light: 'upper-left', perspective: -.008, blend: 'screen', opacity: .94, filter: 'brightness(1.22) contrast(.92) saturate(1.08)' },
     // flat side panel of the van, behind the cab and above the sill
-    automotive: { image: 'automotive.webp', panel: { cx: .64, cy: .43, w: .30, h: .15 }, blend: 'multiply', opacity: .84 },
+    automotive: { image: 'automotive.webp', panel: { cx: .64, cy: .43, w: .30, h: .15 }, surface: 'vehicle', light: 'upper-left', perspective: -.055, blend: 'multiply', opacity: .84 },
     // van side panel, between the window line and the lower stripe
-    trades: { image: 'trades.webp', panel: { cx: .64, cy: .42, w: .32, h: .15 }, blend: 'multiply', opacity: .84 },
+    trades: { image: 'trades.webp', panel: { cx: .64, cy: .42, w: .32, h: .15 }, surface: 'vehicle', light: 'upper-left', perspective: -.045, blend: 'multiply', opacity: .84 },
     // rendered facade right of the timber doorway
-    homegarden: { image: 'home-garden.webp', panel: { cx: .69, cy: .43, w: .27, h: .18 }, blend: 'multiply', opacity: .82 },
+    homegarden: { image: 'home-garden.webp', panel: { cx: .69, cy: .43, w: .27, h: .18 }, surface: 'exterior', light: 'upper-left', perspective: -.028, blend: 'multiply', opacity: .82 },
     // wall above the counter, below the pendant lights
-    fooddrink: { image: 'food-drink.webp', panel: { cx: .51, cy: .35, w: .34, h: .18 }, blend: 'multiply', opacity: .82 },
+    fooddrink: { image: 'food-drink.webp', panel: { cx: .51, cy: .35, w: .34, h: .18 }, surface: 'hospitality-wall', light: 'upper-right', perspective: .008, blend: 'multiply', opacity: .82 },
     // marble wall behind the reception desk
-    professional: { image: 'professional-services.webp', panel: { cx: .50, cy: .31, w: .32, h: .21 }, blend: 'multiply', opacity: .80 },
+    professional: { image: 'professional-services.webp', panel: { cx: .50, cy: .31, w: .32, h: .21 }, surface: 'luxury-wall', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .80 },
     // large empty studio wall on the right
-    creative: { image: 'creative.webp', panel: { cx: .74, cy: .35, w: .34, h: .24 }, blend: 'multiply', opacity: .82 },
+    creative: { image: 'creative.webp', panel: { cx: .74, cy: .35, w: .34, h: .24 }, surface: 'studio-wall', light: 'upper-left', perspective: -.018, blend: 'multiply', opacity: .82 },
     // pink salon wall, clear of the shelf and the plant
-    pets: { image: 'pets.webp', panel: { cx: .73, cy: .27, w: .30, h: .20 }, blend: 'multiply', opacity: .82 }
+    pets: { image: 'pets.webp', panel: { cx: .73, cy: .27, w: .30, h: .20 }, surface: 'interior-wall', light: 'upper-right', perspective: .012, blend: 'multiply', opacity: .82 }
   };
 
   const CATEGORY_ALIASES = {
@@ -119,6 +119,85 @@
   function colourAlpha(value, alpha) {
     const colour = colourParts(value);
     return colour ? `rgba(${colour.r},${colour.g},${colour.b},${alpha})` : value;
+  }
+
+  const BRAND_PROFILES = {
+    hairbeauty: { family: 'Georgia, serif', weight: 700, width: .96, tracking: .12, case: 'title', shape: 'flowing', material: 'brass' },
+    aesthetics: { family: 'Georgia, serif', weight: 600, width: 1.02, tracking: .16, case: 'title', shape: 'refined', material: 'polished' },
+    health: { family: 'Arial, sans-serif', weight: 700, width: .98, tracking: .04, case: 'title', shape: 'organic', material: 'acrylic' },
+    fitness: { family: 'Arial Narrow, Arial, sans-serif', weight: 900, width: .78, tracking: .015, case: 'upper', shape: 'power', material: 'steel' },
+    automotive: { family: 'Arial, sans-serif', weight: 900, width: 1.12, tracking: .015, case: 'upper', shape: 'technical', material: 'vinyl' },
+    trades: { family: 'Arial, sans-serif', weight: 900, width: .94, tracking: .025, case: 'upper', shape: 'built', material: 'vinyl' },
+    homegarden: { family: 'Georgia, serif', weight: 700, width: .98, tracking: .07, case: 'title', shape: 'crafted', material: 'painted-metal' },
+    fooddrink: { family: 'Georgia, serif', weight: 700, width: .97, tracking: .065, case: 'title', shape: 'character', material: 'brass' },
+    professional: { family: 'Georgia, serif', weight: 700, width: .98, tracking: .12, case: 'title', shape: 'refined', material: 'polished' },
+    creative: { family: 'Arial, sans-serif', weight: 800, width: 1.03, tracking: -.015, case: 'mixed', shape: 'experimental', material: 'acrylic' },
+    pets: { family: 'Arial, sans-serif', weight: 800, width: .98, tracking: .035, case: 'title', shape: 'friendly', material: 'acrylic' }
+  };
+
+  function stableHash(value) {
+    let hash = 2166136261;
+    for (const char of String(value || '')) {
+      hash ^= char.charCodeAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function analyseName(value, profile) {
+    const clean = String(value || 'Your Business').trim().replace(/\s+/g, ' ');
+    const letters = clean.replace(/[^a-z0-9]/gi, '').toUpperCase();
+    const pairs = ['TT','LL','OO','EE','SS','NN','AV','VA','LY','TH','ST','AR','RI'];
+    const repeatedPair = pairs.find(pair => letters.includes(pair));
+    const initials = clean.split(' ').map(word => word[0]).filter(Boolean).slice(0, 3).join('').toUpperCase();
+    const symmetric = [...letters].reverse().join('') === letters;
+    const hash = stableHash(`${clean}|${profile.shape}`);
+    const candidates = [];
+    if (repeatedPair) candidates.push({ type: 'bridge', pair: repeatedPair });
+    if (initials.length > 1) candidates.push({ type: 'monogram', initials });
+    if (symmetric || /(A|M|O|V|W|X)/.test(letters)) candidates.push({ type: 'feature', letter: letters[(hash >>> 5) % Math.max(1, letters.length)] });
+    if (profile.shape === 'technical' || profile.shape === 'power' || profile.shape === 'built') candidates.push({ type: 'notch' });
+    if (profile.shape === 'flowing' || profile.shape === 'organic' || profile.shape === 'friendly') candidates.push({ type: 'sweep' });
+    if (profile.shape === 'experimental' || profile.shape === 'character') candidates.push({ type: 'offset' });
+    const count = 1 + (hash % Math.min(3, Math.max(1, candidates.length)));
+    const start = candidates.length ? (hash >>> 8) % candidates.length : 0;
+    const modifications = [];
+    for (let i = 0; i < candidates.length && modifications.length < count; i++) {
+      const item = candidates[(start + i) % candidates.length];
+      if (!modifications.some(existing => existing.type === item.type)) modifications.push(item);
+    }
+    return { clean, letters, initials, hash, modifications };
+  }
+
+  function displayName(name, profile) {
+    if (profile.case === 'upper') return name.toUpperCase();
+    if (profile.case === 'title') return name.toLowerCase().replace(/(^|[\s&/\-’'])([a-z])/g, (_, gap, char) => gap + char.toUpperCase());
+    return name;
+  }
+
+  function fontString(profile, size) {
+    return `${profile.weight} ${size}px ${profile.family}`;
+  }
+
+  function trackedWidth(ctx, text, tracking) {
+    return ctx.measureText(text).width + Math.max(0, text.length - 1) * tracking;
+  }
+
+  function drawTrackedText(ctx, text, x, y, tracking, maxWidth) {
+    const widths = [...text].map(char => ctx.measureText(char).width);
+    const natural = widths.reduce((sum, width) => sum + width, 0) + Math.max(0, widths.length - 1) * tracking;
+    const scale = Math.min(1, maxWidth / Math.max(1, natural));
+    ctx.save();
+    ctx.translate(x - natural * scale / 2, y);
+    ctx.scale(scale, 1);
+    let cursor = 0;
+    [...text].forEach((char, index) => {
+      ctx.fillText(char, cursor, 0);
+      if (ctx._brandStroke) ctx.strokeText(char, cursor, 0);
+      cursor += widths[index] + tracking;
+    });
+    ctx.restore();
+    return natural * scale;
   }
 
   // Break a name across at most two lines at the most balanced word gap, so a
@@ -324,6 +403,159 @@
     ctx.restore();
   }
 
+  // Builds a repeatable identity from the category, actual name, selected site
+  // style and palette. It is intentionally procedural: the same business gets
+  // the same mark on every render, while names in one category do not collapse
+  // into one template.
+  function drawProceduralLockup(ctx, name, location, box, fallbackLight, options) {
+    const settings = options || {};
+    const key = sceneKey(settings.category);
+    const scene = SCENES[key];
+    const baseProfile = BRAND_PROFILES[key] || BRAND_PROFILES.professional;
+    const layoutAdjustments = {
+      bold: { width: .84, tracking: .01, weight: 900 }, studio: { width: .80, tracking: .01, weight: 900 },
+      luxe: { width: 1.02, tracking: .17, weight: 600 }, editorial: { width: .98, tracking: .11, weight: 600 },
+      soft: { width: 1, tracking: .06 }, serene: { width: 1.01, tracking: .13, weight: 600 },
+      organic: { width: 1, tracking: .065 }, kinetic: { width: 1.06, tracking: 0 },
+      minimal: { width: .96, tracking: .08 }, index: { width: .94, tracking: .045 }
+    };
+    const profile = Object.assign({}, baseProfile, layoutAdjustments[settings.layout] || {});
+    if (settings.fontFamily) profile.family = `${settings.fontFamily}, ${profile.family}`;
+    const analysis = analyseName(name, profile);
+    const title = displayName(analysis.clean, profile);
+    const words = title.split(/\s+/);
+    let lines = [title];
+    if (title.length > 17 && words.length > 1) lines = splitName(words);
+
+    const inset = scene.surface === 'vehicle' ? .055 : .075;
+    const inner = { x: box.x + box.width * inset, y: box.y + box.height * .09, width: box.width * (1 - inset * 2), height: box.height * .82 };
+    const hasSubline = Boolean(String(location || '').trim());
+    let size = Math.round(inner.height * (lines.length > 1 ? .34 : hasSubline ? .48 : .60));
+    const minimum = Math.max(18, Math.round(inner.height * .19));
+    const fit = () => {
+      ctx.font = fontString(profile, size);
+      const tracking = size * profile.tracking;
+      return lines.every(line => trackedWidth(ctx, line, tracking) * profile.width <= inner.width);
+    };
+    while (size > minimum && !fit()) size -= 2;
+
+    const surface = readSurface(ctx, inner, fallbackLight);
+    const paletteInk = colourParts(settings.signColour) ? settings.signColour : null;
+    let face = paletteInk || (surface.light ? '#f7f3e9' : '#272421');
+    if (profile.material === 'brass' && !paletteInk) face = surface.light ? '#ead79d' : '#9b713b';
+    if (profile.material === 'steel' && !paletteInk) face = '#e8e9e5';
+    const edge = shadeColour(face, profile.material === 'vinyl' ? -.22 : -.52);
+    const shine = shadeColour(face, .66);
+    const shadowDirection = scene.light === 'upper-right' ? -1 : 1;
+    const depth = profile.material === 'vinyl' ? 0 : profile.material === 'painted-metal' ? 3 : profile.material === 'steel' ? 7 : 4;
+    const tracking = size * profile.tracking;
+    const lineStep = size * .92;
+    const titleHeight = size * .74 + (lines.length - 1) * lineStep;
+    const subSize = Math.max(10, Math.round(size * .22));
+    const subGap = hasSubline ? size * .25 : 0;
+    const totalHeight = titleHeight + (hasSubline ? subGap + subSize : 0);
+    const centreX = inner.x + inner.width / 2;
+    let baseline = inner.y + (inner.height - totalHeight) / 2 + size * .72;
+
+    ctx.save();
+    // A small measured shear follows the photographed plane. Keeping this
+    // affine and subtle prevents the mark looking like a floating overlay.
+    ctx.translate(centreX, 0);
+    ctx.transform(1, scene.perspective || 0, 0, 1, -centreX, 0);
+    ctx.font = fontString(profile, size);
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+
+    const drawLines = (fill, dx, dy, alpha) => {
+      ctx.fillStyle = fill;
+      ctx.globalAlpha = alpha;
+      ctx._brandStroke = false;
+      lines.forEach((line, index) => {
+        ctx.save();
+        ctx.translate(centreX + dx, baseline + index * lineStep);
+        ctx.scale(profile.width, 1);
+        drawTrackedText(ctx, line, 0, dy, tracking, inner.width / profile.width);
+        ctx.restore();
+      });
+    };
+
+    if (profile.material === 'vinyl') {
+      ctx.shadowColor = 'rgba(0,0,0,.24)';
+      ctx.shadowBlur = Math.max(1, size * .018);
+      ctx.shadowOffsetX = shadowDirection * 1.2;
+      ctx.shadowOffsetY = 1.4;
+      drawLines(face, 0, 0, .92);
+      ctx.shadowColor = 'transparent';
+      drawLines(shine, 0, -.45, .16);
+    } else {
+      ctx.shadowColor = 'rgba(0,0,0,.42)';
+      ctx.shadowBlur = Math.max(5, size * (surface.busy ? .13 : .09));
+      ctx.shadowOffsetX = shadowDirection * depth * 1.15;
+      ctx.shadowOffsetY = depth * 1.35;
+      for (let layer = depth; layer >= 1; layer--) drawLines(edge, shadowDirection * layer, layer, .94);
+      ctx.shadowColor = 'transparent';
+      drawLines(face, 0, 0, .98);
+      ctx.strokeStyle = colourAlpha(shine, profile.material === 'polished' ? .58 : .30);
+      ctx.lineWidth = Math.max(.6, size * .009);
+      ctx._brandStroke = true;
+      lines.forEach((line, index) => {
+        ctx.save();
+        ctx.translate(centreX - shadowDirection * .55, baseline + index * lineStep - .7);
+        ctx.scale(profile.width, 1);
+        drawTrackedText(ctx, line, 0, 0, tracking, inner.width / profile.width);
+        ctx.restore();
+      });
+      ctx._brandStroke = false;
+    }
+
+    // Name-aware signature details. Only the selected 1–3 compatible moves
+    // are drawn, so the result feels authored rather than randomly decorated.
+    analysis.modifications.forEach((modification, index) => {
+      const y = baseline - size * .10 + index * size * .035;
+      ctx.globalAlpha = .92;
+      ctx.fillStyle = face;
+      ctx.strokeStyle = face;
+      ctx.lineWidth = Math.max(1.3, size * .035);
+      ctx.lineCap = profile.shape === 'technical' || profile.shape === 'power' ? 'square' : 'round';
+      if (modification.type === 'notch') {
+        ctx.save();
+        ctx.fillStyle = edge;
+        ctx.globalAlpha = .86;
+        const nx = centreX + inner.width * (((analysis.hash >>> 12) % 30) / 100 - .15);
+        ctx.beginPath(); ctx.moveTo(nx, y - size * .62); ctx.lineTo(nx + size * .16, y - size * .62); ctx.lineTo(nx - size * .02, y - size * .40); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      } else if (modification.type === 'sweep') {
+        ctx.beginPath();
+        ctx.moveTo(centreX - inner.width * .25, baseline + size * .18);
+        ctx.bezierCurveTo(centreX - inner.width * .05, baseline + size * .32, centreX + inner.width * .14, baseline + size * .24, centreX + inner.width * .27, baseline + size * .08);
+        ctx.stroke();
+      } else if (modification.type === 'bridge') {
+        const span = Math.min(inner.width * .18, size * 1.35);
+        ctx.fillRect(centreX - span / 2, baseline - size * .34, span, Math.max(2, size * .035));
+      } else if (modification.type === 'feature') {
+        ctx.beginPath(); ctx.arc(centreX + inner.width * .29, baseline - size * .50, size * .075, 0, Math.PI * 2); ctx.stroke();
+      } else if (modification.type === 'offset') {
+        ctx.fillRect(centreX + inner.width * .18, baseline - size * .66, size * .30, Math.max(2, size * .055));
+      } else if (modification.type === 'monogram' && lines.length === 1 && title.length > 12) {
+        ctx.font = fontString(Object.assign({}, profile, { weight: 800 }), size * .19);
+        ctx.textAlign = 'center';
+        ctx.fillText(modification.initials, centreX, baseline - size * .98);
+      }
+    });
+
+    if (hasSubline) {
+      ctx.font = `600 ${subSize}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.letterSpacing = `${subSize * .15}px`;
+      ctx.fillStyle = face;
+      ctx.globalAlpha = .72;
+      ctx.shadowColor = 'rgba(0,0,0,.22)';
+      ctx.shadowBlur = profile.material === 'vinyl' ? 1 : 3;
+      ctx.fillText(String(location).trim().toUpperCase(), centreX, baseline + (lines.length - 1) * lineStep + subGap + subSize, inner.width);
+    }
+    ctx.restore();
+  }
+
   // Safari does not encode WebP from a canvas: it ignores the requested type
   // and silently returns PNG. For a 1600x900 photograph that is ~2.1 MB of
   // base64 instead of ~120 KB — large enough to stall the iPhone preview once
@@ -331,6 +563,7 @@
   // to JPEG, which every browser encodes and which stays small for photos.
   // (The hero is fully opaque, so losing alpha costs nothing.)
   let exportType = null;
+  const renderCache = new Map();
   function pickExportType() {
     if (exportType) return exportType;
     try {
@@ -353,6 +586,9 @@
     const settings = options || {};
     const key = sceneKey(settings.category);
     const scene = SCENES[key];
+    const cacheable = !settings.heroImage && !settings.logo && (!settings.output || settings.output === 'dataURL');
+    const cacheKey = cacheable ? [key, settings.businessName, settings.location, settings.signColour, settings.layout, settings.fontFamily, settings.width || 1600, settings.height || 900, settings.quality || .88].join('|') : null;
+    if (cacheKey && renderCache.has(cacheKey)) return renderCache.get(cacheKey);
     const heroSource = settings.heroImage || new URL(scene.image, assetBase).href;
     const hero = await loadImage(heroSource);
     const canvas = document.createElement('canvas');
@@ -399,7 +635,10 @@
       // rather than through the logo's blend mode.
       ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
-      drawLockup(ctx, settings.businessName, settings.location, box, lightInk, {
+      drawProceduralLockup(ctx, settings.businessName, settings.location, box, lightInk, {
+        category: settings.category,
+        layout: settings.layout,
+        fontFamily: settings.fontFamily,
         signColour: settings.signColour,
         logoHint: settings.logoHint
       });
@@ -411,8 +650,17 @@
     if (output === 'canvas') return canvas;
     if (output === 'blob') return canvasBlob(canvas, quality);
     if (output === 'objectURL') return URL.createObjectURL(await canvasBlob(canvas, quality));
-    return canvas.toDataURL(pickExportType(), quality);
+    const dataURL = canvas.toDataURL(pickExportType(), quality);
+    if (cacheKey) {
+      renderCache.set(cacheKey, dataURL);
+      if (renderCache.size > 16) renderCache.delete(renderCache.keys().next().value);
+    }
+    return dataURL;
   }
 
-  global.HeroBrandCompositor = Object.freeze({ render, scenes: SCENES, sceneKey });
+  function heroSource(category) {
+    return new URL(SCENES[sceneKey(category)].image, assetBase).href;
+  }
+
+  global.HeroBrandCompositor = Object.freeze({ render, scenes: SCENES, sceneKey, heroSource, analyseName: (name, category) => analyseName(name, BRAND_PROFILES[sceneKey(category)] || BRAND_PROFILES.professional) });
 })(window);

@@ -23,7 +23,22 @@ const brandedHero = await HeroBrandCompositor.render({
 document.querySelector('.hero img').src = brandedHero;
 ```
 
-The customer-facing builder does not show colour or image-upload controls. It automatically uses the art-directed colour palette for the category hero. If the internal workflow has no logo, omit `logo`; the business name becomes a fitted wordmark on the wall automatically.
+The customer-facing builder does not show logo, material or 3D controls. If the internal workflow has no logo, omit `logo`; the business name becomes a bespoke procedural wordmark on the surface automatically. The renderer analyses the name, chooses one to three compatible signature details, and combines those with the category, hero surface, website layout, type direction and selected palette.
+
+```js
+const brandedHero = await HeroBrandCompositor.render({
+  category: 'Automotive',
+  businessName: 'Northline Detail',
+  location: 'Hull',
+  layout: 'kinetic',
+  fontFamily: 'Montserrat',
+  signColour: '#245bb0'
+});
+```
+
+Vehicle scenes use flat vinyl-style graphics and a shallow contact shadow. Interior, luxury, industrial, hospitality and exterior scenes each use their own depth, finish and lighting treatment. Every scene also carries a subtle perspective correction tied to its photographed signage plane.
+
+Results generated from the bundled heroes are cached in memory, capped at 16 variants, so repeated preview refreshes avoid recompositing the photograph.
 
 The included categories are Hair & Beauty, Aesthetics, Health & Wellness, Fitness, Automotive, Trades, Home & Garden, Food & Drink, Professional Services, Creative and Pets.
 
