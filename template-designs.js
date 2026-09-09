@@ -221,6 +221,7 @@ function studioLayoutCSS() {
   ${editorialStudioCSS()}
   ${noirLayoutCSS()}
   ${perspectiveLayoutCSS()}
+  ${lumeLayoutCSS()}
   /* Minimal — a quiet information column beside an image-led portfolio. */
   .layout-minimal .container{width:min(1440px,100% - 48px)}
   .layout-minimal .site-header{background:var(--bg);border-color:var(--line)}
@@ -551,6 +552,36 @@ function noirLayoutCSS() {
   `;
 }
 
+function lumeLayoutCSS() {
+  return `
+  .layout-lume .container{width:min(1420px,100% - 64px)}
+  .layout-lume .site-header{background:color-mix(in srgb,var(--header) 78%,transparent);border:0;backdrop-filter:blur(18px)}
+  .layout-lume .brand{font-family:var(--heading);font-size:30px;font-weight:500}.layout-lume .nav{font-size:10px;text-transform:uppercase;letter-spacing:.14em}
+  .layout-lume .hero{min-height:calc(100vh - var(--header-height));display:grid;place-items:center;background:var(--header);overflow:hidden}
+  .layout-lume .brand-scene{width:100%;height:calc(100vh - var(--header-height));object-fit:contain;grid-area:1/1;background:var(--header)}
+  .layout-lume .hero-copy{position:absolute!important;inset:60% 0 0;width:100%;padding:3vh 5vw 4vh;background:linear-gradient(0deg,rgba(5,8,8,.9),transparent);z-index:2}
+  .layout-lume .hero-copy .inner{max-width:1420px}.layout-lume .hero-copy .eyebrow{color:#fff;letter-spacing:.2em}
+  .layout-lume .hero-title{font-size:clamp(54px,7.8vw,116px);font-weight:400;line-height:.88;max-width:11ch;color:#fff;margin:22px 0 34px;letter-spacing:-.055em}
+  .layout-lume .button{border-radius:0;text-transform:uppercase;letter-spacing:.11em;font-size:10px;padding:17px 22px}
+  .layout-lume .hero-actions .secondary{color:#fff;border-color:rgba(255,255,255,.65);background:transparent}
+  .lume-trust{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line);background:var(--bg)}
+  .lume-trust span{padding:24px 4vw;border-right;border-right:1px solid var(--line);text-transform:uppercase;letter-spacing:.14em;font-size:9px;text-align:center}.lume-trust span:last-child{border:0}
+  .layout-lume .signature{padding-top:140px}.layout-lume .signature .intro-pair{display:grid;grid-template-columns:1.2fr .8fr;align-items:end}
+  .layout-lume .section-heading h2{font-size:clamp(56px,7vw,104px);font-weight:400;line-height:.92;max-width:12ch}
+  .layout-lume .service-grid,.layout-lume .expertise-cards{grid-template-columns:repeat(3,1fr);gap:clamp(22px,3vw,46px);margin-top:70px}
+  .layout-lume .service-card{border:0;border-radius:0;background:transparent}.layout-lume .card-picture{aspect-ratio:4/5}.layout-lume .card-content{padding:24px 0;border-bottom:1px solid var(--line)}
+  .layout-lume .card-content h3{font-size:36px;font-weight:400}.layout-lume .story{background:var(--header);color:#fff}.layout-lume .story p,.layout-lume .story .eyebrow{color:rgba(255,255,255,.72)}
+  .layout-lume .story h2{font-size:clamp(52px,6vw,88px);font-weight:400}.layout-lume .story-photo{border-radius:0}
+  .layout-lume .gallery-section{background:var(--bg);overflow:hidden}.layout-lume .gallery{display:grid;grid-auto-flow:column;grid-auto-columns:38%;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;gap:24px;padding-bottom:24px}
+  .layout-lume .gallery-demo:nth-child(n){grid-column:auto;aspect-ratio:3/4;border-radius:0;scroll-snap-align:start}.layout-lume .reviews{grid-template-columns:1.5fr .75fr .75fr}
+  .layout-lume .review-card{border-radius:0;background:transparent;border-width:1px 0 0;padding:34px 0}.layout-lume .review-card:first-child blockquote{font-size:48px}
+  .layout-lume .closing{background:var(--header);padding:130px 0}.layout-lume .closing h2{font-size:clamp(70px,10vw,150px);font-weight:400;line-height:.86}
+  .layout-lume .page-intro{background:var(--header);color:#fff}.layout-lume .page-intro p{color:rgba(255,255,255,.7)}
+  .layout-lume .directory-card,.layout-lume .contact-card,.layout-lume .map{border-radius:0}
+  @media(max-width:760px){.layout-lume .container{width:calc(100% - 36px)}.layout-lume .hero{min-height:0;display:flex;flex-direction:column}.layout-lume .brand-scene{height:auto}.layout-lume .hero-copy{position:relative!important;inset:auto;padding:34px 18px;background:var(--header)}.layout-lume .hero-title{font-size:52px}.lume-trust{grid-template-columns:1fr}.lume-trust span{border-right:0;border-bottom:1px solid var(--line)}.layout-lume .signature .intro-pair{display:flex}.layout-lume .service-grid,.layout-lume .expertise-cards{grid-template-columns:1fr}.layout-lume .gallery{grid-auto-columns:80%}.layout-lume .reviews{grid-template-columns:1fr}.layout-lume .closing{padding:80px 0}}
+  `;
+}
+
 function perspectiveLayoutCSS() {
   return `
   .layout-kinetic .container{width:min(1320px,100% - 72px)}
@@ -615,6 +646,18 @@ function templateDesignMotion(layout) {
   return `
   const visualStyle=${JSON.stringify(layout)};
   const motionPreference=matchMedia('(prefers-reduced-motion:reduce)');
+  if(visualStyle==='lume'){
+    const hero=document.querySelector('.hero');
+    const trust=document.createElement('div');trust.className='lume-trust';
+    const category=document.querySelector('.brand small')?.textContent||'Independent business';
+    ['Tailored to your needs',category,'A personal local service'].forEach(text=>{const item=document.createElement('span');item.textContent=text;trust.append(item)});
+    hero.after(trust);
+    document.querySelector('.gallery')?.setAttribute('aria-label','Featured collection — scroll to explore');
+    if(!motionPreference.matches){
+      let frame=0;const move=()=>{frame=0;const image=hero.querySelector('.brand-scene');const progress=Math.min(1,Math.max(0,scrollY/Math.max(1,hero.offsetHeight)));image.style.transform='scale('+(1+progress*.045)+')'};
+      addEventListener('scroll',()=>{if(!frame)frame=requestAnimationFrame(move)},{passive:true});move();
+    }
+  }
   if(visualStyle==='bold'){
     const hero=document.querySelector('.hero'),stage=document.createElement('div');stage.className='noir-stage';hero.before(stage);stage.append(hero);
     const tiles=document.createElement('nav');tiles.className='noir-links';tiles.setAttribute('aria-label','Explore the website');stage.append(tiles);
