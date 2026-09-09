@@ -660,12 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
       options.innerHTML = `<h3>Choose your type</h3><div class="builder-choice-list">${DEMO_FONTS.map(f => `<button type="button" data-font="${f.id}" aria-pressed="${selectedFont === f.id}" style="font-family:${f.family}">${f.name}<span>Aa</span></button>`).join('')}</div>`;
     } else {
       const recommended = demoLayoutForCategory(typeInfo(bizTagline.value)?.cat);
-      const groups = ['Essential', 'Pro'].map(tier => {
-        const layouts = DEMO_LAYOUTS.filter(layout => (layout.tier || 'Essential') === tier);
-        if (!layouts.length) return '';
-        return `<section class="builder-template-group"><h3>${tier}</h3><div class="builder-choice-list">${layouts.map(l => `<button type="button" data-layout="${l.id}" aria-pressed="${(selectedLayout || recommended) === l.id}">${l.name}<small>${l.id === recommended ? 'Recommended' : l.detail}</small></button>`).join('')}</div></section>`;
-      }).join('');
-      options.innerHTML = `<h2 class="builder-options-title">Choose your template</h2>${groups}`;
+      options.innerHTML = `<h2 class="builder-options-title">Choose your template</h2><div class="builder-choice-list">${DEMO_LAYOUTS.map(l => `<button type="button" data-layout="${l.id}" aria-pressed="${(selectedLayout || recommended) === l.id}">${l.name}<small>${l.id === recommended ? 'Recommended' : l.detail}</small></button>`).join('')}</div>`;
     }
   }
   controls.addEventListener('click', event => {
