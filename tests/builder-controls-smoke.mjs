@@ -192,6 +192,16 @@ try {
     });
     assert.equal(logoSafe,true,`${layout} must leave the 3D logo area clear`);
     await site.screenshot({path:`/tmp/brightsite-hero-${layout}.png`});
+    if(layout==='bold'){
+      assert.equal(await site.locator('.noir-tile').count(),3);
+      for(const [index,pageName] of ['services','contact'].entries()){
+        await site.locator('.noir-tile').nth(index).click();
+        assert.equal(await site.locator(`[data-page="${pageName}"]`).isVisible(),true);
+        await site.locator('.site-header .nav [data-nav="home"]').click();
+      }
+      await site.locator('.noir-tile').last().click();
+      assert.ok(await site.evaluate(()=>scrollY)>0,'Noir gallery tile should scroll to the gallery');
+    }
     await site.emulateMedia({reducedMotion:'reduce'});
     await site.locator('.signature .section-heading').first().evaluate(el=>el.scrollIntoView({block:'start'}));
     await site.waitForFunction(()=>Array.from(document.querySelectorAll('.signature .demo-photo')).filter(img=>img.getBoundingClientRect().top<innerHeight).every(img=>img.complete&&img.naturalWidth>0),{},{timeout:15000});

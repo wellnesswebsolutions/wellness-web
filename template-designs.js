@@ -219,6 +219,7 @@ function studioLayoutCSS() {
   ${sereneLayoutCSS()}
   ${organicLayoutCSS()}
   ${editorialStudioCSS()}
+  ${noirLayoutCSS()}
   /* Minimal — a quiet information column beside an image-led portfolio. */
   .layout-minimal .container{width:min(1440px,100% - 48px)}
   .layout-minimal .site-header{background:var(--bg);border-color:var(--line)}
@@ -488,11 +489,84 @@ function editorialStudioCSS() {
   `;
 }
 
+function noirLayoutCSS() {
+  return `
+  .layout-bold .container{width:min(1380px,100% - 48px)}
+  .layout-bold .site-header{background:var(--bg);border-bottom:1px solid var(--line)}
+  .layout-bold .brand{font-family:var(--heading);font-size:32px;font-weight:400}
+  .layout-bold .noir-stage{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(0,1fr);gap:18px;margin:20px}
+  .layout-bold .hero{border-radius:16px;overflow:hidden;background:var(--surface)}
+  .layout-bold .hero-copy{position:static!important;background:var(--surface);padding:28px 36px 36px}
+  .layout-bold .hero-copy .eyebrow{color:var(--accent)}
+  .layout-bold .hero-title{font-size:clamp(45px,5vw,72px);font-weight:400;text-transform:uppercase;line-height:.98;letter-spacing:-.035em;max-width:24ch;color:var(--ink);margin:20px 0 26px}
+  .layout-bold .button{font-size:16px;border-radius:8px;background:var(--accent);color:var(--on-accent);border:1px solid var(--accent);box-shadow:none}
+  .layout-bold .hero-actions .secondary{background:transparent;color:var(--accent);border-color:var(--line)}
+  .noir-links{display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:18px;min-width:0}
+  .noir-tile{position:relative;overflow:hidden;border-radius:16px;display:block;min-height:160px;background:var(--surface);border:1px solid var(--line)}
+  .noir-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .65s ease}
+  .noir-tile:hover .noir-photo{transform:scale(1.04)}
+  .noir-tile span{position:absolute;right:0;bottom:0;max-width:100%;background:var(--bg);color:var(--ink);padding:17px 24px;border-radius:16px 0 0 0;font-family:var(--heading);font-size:26px;line-height:1.2}
+  .layout-bold .signature .section-heading{max-width:850px}
+  .layout-bold .signature h2{font-size:clamp(54px,6vw,88px);font-weight:400;line-height:1.02;letter-spacing:-.04em;text-transform:none}
+  .layout-bold .service-grid,.layout-bold .membership-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+  .layout-bold .service-card:nth-child(n){background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:none}
+  .layout-bold .service-card:nth-child(n) p{color:var(--muted)}
+  .layout-bold .service-card:nth-child(n) .card-foot,.layout-bold .service-card:nth-child(n) .card-number{color:var(--accent);border-color:var(--line)}
+  .layout-bold .card-picture{aspect-ratio:16/10;filter:none}
+  .layout-bold .card-content h3{font-size:44px;font-weight:400;text-transform:none;letter-spacing:-.035em}
+  .layout-bold .story{background:var(--bg);border-top:1px solid var(--line)}
+  .layout-bold .story h2{font-size:clamp(48px,5.5vw,78px);font-weight:400;text-transform:none;letter-spacing:-.035em}
+  .layout-bold .story-photo{border-radius:16px}
+  .layout-bold .gallery-section{background:var(--bg)}
+  .layout-bold .gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .layout-bold .gallery-demo:nth-child(n){grid-column:auto;grid-row:auto;aspect-ratio:3/4;border-radius:16px}
+  .layout-bold .reviews{gap:18px}
+  .layout-bold .review-card:nth-child(n){border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:32px}
+  .layout-bold .review-card blockquote{font-size:31px;font-weight:400}
+  .layout-bold .closing{margin:20px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink)}
+  .layout-bold .closing h2{font-size:clamp(60px,8vw,110px);font-weight:400;line-height:1;text-transform:uppercase;letter-spacing:-.025em}
+  .layout-bold .closing .eyebrow{color:var(--accent)}.layout-bold .closing .button{background:var(--accent);color:var(--on-accent)}
+  .layout-bold .page-intro{margin:20px;border-radius:16px;background:var(--surface)}
+  .layout-bold .page-intro h2{font-size:clamp(52px,6vw,88px);font-weight:400}
+  .layout-bold .directory-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+  .layout-bold .directory-card,.layout-bold .contact-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:34px}
+  .layout-bold .directory-card h3{font-size:35px}
+  .layout-bold .contact-section h2{font-weight:400;font-size:clamp(48px,5vw,72px)}
+  .layout-bold .location-section{background:var(--bg)}
+  @media(max-width:900px){
+    .layout-bold .noir-stage{grid-template-columns:1fr;margin:16px;gap:16px}
+    .noir-links{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto;gap:12px}
+    .noir-tile{min-height:180px}.noir-tile span{padding:12px;font-size:20px}
+    .layout-bold .hero-copy{padding:28px 22px}.layout-bold .hero-title{font-size:48px;max-width:20ch}
+    .layout-bold .container{width:calc(100% - 36px)}
+  }
+  @media(max-width:600px){
+    .layout-bold .service-grid,.layout-bold .membership-grid,.layout-bold .directory-grid{grid-template-columns:1fr}
+    .layout-bold .gallery{grid-template-columns:1fr 1fr;gap:12px}
+    .layout-bold .signature h2{font-size:52px}.layout-bold .card-content{padding:28px}.layout-bold .card-content h3{font-size:38px}
+    .noir-links{grid-template-columns:1fr;gap:12px}.noir-tile{min-height:155px}.noir-tile span{font-size:25px;padding:14px 22px}
+    .layout-bold .closing,.layout-bold .page-intro{margin:16px}
+  }
+  `;
+}
+
 function templateDesignMotion(layout) {
   // Returned as a self-contained script in the exported/shared website.
   return `
   const visualStyle=${JSON.stringify(layout)};
   const motionPreference=matchMedia('(prefers-reduced-motion:reduce)');
+  if(visualStyle==='bold'){
+    const hero=document.querySelector('.hero'),stage=document.createElement('div');stage.className='noir-stage';hero.before(stage);stage.append(hero);
+    const tiles=document.createElement('nav');tiles.className='noir-links';tiles.setAttribute('aria-label','Explore the website');stage.append(tiles);
+    const serviceLink=document.querySelector('.site-header .nav [data-nav="services"]');
+    [serviceLink.textContent,'Contact','Gallery'].forEach((label,index)=>{
+      const tile=document.createElement('a');tile.className='noir-tile';tile.href=index===0?'#services':index===1?'#contact':'#gallery';
+      const original=document.querySelectorAll('.gallery-demo img')[index],img=original.cloneNode();img.className='noir-photo';img.alt='';img.loading='eager';
+      img.addEventListener('error',()=>{img.src=document.querySelector('.brand-scene').src},{once:true});
+      const caption=document.createElement('span');caption.textContent=label;tile.append(img,caption);tiles.append(tile);
+      tile.addEventListener('click',event=>{event.preventDefault();if(index===2){document.querySelector('.gallery-section').scrollIntoView({behavior:motionPreference.matches?'instant':'smooth'})}else{document.querySelector('.site-header .nav [data-nav="'+(index===0?'services':'contact')+'"]').click()}});
+    });
+  }
   if(visualStyle==='organic'){const gallery=document.querySelector('.gallery');gallery.tabIndex=0;gallery.setAttribute('role','region');gallery.setAttribute('aria-label','Photo gallery — scroll to explore')}
   if(visualStyle==='kinetic'){
     const rail=document.querySelector('.signature .service-grid,.signature .membership-grid,.signature .project-grid,.signature .expertise-cards');
