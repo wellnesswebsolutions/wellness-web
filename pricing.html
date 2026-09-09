@@ -24,15 +24,15 @@
 <link rel="canonical" href="https://brightsite.app/pricing">
 <link rel="stylesheet" href="styles.css?v=20260908-7">
 <style>
-  .page{padding-top:34px}
+  .page{padding-top:20px}
   .page-hero{margin-bottom:0}
-  .page-hero h1{font-size:clamp(24px,3.4vw,32px);margin-bottom:16px;line-height:1.2}
+  .page-hero h1{font-size:clamp(24px,3.4vw,32px);margin-bottom:9px;line-height:1.2}
   .page-hero p{font-size:14px;line-height:1.6;max-width:56ch;margin:0 auto}
-  #pricing{padding-top:20px!important;padding-bottom:16px}
+  #pricing{padding-top:12px!important;padding-bottom:14px}
   footer{padding:20px 24px!important}
 
   /* Billing Toggle Styles */
-  .billing-toggle { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 36px; font-size: 15px; font-weight: 500; }
+  .billing-toggle { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 auto 20px; font-size: 15px; font-weight: 500; }
   .billing-toggle .badge { background: #2563eb; color: #fff; font-size: 12px; padding: 4px 9px; border-radius: 20px; margin-left: 6px; font-weight: 700; vertical-align: middle; letter-spacing: -0.02em; box-shadow: 0 2px 6px rgba(37,99,235,.35); animation: badge-pop .4s ease; }
   @keyframes badge-pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .price-was { font-size: 15px; color: #999; text-decoration: line-through; margin-right: 4px; display: none; }
@@ -46,6 +46,16 @@
   input:checked + .slider:before { transform: translateX(20px); }
   .toggle-label.active { color: #111; font-weight: 700; }
   .toggle-label { color: #666; cursor: pointer; transition: color 0.2s; user-select: none; }
+  #pricing .plan{padding:26px 24px}
+  #pricing .plan h4{font-size:29px;margin-bottom:5px}
+  #pricing .plan .desc{margin-bottom:13px}
+  #pricing .plan .price{display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap;white-space:nowrap;font-size:35px}
+  #pricing .plan .price small{font-size:13px;margin-left:0}
+  #pricing .price-save{margin-left:0}
+  #pricing .plan .price-addon{margin-bottom:17px}
+  #pricing .plan ul{gap:8px;margin-bottom:19px}
+  #pricing .plan li{font-size:14px}
+  #pricing .pricing-note{margin-top:20px}
 </style>
 <script src="reveal.js?v=20260902-3" defer></script>
 <script src="nav.js?v=20260902-3" defer></script>
@@ -69,7 +79,7 @@
 </div>
 
 <div class="after page">
-  <section style="padding-top:clamp(36px,6vw,72px);padding-bottom:28px">
+  <section style="padding-top:clamp(20px,3vw,34px);padding-bottom:18px">
     <div class="wrap">
       <div class="page-hero">
         <div class="eyebrow">Pricing</div>
@@ -88,7 +98,7 @@
           <input type="checkbox" id="billing-checkbox" checked aria-label="Toggle annual billing">
           <span class="slider round"></span>
         </label>
-        <span id="label-annual" class="toggle-label active">Pay Annually <span class="badge">50% off Pro + Prestige</span></span>
+        <span id="label-annual" class="toggle-label active">Pay Annually <span class="badge">Save on setup</span></span>
       </div>
 
       <div class="plans" style="max-width:1180px;margin:0 auto">
@@ -101,7 +111,7 @@
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
           <ul>
-            <li>Up to 3 custom-designed pages</li>
+            <li>One scrolling page with up to 6 sections</li>
             <li>SEO &amp; SEO-focused content</li>
             <li>Mobile optimisation</li>
             <li>Hosting, security &amp; maintenance</li>
@@ -110,11 +120,11 @@
           <a href="#" class="go plan-enquire" data-plan="Essential" data-price="£99 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
         </div>
 
-        <div class="plan feature" data-setup-monthly="199" data-setup-annual="99.50" data-annual-discount>
+        <div class="plan feature" data-setup-monthly="199" data-setup-annual="149" data-annual-discount>
           <h4>Pro</h4>
           <div class="desc"><b>Best for:</b> growing businesses that need more pages and booking.</div>
           <div class="price-row">
-            <span class="price"><span class="price-was">£199</span><span class="setup-price">£99.50</span><small class="hosting-price">+ £180/yr</small><span class="price-save">Save 50%</span></span>
+            <span class="price"><span class="price-was">£199</span><span class="setup-price">£149</span><small class="hosting-price">+ £180/yr</small><span class="price-save">Save £50</span></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
@@ -125,24 +135,24 @@
             <li>Interactions &amp; animations</li>
             <li>Third-party integrations</li>
           </ul>
-          <a href="#" class="go plan-enquire" data-plan="Pro" data-price="£99.50 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Pro" data-price="£149 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
         </div>
 
-        <div class="plan" data-setup-monthly="399" data-setup-annual="199.50" data-annual-discount>
+        <div class="plan" data-setup-monthly="399" data-setup-annual="299" data-annual-discount>
           <h4>Prestige</h4>
           <div class="desc"><b>Best for:</b> ambitious brands with several services or locations.</div>
           <div class="price-row">
-            <span class="price"><span class="price-was">£399</span><span class="setup-price">£199.50</span><small class="hosting-price">+ £180/yr</small><span class="price-save">Save 50%</span></span>
+            <span class="price"><span class="price-was">£399</span><span class="setup-price">£299</span><small class="hosting-price">+ £180/yr</small><span class="price-save">Save £100</span></span>
           </div>
           <div class="price-note">One-off build, then hosting &amp; management</div>
           <label class="price-addon"><input type="checkbox" class="price-addon-check"><span>Booking form</span><b>+£15/mo</b></label>
           <ul>
             <li>Everything in Pro</li>
-            <li>Up to 7 custom-designed pages</li>
+            <li>Up to 8 custom-designed pages</li>
             <li>Multi-location or multi-service structure</li>
             <li>Priority same-day support</li>
           </ul>
-          <a href="#" class="go plan-enquire" data-plan="Prestige" data-price="£199.50 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
+          <a href="#" class="go plan-enquire" data-plan="Prestige" data-price="£299 setup + £180/yr" target="_blank" rel="noopener">Enquire</a>
         </div>
       </div>
       <p class="pricing-note">See a free personalised preview before you commit. Hosting covers security, updates and ongoing management on every plan — add a booking form for £15/month extra. Cancel any time.</p>
