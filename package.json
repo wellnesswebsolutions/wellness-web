@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node tests/homepage-smoke.mjs",
-    "test:builder": "node tests/builder-controls-smoke.mjs"
+    "test:builder": "node tests/builder-controls-smoke.mjs",
+    "test:templates": "node tests/template-matrix.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

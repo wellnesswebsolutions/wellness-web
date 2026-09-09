@@ -1,4 +1,4 @@
-// Five presentation systems. This module deliberately has no business copy,
+// Eight presentation systems. This module deliberately has no business copy,
 // services, prices or category rules: changing a design cannot change content.
 function templateDesignCSS() {
   return `
@@ -220,6 +220,7 @@ function studioLayoutCSS() {
   ${organicLayoutCSS()}
   ${editorialStudioCSS()}
   ${noirLayoutCSS()}
+  ${perspectiveLayoutCSS()}
   /* Minimal — a quiet information column beside an image-led portfolio. */
   .layout-minimal .container{width:min(1440px,100% - 48px)}
   .layout-minimal .site-header{background:var(--bg);border-color:var(--line)}
@@ -546,6 +547,65 @@ function noirLayoutCSS() {
     .layout-bold .signature h2{font-size:52px}.layout-bold .card-content{padding:28px}.layout-bold .card-content h3{font-size:38px}
     .noir-links{grid-template-columns:1fr;gap:12px}.noir-tile{min-height:155px}.noir-tile span{font-size:25px;padding:14px 22px}
     .layout-bold .closing,.layout-bold .page-intro{margin:16px}
+  }
+  `;
+}
+
+function perspectiveLayoutCSS() {
+  return `
+  .layout-kinetic .container{width:min(1320px,100% - 72px)}
+  .layout-kinetic .site-header{background:var(--bg);border-bottom:1px solid var(--line)}
+  .layout-kinetic .brand{font-family:var(--heading);font-weight:500}
+  .layout-kinetic .hero{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-items:center;gap:36px;padding:48px 36px;background:var(--bg)}
+  .layout-kinetic .brand-scene{grid-column:2;grid-row:1;border-radius:32px}
+  .layout-kinetic .hero-copy{position:static!important;grid-column:1;grid-row:1;background:var(--surface);padding:45px 35px;border-radius:32px}
+  .layout-kinetic .hero-copy .eyebrow{color:var(--accent);letter-spacing:.12em}
+  .layout-kinetic .hero-title{color:var(--ink);font-size:clamp(40px,4.5vw,66px);line-height:1.1;max-width:17ch;font-weight:400;letter-spacing:-.05em;margin:26px 0 32px}
+  .layout-kinetic .button{border-radius:999px;background:var(--accent);color:var(--on-accent);border-color:var(--accent);padding:16px 24px;box-shadow:none}
+  .layout-kinetic .hero-actions .secondary{background:var(--card);color:var(--ink);border-color:var(--line)}
+  .layout-kinetic .signature .section-heading{max-width:940px}
+  .layout-kinetic .signature .section-heading h2{font-size:clamp(50px,5.6vw,82px);line-height:1.08;font-weight:400;letter-spacing:-.05em}
+  .layout-kinetic .service-card{border-radius:28px;border:1px solid var(--line);background:var(--surface)}
+  .layout-kinetic .card-content h3{font-size:39px;font-weight:400;letter-spacing:-.04em;line-height:1.1}
+  .layout-kinetic .motion-rail .card-content{padding:30px}
+  .layout-kinetic .motion-rail .card-picture{height:clamp(200px,32vh,340px)}
+  .layout-kinetic .story{border-radius:44px;margin:20px 24px;background:var(--surface)}
+  .layout-kinetic .story h2{font-size:clamp(44px,5vw,72px);font-weight:400;letter-spacing:-.04em}
+  .layout-kinetic .story-photo{border-radius:28px}
+  .layout-kinetic .gallery-section{background:var(--bg)}
+  .layout-kinetic .gallery{grid-template-columns:1.2fr .8fr;gap:35px 50px}
+  .layout-kinetic .gallery-demo:nth-child(n){border-radius:28px;aspect-ratio:4/3}
+  .layout-kinetic .gallery-demo:nth-child(even){aspect-ratio:3/4;margin-top:80px}
+  .layout-kinetic .review-card:first-child{padding:56px;border-radius:32px}
+  .layout-kinetic .review-card:first-child blockquote{font-size:clamp(36px,4.2vw,60px);font-weight:400;max-width:34ch}
+  .layout-kinetic .review-card blockquote{font-size:30px}
+  .layout-kinetic .closing{margin:24px;border-radius:44px}
+  .layout-kinetic .closing h2{font-size:clamp(54px,7vw,100px);font-weight:400;line-height:1.06}
+  .layout-kinetic .page-intro{margin:28px 24px;border-radius:32px}
+  .layout-kinetic .page-intro .section-heading{max-width:950px}
+  .layout-kinetic .page-intro h2{font-size:clamp(48px,5.6vw,80px);font-weight:400}
+  .layout-kinetic .directory-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+  .layout-kinetic .directory-card{border-radius:24px;background:var(--surface);border:1px solid var(--line);padding:35px}
+  .layout-kinetic .directory-card h3{font-size:32px}
+  .layout-kinetic .contact-card{border-radius:30px;padding:44px;background:var(--surface)}
+  .layout-kinetic .contact-section h2{font-size:clamp(45px,5vw,72px);font-weight:400}
+  .layout-kinetic .map{border-radius:30px}
+  @media(max-width:1000px){.layout-kinetic .hero-copy{padding:32px 24px}.layout-kinetic .hero{gap:24px;padding:32px 24px}}
+  @media(max-width:900px){
+    .layout-kinetic .hero{display:flex;flex-direction:column;align-items:stretch;padding:18px;gap:18px}
+    .layout-kinetic .brand-scene{border-radius:22px}.layout-kinetic .hero-copy{padding:32px 24px;border-radius:22px}
+    .layout-kinetic .hero-title{font-size:44px;max-width:20ch}
+    .layout-kinetic .container{width:calc(100% - 36px)}
+    .layout-kinetic .story,.layout-kinetic .closing{margin:12px;border-radius:28px}
+    .layout-kinetic .motion-rail .card-content{padding:26px}
+    .layout-kinetic .page-intro{margin:18px;border-radius:22px}
+  }
+  @media(max-width:600px){
+    .layout-kinetic .directory-grid{grid-template-columns:1fr}.layout-kinetic .signature .section-heading h2{font-size:48px}
+    .layout-kinetic .gallery{grid-template-columns:1fr 1fr;gap:14px}.layout-kinetic .gallery-demo:nth-child(n){border-radius:18px}
+    .layout-kinetic .gallery-demo:nth-child(even){margin-top:40px}
+    .layout-kinetic .review-card:first-child{padding:32px}.layout-kinetic .review-card:first-child blockquote{font-size:34px}
+    .layout-kinetic .contact-card{padding:28px}
   }
   `;
 }

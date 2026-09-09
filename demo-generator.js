@@ -14,7 +14,7 @@
     {id:'editorial',name:'Editorial',detail:'Magazine grids & oversized type'},
     {id:'bold',name:'Noir',detail:'Immersive image panels & refined contrast',font:'Cormorant Garamond'},
     {id:'luxe',name:'Luxe',detail:'Sculpted imagery & soft reveals'},
-    {id:'kinetic',name:'Kinetic',detail:'Immersive cards & scroll motion'}
+    {id:'kinetic',name:'Perspective',detail:'Sculpted split hero & scrolling showcases',font:'Lora'}
   ];
   const DEMO_FONTS = [
     {id:'classic',name:'Classic',family:'Cormorant Garamond'},
@@ -27,7 +27,7 @@
     {id:'graphic',name:'Graphic',family:'Sora'}
   ];
   function demoLayoutForCategory(cat) {
-    return ({hairbeauty:'luxe',aesthetics:'luxe',health:'minimal',trades:'bold',homegarden:'editorial',fooddrink:'editorial',fitness:'kinetic',creative:'kinetic',professional:'minimal',automotive:'bold',pets:'luxe'})[cat] || 'minimal';
+    return ({hairbeauty:'luxe',aesthetics:'serene',health:'soft',trades:'minimal',homegarden:'organic',fooddrink:'bold',fitness:'organic',creative:'kinetic',professional:'kinetic',automotive:'bold',pets:'soft'})[cat] || 'minimal';
   }
   // Business content is selected only from the user's industry, never from
   // their visual template. Keep this mapping independent of recommendations.
