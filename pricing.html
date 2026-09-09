@@ -46,39 +46,16 @@
   input:checked + .slider:before { transform: translateX(20px); }
   .toggle-label.active { color: #111; font-weight: 700; }
   .toggle-label { color: #666; cursor: pointer; transition: color 0.2s; user-select: none; }
-  #pricing .plans{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line)}
-  #pricing .plan{display:grid;grid-template-columns:minmax(170px,.8fr) minmax(205px,.7fr) minmax(330px,1.45fr) auto;grid-template-rows:auto auto 1fr;column-gap:28px;align-items:start;padding:22px 8px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
-  #pricing .plan.feature{border:0;border-bottom:1px solid var(--line);border-left:4px solid var(--accent);padding-left:18px;background:color-mix(in srgb,var(--accent) 4%,transparent);box-shadow:none}
-  #pricing .plan h4{grid-column:1;grid-row:1;font-size:25px;margin:0 0 4px}
-  #pricing .plan .desc{grid-column:1;grid-row:2/4;margin:0;min-height:0;max-width:29ch;font-size:13px}
-  #pricing .plan .price-row{grid-column:2;grid-row:1;margin:0}
-  #pricing .plan .price{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;white-space:nowrap;font-size:30px}
+  #pricing .plan{padding:26px 24px}
+  #pricing .plan h4{font-size:29px;margin-bottom:5px}
+  #pricing .plan .desc{margin-bottom:13px}
+  #pricing .plan .price{display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap;white-space:nowrap;font-size:35px}
   #pricing .plan .price small{font-size:13px;margin-left:0}
   #pricing .price-save{margin-left:0}
-  #pricing .plan .price-note{grid-column:2;grid-row:2;margin:3px 0 9px;font-size:11px;line-height:1.4}
-  #pricing .plan .price-addon{grid-column:2;grid-row:3;margin:0;padding:7px 10px;font-size:11px}
-  #pricing .plan ul{grid-column:3;grid-row:1/4;display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;margin:2px 0 0;padding:0}
-  #pricing .plan li{font-size:12.5px;line-height:1.35}
-  #pricing .plan .go{grid-column:4;grid-row:1/4;align-self:center;margin:0;padding:10px 18px;white-space:nowrap}
+  #pricing .plan .price-addon{margin-bottom:17px}
+  #pricing .plan ul{gap:8px;margin-bottom:19px}
+  #pricing .plan li{font-size:14px}
   #pricing .pricing-note{margin-top:20px}
-  @media(max-width:900px){
-    #pricing .plan{grid-template-columns:1fr auto;gap:8px 22px;padding:22px 4px}
-    #pricing .plan.feature{padding-left:14px}
-    #pricing .plan h4{grid-column:1;grid-row:1}
-    #pricing .plan .desc{grid-column:1;grid-row:2;max-width:50ch}
-    #pricing .plan .price-row{grid-column:2;grid-row:1}
-    #pricing .plan .price-note{grid-column:2;grid-row:2;text-align:right}
-    #pricing .plan .price-addon{grid-column:2;grid-row:3;justify-self:end}
-    #pricing .plan ul{grid-column:1/3;grid-row:4;margin-top:11px}
-    #pricing .plan .go{grid-column:1/3;grid-row:5;justify-self:start;margin-top:8px}
-  }
-  @media(max-width:560px){
-    #pricing .plan{display:flex;gap:8px;padding:20px 2px}
-    #pricing .plan .desc{margin-bottom:6px}
-    #pricing .plan .price-note{text-align:left;margin-bottom:2px}
-    #pricing .plan .price-addon{align-self:flex-start}
-    #pricing .plan ul{grid-template-columns:1fr;margin-top:8px}
-  }
 </style>
 <script src="reveal.js?v=20260902-3" defer></script>
 <script src="nav.js?v=20260902-3" defer></script>
