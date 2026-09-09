@@ -617,7 +617,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fallbackFontByLayout = {
       minimal: 'Manrope', soft: 'Manrope', serene: 'Cormorant Garamond',
       organic: 'Manrope', editorial: 'Fraunces', bold: 'Cormorant Garamond',
-      luxe: 'Cormorant Garamond', kinetic: 'Lora', lume: 'Cormorant Garamond'
+      luxe: 'Cormorant Garamond', kinetic: 'Lora', lume: 'Cormorant Garamond',
+      index: 'Manrope'
     };
     const chosenFont = DEMO_FONTS.find(item => item.id === selectedFont);
     const fontFamily = chosenFont?.family || layout?.font || fallbackFontByLayout[layoutId] || 'Manrope';

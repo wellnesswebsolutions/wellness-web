@@ -222,6 +222,7 @@ function studioLayoutCSS() {
   ${noirLayoutCSS()}
   ${perspectiveLayoutCSS()}
   ${lumeLayoutCSS()}
+  ${indexLayoutCSS()}
   /* Minimal — a quiet information column beside an image-led portfolio. */
   .layout-minimal .container{width:min(1440px,100% - 48px)}
   .layout-minimal .site-header{background:var(--bg);border-color:var(--line)}
@@ -582,6 +583,29 @@ function lumeLayoutCSS() {
   `;
 }
 
+function indexLayoutCSS() {
+  return `
+  html:has(body.layout-index){overflow-x:clip;max-width:100vw}.layout-index{overflow-x:clip;max-width:100vw}.layout-index .container{width:min(1500px,100% - 48px)}.layout-index .site-header{background:var(--bg);border-bottom:1px solid var(--ink)}
+  .layout-index .brand{font-size:16px;text-transform:uppercase;letter-spacing:.12em}.layout-index .nav{text-transform:uppercase;letter-spacing:.1em;font-size:9px}
+  .layout-index .button{border-radius:0;background:var(--ink);border-color:var(--ink);color:var(--bg);text-transform:uppercase;letter-spacing:.12em;font-size:9px}
+  .layout-index .hero{display:grid;grid-template-columns:1.15fr .85fr;background:var(--bg);border-bottom:1px solid var(--ink);padding:24px}
+  .layout-index .hero-copy{position:static!important;grid-column:1;grid-row:1;padding:3vw 2vw;background:none;display:flex;align-items:flex-end}
+  .layout-index .brand-scene{grid-column:2;grid-row:1;border-left:1px solid var(--ink);padding-left:24px;align-self:center}
+  .layout-index .hero-copy .eyebrow{color:var(--ink);font-size:9px}.layout-index .hero-title{color:var(--ink);font-size:clamp(70px,9vw,142px);line-height:.8;letter-spacing:-.085em;max-width:8ch;text-transform:uppercase;margin:20px 0 40px}
+  .layout-index .hero-actions .secondary{background:transparent;color:var(--ink);border-color:var(--ink)}
+  .layout-index .section{padding:80px 0}.layout-index .section-heading h2{font-size:clamp(50px,7vw,105px);line-height:.88;text-transform:uppercase;letter-spacing:-.07em}
+  .layout-index .signature .intro-pair{border-bottom:1px solid var(--ink);padding-bottom:44px}
+  .layout-index .service-grid,.layout-index .expertise-cards{display:block}
+  .layout-index .service-card{display:grid;grid-template-columns:80px 1fr;border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;align-items:center;padding:22px 0}
+  .layout-index .card-picture{display:none}.layout-index .card-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);grid-column:2;padding:0;align-items:center;min-width:0}.layout-index .card-content h3{font-size:30px;overflow-wrap:anywhere}.layout-index .card-content p{margin:0}.layout-index .card-foot{border:0;padding:0;margin:0;justify-self:end;min-width:0}.layout-index .card-number{padding:0;grid-column:1}.index-no{grid-column:1;font-size:10px;letter-spacing:.12em}
+  .layout-index .story{background:var(--ink);color:var(--bg)}.layout-index .story p,.layout-index .story .eyebrow{color:color-mix(in srgb,var(--bg) 70%,transparent)}.layout-index .story-photo{border-radius:0;filter:grayscale(1)}
+  .layout-index .gallery{grid-template-columns:repeat(12,1fr);gap:8px}.layout-index .gallery-demo:nth-child(n){border-radius:0;grid-column:span 4;aspect-ratio:4/5}.layout-index .gallery-demo:nth-child(1),.layout-index .gallery-demo:nth-child(5){grid-column:span 8;aspect-ratio:16/9}
+  .layout-index .review-card:nth-child(n){border:0;border-top:1px solid var(--ink);border-radius:0;background:transparent;padding:28px 0}.layout-index .closing{background:var(--bg);color:var(--ink);border-top:1px solid var(--ink)}.layout-index .closing h2{font-size:clamp(80px,12vw,180px);line-height:.78;text-transform:uppercase}
+  .layout-index .directory-grid{display:block}.layout-index .directory-card{display:grid;grid-template-columns:1fr auto;border:0;border-top:1px solid var(--ink);border-radius:0;background:transparent;padding:24px 0}.layout-index .directory-card .text-link{grid-column:2;grid-row:1/3}.layout-index .contact-card,.layout-index .map{border-radius:0}
+  @media(max-width:760px){.layout-index .container{width:calc(100% - 32px)}.layout-index .hero{display:flex;flex-direction:column;padding:16px}.layout-index .brand-scene{border:0;padding:0}.layout-index .hero-copy{padding:28px 0}.layout-index .hero-title{font-size:58px}.layout-index .service-card{grid-template-columns:32px minmax(0,1fr)}.layout-index .card-content{display:block}.layout-index .card-content p{margin:12px 0}.layout-index .card-foot{justify-self:start;overflow-wrap:anywhere}.layout-index .gallery{grid-template-columns:1fr 1fr}.layout-index .gallery-demo:nth-child(n){grid-column:auto;aspect-ratio:3/4}.layout-index .closing h2{font-size:72px}}
+  `;
+}
+
 function perspectiveLayoutCSS() {
   return `
   .layout-kinetic .container{width:min(1320px,100% - 72px)}
@@ -657,6 +681,13 @@ function templateDesignMotion(layout) {
       let frame=0;const move=()=>{frame=0;const image=hero.querySelector('.brand-scene');const progress=Math.min(1,Math.max(0,scrollY/Math.max(1,hero.offsetHeight)));image.style.transform='scale('+(1+progress*.045)+')'};
       addEventListener('scroll',()=>{if(!frame)frame=requestAnimationFrame(move)},{passive:true});move();
     }
+  }
+  if(visualStyle==='index'){
+    document.querySelectorAll('.signature .service-card').forEach((card,index)=>{const number=document.createElement('span');number.className='index-no';number.textContent=String(index+1).padStart(2,'0');card.prepend(number)});
+  }
+  if(visualStyle==='index'){
+    document.querySelectorAll('.signature .service-card').forEach((card,index)=>{const number=document.createElement('span');number.className='index-no';number.textContent=String(index+1).padStart(2,'0');card.prepend(number)});
+    if(!motionPreference.matches){document.querySelectorAll('.signature .service-card').forEach(card=>{card.addEventListener('pointerenter',()=>card.style.transform='translateX(10px)');card.addEventListener('pointerleave',()=>card.style.transform='')})}
   }
   if(visualStyle==='bold'){
     const hero=document.querySelector('.hero'),stage=document.createElement('div');stage.className='noir-stage';hero.before(stage);stage.append(hero);
