@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const creatingName = document.getElementById('creatingName');
   const creatingSub = document.getElementById('creatingSub');
   const creatingProgress = document.getElementById('creatingProgress');
+  const personalisingStatus = document.getElementById('personalisingStatus');
+  const personalisingText = document.getElementById('personalisingText');
 
   let selectedTones = null;
   let heroMatchedTones = null;
@@ -30,14 +32,27 @@ document.addEventListener('DOMContentLoaded', () => {
   let previewPosition = {page:'home',x:0,y:0};
   let selectedLayout = null;
   let selectedFont = null;
+  let selectedPaletteName = null;
   let uploadedHeroImage = null;
+  let businessProfile = null;
   let heroRenderVersion = 0;
   // Must exist before the initial mobile sizing pass below. Previously this
   // was declared much later, so phones hit its temporal dead zone and aborted
   // the entire form setup before submit/input handlers were attached.
   let builderMobileView = false;
 
-  async function rerenderPersonalisedHero() {
+  function automaticLogoOptions() {
+    const category = typeInfo(bizTagline.value)?.cat;
+    const layout = selectedLayout || demoLayoutForCategory(category);
+    const fontFamily = DEMO_FONTS.find(item => item.id === selectedFont)?.family || DEMO_LAYOUTS.find(item => item.id === layout)?.font;
+    return {
+      layout,
+      fontFamily,
+      signColour: selectedTones?.base
+    };
+  }
+
+  async function rerenderPersonalisedHero({ appearanceOnly = false } = {}) {
     if (!bizNameInput.value.trim() || !bizLocation.value.trim()) return null;
     const version = ++heroRenderVersion;
     try {
@@ -45,12 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
         category: bizTagline.value,
         businessName: bizNameInput.value.trim(),
         location: bizLocation.value.trim(),
+        ...automaticLogoOptions(),
         output: 'dataURL'
       });
       if (version !== heroRenderVersion) return null;
       uploadedHeroImage = image;
-      await matchPaletteToHero(image);
-      refreshPreview();
+      if (appearanceOnly && previewFrame.contentDocument) {
+        const scene = previewFrame.contentDocument.querySelector('.brand-scene');
+        if (scene) scene.src = image;
+      }
+      refreshPreview({ appearanceOnly });
       return image;
     } catch (error) {
       console.error(error);
@@ -62,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'Hair & Beauty': ['#a89a92', '#b07d93', '#847796', '#8d9a82'],
     'Aesthetics': ['#ada7a3', '#9b8ba6', '#82959a', '#b38d82'],
     'Health & Wellness': ['#9e826b', '#788c7a', '#77899c', '#9a7895'],
-    'Fitness': ['#c8322a', '#e2672a', '#1f6fb2', '#5a3fa0'],
+    'Fitness': ['#26313e', '#c8322a', '#1f6fb2', '#5a3fa0'],
     'Automotive': ['#59636e', '#7a403c', '#36586a', '#4b4b4b'],
     'Trades': ['#6b625c', '#8a6337', '#3f6270', '#59654a'],
     'Home & Garden': ['#6b7a4a', '#827052', '#54736c', '#7e667c'],
@@ -182,9 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // A quick, polished build transition. The customer's business name stays
   // fixed while the supporting copy and progress line move smoothly.
   const CREATING_STEPS = [
-    { verb: 'Choosing your style', sub: 'matching your business', progress: 22 },
-    { verb: 'Building your homepage', sub: 'adding your content', progress: 58 },
-    { verb: 'Finishing the details', sub: 'optimising every screen', progress: 84 },
+    { verb: 'Finding your business', sub: 'checking local listings', progress: 14 },
+    { verb: 'Importing contact details', sub: 'adding your real location', progress: 32 },
+    { verb: 'Adding business hours', sub: 'making visits easy to plan', progress: 50 },
+    { verb: 'Importing reviews', sub: 'bringing in your reputation', progress: 68 },
+    { verb: 'Choosing your style', sub: 'matching your business', progress: 84 },
+    { verb: 'Building your homepage', sub: 'optimising every screen', progress: 94 },
     { verb: 'Ready', sub: 'your preview is complete', progress: 100 }
   ];
   function swapText(el, text) {
@@ -210,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         creatingOverlay.classList.toggle('final', i === CREATING_STEPS.length - 1);
         i++;
         if (i < CREATING_STEPS.length) {
-          setTimeout(step, 540);
+          setTimeout(step, 480);
         } else {
           setTimeout(() => {
             creatingOverlay.classList.remove('active');
@@ -316,6 +338,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // since changing an earlier answer invalidates what came after.
   const pills = {};
   function collapseGenerated() {
+    enrichmentRun += 1;
+    previewIsVisible = false;
+    businessProfile = null;
+    googleProfile = null;
+    facebookProfile = null;
+    clearTimeout(personalisingTimer);
+    if (personalisingStatus) {
+      personalisingStatus.classList.remove('is-visible', 'is-fading', 'is-done');
+      personalisingStatus.setAttribute('aria-hidden', 'true');
+    }
     qaProgress.classList.remove('done');
     convRow.classList.remove('collapsed');
     qaBox.classList.remove('qa-box-done', 'qa-box-finish');
@@ -377,6 +409,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Use the category as a fallback until the completed hero is sampled.
     const firstColour = (COLOURS_BY_TYPE[bizTagline.value] || COLOURS_BY_TYPE.Other)[0];
     selectedTones = tonesFromHex(firstColour);
+    selectedLayout = bizTagline.value === 'Fitness' ? 'studio' : null;
+    selectedFont = null;
+    selectedPaletteName = bizTagline.value === 'Fitness' ? 'Ink' : null;
     heroMatchedTones = null;
     hasManualPalette = false;
     uploadedHeroImage = null;
@@ -388,6 +423,134 @@ document.addEventListener('DOMContentLoaded', () => {
   qaTypeGo.addEventListener('click', finishType);
 
   let isCreatingPreview = false;
+  let enrichmentRun = 0;
+  let enrichmentPending = 0;
+  let previewIsVisible = false;
+  let googleProfile = null;
+  let facebookProfile = null;
+  let personalisingTimer = null;
+
+  async function findBusiness(source, name, location, timeoutMs) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const query = new URLSearchParams({ name, location });
+      const response = await fetch(`/api/${source}-lookup?${query}`, { signal: controller.signal });
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.match || null;
+    } catch (error) {
+      if (error.name !== 'AbortError') console.info('Business details were not available', error);
+      return null;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function photoScore(photo) {
+    const width = Number(photo.width) || 0;
+    const height = Number(photo.height) || 0;
+    const pixels = Math.min(width * height, 8000000) / 8000000;
+    const landscape = width && height ? Math.min(width / height, 2.2) / 2.2 : .35;
+    const age = photo.createdAt ? Math.max(0, Date.now() - Date.parse(photo.createdAt)) : null;
+    const recency = Number.isFinite(age) ? Math.max(0, 1 - age / (1000 * 60 * 60 * 24 * 365 * 5)) : .35;
+    return pixels * .5 + landscape * .25 + recency * .2 + (photo.source === 'google' ? .05 : 0);
+  }
+
+  function rankPhotos(...groups) {
+    const seen = new Set();
+    return groups.flat().filter(photo => {
+      if (!photo?.url) return false;
+      const key = photo.id || photo.url.replace(/[?#].*$/, '');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).sort((a, b) => photoScore(b) - photoScore(a));
+  }
+
+  function mergeBusinessProfiles() {
+    if (!googleProfile && !facebookProfile) return null;
+    const g = googleProfile || {};
+    const f = facebookProfile || {};
+    const photos = rankPhotos(g.photos || [], f.photos || []);
+    return {
+      placeId: g.placeId || '',
+      facebookId: f.id || '',
+      name: g.name || f.name || '',
+      address: g.address || f.address || '',
+      phone: g.phone || f.phone || '',
+      website: g.website || f.website || '',
+      mapsUrl: g.mapsUrl || '',
+      facebookUrl: f.facebookUrl || '',
+      category: g.category || f.category || '',
+      about: f.about || '',
+      rating: g.rating || null,
+      reviewCount: g.reviewCount || 0,
+      hours: g.hours?.length ? g.hours : (f.hours || []),
+      openNow: g.openNow,
+      reviews: g.reviews || [],
+      heroPhoto: photos[0] || null,
+      photos: photos.slice(1, 7),
+      sources: [googleProfile && 'Google', facebookProfile && 'Facebook'].filter(Boolean)
+    };
+  }
+
+  function showPersonalising(done = false) {
+    if (!personalisingStatus || !previewIsVisible) return;
+    clearTimeout(personalisingTimer);
+    personalisingText.textContent = done ? 'Preview personalised' : 'Personalising…';
+    personalisingStatus.classList.remove('is-fading');
+    personalisingStatus.classList.toggle('is-done', done);
+    personalisingStatus.classList.add('is-visible');
+    personalisingStatus.setAttribute('aria-hidden', 'false');
+    if (done) personalisingTimer = setTimeout(() => {
+      personalisingStatus.classList.add('is-fading');
+      personalisingTimer = setTimeout(() => {
+        personalisingStatus.classList.remove('is-visible', 'is-fading', 'is-done');
+        personalisingStatus.setAttribute('aria-hidden', 'true');
+      }, 180);
+    }, 650);
+  }
+
+  function applyEnrichment(source, result, run) {
+    if (run !== enrichmentRun) return;
+    if (source === 'business') googleProfile = result;
+    if (source === 'facebook') facebookProfile = result;
+    businessProfile = mergeBusinessProfiles();
+    if (previewIsVisible && result) refreshPreview({ smooth: true });
+  }
+
+  function finishEnrichment(run) {
+    if (run !== enrichmentRun) return;
+    enrichmentPending -= 1;
+    if (previewIsVisible) showPersonalising(enrichmentPending <= 0);
+  }
+
+  function startEnrichment(name, location) {
+    const run = ++enrichmentRun;
+    enrichmentPending = 1;
+    googleProfile = null;
+    facebookProfile = null;
+    businessProfile = null;
+    previewIsVisible = false;
+    findBusiness('facebook', name, location, 2400)
+      .then(result => {
+        applyEnrichment('facebook', result, run);
+        if (run !== enrichmentRun) return;
+        // Facebook is the free first choice. Only spend a capped Google
+        // lookup when the Page result is missing or too incomplete to make
+        // the generated site meaningfully real.
+        const facebookIsUseful = result && result.address && result.phone &&
+          (result.hours?.length || result.website || result.about);
+        if (!facebookIsUseful) {
+          enrichmentPending += 1;
+          findBusiness('business', name, location, 4200)
+            .then(google => applyEnrichment('business', google, run))
+            .finally(() => finishEnrichment(run));
+        }
+      })
+      .finally(() => finishEnrichment(run));
+  }
 
   async function finishLocation() {
     const loc = formatBusinessName(bizLocation.value);
@@ -408,6 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => qaBox.classList.add('qa-box-done'), 500);
 
       const name = bizNameInput.value.trim();
+      startEnrichment(name, loc);
 
       // Render the category hero while the timed loading sequence is playing,
       // rather than waiting until the animation has already finished.
@@ -420,16 +584,20 @@ document.addEventListener('DOMContentLoaded', () => {
       // Rendering at a smaller canvas on narrow viewports cuts that cost
       // without any visible loss, since it's downscaled to fit anyway.
       const isNarrowViewport = window.innerWidth <= 480;
-      const heroImagePromise = Promise.resolve().then(() => HeroBrandCompositor.render({
-        category: bizTagline.value,
-        businessName: name,
-        location: loc,
-        output: 'dataURL',
-        width: isNarrowViewport ? 900 : 1600,
-        height: isNarrowViewport ? 506 : 900
-      })).then(async image => {
-        await matchPaletteToHero(image);
-        return image;
+      const heroImagePromise = Promise.resolve().then(async () => {
+        // Sample the untouched photograph first, then render the identity from
+        // that same palette. Sampling the already-branded result caused the
+        // logo colour itself to skew the website palette on a second pass.
+        await matchPaletteToHero(HeroBrandCompositor.heroSource(bizTagline.value));
+        return HeroBrandCompositor.render({
+          category: bizTagline.value,
+          businessName: name,
+          location: loc,
+          ...automaticLogoOptions(),
+          output: 'dataURL',
+          width: isNarrowViewport ? 900 : 1600,
+          height: isNarrowViewport ? 506 : 900
+        });
       }).catch((error) => {
         console.error(error);
         return null;
@@ -448,6 +616,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // hand off to the full-page builder: the generated site fills the
       // screen below the header, with the 5-question bar floating over it
       builderOverlay.hidden = false;
+      previewIsVisible = true;
+      showPersonalising(enrichmentPending <= 0);
       if (builderForName) builderForName.textContent = `Designed for ${name}`;
       // Must run here, not just at load: while the overlay is hidden the preview
       // pane measures 0x0, so the sizing bails out and the frame would stay at
@@ -503,7 +673,8 @@ document.addEventListener('DOMContentLoaded', () => {
       layout: selectedLayout,
       font: selectedFont,
       logo: null,
-      heroImage: uploadedHeroImage
+      heroImage: businessProfile?.heroPhoto?.url || uploadedHeroImage,
+      businessProfile
     };
   }
   // the preview is a REAL iframe filling the screen — no scaled-down
@@ -511,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // size, so the generated site's own responsive CSS applies exactly as
   // it would on a real visit, and normal scrolling (wheel/trackpad/touch)
   // works inside it with no tricks needed.
-  function refreshPreview({appearanceOnly = false} = {}) {
+  function refreshPreview({appearanceOnly = false, smooth = false} = {}) {
     if (!previewFrame) return;
     const current = previewFrame.contentDocument;
     const activePage = current?.querySelector('.page:not([hidden])');
@@ -521,6 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const position = {...previewPosition};
     const version = ++previewRenderVersion;
     const html = buildDemoHTML(gatherData());
+    if (smooth) previewFrame.classList.add('is-refreshing');
     updatePaletteOrb();
     if (appearanceOnly && activePage) {
       // Colour and font choices only replace styles, keeping the live document,
@@ -541,6 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     previewFrame.onload = () => {
       if (version !== previewRenderVersion) return;
+      previewFrame.classList.remove('is-refreshing');
       const win = previewFrame.contentWindow;
       const doc = win.document;
       doc.querySelectorAll('.page').forEach(page => {page.hidden = page.dataset.page !== position.page;});
@@ -566,7 +739,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!source) return;
     try {
       heroMatchedTones = await HeroPalette.fromImage(source);
-      if (!hasManualPalette) selectedTones = heroMatchedTones;
+      if (!hasManualPalette && bizTagline.value !== 'Fitness') {
+        selectedTones = heroMatchedTones;
+        selectedPaletteName = 'Matched from hero photo';
+      }
     } catch (error) {
       // Keep the category palette if the image cannot be sampled.
       console.warn('Could not match the hero palette', error);
@@ -610,6 +786,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     return closest.family;
   }
+  function paletteNameForColour(hex) {
+    if (!hex) return 'Not selected';
+    const clean = hex.toLowerCase();
+    for (const choices of Object.values(palettes)) {
+      const match = choices.find(([, value]) => value.toLowerCase() === clean);
+      if (match) return match[0];
+    }
+    return paletteFamilyForColour(hex);
+  }
   function selectedDesignSummary() {
     const category = typeInfo(bizTagline.value)?.cat;
     const layoutId = selectedLayout || demoLayoutForCategory(category);
@@ -623,14 +808,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const chosenFont = DEMO_FONTS.find(item => item.id === selectedFont);
     const fontFamily = chosenFont?.family || layout?.font || fallbackFontByLayout[layoutId] || 'Manrope';
     const fontLabel = chosenFont ? `${chosenFont.name} (${chosenFont.family})` : fontFamily;
-    const colourCode = selectedTones
-      ? [selectedTones.light, selectedTones.base, selectedTones.dark].map(value => value.toUpperCase()).join(' / ')
-      : 'Not selected';
+    const palette = selectedPaletteName || paletteNameForColour(selectedTones?.base);
 
     return {
       template: layout?.name || layoutId || 'Not selected',
       font: fontLabel,
-      colourCode
+      palette
     };
   }
   function closeOptions() {
@@ -646,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
       options.replaceChildren(builderChatPill);
       builderChatPill.hidden = false;
     } else if (activeTool === 'colour') {
-      options.innerHTML = `<div class="palette-tabs" role="group" aria-label="Palette mood">${Object.keys(palettes).map(f => `<button type="button" data-family="${f}" aria-pressed="${f === paletteFamily}">${f}</button>`).join('')}</div><div class="palette-scroll">${palettes[paletteFamily].map(([name,hex]) => { const t = tonesFromHex(hex); return `<button type="button" class="palette-choice" data-colour="${hex}" aria-label="${name} palette"><span style="background:${t.light}"></span><span style="background:${t.base}"></span><span style="background:${t.dark}"></span><small>${name}</small></button>`; }).join('')}</div><p>Swipe to explore colours</p>`;
+      options.innerHTML = `<div class="palette-tabs" role="group" aria-label="Palette mood">${Object.keys(palettes).map(f => `<button type="button" data-family="${f}" aria-pressed="${f === paletteFamily}">${f}</button>`).join('')}</div><div class="palette-scroll">${palettes[paletteFamily].map(([name,hex]) => { const t = tonesFromHex(hex); return `<button type="button" class="palette-choice" data-colour="${hex}" data-palette-name="${name}" aria-label="${name} palette"><span style="background:${t.light}"></span><span style="background:${t.base}"></span><span style="background:${t.dark}"></span><small>${name}</small></button>`; }).join('')}</div><p>Swipe to explore colours</p>`;
       if (heroMatchedTones) {
         const recommendation = document.createElement('button');
         recommendation.type = 'button';
@@ -663,7 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
       options.innerHTML = `<h2 class="builder-options-title">Choose your template</h2><div class="builder-choice-list">${DEMO_LAYOUTS.map(l => `<button type="button" data-layout="${l.id}" aria-pressed="${(selectedLayout || recommended) === l.id}">${l.name}<small>${l.id === recommended ? 'Recommended' : l.detail}</small></button>`).join('')}</div>`;
     }
   }
-  controls.addEventListener('click', event => {
+  controls.addEventListener('click', async event => {
     const button = event.target.closest('button');
     if (!button) return;
     if (button.dataset.tool) {
@@ -683,21 +866,23 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (button.dataset.heroPalette) {
       hasManualPalette = true;
       selectedTones = {...heroMatchedTones};
-      refreshPreview({appearanceOnly:true});
+      selectedPaletteName = 'Matched from hero photo';
       closeOptions();
+      await rerenderPersonalisedHero({ appearanceOnly: true });
       controls.querySelector('[data-tool="colour"]').focus();
     } else if (button.dataset.colour) {
       hasManualPalette = true;
       selectedTones = {...tonesFromHex(button.dataset.colour), mode: paletteFamily === 'Dark' ? 'dark' : 'light'};
+      selectedPaletteName = button.dataset.paletteName || paletteNameForColour(button.dataset.colour);
       controls.querySelector('.palette-orb').style.background = `conic-gradient(${selectedTones.light} 0 120deg,${selectedTones.base} 120deg 240deg,${selectedTones.dark} 240deg)`;
-      refreshPreview({appearanceOnly:true});
       closeOptions();
+      await rerenderPersonalisedHero({ appearanceOnly: true });
       controls.querySelector('[data-tool="colour"]').focus();
     } else if (button.dataset.font || button.dataset.layout) {
       if (button.dataset.font) selectedFont = button.dataset.font;
       if (button.dataset.layout) selectedLayout = button.dataset.layout;
-      refreshPreview({appearanceOnly:!!button.dataset.font});
       closeOptions();
+      await rerenderPersonalisedHero({ appearanceOnly: Boolean(button.dataset.font) });
       controls.querySelector(`[data-tool="${button.dataset.font ? 'font' : 'layout'}"]`).focus();
     }
   });
@@ -803,7 +988,7 @@ Industry: ${businessType}
 Location: ${location_}
 Template: ${design.template}
 Font: ${design.font}
-Colour scheme: ${design.colourCode}`;
+Colour palette: ${design.palette}`;
 
       const status = document.getElementById('handoffStatus');
       status.textContent = 'Opening WhatsApp…';
@@ -821,7 +1006,7 @@ Colour scheme: ${design.colourCode}`;
         Location: location_ || 'Not provided',
         Template: design.template,
         Font: design.font,
-        'Colour scheme': design.colourCode,
+        'Colour scheme': design.palette,
       }, [{ name: 'Site preview', file: previewFile }]).then(sent => {
         status.textContent = sent
           ? 'Your details were accepted for email delivery. Press Send inside WhatsApp to message Tom.'

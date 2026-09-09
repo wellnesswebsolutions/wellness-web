@@ -88,6 +88,24 @@ try {
     });
   });
   contentChecks.forEach(result=>assert.equal(result.accurate,true,`${result.category} services must remain accurate in every template`));
+  const enrichedMarkup = await desktop.evaluate(() => buildDemoHTML({
+    name:'Real Salon', tagline:'Hair & Beauty', location:'Hull',
+    businessProfile:{
+      address:'10 Market Place, Hull', phone:'01482 123456', website:'https://example.com',
+      mapsUrl:'https://maps.google.com/example', rating:4.8, reviewCount:126,
+      hours:['Monday: 09:00–17:00','Tuesday: 09:00–17:00'],
+      about:'A real description imported from Facebook.',
+      reviews:[{text:'The best haircut I have had.',rating:5,author:'Real Customer'}],
+      heroPhoto:{url:'https://example.com/hero.jpg'},
+      photos:[{url:'https://example.com/gallery.jpg',attribution:'Real Salon'}]
+    }
+  }));
+  assert.match(enrichedMarkup,/10 Market Place, Hull/,'real address should replace the location placeholder');
+  assert.match(enrichedMarkup,/01482 123456/,'real phone should replace the preview placeholder');
+  assert.match(enrichedMarkup,/The best haircut I have had/,'Google reviews should appear in the preview');
+  assert.match(enrichedMarkup,/4\.8 Google rating/,'Google rating should appear in the review summary');
+  assert.match(enrichedMarkup,/09:00–17:00/,'real opening hours should appear in the preview');
+  assert.match(enrichedMarkup,/https:\/\/example\.com\/hero\.jpg/,'the highest-ranked real image should become the hero');
 
   assert.equal(
     await desktop.locator('.builder-bar-wrap').evaluate((element) => getComputedStyle(element).backgroundColor),

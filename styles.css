@@ -676,7 +676,8 @@
      the pane; the surrounding gutter reads as the space beside a browser window */
   .builder-phone-frame{width:100%;height:100%;display:block}
   .builder-preview iframe{width:100%;height:100%;border:0;display:block;margin:0 auto;pointer-events:auto;background:#fff;
-    transition:max-width .3s var(--qa-ease)}
+    transition:max-width .3s var(--qa-ease),opacity .14s ease}
+  .builder-preview iframe.is-refreshing{opacity:.92}
   .builder-phone-notch{display:none}
   /* real device-width column (not a scaled mockup) — the iframe is simply
      narrower, so the generated site's own responsive CSS switches to its
@@ -704,6 +705,17 @@
     .builder-preview.mobile-view .builder-phone-frame{width:100%;height:100%;aspect-ratio:auto;padding:0;border-radius:0;box-shadow:none;background:none}
     .builder-preview.mobile-view iframe{border-radius:0}
   }
+  .personalising-status{position:absolute;z-index:8;top:14px;left:14px;display:flex;align-items:center;gap:8px;padding:8px 12px 8px 9px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(10,14,18,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 5px 20px rgba(0,0,0,.18);color:#fff;font:600 12px/1.1 Inter,system-ui,sans-serif;letter-spacing:.01em;opacity:0;transform:translateY(-5px) scale(.97);pointer-events:none;transition:opacity .16s ease,transform .16s ease}
+  .personalising-status.is-visible{opacity:1;transform:translateY(0) scale(1)}
+  .personalising-status.is-fading{opacity:0;transform:translateY(-3px) scale(.98)}
+  .personalising-mark{position:relative;display:block;width:18px;height:18px;flex:0 0 18px}
+  .personalising-mark svg{position:absolute;inset:0;width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+  .personalising-spinner circle{stroke-dasharray:10 7 3 5;transform-origin:center;animation:personalising-spin .36s linear infinite}
+  .personalising-tick{opacity:0;stroke-dasharray:18;stroke-dashoffset:18}
+  .personalising-status.is-done .personalising-spinner{opacity:0;transform:scale(.55);transition:opacity .1s,transform .1s}
+  .personalising-status.is-done .personalising-tick{opacity:1;animation:personalising-tick .22s ease-out forwards}
+  @keyframes personalising-spin{to{transform:rotate(360deg)}}
+  @keyframes personalising-tick{to{stroke-dashoffset:0}}
 
   .builder-bar-wrap{position:fixed;left:0;right:0;bottom:0;z-index:61;pointer-events:none;
     display:flex;align-items:center;justify-content:center;gap:10px;
