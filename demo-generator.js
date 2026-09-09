@@ -10,6 +10,7 @@
     {id:'editorial',name:'Editorial',detail:'Magazine grids & oversized type',tier:'Essential'},
     {id:'bold',name:'Noir',detail:'Immersive image panels & refined contrast',font:'Cormorant Garamond',tier:'Essential'},
     {id:'kinetic',name:'Perspective',detail:'Sculpted split hero & scrolling showcases',font:'Lora',tier:'Essential'},
+    {id:'serene',name:'Serene',detail:'Full-screen cinematic hero & flowing sections',font:'Cormorant Garamond',round:'18px',tier:'Essential'},
     {id:'lume',name:'Legacy',detail:'Cinematic luxury & collection rail',font:'Cormorant Garamond',round:'2px',tier:'Pro'},
     {id:'index',name:'Index',detail:'Ultra-minimal directory & typographic grid',font:'Manrope',round:'0px',tier:'Pro'}
   ];
@@ -22,7 +23,7 @@
     {id:'clean',name:'Clean',family:'Montserrat'}
   ];
   function demoLayoutForCategory(cat) {
-    return ({hairbeauty:'editorial',aesthetics:'lume',health:'kinetic',trades:'index',homegarden:'lume',fooddrink:'bold',fitness:'kinetic',creative:'editorial',professional:'lume',automotive:'bold',pets:'index'})[cat] || 'editorial';
+    return ({hairbeauty:'serene',aesthetics:'lume',health:'serene',trades:'index',homegarden:'lume',fooddrink:'bold',fitness:'kinetic',creative:'editorial',professional:'lume',automotive:'bold',pets:'serene'})[cat] || 'editorial';
   }
   // Business content is selected only from the user's industry, never from
   // their visual template. Keep this mapping independent of recommendations.
