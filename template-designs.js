@@ -208,6 +208,19 @@ function templateDesignCSS() {
   @media(prefers-reduced-motion:reduce){.reveal{opacity:1!important;transform:none!important}.motion-track{height:auto!important}.motion-sticky{position:static}.layout-kinetic .motion-rail{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));transform:none!important;will-change:auto}.layout-kinetic .motion-rail> *{min-width:0}.scroll-progress{display:none}}
   @media(prefers-reduced-motion:reduce) and (max-width:760px){.layout-kinetic .motion-rail{grid-template-columns:1fr}}
   ${studioLayoutCSS()}
+  /* Services / prices page — compact menu rows across every visual style. */
+  .service-directory{padding-top:32px}.service-group{margin-bottom:52px}.group-heading{margin-bottom:16px}
+  .directory-grid{display:block!important;border-top:1px solid var(--line)}
+  .directory-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(130px,.34fr) auto!important;align-items:center;gap:18px!important;padding:15px 4px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;transform:none!important}
+  .directory-card h3{font-size:clamp(18px,2vw,23px)!important;line-height:1.15;margin:0!important;font-weight:500}
+  .directory-card p{margin:0!important;font-size:14px!important;color:var(--muted)}
+  .directory-card .text-link{grid-column:3;align-self:center!important;margin:0!important;padding:7px 0;font-size:12px;white-space:nowrap}
+  @media(max-width:600px){
+    .service-directory{padding-top:24px}.service-group{margin-bottom:42px}.group-heading{margin-bottom:12px}
+    .directory-card{grid-template-columns:minmax(0,1fr) auto!important;gap:6px 14px!important;padding:14px 0!important}
+    .directory-card h3{font-size:19px!important}.directory-card p{grid-column:1;font-size:13px!important}
+    .directory-card .text-link{grid-column:2;grid-row:1/3;font-size:11px}
+  }
   `;
 }
 
