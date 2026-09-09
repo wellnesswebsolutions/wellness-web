@@ -7,14 +7,9 @@
   // `prices` (used for hidden auto-fill + homepage teaser tiles) are
   // derived from the groups by flattenGroups() below.
   const DEMO_LAYOUTS = [
-    {id:'minimal',name:'Minimal',detail:'Split hero & image-led portfolio'},
-    {id:'soft',name:'Soft',detail:'Rounded cards & generous breathing room',font:'Manrope',round:'28px'},
-    {id:'serene',name:'Serene',detail:'Flowing curves & cinematic serif type',font:'Cormorant Garamond',round:'18px'},
-    {id:'organic',name:'Organic',detail:'Grounded split panels & a flowing gallery',font:'Manrope',round:'12px'},
-    {id:'editorial',name:'Editorial',detail:'Magazine grids & oversized type'},
-    {id:'bold',name:'Noir',detail:'Immersive image panels & refined contrast',font:'Cormorant Garamond'},
-    {id:'luxe',name:'Luxe',detail:'Sculpted imagery & soft reveals'},
-    {id:'kinetic',name:'Perspective',detail:'Sculpted split hero & scrolling showcases',font:'Lora'}
+    {id:'editorial',name:'Editorial',detail:'Magazine grids & oversized type',tier:'Essential'},
+    {id:'bold',name:'Noir',detail:'Immersive image panels & refined contrast',font:'Cormorant Garamond',tier:'Essential'},
+    {id:'kinetic',name:'Perspective',detail:'Sculpted split hero & scrolling showcases',font:'Lora',tier:'Essential'}
   ];
   const DEMO_FONTS = [
     {id:'classic',name:'Classic',family:'Cormorant Garamond'},
@@ -22,12 +17,10 @@
     {id:'editorial',name:'Editorial',family:'Fraunces'},
     {id:'warm',name:'Warm',family:'Lora'},
     {id:'strong',name:'Strong',family:'Bebas Neue'},
-    {id:'clean',name:'Clean',family:'Montserrat'},
-    {id:'friendly',name:'Friendly',family:'Nunito Sans'},
-    {id:'graphic',name:'Graphic',family:'Sora'}
+    {id:'clean',name:'Clean',family:'Montserrat'}
   ];
   function demoLayoutForCategory(cat) {
-    return ({hairbeauty:'luxe',aesthetics:'serene',health:'soft',trades:'minimal',homegarden:'organic',fooddrink:'bold',fitness:'organic',creative:'kinetic',professional:'kinetic',automotive:'bold',pets:'soft'})[cat] || 'minimal';
+    return ({hairbeauty:'editorial',aesthetics:'editorial',health:'kinetic',trades:'bold',homegarden:'editorial',fooddrink:'bold',fitness:'kinetic',creative:'editorial',professional:'kinetic',automotive:'bold',pets:'editorial'})[cat] || 'editorial';
   }
   // Business content is selected only from the user's industry, never from
   // their visual template. Keep this mapping independent of recommendations.

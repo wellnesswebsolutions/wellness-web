@@ -595,6 +595,43 @@ document.addEventListener('DOMContentLoaded', () => {
     Dark: [['Ink','#26313e'],['Espresso','#4a3630'],['Midnight','#283958'],['Pine','#29473e'],['Charcoal','#3e4145'],['Aubergine','#4f354d']]
   };
   let paletteFamily = 'Soft';
+  function paletteFamilyForColour(hex) {
+    if (!hex) return paletteFamily;
+    const rgb = value => {
+      const clean = value.replace('#', '');
+      return [0, 2, 4].map(offset => parseInt(clean.slice(offset, offset + 2), 16));
+    };
+    const current = rgb(hex);
+    let closest = { family: paletteFamily, distance: Infinity };
+    Object.entries(palettes).forEach(([family, choices]) => choices.forEach(([, value]) => {
+      const candidate = rgb(value);
+      const distance = candidate.reduce((total, channel, index) => total + (channel - current[index]) ** 2, 0);
+      if (distance < closest.distance) closest = { family, distance };
+    }));
+    return closest.family;
+  }
+  function selectedDesignSummary() {
+    const category = typeInfo(bizTagline.value)?.cat;
+    const layoutId = selectedLayout || demoLayoutForCategory(category);
+    const layout = DEMO_LAYOUTS.find(item => item.id === layoutId);
+    const fallbackFontByLayout = {
+      minimal: 'Manrope', soft: 'Manrope', serene: 'Cormorant Garamond',
+      organic: 'Manrope', editorial: 'Fraunces', bold: 'Cormorant Garamond',
+      luxe: 'Cormorant Garamond', kinetic: 'Lora'
+    };
+    const chosenFont = DEMO_FONTS.find(item => item.id === selectedFont);
+    const fontFamily = chosenFont?.family || layout?.font || fallbackFontByLayout[layoutId] || 'Manrope';
+    const fontLabel = chosenFont ? `${chosenFont.name} (${chosenFont.family})` : fontFamily;
+    const colourCode = selectedTones
+      ? [selectedTones.light, selectedTones.base, selectedTones.dark].map(value => value.toUpperCase()).join(' / ')
+      : 'Not selected';
+
+    return {
+      template: layout?.name || layoutId || 'Not selected',
+      font: fontLabel,
+      colourCode
+    };
+  }
   function closeOptions() {
     activeTool = null;
     options.hidden = true;
@@ -622,7 +659,12 @@ document.addEventListener('DOMContentLoaded', () => {
       options.innerHTML = `<h3>Choose your type</h3><div class="builder-choice-list">${DEMO_FONTS.map(f => `<button type="button" data-font="${f.id}" aria-pressed="${selectedFont === f.id}" style="font-family:${f.family}">${f.name}<span>Aa</span></button>`).join('')}</div>`;
     } else {
       const recommended = demoLayoutForCategory(typeInfo(bizTagline.value)?.cat);
-      options.innerHTML = `<h3>Choose your layout</h3><div class="builder-choice-list">${DEMO_LAYOUTS.map(l => `<button type="button" data-layout="${l.id}" aria-pressed="${(selectedLayout || recommended) === l.id}">${l.name}<small>${l.id === recommended ? 'Recommended' : l.detail}</small></button>`).join('')}</div>`;
+      const groups = ['Essential', 'Pro'].map(tier => {
+        const layouts = DEMO_LAYOUTS.filter(layout => (layout.tier || 'Essential') === tier);
+        if (!layouts.length) return '';
+        return `<section class="builder-template-group"><h3>${tier}</h3><div class="builder-choice-list">${layouts.map(l => `<button type="button" data-layout="${l.id}" aria-pressed="${(selectedLayout || recommended) === l.id}">${l.name}<small>${l.id === recommended ? 'Recommended' : l.detail}</small></button>`).join('')}</div></section>`;
+      }).join('');
+      options.innerHTML = `<h2 class="builder-options-title">Choose your template</h2>${groups}`;
     }
   }
   controls.addEventListener('click', event => {
@@ -635,8 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (previous === next) return;
       activeTool = next;
       if (next === 'colour') {
-        const cat = typeInfo(bizTagline.value)?.cat;
-        paletteFamily = ['fitness','trades','automotive'].includes(cat) ? 'Bold' : ['fooddrink','homegarden','pets'].includes(cat) ? 'Natural' : cat === 'creative' ? 'Bright' : 'Soft';
+        paletteFamily = paletteFamilyForColour(selectedTones?.base);
       }
       button.setAttribute('aria-expanded','true');
       renderOptions();
@@ -757,12 +798,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const businessName = bizNameInput.value.trim();
       const businessType = bizTagline.value;
       const location_ = bizLocation.value.trim();
+      const design = selectedDesignSummary();
 
       const message = `Hi, I'd like you to finish my website.
 
 Business: ${businessName}
 Industry: ${businessType}
-Location: ${location_}`;
+Location: ${location_}
+Template: ${design.template}
+Font: ${design.font}
+Colour scheme: ${design.colourCode}`;
 
       const status = document.getElementById('handoffStatus');
       status.textContent = 'Opening WhatsApp…';
@@ -778,6 +823,9 @@ Location: ${location_}`;
         Business: businessName,
         Industry: businessType || 'Not provided',
         Location: location_ || 'Not provided',
+        Template: design.template,
+        Font: design.font,
+        'Colour scheme': design.colourCode,
       }, [{ name: 'Site preview', file: previewFile }]).then(sent => {
         status.textContent = sent
           ? 'Your details were accepted for email delivery. Press Send inside WhatsApp to message Tom.'
