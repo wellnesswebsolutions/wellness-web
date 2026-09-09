@@ -13,27 +13,27 @@
   // so the name cannot drift over windows, doors, wheels or shelving.
   const SCENES = {
     // blank plaster wall right of the mirrors
-    hairbeauty: { image: 'hair-beauty.webp', panel: { cx: .72, cy: .32, w: .34, h: .23 }, surface: 'luxury-wall', light: 'upper-left', perspective: -.018, blend: 'multiply', opacity: .82 },
+    hairbeauty: { image: 'hair-beauty.webp', panel: { cx: .72, cy: .32, w: .34, h: .23 }, surface: 'luxury-wall', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .82 },
     // wall panel above and behind the reception desk
-    aesthetics: { image: 'aesthetics.webp', panel: { cx: .51, cy: .32, w: .38, h: .23 }, surface: 'luxury-wall', light: 'upper-right', perspective: .012, blend: 'multiply', opacity: .80 },
+    aesthetics: { image: 'aesthetics.webp', panel: { cx: .51, cy: .32, w: .38, h: .23 }, surface: 'luxury-wall', light: 'upper-right', perspective: 0, blend: 'multiply', opacity: .80 },
     // wide bare wall to the right of the treatment bed
-    health: { image: 'health-wellness.webp', panel: { cx: .72, cy: .35, w: .38, h: .22 }, surface: 'interior-wall', light: 'upper-left', perspective: -.014, blend: 'multiply', opacity: .82 },
+    health: { image: 'health-wellness.webp', panel: { cx: .72, cy: .35, w: .38, h: .22 }, surface: 'interior-wall', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .82 },
     // dark gym wall — light ink, kept clear of the rig on the right
-    fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, surface: 'industrial-wall', light: 'upper-left', perspective: -.008, blend: 'screen', opacity: .94, filter: 'brightness(1.22) contrast(.92) saturate(1.08)' },
+    fitness: { image: 'fitness.webp', panel: { cx: .50, cy: .38, w: .40, h: .24 }, surface: 'industrial-wall', light: 'upper-left', perspective: 0, blend: 'screen', opacity: .94, filter: 'brightness(1.22) contrast(.92) saturate(1.08)' },
     // flat side panel of the van, behind the cab and above the sill
-    automotive: { image: 'automotive.webp', panel: { cx: .64, cy: .43, w: .30, h: .15 }, surface: 'vehicle', light: 'upper-left', perspective: -.055, blend: 'multiply', opacity: .84 },
+    automotive: { image: 'automotive.webp', panel: { cx: .635, cy: .455, w: .35, h: .18 }, surface: 'vehicle', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .90 },
     // van side panel, between the window line and the lower stripe
-    trades: { image: 'trades.webp', panel: { cx: .64, cy: .42, w: .32, h: .15 }, surface: 'vehicle', light: 'upper-left', perspective: -.045, blend: 'multiply', opacity: .84 },
+    trades: { image: 'trades.webp', panel: { cx: .635, cy: .45, w: .35, h: .18 }, surface: 'vehicle', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .90 },
     // rendered facade right of the timber doorway
-    homegarden: { image: 'home-garden.webp', panel: { cx: .69, cy: .43, w: .27, h: .18 }, surface: 'exterior', light: 'upper-left', perspective: -.028, blend: 'multiply', opacity: .82 },
+    homegarden: { image: 'home-garden.webp', panel: { cx: .69, cy: .43, w: .27, h: .18 }, surface: 'exterior', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .82 },
     // wall above the counter, below the pendant lights
-    fooddrink: { image: 'food-drink.webp', panel: { cx: .51, cy: .35, w: .34, h: .18 }, surface: 'hospitality-wall', light: 'upper-right', perspective: .008, blend: 'multiply', opacity: .82 },
+    fooddrink: { image: 'food-drink.webp', panel: { cx: .51, cy: .35, w: .34, h: .18 }, surface: 'hospitality-wall', light: 'upper-right', perspective: 0, blend: 'multiply', opacity: .82 },
     // marble wall behind the reception desk
     professional: { image: 'professional-services.webp', panel: { cx: .50, cy: .31, w: .32, h: .21 }, surface: 'luxury-wall', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .80 },
     // large empty studio wall on the right
-    creative: { image: 'creative.webp', panel: { cx: .74, cy: .35, w: .34, h: .24 }, surface: 'studio-wall', light: 'upper-left', perspective: -.018, blend: 'multiply', opacity: .82 },
+    creative: { image: 'creative.webp', panel: { cx: .74, cy: .35, w: .34, h: .24 }, surface: 'studio-wall', light: 'upper-left', perspective: 0, blend: 'multiply', opacity: .82 },
     // pink salon wall, clear of the shelf and the plant
-    pets: { image: 'pets.webp', panel: { cx: .73, cy: .27, w: .30, h: .20 }, surface: 'interior-wall', light: 'upper-right', perspective: .012, blend: 'multiply', opacity: .82 }
+    pets: { image: 'pets.webp', panel: { cx: .73, cy: .27, w: .30, h: .20 }, surface: 'interior-wall', light: 'upper-right', perspective: 0, blend: 'multiply', opacity: .82 }
   };
 
   const CATEGORY_ALIASES = {
@@ -596,7 +596,7 @@
     while (size > min) {
       ctx.font = font();
       const tracking = size * profile.tracking;
-      if (lines.every(line => trackedWidth(ctx, line, tracking) * profile.width <= box.width * (treatment === 'glass' ? .74 : .90))) break;
+      if (lines.every(line => trackedWidth(ctx, line, tracking) * profile.width <= box.width * (treatment === 'glass' ? .86 : .90))) break;
       size -= 2;
     }
     return { title, lines, size, tracking: size * profile.tracking, font: font(), lineStep: size * .92 };
@@ -707,28 +707,54 @@
   }
 
   function drawVinylTreatment(ctx, mark, area, profile, colours, scene, location) {
-    const cx = area.x + area.width / 2;
-    const titleHeight = mark.size * .74 + (mark.lines.length - 1) * mark.lineStep;
-    const baseline = area.y + (area.height - titleHeight) / 2 + mark.size * .62;
+    const badgeCx = area.x + area.width * .13;
+    const badgeCy = area.y + area.height * .47;
+    const badgeRadius = Math.min(area.height * .27, area.width * .09);
+    const initials = mark.title.split(/\s+/).map(word => word[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+    const textArea = { x: area.x + area.width * .25, y: area.y, width: area.width * .72, height: area.height };
+    const vehicleMark = prepareWordmark(ctx, mark.title, textArea, profile, 'vinyl');
+    const cx = textArea.x + textArea.width / 2;
+    const titleHeight = vehicleMark.size * .74 + (vehicleMark.lines.length - 1) * vehicleMark.lineStep;
+    const baseline = textArea.y + (textArea.height - titleHeight) / 2 + vehicleMark.size * .54;
+
+    // Proper vehicle-brand lock-up: a separate cut-vinyl badge creates an
+    // intentional left anchor and keeps the name centred on the unobstructed
+    // cargo-door panel rather than across the whole photograph.
+    ctx.shadowColor = 'rgba(0,0,0,.24)';
+    ctx.shadowBlur = 1.4;
+    ctx.shadowOffsetY = 1.2;
+    ctx.beginPath(); ctx.arc(badgeCx, badgeCy, badgeRadius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(247,248,244,.94)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(badgeCx, badgeCy, badgeRadius * .78, 0, Math.PI * 2);
+    ctx.fillStyle = colours.face; ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(badgeCx - badgeRadius * .46, badgeCy + badgeRadius * .38);
+    ctx.lineTo(badgeCx + badgeRadius * .50, badgeCy - badgeRadius * .36);
+    ctx.lineTo(badgeCx + badgeRadius * .22, badgeCy + badgeRadius * .42);
+    ctx.closePath(); ctx.fillStyle = colourAlpha(colours.highlight, .48); ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.font = `900 ${Math.max(11, badgeRadius * .66)}px Arial Narrow, Arial, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff'; ctx.globalAlpha = .96;
+    ctx.fillText(initials || 'B', badgeCx, badgeCy + .5, badgeRadius * 1.25);
+
     ctx.shadowColor = 'rgba(0,0,0,.18)';
     ctx.shadowBlur = 1.2;
     ctx.shadowOffsetX = scene.light === 'upper-right' ? -1 : 1;
     ctx.shadowOffsetY = 1.3;
-    drawWordmarkLines(ctx, mark, cx, baseline, area.width, profile, colours.face, 0, 0, .93);
+    drawWordmarkLines(ctx, vehicleMark, cx, baseline, textArea.width, profile, colours.face, 0, 0, .98);
     ctx.shadowColor = 'transparent';
-    drawWordmarkLines(ctx, mark, cx, baseline, area.width, profile, colours.highlight, 0, -.45, .13);
-    // A cut-vinyl speed rule gives technical categories a complete lock-up
-    // without pretending a van has deep, illuminated lettering.
-    const ruleY = baseline + (mark.lines.length - 1) * mark.lineStep + mark.size * .17;
-    ctx.fillStyle = colours.face;
-    ctx.globalAlpha = .82;
+    drawWordmarkLines(ctx, vehicleMark, cx, baseline, textArea.width, profile, colours.highlight, 0, -.45, .16);
+    const ruleY = baseline + (vehicleMark.lines.length - 1) * vehicleMark.lineStep + vehicleMark.size * .16;
+    ctx.fillStyle = 'rgba(247,248,244,.95)';
+    ctx.globalAlpha = .94;
     ctx.beginPath();
-    ctx.moveTo(cx - area.width * .33, ruleY);
-    ctx.lineTo(cx + area.width * .28, ruleY);
-    ctx.lineTo(cx + area.width * .34, ruleY - Math.max(3, mark.size * .055));
-    ctx.lineTo(cx - area.width * .33, ruleY + Math.max(2, mark.size * .025));
+    ctx.moveTo(cx - textArea.width * .38, ruleY);
+    ctx.lineTo(cx + textArea.width * .32, ruleY);
+    ctx.lineTo(cx + textArea.width * .38, ruleY - Math.max(3, vehicleMark.size * .055));
+    ctx.lineTo(cx - textArea.width * .38, ruleY + Math.max(2, vehicleMark.size * .025));
     ctx.closePath(); ctx.fill();
-    drawSubline(ctx, location, cx, ruleY + mark.size * .30, area.width * .70, Math.max(9, mark.size * .18), colours.face, .72);
+    drawSubline(ctx, location, cx, ruleY + vehicleMark.size * .29, textArea.width * .74, Math.max(9, vehicleMark.size * .17), '#f7f8f4', .88);
   }
 
   function drawSubline(ctx, location, cx, baseline, maxWidth, size, colour, alpha) {
@@ -758,9 +784,6 @@
     const mark = prepareWordmark(ctx, name, area, profile, treatment);
 
     ctx.save();
-    const centreX = area.x + area.width / 2;
-    ctx.translate(centreX, 0);
-    ctx.transform(1, scene.perspective || 0, 0, 1, -centreX, 0);
     if (treatment === 'glass') drawGlassTreatment(ctx, mark, area, profile, colours, scene, location);
     else if (treatment === 'vinyl') drawVinylTreatment(ctx, mark, area, profile, colours, scene, location);
     else drawMetalTreatment(ctx, mark, area, profile, colours, scene, location);

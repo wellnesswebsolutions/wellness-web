@@ -42,7 +42,7 @@ The automatic system deliberately uses only three high-quality treatments:
 - a frosted glass plaque with realistic edges, reflections, shadows and metal stand-offs for suitable clean interior and studio walls;
 - cut vinyl graphics with a shallow contact shadow for vehicle panels.
 
-Every scene carries a subtle perspective correction tied to its photographed signage plane. Category and website style still determine typography, proportion, colour and spacing within those three physical systems.
+Every lock-up uses a level baseline and a measured, scene-specific safe area. Vehicle graphics use a dedicated monogram-and-wordmark composition positioned on the uninterrupted cargo-door panel rather than generic centred text. Category and website style still determine typography, proportion, colour and spacing within the three physical systems.
 
 Results generated from the bundled heroes are cached in memory, capped at 16 variants, so repeated preview refreshes avoid recompositing the photograph.
 
