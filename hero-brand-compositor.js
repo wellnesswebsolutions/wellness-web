@@ -562,6 +562,22 @@
     professional: 'metal', creative: 'glass', pets: 'glass'
   };
 
+  // Fixed after art direction against the actual bundled photographs. Logo
+  // colour is part of the physical scene, not a customer-configurable theme.
+  const HERO_BRAND_COLOURS = {
+    hairbeauty: { face: '#b88b43', accent: '#e6c982' },
+    aesthetics: { face: '#a98755', accent: '#e8d2a4' },
+    health: { face: '#344c45', accent: '#789b8c' },
+    fitness: { face: '#f0eee7', accent: '#b8c1c6' },
+    automotive: { face: '#f5f5ef', accent: '#236db4' },
+    trades: { face: '#f7f3e7', accent: '#d59725' },
+    homegarden: { face: '#465641', accent: '#a9b68d' },
+    fooddrink: { face: '#a8743d', accent: '#e0bd79' },
+    professional: { face: '#8c704d', accent: '#d5bd91' },
+    creative: { face: '#25272a', accent: '#858e96' },
+    pets: { face: '#714c60', accent: '#c48ea6' }
+  };
+
   function roundedRect(ctx, x, y, width, height, radius) {
     const r = Math.min(radius, width / 2, height / 2);
     ctx.beginPath();
@@ -726,7 +742,7 @@
     ctx.beginPath(); ctx.arc(badgeCx, badgeCy, badgeRadius, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(247,248,244,.94)'; ctx.fill();
     ctx.beginPath(); ctx.arc(badgeCx, badgeCy, badgeRadius * .78, 0, Math.PI * 2);
-    ctx.fillStyle = colours.face; ctx.fill();
+    ctx.fillStyle = colours.accent; ctx.fill();
     ctx.beginPath();
     ctx.moveTo(badgeCx - badgeRadius * .46, badgeCy + badgeRadius * .38);
     ctx.lineTo(badgeCx + badgeRadius * .50, badgeCy - badgeRadius * .36);
@@ -746,7 +762,7 @@
     ctx.shadowColor = 'transparent';
     drawWordmarkLines(ctx, vehicleMark, cx, baseline, textArea.width, profile, colours.highlight, 0, -.45, .16);
     const ruleY = baseline + (vehicleMark.lines.length - 1) * vehicleMark.lineStep + vehicleMark.size * .16;
-    ctx.fillStyle = 'rgba(247,248,244,.95)';
+    ctx.fillStyle = colours.accent;
     ctx.globalAlpha = .94;
     ctx.beginPath();
     ctx.moveTo(cx - textArea.width * .38, ruleY);
@@ -775,12 +791,8 @@
     const profile = resolvedProfile(key, settings);
     const area = { x: box.x + box.width * .035, y: box.y + box.height * .04, width: box.width * .93, height: box.height * .92 };
     const surface = readSurface(ctx, area, fallbackLight);
-    const palette = colourParts(settings.signColour) ? settings.signColour : null;
-    let face = palette || (surface.light ? '#f1eee7' : '#292724');
-    if (treatment === 'metal' && (key === 'hairbeauty' || key === 'aesthetics')) face = '#b88b43';
-    if (treatment === 'metal' && key === 'fooddrink') face = palette ? shadeColour(palette, .22) : '#a97942';
-    if (treatment === 'glass') face = palette ? shadeColour(palette, -.28) : (surface.light ? '#f7f8f5' : '#283638');
-    const colours = { face, edge: shadeColour(face, -.48), highlight: shadeColour(face, .72) };
+    const selected = HERO_BRAND_COLOURS[key] || { face: surface.light ? '#f1eee7' : '#292724', accent: '#9c8b72' };
+    const colours = { face: selected.face, accent: selected.accent, edge: shadeColour(selected.face, -.48), highlight: shadeColour(selected.face, .72) };
     const mark = prepareWordmark(ctx, name, area, profile, treatment);
 
     ctx.save();
@@ -821,7 +833,7 @@
     const key = sceneKey(settings.category);
     const scene = SCENES[key];
     const cacheable = !settings.heroImage && !settings.logo && (!settings.output || settings.output === 'dataURL');
-    const cacheKey = cacheable ? [key, settings.businessName, settings.location, settings.signColour, settings.layout, settings.fontFamily, settings.width || 1600, settings.height || 900, settings.quality || .88].join('|') : null;
+    const cacheKey = cacheable ? [key, settings.businessName, settings.location, settings.layout, settings.fontFamily, settings.width || 1600, settings.height || 900, settings.quality || .88].join('|') : null;
     if (cacheKey && renderCache.has(cacheKey)) return renderCache.get(cacheKey);
     const heroSource = settings.heroImage || new URL(scene.image, assetBase).href;
     const hero = await loadImage(heroSource);

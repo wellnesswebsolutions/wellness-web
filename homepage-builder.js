@@ -47,12 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const fontFamily = DEMO_FONTS.find(item => item.id === selectedFont)?.family || DEMO_LAYOUTS.find(item => item.id === layout)?.font;
     return {
       layout,
-      fontFamily,
-      signColour: selectedTones?.base
+      fontFamily
     };
   }
 
-  async function rerenderPersonalisedHero({ appearanceOnly = false } = {}) {
+  async function rerenderPersonalisedHero({ appearanceOnly = false, refreshSite = true } = {}) {
     if (!bizNameInput.value.trim() || !bizLocation.value.trim()) return null;
     const version = ++heroRenderVersion;
     try {
@@ -69,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const scene = previewFrame.contentDocument.querySelector('.brand-scene');
         if (scene) scene.src = image;
       }
-      refreshPreview({ appearanceOnly });
+      if (refreshSite) refreshPreview({ appearanceOnly });
       return image;
     } catch (error) {
       console.error(error);
@@ -868,7 +867,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedTones = {...heroMatchedTones};
       selectedPaletteName = 'Matched from hero photo';
       closeOptions();
-      await rerenderPersonalisedHero({ appearanceOnly: true });
+      refreshPreview({ appearanceOnly: true });
       controls.querySelector('[data-tool="colour"]').focus();
     } else if (button.dataset.colour) {
       hasManualPalette = true;
@@ -876,13 +875,14 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedPaletteName = button.dataset.paletteName || paletteNameForColour(button.dataset.colour);
       controls.querySelector('.palette-orb').style.background = `conic-gradient(${selectedTones.light} 0 120deg,${selectedTones.base} 120deg 240deg,${selectedTones.dark} 240deg)`;
       closeOptions();
-      await rerenderPersonalisedHero({ appearanceOnly: true });
+      refreshPreview({ appearanceOnly: true });
       controls.querySelector('[data-tool="colour"]').focus();
     } else if (button.dataset.font || button.dataset.layout) {
       if (button.dataset.font) selectedFont = button.dataset.font;
       if (button.dataset.layout) selectedLayout = button.dataset.layout;
       closeOptions();
-      await rerenderPersonalisedHero({ appearanceOnly: Boolean(button.dataset.font) });
+      refreshPreview({ appearanceOnly: Boolean(button.dataset.font) });
+      await rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false });
       controls.querySelector(`[data-tool="${button.dataset.font ? 'font' : 'layout'}"]`).focus();
     }
   });
