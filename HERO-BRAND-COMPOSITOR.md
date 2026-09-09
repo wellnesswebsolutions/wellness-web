@@ -36,7 +36,13 @@ const brandedHero = await HeroBrandCompositor.render({
 });
 ```
 
-Vehicle scenes use flat vinyl-style graphics and a shallow contact shadow. Interior, luxury, industrial, hospitality and exterior scenes each use their own depth, finish and lighting treatment. Every scene also carries a subtle perspective correction tied to its photographed signage plane.
+The automatic system deliberately uses only three high-quality treatments:
+
+- polished dimensional metal lettering for luxury, hospitality, professional, exterior and industrial walls;
+- a frosted glass plaque with realistic edges, reflections, shadows and metal stand-offs for suitable clean interior and studio walls;
+- cut vinyl graphics with a shallow contact shadow for vehicle panels.
+
+Every scene carries a subtle perspective correction tied to its photographed signage plane. Category and website style still determine typography, proportion, colour and spacing within those three physical systems.
 
 Results generated from the bundled heroes are cached in memory, capped at 16 variants, so repeated preview refreshes avoid recompositing the photograph.
 

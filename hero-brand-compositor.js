@@ -407,7 +407,7 @@
   // style and palette. It is intentionally procedural: the same business gets
   // the same mark on every render, while names in one category do not collapse
   // into one template.
-  function drawProceduralLockup(ctx, name, location, box, fallbackLight, options) {
+  function drawProceduralLockupLegacy(ctx, name, location, box, fallbackLight, options) {
     const settings = options || {};
     const key = sceneKey(settings.category);
     const scene = SCENES[key];
@@ -553,6 +553,217 @@
       ctx.shadowBlur = profile.material === 'vinyl' ? 1 : 3;
       ctx.fillText(String(location).trim().toUpperCase(), centreX, baseline + (lines.length - 1) * lineStep + subGap + subSize, inner.width);
     }
+    ctx.restore();
+  }
+
+  const TREATMENT_BY_CATEGORY = {
+    hairbeauty: 'metal', aesthetics: 'metal', health: 'glass', fitness: 'metal',
+    automotive: 'vinyl', trades: 'vinyl', homegarden: 'metal', fooddrink: 'metal',
+    professional: 'metal', creative: 'glass', pets: 'glass'
+  };
+
+  function roundedRect(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+
+  function resolvedProfile(key, settings) {
+    const profile = Object.assign({}, BRAND_PROFILES[key] || BRAND_PROFILES.professional);
+    const layout = settings.layout;
+    if (layout === 'bold' || layout === 'studio') Object.assign(profile, { weight: 900, width: .84, tracking: .025, case: 'upper' });
+    if (layout === 'luxe' || layout === 'serene') Object.assign(profile, { weight: 600, width: 1.02, tracking: .12 });
+    if (layout === 'editorial') Object.assign(profile, { weight: 600, width: 1, tracking: .085 });
+    if (settings.fontFamily) profile.family = `${settings.fontFamily}, ${profile.family}`;
+    // The premium categories need the light, calligraphic contrast seen in the
+    // reference, without relying on a downloaded font being ready in 30 sec.
+    if (key === 'hairbeauty' || key === 'aesthetics') Object.assign(profile, { family: '"Snell Roundhand", "Segoe Script", "Brush Script MT", cursive', weight: 400, italic: false, tracking: 0, width: 1.03 });
+    return profile;
+  }
+
+  function prepareWordmark(ctx, name, box, profile, treatment) {
+    const title = displayName(String(name || 'Your Business').trim(), profile);
+    const words = title.split(/\s+/);
+    const lines = title.length > (treatment === 'vinyl' ? 18 : 20) && words.length > 1 ? splitName(words) : [title];
+    let size = Math.round(box.height * (lines.length > 1 ? .31 : treatment === 'glass' ? .40 : .46));
+    const min = Math.max(18, Math.round(box.height * .20));
+    const font = () => `${profile.italic ? 'italic ' : ''}${profile.weight} ${size}px ${profile.family}`;
+    while (size > min) {
+      ctx.font = font();
+      const tracking = size * profile.tracking;
+      if (lines.every(line => trackedWidth(ctx, line, tracking) * profile.width <= box.width * (treatment === 'glass' ? .74 : .90))) break;
+      size -= 2;
+    }
+    return { title, lines, size, tracking: size * profile.tracking, font: font(), lineStep: size * .92 };
+  }
+
+  function drawWordmarkLines(ctx, mark, cx, baseline, width, profile, fill, dx, dy, alpha, stroke) {
+    ctx.font = mark.font;
+    ctx.fillStyle = fill;
+    ctx.globalAlpha = alpha;
+    ctx._brandStroke = Boolean(stroke);
+    if (stroke) {
+      ctx.strokeStyle = stroke.colour;
+      ctx.lineWidth = stroke.width;
+    }
+    mark.lines.forEach((line, index) => {
+      ctx.save();
+      ctx.translate(cx + dx, baseline + index * mark.lineStep + dy);
+      ctx.scale(profile.width, 1);
+      drawTrackedText(ctx, line, 0, 0, mark.tracking, width / profile.width);
+      ctx.restore();
+    });
+    ctx._brandStroke = false;
+  }
+
+  function drawMetalTreatment(ctx, mark, area, profile, colours, scene, location) {
+    const cx = area.x + area.width / 2;
+    const titleHeight = mark.size * .74 + (mark.lines.length - 1) * mark.lineStep;
+    const subSize = Math.max(10, Math.round(mark.size * .19));
+    const baseline = area.y + (area.height - titleHeight - subSize * 1.7) / 2 + mark.size * .72;
+    const direction = scene.light === 'upper-right' ? -1 : 1;
+    const depth = profile.family.includes('Snell Roundhand') ? 1 : Math.max(2, Math.min(5, Math.round(mark.size * .045)));
+
+    ctx.shadowColor = 'rgba(17,12,8,.40)';
+    ctx.shadowBlur = Math.max(4, mark.size * .075);
+    ctx.shadowOffsetX = direction * depth * 1.45;
+    ctx.shadowOffsetY = depth * 1.8;
+    for (let layer = depth; layer >= 1; layer--) {
+      drawWordmarkLines(ctx, mark, cx, baseline, area.width, profile, colours.edge, direction * layer, layer, .96);
+    }
+    ctx.shadowColor = 'transparent';
+    const face = ctx.createLinearGradient(0, baseline - mark.size, 0, baseline + mark.size * .18);
+    face.addColorStop(0, colours.highlight);
+    face.addColorStop(.18, colours.face);
+    face.addColorStop(.52, colours.highlight);
+    face.addColorStop(.67, colours.face);
+    face.addColorStop(1, colours.edge);
+    drawWordmarkLines(ctx, mark, cx, baseline, area.width, profile, face, 0, 0, .98, { colour: colourAlpha(colours.highlight, .55), width: Math.max(.55, mark.size * .008) });
+
+    // A restrained baseline is the only decorative move, echoing fabricated
+    // salon signage rather than adding generated-looking glyph ornaments.
+    if ((profile.italic || profile.family.includes('Snell Roundhand')) && mark.lines.length === 1) {
+      ctx.fillStyle = colours.face;
+      ctx.globalAlpha = .88;
+      ctx.fillRect(cx - area.width * .28, baseline + mark.size * .16, area.width * .59, Math.max(1.2, mark.size * .015));
+    }
+    drawSubline(ctx, location, cx, baseline + (mark.lines.length - 1) * mark.lineStep + mark.size * .43, area.width * .76, subSize, colours.face, .72);
+  }
+
+  function drawGlassTreatment(ctx, mark, area, profile, colours, scene, location) {
+    const plaque = { x: area.x + area.width * .025, y: area.y + area.height * .04, width: area.width * .95, height: area.height * .92 };
+    const radius = Math.max(5, plaque.height * .055);
+    ctx.save();
+    ctx.shadowColor = 'rgba(10,14,18,.34)';
+    ctx.shadowBlur = Math.max(8, plaque.height * .09);
+    ctx.shadowOffsetX = scene.light === 'upper-right' ? -4 : 4;
+    ctx.shadowOffsetY = 7;
+    roundedRect(ctx, plaque.x, plaque.y, plaque.width, plaque.height, radius);
+    ctx.fillStyle = 'rgba(238,244,243,.20)';
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+
+    const frost = ctx.createLinearGradient(plaque.x, plaque.y, plaque.x + plaque.width, plaque.y + plaque.height);
+    frost.addColorStop(0, 'rgba(255,255,255,.34)');
+    frost.addColorStop(.30, 'rgba(255,255,255,.08)');
+    frost.addColorStop(.72, 'rgba(220,232,233,.17)');
+    frost.addColorStop(1, 'rgba(255,255,255,.28)');
+    roundedRect(ctx, plaque.x, plaque.y, plaque.width, plaque.height, radius);
+    ctx.fillStyle = frost;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.66)';
+    ctx.lineWidth = Math.max(1, plaque.height * .009);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(35,45,48,.18)';
+    ctx.lineWidth = 1;
+    roundedRect(ctx, plaque.x + 2, plaque.y + 2, plaque.width - 4, plaque.height - 4, Math.max(3, radius - 2));
+    ctx.stroke();
+
+    // Four metal stand-offs make the panel physically credible.
+    const mountR = Math.max(2.2, plaque.height * .025);
+    [[.045,.09],[.955,.09],[.045,.91],[.955,.91]].forEach(([px, py]) => {
+      const mx = plaque.x + plaque.width * px, my = plaque.y + plaque.height * py;
+      const metal = ctx.createRadialGradient(mx - mountR * .4, my - mountR * .5, .2, mx, my, mountR);
+      metal.addColorStop(0, '#ffffff'); metal.addColorStop(.35, '#9ca3a3'); metal.addColorStop(1, '#3e4547');
+      ctx.beginPath(); ctx.arc(mx, my, mountR, 0, Math.PI * 2); ctx.fillStyle = metal; ctx.fill();
+      ctx.beginPath(); ctx.arc(mx - mountR * .25, my - mountR * .25, mountR * .20, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fill();
+    });
+
+    const cx = plaque.x + plaque.width / 2;
+    const titleHeight = mark.size * .74 + (mark.lines.length - 1) * mark.lineStep;
+    const baseline = plaque.y + (plaque.height - titleHeight) / 2 + mark.size * .62;
+    ctx.shadowColor = 'rgba(0,0,0,.24)';
+    ctx.shadowBlur = 2.5;
+    ctx.shadowOffsetY = 1.5;
+    drawWordmarkLines(ctx, mark, cx, baseline, plaque.width * .78, profile, colours.face, 0, 0, .92, { colour: colourAlpha(colours.highlight, .34), width: Math.max(.5, mark.size * .007) });
+    ctx.shadowColor = 'transparent';
+    drawSubline(ctx, location, cx, baseline + (mark.lines.length - 1) * mark.lineStep + mark.size * .36, plaque.width * .66, Math.max(9, mark.size * .18), colours.face, .64);
+    ctx.restore();
+  }
+
+  function drawVinylTreatment(ctx, mark, area, profile, colours, scene, location) {
+    const cx = area.x + area.width / 2;
+    const titleHeight = mark.size * .74 + (mark.lines.length - 1) * mark.lineStep;
+    const baseline = area.y + (area.height - titleHeight) / 2 + mark.size * .62;
+    ctx.shadowColor = 'rgba(0,0,0,.18)';
+    ctx.shadowBlur = 1.2;
+    ctx.shadowOffsetX = scene.light === 'upper-right' ? -1 : 1;
+    ctx.shadowOffsetY = 1.3;
+    drawWordmarkLines(ctx, mark, cx, baseline, area.width, profile, colours.face, 0, 0, .93);
+    ctx.shadowColor = 'transparent';
+    drawWordmarkLines(ctx, mark, cx, baseline, area.width, profile, colours.highlight, 0, -.45, .13);
+    // A cut-vinyl speed rule gives technical categories a complete lock-up
+    // without pretending a van has deep, illuminated lettering.
+    const ruleY = baseline + (mark.lines.length - 1) * mark.lineStep + mark.size * .17;
+    ctx.fillStyle = colours.face;
+    ctx.globalAlpha = .82;
+    ctx.beginPath();
+    ctx.moveTo(cx - area.width * .33, ruleY);
+    ctx.lineTo(cx + area.width * .28, ruleY);
+    ctx.lineTo(cx + area.width * .34, ruleY - Math.max(3, mark.size * .055));
+    ctx.lineTo(cx - area.width * .33, ruleY + Math.max(2, mark.size * .025));
+    ctx.closePath(); ctx.fill();
+    drawSubline(ctx, location, cx, ruleY + mark.size * .30, area.width * .70, Math.max(9, mark.size * .18), colours.face, .72);
+  }
+
+  function drawSubline(ctx, location, cx, baseline, maxWidth, size, colour, alpha) {
+    if (!String(location || '').trim()) return;
+    ctx.font = `600 ${size}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = colour;
+    ctx.globalAlpha = alpha;
+    ctx.letterSpacing = `${size * .14}px`;
+    ctx.fillText(String(location).trim().toUpperCase(), cx, baseline, maxWidth);
+  }
+
+  function drawProceduralLockup(ctx, name, location, box, fallbackLight, options) {
+    const settings = options || {};
+    const key = sceneKey(settings.category);
+    const scene = SCENES[key];
+    const treatment = TREATMENT_BY_CATEGORY[key] || 'metal';
+    const profile = resolvedProfile(key, settings);
+    const area = { x: box.x + box.width * .035, y: box.y + box.height * .04, width: box.width * .93, height: box.height * .92 };
+    const surface = readSurface(ctx, area, fallbackLight);
+    const palette = colourParts(settings.signColour) ? settings.signColour : null;
+    let face = palette || (surface.light ? '#f1eee7' : '#292724');
+    if (treatment === 'metal' && (key === 'hairbeauty' || key === 'aesthetics')) face = '#b88b43';
+    if (treatment === 'metal' && key === 'fooddrink') face = palette ? shadeColour(palette, .22) : '#a97942';
+    if (treatment === 'glass') face = palette ? shadeColour(palette, -.28) : (surface.light ? '#f7f8f5' : '#283638');
+    const colours = { face, edge: shadeColour(face, -.48), highlight: shadeColour(face, .72) };
+    const mark = prepareWordmark(ctx, name, area, profile, treatment);
+
+    ctx.save();
+    const centreX = area.x + area.width / 2;
+    ctx.translate(centreX, 0);
+    ctx.transform(1, scene.perspective || 0, 0, 1, -centreX, 0);
+    if (treatment === 'glass') drawGlassTreatment(ctx, mark, area, profile, colours, scene, location);
+    else if (treatment === 'vinyl') drawVinylTreatment(ctx, mark, area, profile, colours, scene, location);
+    else drawMetalTreatment(ctx, mark, area, profile, colours, scene, location);
     ctx.restore();
   }
 
