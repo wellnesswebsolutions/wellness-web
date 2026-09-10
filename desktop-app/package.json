@@ -8,7 +8,8 @@
   "scripts": {
     "start": "electron .",
     "server": "node server.js",
-    "build": "electron-builder --mac"
+    "build": "electron-builder --mac",
+    "test:sync": "node tests/sync-smoke.js"
   },
   "dependencies": {
     "express": "^4.22.2",

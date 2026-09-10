@@ -15,6 +15,8 @@
     copyLiveBtn: document.getElementById('copyLiveBtn'),
     closePreviewBtn: document.getElementById('closePreviewBtn'),
     notice: document.getElementById('noticeStrip'),
+    syncStatus: document.getElementById('syncStatus'),
+    syncStatusText: document.getElementById('syncStatusText'),
     gearBtn: document.getElementById('gearBtn'),
     settingsDialog: document.getElementById('settingsDialog'),
     closeSettingsBtn: document.getElementById('closeSettingsBtn')
@@ -26,6 +28,22 @@
     if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
     return body;
   }
+
+  // Shared sync (see lib/supabase-sync.js) is entirely optional — when
+  // it's not configured, "disabled" comes back and the indicator just
+  // stays hidden, no visual change from before this feature existed.
+  const SYNC_LABELS = { synced: 'Synced', syncing: 'Syncing…', offline: 'Offline — changes will sync later' };
+  async function refreshSyncStatus() {
+    try {
+      const s = await api('/api/sync-status');
+      if (s.state === 'disabled') { el.syncStatus.hidden = true; return; }
+      el.syncStatus.hidden = false;
+      el.syncStatus.className = `sync-status is-${s.state}`;
+      el.syncStatusText.textContent = SYNC_LABELS[s.state] || s.state;
+    } catch { /* status is best-effort, never block the app on it */ }
+  }
+  refreshSyncStatus();
+  setInterval(refreshSyncStatus, 5000);
 
   let noticeTimer = null;
   function notify(text, opts = {}) {
@@ -97,6 +115,7 @@
   async function loadProjects() {
     state.projects = await api('/api/projects');
     renderSidebar();
+    refreshSyncStatus();
   }
 
   function sortedProjects() {
@@ -220,7 +239,7 @@
 
   function templateOptions(selected) {
     return DEMO_LAYOUTS.map(t =>
-      `<option value="${t.id}" ${t.id === selected ? 'selected' : ''}>${t.name}</option>`
+      `<button type="button" class="template-tile${t.id === selected ? ' selected' : ''}" data-layout="${t.id}">${t.name}</button>`
     ).join('');
   }
 
@@ -228,24 +247,16 @@
   function renderStartScreen() {
     el.editor.innerHTML = `
       <div class="start-screen">
+        <img src="/generator/img/brightsite-logo.png" alt="BrightSite" class="start-logo">
         <div class="link-bar">
           <input id="startLink" type="text" placeholder="Paste a Facebook or Google Maps link…">
           <button id="startBuildBtn">Build website</button>
         </div>
         <div class="import-status" id="startStatus"></div>
-        <p class="start-alt">Or <a href="#" id="startBlankLink">start a blank site</a> and fill it in by hand.</p>
       </div>
     `;
     document.getElementById('startBuildBtn').onclick = runQuickImport;
     document.getElementById('startLink').onkeydown = e => { if (e.key === 'Enter') runQuickImport(); };
-    document.getElementById('startBlankLink').onclick = async e => {
-      e.preventDefault();
-      const name = await showPrompt('New site', 'Business name');
-      if (!name) return;
-      const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-      await loadProjects();
-      await selectProject(project.slug);
-    };
   }
 
   function splitLinks(text) {
@@ -321,7 +332,7 @@
       </div>
 
       <div class="field"><label>Template</label>
-        <select id="templateGrid">${templateOptions(raw.layout)}</select></div>
+        <div class="template-grid-6" id="templateGrid">${templateOptions(raw.layout)}</div></div>
 
       <div class="ai-edit-box">
         <label>Edit with AI</label>
@@ -346,7 +357,13 @@
       schedulePreview();
     };
     document.getElementById('f_about').oninput = e => { setRaw({ businessProfile: { ...profile, about: e.target.value } }); schedulePreview(); };
-    document.getElementById('templateGrid').onchange = e => { setRaw({ layout: e.target.value }); schedulePreview(); };
+    document.getElementById('templateGrid').addEventListener('click', e => {
+      const tile = e.target.closest('.template-tile');
+      if (!tile) return;
+      setRaw({ layout: tile.dataset.layout });
+      document.querySelectorAll('.template-tile').forEach(t => t.classList.toggle('selected', t === tile));
+      schedulePreview();
+    });
     document.getElementById('galleryUploadBtn').onclick = () => document.getElementById('galleryUpload').click();
     document.getElementById('galleryUpload').addEventListener('change', e => uploadGallery(e.target.files));
     document.getElementById('aiEditBtn').onclick = runAiEdit;

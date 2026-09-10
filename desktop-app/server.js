@@ -25,21 +25,27 @@ function createApp() {
   const upload = multer({ limits: { fileSize: 15 * 1024 * 1024 } });
 
   // If Supabase sync is configured (see lib/supabase-sync.js), merge in
-  // any remote records newer than what's on disk — e.g. from another Mac
-  // — before listing. Purely additive: local-only stays fully functional
-  // when sync isn't configured (pullAll resolves to []).
+  // any remote records newer than what's on disk — e.g. another install
+  // of the app — before listing, download any media those records
+  // reference that isn't on this machine yet, and retry any pushes that
+  // failed earlier while offline. Purely additive: local-only stays
+  // fully functional when sync isn't configured (pullAll resolves to []).
   app.get('/api/projects', async (req, res) => {
     if (sync.enabled()) {
       const remote = await sync.pullAll();
-      remote.forEach(row => {
+      for (const row of remote) {
         const local = storage.readProject(row.id);
         if (!local || new Date(row.updated_at) > new Date(local.updatedAt || 0)) {
           storage.upsertProject(row.id, row.data);
         }
-      });
+        await sync.syncMediaForProject(storage.projectDir(row.id), row.data);
+      }
+      sync.flushPending(storage.readProject);
     }
     res.json(storage.listProjects());
   });
+
+  app.get('/api/sync-status', (req, res) => res.json(sync.getStatus()));
 
   app.post('/api/projects', (req, res) => {
     const project = storage.createProject(req.body?.name || '', { pipelineStage: req.body?.pipelineStage });
@@ -235,7 +241,9 @@ function createApp() {
     }
   });
 
-  // Save an uploaded file (logo / hero / gallery) into the project folder.
+  // Save an uploaded file (logo / hero / gallery) into the project folder,
+  // and — if shared sync is configured — mirror it to the shared Storage
+  // bucket in the background so other installs can download it too.
   app.post('/api/projects/:slug/media/:slot', upload.single('file'), (req, res) => {
     const { slug, slot } = req.params;
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
@@ -245,6 +253,7 @@ function createApp() {
       const filename = slot === 'gallery' ? `${Date.now()}${ext}` : `${slot}${ext}`;
       fs.writeFileSync(path.join(dir, filename), req.file.buffer);
       const relPath = slot === 'gallery' ? `img/gallery/${filename}` : `img/${filename}`;
+      sync.uploadMedia(slug, relPath, req.file.buffer);
       res.json({ path: relPath, url: `/projects/${slug}/${relPath}` });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -252,7 +261,8 @@ function createApp() {
   });
 
   // Pull an image found during import (a remote URL) into the project
-  // folder, so it becomes a normal local media file like any upload.
+  // folder, so it becomes a normal local media file like any upload —
+  // and mirror it to shared Storage the same way.
   app.post('/api/projects/:slug/media/:slot/fetch', async (req, res) => {
     const { slug, slot } = req.params;
     const url = String(req.body?.url || '').trim();
@@ -267,6 +277,7 @@ function createApp() {
       const filename = slot === 'gallery' ? `${Date.now()}${ext}` : `${slot}${ext}`;
       fs.writeFileSync(path.join(dir, filename), buffer);
       const relPath = slot === 'gallery' ? `img/gallery/${filename}` : `img/${filename}`;
+      sync.uploadMedia(slug, relPath, buffer);
       res.json({ path: relPath, url: `/projects/${slug}/${relPath}` });
     } catch (err) {
       res.status(502).json({ error: err.message });

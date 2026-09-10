@@ -50,12 +50,62 @@ Every business is saved to `~/BrightSiteProjects/<slug>/data.json`.
   colleague on the same network can open the same app in their own
   browser — same server, same data.
 
-## Cross-device sync (optional, off by default)
+## Shared sync setup (do this once, before distributing the app)
 
-Everything works purely on local files unless you opt in to Supabase
-sync. Run `supabase/businesses_schema.sql` once in your Supabase project's
-SQL editor (not run automatically — that's your call), then set
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` env vars before `npm start`.
+Everything works purely on local files until you set this up — it's what
+lets you send the packaged app to a colleague/college and have everyone
+see the same businesses and each other's edits automatically, with **no
+sign-in, no setup screen, and no environment variables for them to set**.
+
+**You do this once, before building the app you hand out:**
+
+1. Open your Supabase project's SQL editor and run
+   `desktop-app/supabase/businesses_schema.sql`. It creates the
+   `businesses` table and a `business-media` storage bucket for logos/
+   hero photos/gallery images, with policies that deliberately allow the
+   app's bundled key to read and write everything — no per-user login.
+   Read the comment block at the top of that file: this means anyone with
+   a copy of the app (or the key) can see and change everyone's projects.
+   That's the intended tradeoff for a zero-setup shared team tool — don't
+   reuse this setup for anything that needs real access control.
+2. In your Supabase dashboard, go to **Project Settings → API** and copy
+   the **Project URL** and the **anon / publishable key**.
+3. Paste them into `desktop-app/lib/shared-config.js`
+   (`SUPABASE_URL`, `SUPABASE_ANON_KEY`).
+4. `npm run build` and distribute the packaged app as usual (see below).
+
+That's it — every copy of the app you hand out after this talks to the
+same shared project automatically. Recipients open the app and it just
+works: existing shared projects appear immediately, and anything they
+create or edit syncs back for everyone else.
+
+**How it behaves day to day:**
+- A small indicator near the gear icon shows **Synced** / **Syncing…** /
+  **Offline — changes will sync later**. It only appears once sync is
+  configured — with an empty `shared-config.js` (and no `SUPABASE_URL`/
+  `SUPABASE_ANON_KEY` env vars) the app is local-only and the indicator
+  stays hidden, exactly as before this feature existed.
+- Local files in `~/BrightSiteProjects/` are always the source of truth
+  and always work offline. Every edit saves locally first regardless of
+  whether the sync push succeeds.
+- If a push fails (no internet, project unreachable), the app remembers
+  and retries automatically the next time it successfully reaches
+  Supabase — on the next launch, or as soon as the connection comes back
+  (checked whenever the project list loads).
+- Each project carries an `updated_at` timestamp. Pulling a shared record
+  only overwrites the local copy if the shared one is newer, and pushing
+  a local edit first checks the shared copy isn't already newer (e.g. a
+  laptop that's been closed for a week) — the older side never clobbers
+  the newer one; the older one just gets the newer version pulled down
+  instead.
+- Uploaded logos/hero photos/gallery images sync the same way: uploading
+  on one machine pushes the file to the shared Storage bucket, and
+  opening/refreshing the project list on another machine downloads
+  anything it's missing.
+
+Env vars `SUPABASE_URL` / `SUPABASE_ANON_KEY` still override
+`shared-config.js` if set, useful for testing against a different project
+without editing that file.
 
 ## Known gaps
 
