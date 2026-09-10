@@ -186,7 +186,6 @@
         ${mediaSlot('logo', 'Logo')}
         ${mediaSlot('hero', 'Hero image')}
       </div>
-      ${raw.logoImage ? `<button id="compositeBtn" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;margin-bottom:10px">Composite logo onto hero photo</button>` : ''}
       <div class="field"><label>Gallery</label></div>
       <div class="gallery-grid" id="galleryGrid">${galleryThumbs()}</div>
       <input type="file" id="galleryUpload" accept="image/*" multiple style="font-size:12px">
@@ -218,9 +217,6 @@
     document.getElementById('galleryUpload').addEventListener('change', e => uploadGallery(e.target.files));
     document.getElementById('aiEditBtn').onclick = runAiEdit;
     document.querySelectorAll('.edit-log .undo').forEach(btn => (btn.onclick = () => undoEdit(Number(btn.dataset.i))));
-    const compositeBtn = document.getElementById('compositeBtn');
-    if (compositeBtn) compositeBtn.onclick = runComposite;
-
     wireMediaSlot('logo');
     wireMediaSlot('hero');
   }
@@ -277,38 +273,19 @@
     renderPreview();
   }
 
-  async function runComposite() {
-    const raw = state.current.raw;
-    if (!raw.logoImage) return;
-    const info = typeInfo(raw.tagline) || BUSINESS_TYPES[BUSINESS_TYPES.length - 1];
-    const logoUrl = `${location.origin}/projects/${state.current.slug}/${raw.logoImage}`;
-    try {
-      const dataUrl = await HeroBrandCompositor.render({
-        category: info.cat, businessName: raw.name || 'Your business', logo: logoUrl, output: 'dataURL'
-      });
-      const blob = await (await fetch(dataUrl)).blob();
-      const form = new FormData();
-      form.append('file', blob, 'hero.jpg');
-      const result = await api(`/api/projects/${state.current.slug}/media/hero`, { method: 'POST', body: form });
-      setRaw({ heroImage: result.path });
-      await persist();
-      renderEditor();
-      renderPreview();
-      notify('Logo composited onto the hero photo.');
-    } catch (err) {
-      notify(`Couldn't composite the logo: ${err.message}`, { sticky: false });
-    }
-  }
-
   function mediaSlot(slot, label) {
     const raw = state.current.raw || {};
     const path = slot === 'logo' ? raw.logoImage : raw.heroImage;
     const thumbStyle = path ? `style="background-image:url('/projects/${state.current.slug}/${path}')"` : '';
     const found = state.found[slot];
+    const autoHeroHint = slot === 'hero' && !path
+      ? `<div style="font-size:10px;color:var(--muted);margin-top:4px">Auto: ${raw.logoImage ? 'your logo' : 'name'} on a 3D scene — see preview</div>`
+      : '';
     return `
       <div class="media-slot" data-slot="${slot}">
         <label>${label}</label>
         <div class="thumb" ${thumbStyle}></div>
+        ${autoHeroHint}
         <div class="actions">
           <button data-action="upload">Upload</button>
           ${found ? `<button data-action="use-found" class="found">Use found</button>` : ''}
@@ -424,9 +401,44 @@
     return withAbsolute;
   }
 
-  function renderPreview() {
+  // Auto-composited 3D hero — the same HeroBrandCompositor brightsite.app's
+  // own builder uses. With a logo uploaded, it's placed into the scene
+  // (wall/van/sign per category); without one, the business name itself is
+  // lettered onto the scene as a procedural 3D wordmark. Only kicks in when
+  // the user hasn't uploaded/picked their own hero photo (raw.heroImage) —
+  // a manual choice always wins. Cached so it doesn't re-render on every
+  // unrelated keystroke, only when name/location/category/template/logo
+  // actually change.
+  let heroCache = { key: null, dataUrl: null };
+  async function composeAutoHero(raw, slug) {
+    const info = typeInfo(raw.tagline) || BUSINESS_TYPES[BUSINESS_TYPES.length - 1];
+    const key = JSON.stringify([raw.name, raw.location, raw.tagline, raw.layout, raw.logoImage]);
+    if (heroCache.key === key) return heroCache.dataUrl;
+    try {
+      const dataUrl = await HeroBrandCompositor.render({
+        category: info.cat,
+        businessName: raw.name || 'Your business',
+        location: raw.location || '',
+        logo: raw.logoImage ? `${location.origin}/projects/${slug}/${raw.logoImage}` : undefined,
+        layout: raw.layout,
+        output: 'dataURL'
+      });
+      heroCache = { key, dataUrl };
+      return dataUrl;
+    } catch (err) {
+      console.error('Hero compositor failed', err);
+      return null;
+    }
+  }
+
+  async function renderPreview() {
     if (!state.current || !state.current.raw?.name) return;
     const raw = projectMediaAbsolute(state.current.raw, state.current.slug);
+    if (!raw.heroImage) {
+      const auto = await composeAutoHero(state.current.raw, state.current.slug);
+      if (auto) raw.heroImage = auto;
+    }
+    if (state.current !== null && raw.name !== state.current.raw?.name) return; // project switched mid-render
     try {
       const html = buildDemoHTML(raw);
       el.preview.srcdoc = html;
