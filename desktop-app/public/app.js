@@ -31,14 +31,63 @@
     if (!opts.sticky) noticeTimer = setTimeout(() => (el.notice.hidden = true), 4500);
   }
 
-  el.gearBtn.onclick = () => el.settingsDialog.showModal();
+  el.gearBtn.onclick = () => { el.settingsDialog.showModal(); refreshSignInStatus(); };
   el.closeSettingsBtn.onclick = () => el.settingsDialog.close();
-  document.getElementById('signInFacebookBtn').onclick = () => api('/api/sign-in', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'facebook' })
-  }).catch(err => notify(err.message, { sticky: false }));
-  document.getElementById('signInGoogleBtn').onclick = () => api('/api/sign-in', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'google' })
-  }).catch(err => notify(err.message, { sticky: false }));
+
+  // Electron's renderer doesn't implement window.prompt() (it silently
+  // returns null), so a plain `prompt()` call does nothing when clicked —
+  // these two dialogs replace prompt()/confirm() with real, reliable UI.
+  const promptDialog = document.getElementById('promptDialog');
+  const promptInput = document.getElementById('promptInput');
+  function showPrompt(title, placeholder) {
+    return new Promise(resolve => {
+      document.getElementById('promptTitle').textContent = title;
+      promptInput.placeholder = placeholder || '';
+      promptInput.value = '';
+      promptDialog.showModal();
+      setTimeout(() => promptInput.focus(), 50);
+      const cleanup = value => { promptDialog.close(); resolve(value); };
+      document.getElementById('promptOkBtn').onclick = () => cleanup(promptInput.value.trim() || null);
+      document.getElementById('promptCancelBtn').onclick = () => cleanup(null);
+      promptInput.onkeydown = e => { if (e.key === 'Enter') cleanup(promptInput.value.trim() || null); };
+    });
+  }
+
+  const confirmDialog = document.getElementById('confirmDialog');
+  function showConfirm(title, message) {
+    return new Promise(resolve => {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message || '';
+      confirmDialog.showModal();
+      const cleanup = value => { confirmDialog.close(); resolve(value); };
+      document.getElementById('confirmOkBtn').onclick = () => cleanup(true);
+      document.getElementById('confirmCancelBtn').onclick = () => cleanup(false);
+    });
+  }
+  async function refreshSignInStatus() {
+    try {
+      const status = await api('/api/sign-in-status');
+      const fb = document.getElementById('fbSignInStatus');
+      const google = document.getElementById('googleSignInStatus');
+      fb.textContent = status.facebook ? '✓ Signed in' : 'Not signed in';
+      fb.classList.toggle('is-signed-in', status.facebook);
+      google.textContent = status.google ? '✓ Signed in' : 'Not signed in';
+      google.classList.toggle('is-signed-in', status.google);
+    } catch { /* status is best-effort */ }
+  }
+
+  document.getElementById('signInFacebookBtn').onclick = async () => {
+    await api('/api/sign-in', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'facebook' })
+    }).catch(err => notify(err.message, { sticky: false }));
+    setTimeout(refreshSignInStatus, 4000);
+  };
+  document.getElementById('signInGoogleBtn').onclick = async () => {
+    await api('/api/sign-in', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'google' })
+    }).catch(err => notify(err.message, { sticky: false }));
+    setTimeout(refreshSignInStatus, 4000);
+  };
 
   // ---------------- projects ----------------
   async function loadProjects() {
@@ -66,7 +115,8 @@
   }
 
   async function deleteProject(slug, displayName) {
-    if (!confirm(`Delete "${displayName}"? This removes its files permanently and can't be undone.`)) return;
+    const ok = await showConfirm(`Delete "${displayName}"?`, "This removes its files permanently and can't be undone.");
+    if (!ok) return;
     try {
       await api(`/api/projects/${slug}`, { method: 'DELETE' });
       if (state.current?.slug === slug) {
@@ -101,6 +151,8 @@
   function renderLiveActions() {
     const liveUrl = state.current?.liveUrl;
     el.deployBtn.textContent = liveUrl ? 'Update live site' : 'Make live';
+    el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live');
+    el.deployBtn.classList.add(liveUrl ? 'status-live' : 'status-not-live');
     el.copyLiveBtn.hidden = !liveUrl;
   }
 
@@ -139,20 +191,20 @@
   // ---------------- start screen (no project selected) ----------------
   function renderStartScreen() {
     el.editor.innerHTML = `
-      <div class="link-bar">
-        <input id="startLink" type="text" placeholder="Paste a Facebook or Google Maps link…">
-        <button id="startBuildBtn">Build website</button>
+      <div class="start-screen">
+        <div class="link-bar">
+          <input id="startLink" type="text" placeholder="Paste a Facebook or Google Maps link…">
+          <button id="startBuildBtn">Build website</button>
+        </div>
+        <div class="import-status" id="startStatus"></div>
+        <p class="start-alt">Or <a href="#" id="startBlankLink">start a blank site</a> and fill it in by hand.</p>
       </div>
-      <div class="import-status" id="startStatus"></div>
-      <p style="font-size:12px;color:var(--muted);margin-top:20px">
-        Or <a href="#" id="startBlankLink">start a blank site</a> and fill it in by hand.
-      </p>
     `;
     document.getElementById('startBuildBtn').onclick = runQuickImport;
     document.getElementById('startLink').onkeydown = e => { if (e.key === 'Enter') runQuickImport(); };
     document.getElementById('startBlankLink').onclick = async e => {
       e.preventDefault();
-      const name = prompt('Business name?');
+      const name = await showPrompt('New site', 'Business name');
       if (!name) return;
       const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
       await loadProjects();
@@ -189,6 +241,7 @@
 
   // ---------------- Builder editor ----------------
   function renderEditor() {
+    document.querySelector('.layout').classList.toggle('no-project', !state.current);
     if (!state.current) return renderStartScreen();
     const raw = state.current.raw || {};
     const profile = raw.businessProfile || {};
@@ -206,12 +259,10 @@
         <input id="f_name" value="${escapeAttr(raw.name || '')}"></div>
       <div class="field"><label>Category</label>
         <select id="f_category">${categoryOptions(raw.tagline)}</select></div>
-      <div class="field"><label>Location / area</label>
-        <input id="f_location" value="${escapeAttr(raw.location || '')}"></div>
       <div class="field"><label>Phone</label>
         <input id="f_phone" value="${escapeAttr(profile.phone || '')}"></div>
-      <div class="field"><label>Address</label>
-        <input id="f_address" value="${escapeAttr(profile.address || '')}"></div>
+      <div class="field"><label>Location / address</label>
+        <input id="f_location" value="${escapeAttr(profile.address || raw.location || '')}"></div>
       <div class="field"><label>About ${aiBadge('about')}</label>
         <textarea id="f_about">${escapeHtml(profile.about || '')}</textarea></div>
 
@@ -239,9 +290,11 @@
     document.getElementById('importBtn').onclick = runImport;
     document.getElementById('f_name').oninput = e => { setRaw({ name: e.target.value }); schedulePreview(); };
     document.getElementById('f_category').onchange = e => { setRaw({ tagline: e.target.value }); schedulePreview(); };
-    document.getElementById('f_location').oninput = e => { setRaw({ location: e.target.value }); schedulePreview(); };
     document.getElementById('f_phone').oninput = e => { setRaw({ businessProfile: { ...profile, phone: e.target.value } }); schedulePreview(); };
-    document.getElementById('f_address').oninput = e => { setRaw({ businessProfile: { ...profile, address: e.target.value } }); schedulePreview(); };
+    document.getElementById('f_location').oninput = e => {
+      setRaw({ location: e.target.value, businessProfile: { ...profile, address: e.target.value } });
+      schedulePreview();
+    };
     document.getElementById('f_about').oninput = e => { setRaw({ businessProfile: { ...profile, about: e.target.value } }); schedulePreview(); };
     document.getElementById('templateGrid').addEventListener('change', e => {
       setRaw({ layout: e.target.value });
@@ -486,7 +539,7 @@
   function escapeAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
 
   el.newProjectBtn.onclick = async () => {
-    const name = prompt('Business name?');
+    const name = await showPrompt('New site', 'Business name');
     if (!name) return;
     const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
     await loadProjects();
@@ -518,6 +571,8 @@
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
     el.deployBtn.disabled = true;
     el.deployBtn.textContent = 'Deploying…';
+    el.deployBtn.classList.remove('status-not-live', 'status-live');
+    el.deployBtn.classList.add('status-deploying');
     try {
       const result = await api(`/api/projects/${state.current.slug}/deploy`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html: el.preview.dataset.lastHtml })

@@ -182,6 +182,11 @@ function createApp() {
     res.json({ ok: true });
   });
 
+  app.get('/api/sign-in-status', async (req, res) => {
+    if (!browserFetch.isElectronMain()) return res.json({ facebook: false, google: false });
+    res.json(await browserFetch.signInStatus());
+  });
+
   app.post('/api/import', async (req, res) => {
     const url = String(req.body?.url || '').trim();
     const url2 = String(req.body?.url2 || '').trim();

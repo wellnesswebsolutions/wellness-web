@@ -21,7 +21,7 @@
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <div id="projectList"></div>
-      <button class="new-project" id="newProjectBtn">+ Blank site</button>
+      <button class="new-project" id="newProjectBtn">Add+</button>
     </aside>
 
     <section class="editor" id="editor">
@@ -44,12 +44,34 @@
 <dialog id="settingsDialog">
   <h3>Settings</h3>
   <p class="dim">Import reads pages using a real browser window inside the app — no API key needed. Signing in below gets it much more (photos, about text, reviews) than a logged-out view can see, since Facebook/Google show far less to visitors who aren't signed in. The sign-in stays saved in the app between imports.</p>
-  <div style="display:flex;gap:8px;margin-top:12px">
-    <button id="signInFacebookBtn" style="flex:1">Sign in to Facebook</button>
-    <button id="signInGoogleBtn" style="flex:1">Sign in to Google</button>
+  <div class="signin-row">
+    <button id="signInFacebookBtn">Sign in to Facebook</button>
+    <span class="signin-status" id="fbSignInStatus"></span>
+  </div>
+  <div class="signin-row">
+    <button id="signInGoogleBtn">Sign in to Google</button>
+    <span class="signin-status" id="googleSignInStatus"></span>
   </div>
   <p class="dim" style="margin-top:14px">Natural-language editing uses your local Claude Code sign-in automatically.</p>
   <button id="closeSettingsBtn">Close</button>
+</dialog>
+
+<dialog id="promptDialog">
+  <h3 id="promptTitle">New site</h3>
+  <input type="text" id="promptInput" placeholder="Business name">
+  <div class="dialog-actions">
+    <button id="promptCancelBtn" class="ghost">Cancel</button>
+    <button id="promptOkBtn" class="primary">Create</button>
+  </div>
+</dialog>
+
+<dialog id="confirmDialog">
+  <h3 id="confirmTitle">Are you sure?</h3>
+  <p class="dim" id="confirmMessage"></p>
+  <div class="dialog-actions">
+    <button id="confirmCancelBtn" class="ghost">Cancel</button>
+    <button id="confirmOkBtn" class="danger">Delete</button>
+  </div>
 </dialog>
 
 <!-- Shared, deterministic site generator — the same code that runs on

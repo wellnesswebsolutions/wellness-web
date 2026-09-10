@@ -76,4 +76,17 @@ function openSignInWindow(url) {
   return win;
 }
 
-module.exports = { isElectronMain, renderPage, openSignInWindow, SESSION_PARTITION };
+// Checks the persistent session's cookies for each platform's own
+// logged-in-user cookie, so Settings can show whether a prior sign-in
+// actually took (rather than just assuming it did once the window closed).
+async function signInStatus() {
+  const { session } = require('electron');
+  const sess = session.fromPartition(SESSION_PARTITION);
+  const [fbCookies, googleCookies] = await Promise.all([
+    sess.cookies.get({ domain: 'facebook.com', name: 'c_user' }),
+    sess.cookies.get({ domain: 'google.com', name: 'SAPISID' })
+  ]);
+  return { facebook: fbCookies.length > 0, google: googleCookies.length > 0 };
+}
+
+module.exports = { isElectronMain, renderPage, openSignInWindow, signInStatus, SESSION_PARTITION };
