@@ -29,6 +29,7 @@ alter table businesses enable row level security;
 create policy "anon read" on businesses for select using (true);
 create policy "anon write" on businesses for insert with check (true);
 create policy "anon update" on businesses for update using (true);
+create policy "anon delete" on businesses for delete using (true);
 
 -- ---------------- project media (logo / hero / gallery) ----------------
 insert into storage.buckets (id, name, public)
@@ -40,6 +41,8 @@ create policy "anon read media" on storage.objects for select
 create policy "anon upload media" on storage.objects for insert
   with check (bucket_id = 'business-media');
 create policy "anon update media" on storage.objects for update
+  using (bucket_id = 'business-media');
+create policy "anon delete media" on storage.objects for delete
   using (bucket_id = 'business-media');
 
 -- ---------------- after running this ----------------

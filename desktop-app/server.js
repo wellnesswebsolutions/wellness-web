@@ -72,6 +72,7 @@ function createApp() {
   app.delete('/api/projects/:slug', (req, res) => {
     try {
       storage.deleteProject(req.params.slug);
+      sync.deleteOne(req.params.slug);
       res.json({ ok: true });
     } catch (err) {
       res.status(404).json({ error: err.message });

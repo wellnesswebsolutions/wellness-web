@@ -26,7 +26,7 @@ header.topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px;
+  padding: 4px 18px;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
   font-weight: 600;
@@ -60,6 +60,7 @@ header.topbar button.gear {
 header.topbar button.gear:hover { background: var(--accent-tint); }
 
 .sync-status {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -68,7 +69,31 @@ header.topbar button.gear:hover { background: var(--accent-tint); }
   padding: 5px 10px;
   border-radius: 20px;
   background: #f1efe9;
+  cursor: default;
 }
+.sync-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 200px;
+  max-width: 280px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(23,24,26,0.25);
+  white-space: normal;
+  word-break: break-all;
+}
+.sync-status:hover .sync-tooltip { display: flex; }
+.sync-tooltip-label { color: #9aa0a8; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; }
 .sync-status[hidden] { display: none; }
 .sync-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
 .sync-status.is-synced i { background: #1f9d55; }
@@ -420,11 +445,16 @@ dialog button.danger:hover { background: #c93a35; }
 
 .close-x {
   width: 34px;
+  height: 34px;
   padding: 0 !important;
   font-size: 16px !important;
-  color: var(--muted) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.close-x:hover { background: #f3e3e2 !important; border-color: #e0453f !important; color: #c93a35 !important; }
+.close-x:hover { background: var(--accent-tint) !important; }
 
 /* Deploy button: red = not live, amber = deploying/needs updating, green = live-and-current */
 .preview-actions button.primary {

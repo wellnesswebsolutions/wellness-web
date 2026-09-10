@@ -17,6 +17,7 @@
     notice: document.getElementById('noticeStrip'),
     syncStatus: document.getElementById('syncStatus'),
     syncStatusText: document.getElementById('syncStatusText'),
+    syncTooltipUrl: document.getElementById('syncTooltipUrl'),
     gearBtn: document.getElementById('gearBtn'),
     settingsDialog: document.getElementById('settingsDialog'),
     closeSettingsBtn: document.getElementById('closeSettingsBtn')
@@ -40,6 +41,7 @@
       el.syncStatus.hidden = false;
       el.syncStatus.className = `sync-status is-${s.state}`;
       el.syncStatusText.textContent = SYNC_LABELS[s.state] || s.state;
+      el.syncTooltipUrl.textContent = s.projectUrl || '';
     } catch { /* status is best-effort, never block the app on it */ }
   }
   refreshSyncStatus();

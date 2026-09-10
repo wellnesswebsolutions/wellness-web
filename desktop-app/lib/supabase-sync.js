@@ -47,13 +47,17 @@ function setStatus(state, err) {
 }
 
 function getStatus() {
-  return { ...status };
+  // projectUrl is safe to expose to the renderer (it's shown in a small
+  // "what am I connected to" tooltip) — it's a public-facing hostname,
+  // never the anon key itself.
+  return { ...status, projectUrl: enabled() ? config().url : null };
 }
 
 // Projects whose last push failed while offline — retried the next time
 // something proves connectivity is back (a successful pull, or the next
 // app launch), per "retain local changes and retry" requirement.
 const pendingPushes = new Set();
+const pendingDeletes = new Set();
 
 async function pullAll() {
   if (!enabled()) return [];
@@ -117,15 +121,35 @@ async function pushOne(project) {
   }
 }
 
+async function deleteOne(slug) {
+  if (!enabled() || !slug) return;
+  try {
+    const { url } = config();
+    const res = await fetch(`${url}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(slug)}`, {
+      method: 'DELETE',
+      headers: headers()
+    });
+    if (!res.ok) throw new Error(`Sync delete failed: ${res.status}`);
+    pendingDeletes.delete(slug);
+  } catch (err) {
+    pendingDeletes.add(slug);
+    console.error('[supabase-sync] delete failed, will retry:', err.message);
+  }
+}
+
 // Call after anything that proves connectivity is back (a successful
 // pullAll, or on a timer) to retry pushes that failed while offline.
 async function flushPending(readProjectFn) {
-  if (!enabled() || !pendingPushes.size) return;
-  const slugs = [...pendingPushes];
-  for (const slug of slugs) {
-    const project = readProjectFn(slug);
-    if (project) await pushOne(project);
-    else pendingPushes.delete(slug); // project was deleted locally in the meantime
+  if (!enabled()) return;
+  if (pendingPushes.size) {
+    for (const slug of [...pendingPushes]) {
+      const project = readProjectFn(slug);
+      if (project) await pushOne(project);
+      else pendingPushes.delete(slug); // project was deleted locally in the meantime
+    }
+  }
+  if (pendingDeletes.size) {
+    for (const slug of [...pendingDeletes]) await deleteOne(slug);
   }
 }
 
@@ -159,12 +183,31 @@ async function downloadMedia(slug, relPath) {
   try {
     const { url } = config();
     const objectPath = `${slug}/${relPath}`;
-    const res = await fetch(`${url}/storage/v1/object/public/${BUCKET}/${objectPath}`);
+    // The bucket is public (so a plain URL can be handed to a browser if
+    // ever needed), but this app always downloads server-side with its
+    // own key — use the authenticated object endpoint (no /public/
+    // segment) rather than the public one, which sits behind a CDN cache
+    // that can keep serving deleted content for a while after a real
+    // delete has already succeeded (confirmed directly: the public URL
+    // kept returning 200 with the old bytes after the object was gone;
+    // this endpoint correctly 400s immediately).
+    const res = await fetch(`${url}/storage/v1/object/${BUCKET}/${objectPath}`, { headers: headers() });
     if (!res.ok) return null;
     return Buffer.from(await res.arrayBuffer());
   } catch (err) {
     console.error('[supabase-sync] media download failed:', err.message);
     return null;
+  }
+}
+
+async function deleteMedia(slug, relPath) {
+  if (!enabled()) return;
+  try {
+    const { url } = config();
+    const res = await fetch(`${url}/storage/v1/object/${BUCKET}/${slug}/${relPath}`, { method: 'DELETE', headers: headers() });
+    if (!res.ok && res.status !== 404) throw new Error(`Media delete failed: ${res.status}`);
+  } catch (err) {
+    console.error('[supabase-sync] media delete failed:', err.message);
   }
 }
 
@@ -186,6 +229,6 @@ async function syncMediaForProject(projectDir, data) {
 }
 
 module.exports = {
-  enabled, pullAll, pushOne, flushPending, getStatus,
-  uploadMedia, downloadMedia, syncMediaForProject
+  enabled, pullAll, pushOne, deleteOne, flushPending, getStatus,
+  uploadMedia, downloadMedia, deleteMedia, syncMediaForProject
 };

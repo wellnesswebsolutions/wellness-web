@@ -62,12 +62,20 @@ async function main() {
 
     console.log('[sync-smoke] PASS — project + media round-trip both work end-to-end.');
   } finally {
-    // Clean up so no test data is left in the shared project.
-    const { url, key } = { url: process.env.SUPABASE_URL, key: process.env.SUPABASE_ANON_KEY };
-    const headers = { apikey: key, Authorization: `Bearer ${key}` };
-    await fetch(`${url}/rest/v1/businesses?id=eq.${testSlug}`, { method: 'DELETE', headers }).catch(() => {});
-    await fetch(`${url}/storage/v1/object/business-media/${testSlug}/img/hero.jpg`, { method: 'DELETE', headers }).catch(() => {});
-    console.log('[sync-smoke] Cleaned up test row + test media.');
+    // Clean up so no test data is left in the shared project. Uses the
+    // module's own delete functions (not a raw fetch against env vars
+    // that may not be set when using shared-config.js) and verifies they
+    // actually worked, rather than swallowing failures silently — that
+    // exact silent-failure pattern is what let a stray test row leak into
+    // the real shared project once, undetected, until it showed up on a
+    // real install.
+    await sync.deleteOne(testSlug);
+    await sync.deleteMedia(testSlug, 'img/hero.jpg');
+    const rowsAfter = await sync.pullAll();
+    assert.ok(!rowsAfter.find(r => r.id === testSlug), 'cleanup must actually remove the test row, not just attempt to');
+    const mediaAfter = await sync.downloadMedia(testSlug, 'img/hero.jpg');
+    assert.strictEqual(mediaAfter, null, 'cleanup must actually remove the test media, not just attempt to');
+    console.log('[sync-smoke] Cleaned up test row + test media (verified gone).');
   }
 }
 
