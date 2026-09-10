@@ -1,15 +1,19 @@
 (() => {
-  const state = { projects: [], current: null, found: {} };
+  const state = { projects: [], current: null, found: {}, dirty: false, sort: 'newest', viewport: 'desktop', appFullscreen: false };
 
   const el = {
     projectList: document.getElementById('projectList'),
     newProjectBtn: document.getElementById('newProjectBtn'),
+    sortSelect: document.getElementById('sortSelect'),
     editor: document.getElementById('editor'),
     preview: document.getElementById('preview'),
+    previewFrameWrap: document.getElementById('previewFrameWrap'),
+    viewportToggle: document.getElementById('viewportToggle'),
     fullscreenBtn: document.getElementById('fullscreenBtn'),
     exportBtn: document.getElementById('exportBtn'),
     deployBtn: document.getElementById('deployBtn'),
     copyLiveBtn: document.getElementById('copyLiveBtn'),
+    closePreviewBtn: document.getElementById('closePreviewBtn'),
     notice: document.getElementById('noticeStrip'),
     gearBtn: document.getElementById('gearBtn'),
     settingsDialog: document.getElementById('settingsDialog'),
@@ -95,9 +99,21 @@
     renderSidebar();
   }
 
+  function sortedProjects() {
+    const list = state.projects.slice();
+    if (state.sort === 'name') {
+      list.sort((a, b) => (a.raw?.name || a.name || '').localeCompare(b.raw?.name || b.name || ''));
+    } else if (state.sort === 'oldest') {
+      list.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+    } else {
+      list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    }
+    return list;
+  }
+
   function renderSidebar() {
     el.projectList.innerHTML = '';
-    state.projects.forEach(p => {
+    sortedProjects().forEach(p => {
       const row = document.createElement('div');
       row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
       const name = document.createElement('span');
@@ -109,10 +125,16 @@
       del.textContent = '✕';
       del.onclick = e => { e.stopPropagation(); deleteProject(p.slug, name.textContent); };
       row.append(name, del);
-      row.onclick = () => selectProject(p.slug);
+      // Clicking the already-open site again closes it back to the start screen.
+      row.onclick = () => {
+        if (state.current?.slug === p.slug) closeCurrentProject();
+        else selectProject(p.slug);
+      };
       el.projectList.appendChild(row);
     });
   }
+
+  el.sortSelect.onchange = () => { state.sort = el.sortSelect.value; renderSidebar(); };
 
   async function deleteProject(slug, displayName) {
     const ok = await showConfirm(`Delete "${displayName}"?`, "This removes its files permanently and can't be undone.");
@@ -137,6 +159,7 @@
   async function selectProject(slug) {
     state.current = await api(`/api/projects/${slug}`);
     state.found = {};
+    state.dirty = false;
     if (state.current.importImages?.length) state.found.hero = state.current.importImages[0];
     renderSidebar();
     renderEditor();
@@ -144,25 +167,40 @@
     renderLiveActions();
   }
 
-  // Shows a small "copy live link" button and switches the deploy button's
-  // label once a site has a live URL — the button itself always still
-  // triggers a fresh deploy (pushing edits live), it just relabels to make
-  // clear there's already a live version to update.
+  function closeCurrentProject() {
+    state.current = null;
+    state.found = {};
+    state.dirty = false;
+    renderSidebar();
+    renderEditor();
+    el.preview.srcdoc = '';
+    delete el.preview.dataset.lastHtml;
+    renderLiveActions();
+  }
+
+  // Shows a "copy site URL" button and switches the deploy button's label/
+  // colour once a site has a live URL — the button itself always still
+  // triggers a fresh deploy (pushing edits live). Colour is a simple
+  // traffic light: red = never deployed, amber = live but edited since
+  // (needs updating), green = live and matches what's currently shown.
   function renderLiveActions() {
     const liveUrl = state.current?.liveUrl;
+    const needsUpdate = Boolean(liveUrl) && state.dirty;
     el.deployBtn.textContent = liveUrl ? 'Update live site' : 'Make live';
-    el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live');
-    el.deployBtn.classList.add(liveUrl ? 'status-live' : 'status-not-live');
+    el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live', 'status-needs-update');
+    el.deployBtn.classList.add(!liveUrl ? 'status-not-live' : needsUpdate ? 'status-needs-update' : 'status-live');
     el.copyLiveBtn.hidden = !liveUrl;
   }
 
   async function persist() {
     if (!state.current) return;
+    state.dirty = true;
     state.current = await api(`/api/projects/${state.current.slug}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(state.current)
     });
+    renderLiveActions();
     loadProjects();
   }
 
@@ -181,11 +219,9 @@
   }
 
   function templateOptions(selected) {
-    return DEMO_LAYOUTS.map(t => `
-      <label class="${t.id === selected ? 'selected' : ''}">
-        <input type="radio" name="layout" value="${t.id}" ${t.id === selected ? 'checked' : ''}>
-        ${t.name}
-      </label>`).join('');
+    return DEMO_LAYOUTS.map(t =>
+      `<option value="${t.id}" ${t.id === selected ? 'selected' : ''}>${t.name}</option>`
+    ).join('');
   }
 
   // ---------------- start screen (no project selected) ----------------
@@ -247,39 +283,48 @@
     const profile = raw.businessProfile || {};
 
     el.editor.innerHTML = `
-      <h2>Import</h2>
-      <div class="link-bar">
+      <div class="link-bar compact">
         <input id="f_link" type="text" placeholder="Paste a Facebook or Google Maps link…" value="${escapeAttr(state.current.lastImportUrl || state.current.contact?.facebookUrl || profile.mapsUrl || '')}">
         <button id="importBtn">Re-fetch</button>
       </div>
       <div class="import-status" id="importStatus"></div>
 
-      <h2>Business</h2>
-      <div class="field"><label>Name</label>
-        <input id="f_name" value="${escapeAttr(raw.name || '')}"></div>
-      <div class="field"><label>Category</label>
-        <select id="f_category">${categoryOptions(raw.tagline)}</select></div>
-      <div class="field"><label>Phone</label>
-        <input id="f_phone" value="${escapeAttr(profile.phone || '')}"></div>
+      <div class="form-grid">
+        <div class="field"><label>Name</label>
+          <input id="f_name" value="${escapeAttr(raw.name || '')}"></div>
+        <div class="field"><label>Category</label>
+          <select id="f_category">${categoryOptions(raw.tagline)}</select></div>
+      </div>
+      <div class="phone-row">
+        <div class="field"><label>Phone</label>
+          <input id="f_phone" value="${escapeAttr(profile.phone || '')}"></div>
+        <div class="field"><label>Email</label>
+          <input id="f_email" type="email" value="${escapeAttr(state.current.contact?.email || '')}"></div>
+        <button id="whatsappBtn" class="whatsapp-btn" title="Open WhatsApp chat with this number" aria-label="Open WhatsApp">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.6.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.3 0-.5s-.6-1.5-.9-2c-.2-.5-.5-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.6.2-1.2.2-1.3-.1-.2-.3-.2-.6-.4z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        </button>
+      </div>
       <div class="field"><label>Location / address</label>
         <input id="f_location" value="${escapeAttr(profile.address || raw.location || '')}"></div>
       <div class="field"><label>About ${aiBadge('about')}</label>
         <textarea id="f_about">${escapeHtml(profile.about || '')}</textarea></div>
 
-      <h2>Media</h2>
-      <div class="media-row">
+      <div class="media-row-3">
         ${mediaSlot('logo', 'Logo')}
         ${mediaSlot('hero', 'Hero image')}
+        <div class="media-slot" data-slot="gallery">
+          <label>Gallery</label>
+          <div class="gallery-grid" id="galleryGrid">${galleryThumbs()}</div>
+          <div class="actions"><button id="galleryUploadBtn">+ Add</button></div>
+          <input type="file" id="galleryUpload" accept="image/*" multiple hidden>
+        </div>
       </div>
-      <div class="field"><label>Gallery</label></div>
-      <div class="gallery-grid" id="galleryGrid">${galleryThumbs()}</div>
-      <input type="file" id="galleryUpload" accept="image/*" multiple style="font-size:12px">
 
-      <h2>Template</h2>
-      <div class="template-grid" id="templateGrid">${templateOptions(raw.layout)}</div>
+      <div class="field"><label>Template</label>
+        <select id="templateGrid">${templateOptions(raw.layout)}</select></div>
 
-      <h2>Edit with AI</h2>
       <div class="ai-edit-box">
+        <label>Edit with AI</label>
         <textarea id="aiInstruction" placeholder="e.g. Make the about section warmer and mention it's family-run"></textarea>
         <button id="aiEditBtn">Apply edit</button>
         <div class="ai-edit-status" id="aiEditStatus"></div>
@@ -291,19 +336,22 @@
     document.getElementById('f_name').oninput = e => { setRaw({ name: e.target.value }); schedulePreview(); };
     document.getElementById('f_category').onchange = e => { setRaw({ tagline: e.target.value }); schedulePreview(); };
     document.getElementById('f_phone').oninput = e => { setRaw({ businessProfile: { ...profile, phone: e.target.value } }); schedulePreview(); };
+    document.getElementById('f_email').oninput = e => {
+      state.current.contact = { ...(state.current.contact || {}), email: e.target.value };
+      persist();
+    };
+    document.getElementById('whatsappBtn').onclick = () => openWhatsApp(document.getElementById('f_phone').value);
     document.getElementById('f_location').oninput = e => {
       setRaw({ location: e.target.value, businessProfile: { ...profile, address: e.target.value } });
       schedulePreview();
     };
     document.getElementById('f_about').oninput = e => { setRaw({ businessProfile: { ...profile, about: e.target.value } }); schedulePreview(); };
-    document.getElementById('templateGrid').addEventListener('change', e => {
-      setRaw({ layout: e.target.value });
-      document.querySelectorAll('#templateGrid label').forEach(l => l.classList.toggle('selected', l.querySelector('input').checked));
-      schedulePreview();
-    });
+    document.getElementById('templateGrid').onchange = e => { setRaw({ layout: e.target.value }); schedulePreview(); };
+    document.getElementById('galleryUploadBtn').onclick = () => document.getElementById('galleryUpload').click();
     document.getElementById('galleryUpload').addEventListener('change', e => uploadGallery(e.target.files));
     document.getElementById('aiEditBtn').onclick = runAiEdit;
     document.querySelectorAll('.edit-log .undo').forEach(btn => (btn.onclick = () => undoEdit(Number(btn.dataset.i))));
+    document.querySelectorAll('.gallery-grid .thumb-remove').forEach(btn => (btn.onclick = () => removeGalleryItem(Number(btn.dataset.i))));
     wireMediaSlot('logo');
     wireMediaSlot('hero');
   }
@@ -329,9 +377,11 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction })
       });
       state.current = updated;
+      state.dirty = true;
       status.textContent = 'Edit applied — you can undo it below if it\'s not right.';
       renderEditor();
       renderPreview();
+      renderLiveActions();
     } catch (err) {
       status.textContent = err.message.includes('not found')
         ? 'Claude Code isn\'t available on this Mac right now — the rest of the app still works fine.'
@@ -366,15 +416,15 @@
     const thumbStyle = path ? `style="background-image:url('/projects/${state.current.slug}/${path}')"` : '';
     const found = state.found[slot];
     const autoHeroHint = slot === 'hero' && !path
-      ? `<div style="font-size:10px;color:var(--muted);margin-top:4px">Auto: ${raw.logoImage ? 'your logo' : 'name'} on a 3D scene — see preview</div>`
+      ? `<div class="auto-hint">Auto: ${raw.logoImage ? 'your logo' : 'name'} on a 3D scene</div>`
       : '';
     return `
       <div class="media-slot" data-slot="${slot}">
         <label>${label}</label>
-        <div class="thumb" ${thumbStyle}></div>
+        <div class="thumb" ${thumbStyle}>${path ? `<button class="thumb-remove" data-action="remove" title="Remove">✕</button>` : ''}</div>
         ${autoHeroHint}
         <div class="actions">
-          <button data-action="upload">Upload</button>
+          <button data-action="upload">${path ? 'Replace' : 'Upload'}</button>
           ${found ? `<button data-action="use-found" class="found">Use found</button>` : ''}
         </div>
         <input type="file" accept="image/*" style="display:none">
@@ -383,8 +433,8 @@
 
   function galleryThumbs() {
     const gallery = state.current.raw?.gallery || [];
-    return gallery.map(g => `<div class="thumb" style="background-image:url('/projects/${state.current.slug}/${g}')"></div>`).join('')
-      || '<span style="font-size:12px;color:#8a8d93">No gallery images yet.</span>';
+    return gallery.map((g, i) => `<div class="thumb" style="background-image:url('/projects/${state.current.slug}/${g}')"><button class="thumb-remove" data-i="${i}" title="Remove">✕</button></div>`).join('')
+      || '<span class="gallery-empty">No gallery images yet.</span>';
   }
 
   function wireMediaSlot(slot) {
@@ -395,6 +445,23 @@
     fileInput.onchange = () => uploadMedia(slot, fileInput.files[0]);
     const useFound = wrap.querySelector('[data-action="use-found"]');
     if (useFound) useFound.onclick = () => useFoundImage(slot);
+    const remove = wrap.querySelector('[data-action="remove"]');
+    if (remove) remove.onclick = e => { e.stopPropagation(); removeMedia(slot); };
+  }
+
+  async function removeMedia(slot) {
+    setRaw({ [slot === 'logo' ? 'logoImage' : 'heroImage']: '' });
+    await persist();
+    renderEditor();
+    schedulePreview();
+  }
+
+  async function removeGalleryItem(index) {
+    const gallery = (state.current.raw.gallery || []).filter((_, i) => i !== index);
+    setRaw({ gallery });
+    await persist();
+    renderEditor();
+    schedulePreview();
   }
 
   async function uploadMedia(slot, file) {
@@ -535,8 +602,63 @@
     }
   }
 
+  // The preview iframe always renders at a real desktop (or mobile) pixel
+  // width — same as a real visitor would see — then gets scaled down to
+  // fit the pane. Without this, a narrow pane would trigger the generated
+  // site's own mobile CSS breakpoint regardless of which view you picked,
+  // since an iframe's viewport is simply however wide it's laid out.
+  const DEVICE_WIDTHS = { desktop: 1440, mobile: 390 };
+  el.preview.onload = () => {
+    let contentHeight = 900;
+    try { contentHeight = el.preview.contentDocument.documentElement.scrollHeight || 900; } catch { /* cross-origin — won't happen for srcdoc */ }
+    el.preview.dataset.contentHeight = contentHeight;
+    fitPreviewFrame();
+  };
+
+  function fitPreviewFrame() {
+    if (!el.preview.dataset.lastHtml) return;
+    const deviceWidth = DEVICE_WIDTHS[state.viewport] || DEVICE_WIDTHS.desktop;
+    const contentHeight = Number(el.preview.dataset.contentHeight) || 900;
+    const wrapWidth = el.previewFrameWrap.clientWidth - 32;
+    const scale = Math.max(0.2, Math.min(1, wrapWidth / deviceWidth));
+    el.preview.style.width = `${deviceWidth}px`;
+    el.preview.style.height = `${contentHeight}px`;
+    el.preview.style.transform = `scale(${scale})`;
+    const box = document.getElementById('previewScaleBox');
+    box.style.width = `${deviceWidth * scale}px`;
+    box.style.height = `${contentHeight * scale}px`;
+  }
+
   function escapeHtml(s) { return String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
   function escapeAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
+
+  // UK-first phone → WhatsApp international format: a local "07…" number
+  // becomes "447…" (WhatsApp's click-to-chat API needs digits only, no
+  // leading +, no spaces) — numbers already in +44/44/other-country form
+  // are left as they are, just stripped of formatting.
+  function toWhatsAppNumber(phone) {
+    const digits = String(phone || '').replace(/[^\d+]/g, '');
+    if (!digits) return '';
+    if (digits.startsWith('+')) return digits.slice(1);
+    if (digits.startsWith('0')) return '44' + digits.slice(1);
+    return digits;
+  }
+
+  function openWhatsApp(phone) {
+    const number = toWhatsAppNumber(phone);
+    if (!number) return notify('Add a phone number first.', { sticky: false });
+    openExternal(`https://wa.me/${number}`);
+  }
+
+  // Electron's renderer blocks window.open() for new windows by default
+  // (no window-open handler configured), so external links are opened via
+  // the main process's shell.openExternal instead — same real system
+  // browser a person would expect.
+  function openExternal(url) {
+    api('/api/open-external', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
+    }).catch(err => notify(err.message, { sticky: false }));
+  }
 
   el.newProjectBtn.onclick = async () => {
     const name = await showPrompt('New site', 'Business name');
@@ -545,10 +667,28 @@
     await loadProjects();
     await selectProject(project.slug);
   };
+  // "Full screen" expands the preview to fill the app window itself
+  // (hiding the sidebar/editor) rather than taking over the whole Mac
+  // display — a real OS-level fullscreen felt jarring for a quick preview.
   el.fullscreenBtn.onclick = () => {
     if (!el.preview.dataset.lastHtml) return;
-    el.preview.requestFullscreen().catch(() => notify('Full screen isn\'t available right now.', { sticky: false }));
+    state.appFullscreen = !state.appFullscreen;
+    document.querySelector('.layout').classList.toggle('preview-fullscreen', state.appFullscreen);
+    el.fullscreenBtn.textContent = state.appFullscreen ? 'Exit full screen ⤢' : 'Full screen ⤢';
+    fitPreviewFrame();
   };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && state.appFullscreen) el.fullscreenBtn.onclick();
+  });
+  el.closePreviewBtn.onclick = () => closeCurrentProject();
+  el.viewportToggle.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-viewport]');
+    if (!btn) return;
+    state.viewport = btn.dataset.viewport;
+    el.viewportToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    fitPreviewFrame();
+  });
+  window.addEventListener('resize', fitPreviewFrame);
   el.exportBtn.onclick = async () => {
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to export yet.');
     const result = await api(`/api/projects/${state.current.slug}/export`, {
@@ -571,13 +711,14 @@
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
     el.deployBtn.disabled = true;
     el.deployBtn.textContent = 'Deploying…';
-    el.deployBtn.classList.remove('status-not-live', 'status-live');
+    el.deployBtn.classList.remove('status-not-live', 'status-live', 'status-needs-update');
     el.deployBtn.classList.add('status-deploying');
     try {
       const result = await api(`/api/projects/${state.current.slug}/deploy`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html: el.preview.dataset.lastHtml })
       });
       state.current.liveUrl = result.url;
+      state.dirty = false;
       try { await navigator.clipboard.writeText(result.url); } catch { /* clipboard may be unavailable */ }
       notify(`Live at ${result.url} (copied to clipboard).`, { sticky: true });
     } catch (err) {

@@ -187,6 +187,18 @@ function createApp() {
     res.json(await browserFetch.signInStatus());
   });
 
+  // Renderer-side window.open() is blocked by default in Electron (no
+  // window-open handler configured), so links like a WhatsApp click-to-chat
+  // URL are opened via the main process's shell.openExternal instead —
+  // opens in the user's real default browser, same as clicking a link
+  // normally would.
+  app.post('/api/open-external', (req, res) => {
+    const url = String(req.body?.url || '');
+    if (!/^https:\/\//.test(url)) return res.status(400).json({ error: 'Only https:// links can be opened' });
+    if (browserFetch.isElectronMain()) require('electron').shell.openExternal(url);
+    res.json({ ok: true });
+  });
+
   app.post('/api/import', async (req, res) => {
     const url = String(req.body?.url || '').trim();
     const url2 = String(req.body?.url2 || '').trim();

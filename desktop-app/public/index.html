@@ -20,8 +20,16 @@
 <div class="view" id="builderView">
   <div class="layout">
     <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <h2>Businesses</h2>
+        <button class="add-icon" id="newProjectBtn" title="Add a business">+</button>
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="name">Name A–Z</option>
+      </select>
       <div id="projectList"></div>
-      <button class="new-project" id="newProjectBtn">Add+</button>
     </aside>
 
     <section class="editor" id="editor">
@@ -29,13 +37,20 @@
 
     <section class="preview-pane">
       <div class="preview-actions">
+        <div class="viewport-toggle" id="viewportToggle">
+          <button data-viewport="desktop" class="active">Desktop</button>
+          <button data-viewport="mobile">Mobile</button>
+        </div>
         <button id="fullscreenBtn">Full screen ⤢</button>
         <button id="exportBtn">Export folder</button>
-        <button id="copyLiveBtn" class="icon-action" title="Copy live website link" aria-label="Copy live website link" hidden>⧉</button>
+        <button id="copyLiveBtn" hidden>Copy site URL</button>
         <button id="deployBtn" class="primary">Make live</button>
+        <button id="closePreviewBtn" class="close-x" title="Close this site">✕</button>
       </div>
-      <div class="preview-frame-wrap">
-        <iframe id="preview" allowfullscreen allow="fullscreen"></iframe>
+      <div class="preview-frame-wrap" id="previewFrameWrap">
+        <div class="preview-scale-box" id="previewScaleBox">
+          <iframe id="preview"></iframe>
+        </div>
       </div>
     </section>
   </div>
