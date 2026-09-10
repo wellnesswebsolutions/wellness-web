@@ -97,6 +97,13 @@ function upsertProject(slug, data) {
   fs.writeFileSync(path.join(dir, 'data.json'), JSON.stringify({ ...data, slug }, null, 2));
 }
 
+function deleteProject(slug) {
+  if (!slug || /[./\\]/.test(slug)) throw new Error('Invalid project');
+  const dir = projectDir(slug);
+  if (!fs.existsSync(dir)) throw new Error('Project not found');
+  fs.rmSync(dir, { recursive: true, force: true });
+}
+
 function mediaDir(slug, slot) {
   const dir = slot === 'gallery'
     ? path.join(projectDir(slug), 'img', 'gallery')
@@ -105,4 +112,4 @@ function mediaDir(slug, slot) {
   return dir;
 }
 
-module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, upsertProject, mediaDir, PIPELINE_STAGES };
+module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, upsertProject, deleteProject, mediaDir, PIPELINE_STAGES };

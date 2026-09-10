@@ -50,10 +50,36 @@
     state.projects.forEach(p => {
       const row = document.createElement('div');
       row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
-      row.textContent = p.raw?.name || p.name || p.slug;
+      const name = document.createElement('span');
+      name.className = 'project-name';
+      name.textContent = p.raw?.name || p.name || p.slug;
+      const del = document.createElement('button');
+      del.className = 'project-delete';
+      del.title = 'Delete this site';
+      del.textContent = '✕';
+      del.onclick = e => { e.stopPropagation(); deleteProject(p.slug, name.textContent); };
+      row.append(name, del);
       row.onclick = () => selectProject(p.slug);
       el.projectList.appendChild(row);
     });
+  }
+
+  async function deleteProject(slug, displayName) {
+    if (!confirm(`Delete "${displayName}"? This removes its files permanently and can't be undone.`)) return;
+    try {
+      await api(`/api/projects/${slug}`, { method: 'DELETE' });
+      if (state.current?.slug === slug) {
+        state.current = null;
+        state.found = {};
+      }
+      await loadProjects();
+      renderEditor();
+      renderPreview();
+      el.preview.srcdoc = state.current ? el.preview.srcdoc : '';
+      notify(`Deleted "${displayName}".`);
+    } catch (err) {
+      notify(err.message, { sticky: false });
+    }
   }
 
   async function selectProject(slug) {

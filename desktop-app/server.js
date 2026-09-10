@@ -62,6 +62,15 @@ function createApp() {
     }
   });
 
+  app.delete('/api/projects/:slug', (req, res) => {
+    try {
+      storage.deleteProject(req.params.slug);
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(404).json({ error: err.message });
+    }
+  });
+
   // Natural-language edit, run through the user's local Claude Code CLI —
   // see lib/ai-edit.js for why (their own subscription, no API key, one
   // focused single-shot call, never invents facts).

@@ -85,18 +85,40 @@ dialog button { margin-top: 10px; padding: 7px 14px; border-radius: 8px; border:
   padding: 10px;
 }
 .sidebar .project {
-  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 8px 9px 10px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
   color: var(--ink);
   margin-bottom: 2px;
+}
+.sidebar .project:hover { background: #f1efe9; }
+.sidebar .project.active { background: var(--accent-tint); font-weight: 600; }
+.sidebar .project .project-name {
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.sidebar .project:hover { background: #f1efe9; }
-.sidebar .project.active { background: var(--accent-tint); font-weight: 600; }
+.sidebar .project .project-delete {
+  flex: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.sidebar .project:hover .project-delete { opacity: 1; }
+.sidebar .project .project-delete:hover { background: #e6d5d5; color: #a03b3b; }
 .sidebar .new-project {
   width: 100%;
   margin-top: 6px;

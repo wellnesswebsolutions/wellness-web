@@ -719,10 +719,6 @@ function templateDesignMotion(layout) {
     }
   }
   if(visualStyle==='index'){
-    document.querySelectorAll('.signature .service-card').forEach((card,index)=>{const number=document.createElement('span');number.className='index-no';number.textContent=String(index+1).padStart(2,'0');card.prepend(number)});
-  }
-  if(visualStyle==='index'){
-    document.querySelectorAll('.signature .service-card').forEach((card,index)=>{const number=document.createElement('span');number.className='index-no';number.textContent=String(index+1).padStart(2,'0');card.prepend(number)});
     if(!motionPreference.matches){document.querySelectorAll('.signature .service-card').forEach(card=>{card.addEventListener('pointerenter',()=>card.style.transform='translateX(10px)');card.addEventListener('pointerleave',()=>card.style.transform='')})}
   }
   if(visualStyle==='studio'&&!motionPreference.matches){
