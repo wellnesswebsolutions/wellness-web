@@ -9,6 +9,7 @@
     fullscreenBtn: document.getElementById('fullscreenBtn'),
     exportBtn: document.getElementById('exportBtn'),
     deployBtn: document.getElementById('deployBtn'),
+    copyLiveBtn: document.getElementById('copyLiveBtn'),
     notice: document.getElementById('noticeStrip'),
     gearBtn: document.getElementById('gearBtn'),
     settingsDialog: document.getElementById('settingsDialog'),
@@ -75,6 +76,7 @@
       await loadProjects();
       renderEditor();
       renderPreview();
+      renderLiveActions();
       el.preview.srcdoc = state.current ? el.preview.srcdoc : '';
       notify(`Deleted "${displayName}".`);
     } catch (err) {
@@ -89,6 +91,17 @@
     renderSidebar();
     renderEditor();
     renderPreview();
+    renderLiveActions();
+  }
+
+  // Shows a small "copy live link" button and switches the deploy button's
+  // label once a site has a live URL — the button itself always still
+  // triggers a fresh deploy (pushing edits live), it just relabels to make
+  // clear there's already a live version to update.
+  function renderLiveActions() {
+    const liveUrl = state.current?.liveUrl;
+    el.deployBtn.textContent = liveUrl ? 'Update live site' : 'Make live';
+    el.copyLiveBtn.hidden = !liveUrl;
   }
 
   async function persist() {
@@ -491,6 +504,16 @@
     notify('Website exported and ready to send.');
     alert(`Exported to:\n${result.path}`);
   };
+  el.copyLiveBtn.onclick = async () => {
+    const liveUrl = state.current?.liveUrl;
+    if (!liveUrl) return;
+    try {
+      await navigator.clipboard.writeText(liveUrl);
+      notify('Live website link copied — ready to send.');
+    } catch {
+      notify(`Live at ${liveUrl}`, { sticky: true });
+    }
+  };
   el.deployBtn.onclick = async () => {
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
     el.deployBtn.disabled = true;
@@ -499,15 +522,16 @@
       const result = await api(`/api/projects/${state.current.slug}/deploy`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html: el.preview.dataset.lastHtml })
       });
+      state.current.liveUrl = result.url;
       try { await navigator.clipboard.writeText(result.url); } catch { /* clipboard may be unavailable */ }
       notify(`Live at ${result.url} (copied to clipboard).`, { sticky: true });
     } catch (err) {
       notify(err.message, { sticky: true });
     } finally {
       el.deployBtn.disabled = false;
-      el.deployBtn.textContent = 'Make live';
+      renderLiveActions();
     }
   };
 
-  loadProjects().then(() => renderEditor());
+  loadProjects().then(() => { renderEditor(); renderLiveActions(); });
 })();
