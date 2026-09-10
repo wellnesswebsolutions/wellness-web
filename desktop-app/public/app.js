@@ -127,11 +127,6 @@
   // ---------------- start screen (no project selected) ----------------
   function renderStartScreen() {
     el.editor.innerHTML = `
-      <h2>Paste a link, get a website</h2>
-      <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:-4px 0 14px">
-        Paste a business's Facebook Page or Google Maps link and it reads the page — the same way
-        pasting a link into a Claude conversation works — and builds the site.
-      </p>
       <div class="link-bar">
         <input id="startLink" type="text" placeholder="Paste a Facebook or Google Maps link…">
         <button id="startBuildBtn">Build website</button>
