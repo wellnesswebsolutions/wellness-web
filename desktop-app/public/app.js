@@ -9,7 +9,6 @@
     fullscreenBtn: document.getElementById('fullscreenBtn'),
     exportBtn: document.getElementById('exportBtn'),
     deployBtn: document.getElementById('deployBtn'),
-    browserLinkBtn: document.getElementById('browserLinkBtn'),
     notice: document.getElementById('noticeStrip'),
     gearBtn: document.getElementById('gearBtn'),
     settingsDialog: document.getElementById('settingsDialog'),
@@ -483,11 +482,6 @@
   el.fullscreenBtn.onclick = () => {
     if (!el.preview.dataset.lastHtml) return;
     el.preview.requestFullscreen().catch(() => notify('Full screen isn\'t available right now.', { sticky: false }));
-  };
-  el.browserLinkBtn.onclick = async () => {
-    try { await navigator.clipboard.writeText(location.href); el.browserLinkBtn.textContent = 'Copied!'; }
-    catch { el.browserLinkBtn.textContent = location.href; }
-    setTimeout(() => (el.browserLinkBtn.textContent = 'Copy browser link'), 1500);
   };
   el.exportBtn.onclick = async () => {
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to export yet.');
