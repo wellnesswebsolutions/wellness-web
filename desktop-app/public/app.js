@@ -615,11 +615,20 @@
     fitPreviewFrame();
   };
 
+  // Horizontal padding the white frame (.preview-frame-border) adds on each
+  // side — kept in sync with style.css so the scale math leaves room for
+  // it instead of the frame pushing the content wider than the pane.
+  const FRAME_PAD_X = { desktop: 10, mobile: 9 };
+
   function fitPreviewFrame() {
     if (!el.preview.dataset.lastHtml) return;
+    const isMobile = state.viewport === 'mobile';
+    const border = document.getElementById('previewFrameBorder');
+    border.classList.toggle('mobile-frame', isMobile);
     const deviceWidth = DEVICE_WIDTHS[state.viewport] || DEVICE_WIDTHS.desktop;
     const contentHeight = Number(el.preview.dataset.contentHeight) || 900;
-    const wrapWidth = el.previewFrameWrap.clientWidth - 32;
+    const padX = (isMobile ? FRAME_PAD_X.mobile : FRAME_PAD_X.desktop) * 2;
+    const wrapWidth = el.previewFrameWrap.clientWidth - 32 - padX;
     const scale = Math.max(0.2, Math.min(1, wrapWidth / deviceWidth));
     el.preview.style.width = `${deviceWidth}px`;
     el.preview.style.height = `${contentHeight}px`;
