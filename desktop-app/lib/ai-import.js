@@ -29,7 +29,14 @@ function extractJson(text) {
 
 function runClaudeLookup(url, url2) {
   return new Promise((resolve, reject) => {
-    const child = spawn('claude', ['-p', buildPrompt(url, url2), '--output-format', 'text'], { stdio: ['ignore', 'pipe', 'pipe'] });
+    // --allowedTools is required: `claude -p` (non-interactive) refuses to
+    // use WebFetch at all unless it's explicitly whitelisted for the
+    // invocation — scoped to just this one tool, nothing else.
+    const child = spawn('claude', [
+      '-p', buildPrompt(url, url2),
+      '--allowedTools', 'WebFetch',
+      '--output-format', 'text'
+    ], { stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
     let err = '';
     child.stdout.on('data', d => (out += d));
