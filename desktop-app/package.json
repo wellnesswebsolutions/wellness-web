@@ -1,0 +1,50 @@
+{
+  "name": "brightsite-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal Mac app for building BrightSite demo websites fast from a Facebook/Google Business link",
+  "main": "main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js",
+    "build": "electron-builder --mac"
+  },
+  "dependencies": {
+    "express": "^4.22.2",
+    "multer": "^1.4.5-lts.2"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "app.brightsite.studio",
+    "productName": "BrightSite Studio",
+    "files": [
+      "main.js",
+      "server.js",
+      "preload.js",
+      "lib/**/*",
+      "public/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "..",
+        "to": "generator",
+        "filter": [
+          "demo-generator.js",
+          "template-designs.js",
+          "fresh-templates.js",
+          "hero-brand-compositor.js",
+          "hero-palette.js",
+          "img/**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    }
+  }
+}

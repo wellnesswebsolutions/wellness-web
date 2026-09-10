@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BrightSite Studio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="dot"></span> BrightSite Studio</div>
+  <button class="browser-link" id="browserLinkBtn" title="Copy a link colleagues can open in their own browser">Copy browser link</button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div id="projectList"></div>
+    <button class="new-project" id="newProjectBtn">+ New site</button>
+  </aside>
+
+  <section class="editor" id="editor">
+    <div class="empty-state">Create or select a site on the left to get started.</div>
+  </section>
+
+  <section class="preview-pane">
+    <div class="preview-actions">
+      <button id="openBrowserBtn">Open in browser</button>
+      <button id="exportBtn" class="primary">Export folder</button>
+    </div>
+    <div class="preview-frame-wrap">
+      <iframe id="preview"></iframe>
+    </div>
+  </section>
+</div>
+
+<!-- Shared, deterministic site generator — the same code that runs on
+     brightsite.app. Loaded from the live repo (or bundled resources in
+     the packaged app) so the desktop tool never drifts from it. -->
+<script src="/generator/template-designs.js"></script>
+<script src="/generator/fresh-templates.js"></script>
+<script src="/generator/demo-generator.js"></script>
+<script src="/generator/hero-brand-compositor.js"></script>
+
+<script src="app.js"></script>
+</body>
+</html>
