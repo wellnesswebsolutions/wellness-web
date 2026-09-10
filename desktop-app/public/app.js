@@ -32,6 +32,12 @@
 
   el.gearBtn.onclick = () => el.settingsDialog.showModal();
   el.closeSettingsBtn.onclick = () => el.settingsDialog.close();
+  document.getElementById('signInFacebookBtn').onclick = () => api('/api/sign-in', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'facebook' })
+  }).catch(err => notify(err.message, { sticky: false }));
+  document.getElementById('signInGoogleBtn').onclick = () => api('/api/sign-in', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'google' })
+  }).catch(err => notify(err.message, { sticky: false }));
 
   // ---------------- projects ----------------
   async function loadProjects() {

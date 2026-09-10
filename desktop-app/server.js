@@ -5,7 +5,8 @@ const multer = require('multer');
 const storage = require('./lib/site-storage');
 const { scrapeFacebook, parseGoogleMapsUrl } = require('./lib/scrape');
 const { runClaudeEdit } = require('./lib/ai-edit');
-const { runClaudeLookup } = require('./lib/ai-import');
+const { runClaudeLookup, runClaudeExtract } = require('./lib/ai-import');
+const browserFetch = require('./lib/browser-fetch');
 const sync = require('./lib/supabase-sync');
 
 const PORT = process.env.PORT || 4173;
@@ -93,19 +94,55 @@ function createApp() {
 
   const isGoogleUrl = url => /google\.[a-z.]+\/maps|goo\.gl\/maps|maps\.app\.goo\.gl/i.test(url);
 
-  // "Paste a link, get a website" — reads the page the same way pasting a
-  // link into a Claude conversation would, via the local Claude Code CLI
-  // (see lib/ai-import.js). Falls back to a plain no-API HTTP fetch +
-  // Open Graph/JSON-LD parse (lib/scrape.js) when Claude Code isn't
-  // available, so this still works either way — just less thoroughly.
+  // "Paste a link, get a website" — three layers, each falling back to
+  // the next:
+  //  1. Render the page in a real (hidden) Electron browser window (see
+  //     lib/browser-fetch.js) — this is what actually gets past
+  //     Facebook's bot-blocking, unlike a bare fetch() or even Claude
+  //     Code's own WebFetch tool (both confirmed blocked in testing).
+  //     Feed the rendered text to Claude Code to structure into JSON —
+  //     no WebFetch tool needed here since the content's already in hand.
+  //  2. If Electron isn't running (e.g. `npm run server` standalone) or
+  //     step 1's render came back empty, fall back to Claude Code
+  //     fetching the URL itself (lib/ai-import.js's runClaudeLookup).
+  //  3. If Claude Code isn't installed/signed in at all, fall back to a
+  //     plain no-API HTTP fetch + Open Graph/JSON-LD parse (lib/scrape.js).
   async function lookupBusiness(url, url2) {
+    const urls = [url, url2].filter(Boolean);
+
+    if (browserFetch.isElectronMain() && urls.length) {
+      try {
+        const rendered = await Promise.all(urls.map(u => browserFetch.renderPage(u).catch(e => {
+          console.error('[browser-fetch] render failed for', u, e.message);
+          return null;
+        })));
+        const ok = rendered.filter(Boolean);
+        const combinedText = ok.map((r, i) => `--- ${urls[i]} (${r.title}) ---\n${r.text}`).join('\n\n');
+        const images = ok.flatMap(r => r.images);
+        if (combinedText.trim().length > 40) {
+          try {
+            const data = await runClaudeExtract(combinedText, urls);
+            return { ...data, images: data.images?.length ? data.images : images, method: 'browser+claude' };
+          } catch (err) {
+            if (err.message !== 'claude-not-found') console.error('[ai-import] extract-from-render failed:', err.message);
+            // Claude unavailable, but we still rendered real content —
+            // hand it straight back with no structuring, better than
+            // nothing, UI can still show the images at least.
+            if (images.length) return { method: 'browser-only', images };
+          }
+        }
+      } catch (err) {
+        console.error('[browser-fetch] pipeline failed, falling back:', err.message);
+      }
+    }
+
     try {
       const data = await runClaudeLookup(url, url2);
       return { ...data, method: 'claude' };
     } catch (err) {
       if (err.message !== 'claude-not-found') console.error('[ai-import] Claude lookup failed, falling back:', err.message);
-      const fbUrl = [url, url2].find(u => u && !isGoogleUrl(u));
-      const gUrl = [url, url2].find(u => u && isGoogleUrl(u));
+      const fbUrl = urls.find(u => !isGoogleUrl(u));
+      const gUrl = urls.find(u => isGoogleUrl(u));
       const [fb, g] = await Promise.all([
         fbUrl ? scrapeFacebook(fbUrl).catch(e => ({ error: e.message })) : null,
         gUrl ? Promise.resolve(parseGoogleMapsUrl(gUrl)) : null
@@ -123,6 +160,17 @@ function createApp() {
       };
     }
   }
+
+  // Opens a real, visible sign-in window (Facebook or Google) so future
+  // imports benefit from being logged in — dramatically more data is
+  // visible to a logged-in visitor than a logged-out one. The session
+  // persists across app restarts (see lib/browser-fetch.js).
+  app.post('/api/sign-in', (req, res) => {
+    if (!browserFetch.isElectronMain()) return res.status(400).json({ error: 'Sign-in windows only work inside the app, not browser mode' });
+    const target = req.body?.target === 'google' ? 'https://accounts.google.com' : 'https://www.facebook.com/login';
+    browserFetch.openSignInWindow(target);
+    res.json({ ok: true });
+  });
 
   app.post('/api/import', async (req, res) => {
     const url = String(req.body?.url || '').trim();

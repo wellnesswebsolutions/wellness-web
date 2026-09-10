@@ -42,7 +42,12 @@
 
 <dialog id="settingsDialog">
   <h3>Settings</h3>
-  <p class="dim">Nothing to configure here yet — Facebook/Google import needs no API key, and natural-language editing uses your local Claude Code sign-in automatically.</p>
+  <p class="dim">Import reads pages using a real browser window inside the app — no API key needed. Signing in below gets it much more (photos, about text, reviews) than a logged-out view can see, since Facebook/Google show far less to visitors who aren't signed in. The sign-in stays saved in the app between imports.</p>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button id="signInFacebookBtn" style="flex:1">Sign in to Facebook</button>
+    <button id="signInGoogleBtn" style="flex:1">Sign in to Google</button>
+  </div>
+  <p class="dim" style="margin-top:14px">Natural-language editing uses your local Claude Code sign-in automatically.</p>
   <button id="closeSettingsBtn">Close</button>
 </dialog>
 
