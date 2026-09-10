@@ -565,7 +565,7 @@
   // Fixed after art direction against the actual bundled photographs. Logo
   // colour is part of the physical scene, not a customer-configurable theme.
   const HERO_BRAND_COLOURS = {
-    hairbeauty: { face: '#b88b43', accent: '#e6c982' },
+    hairbeauty: { face: '#1a1a1a', accent: '#4a4a4a' },
     aesthetics: { face: '#a98755', accent: '#e8d2a4' },
     health: { face: '#344c45', accent: '#789b8c' },
     fitness: { face: '#f0eee7', accent: '#b8c1c6' },
