@@ -7,7 +7,6 @@
     editor: document.getElementById('editor'),
     preview: document.getElementById('preview'),
     fullscreenBtn: document.getElementById('fullscreenBtn'),
-    openBrowserBtn: document.getElementById('openBrowserBtn'),
     exportBtn: document.getElementById('exportBtn'),
     deployBtn: document.getElementById('deployBtn'),
     browserLinkBtn: document.getElementById('browserLinkBtn'),
@@ -490,7 +489,6 @@
     if (!el.preview.dataset.lastHtml) return;
     el.preview.requestFullscreen().catch(() => notify('Full screen isn\'t available right now.', { sticky: false }));
   };
-  el.openBrowserBtn.onclick = () => window.open(location.href, '_blank');
   el.browserLinkBtn.onclick = async () => {
     try { await navigator.clipboard.writeText(location.href); el.browserLinkBtn.textContent = 'Copied!'; }
     catch { el.browserLinkBtn.textContent = location.href; }
