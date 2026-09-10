@@ -5,6 +5,7 @@ const multer = require('multer');
 const storage = require('./lib/site-storage');
 const { scrapeFacebook, parseGoogleMapsUrl } = require('./lib/scrape');
 const { runClaudeEdit } = require('./lib/ai-edit');
+const { runClaudeLookup } = require('./lib/ai-import');
 const sync = require('./lib/supabase-sync');
 
 const PORT = process.env.PORT || 4173;
@@ -60,38 +61,6 @@ function createApp() {
     }
   });
 
-  app.get('/api/pipeline-stages', (req, res) => res.json(storage.PIPELINE_STAGES));
-
-  // Discovery is deliberately not an automated "find businesses" search —
-  // there is no reliable no-API way to do that (Google Places search is
-  // the only real option and was explicitly ruled out to avoid API costs/
-  // keys). Instead this just turns a category+location into the right
-  // Google Maps search for you to browse yourself, and bulk-adds whatever
-  // names you paste back in as "potential" Sales records — deterministic,
-  // no AI, no scraping.
-  app.post('/api/leads/bulk', (req, res) => {
-    const names = Array.isArray(req.body?.names) ? req.body.names : [];
-    const created = names
-      .map(n => String(n || '').trim())
-      .filter(Boolean)
-      .slice(0, 100)
-      .map(name => storage.createProject(name, { pipelineStage: 'potential' }));
-    created.forEach(p => sync.pushOne(p));
-    res.json(created);
-  });
-
-  app.post('/api/projects/:slug/stage', (req, res) => {
-    const stage = String(req.body?.stage || '');
-    if (!storage.PIPELINE_STAGES.includes(stage)) return res.status(400).json({ error: 'Unknown stage' });
-    try {
-      const project = storage.saveProject(req.params.slug, { pipelineStage: stage });
-      sync.pushOne(project);
-      res.json(project);
-    } catch (err) {
-      res.status(404).json({ error: err.message });
-    }
-  });
-
   // Natural-language edit, run through the user's local Claude Code CLI —
   // see lib/ai-edit.js for why (their own subscription, no API key, one
   // focused single-shot call, never invents facts).
@@ -122,15 +91,70 @@ function createApp() {
     }
   });
 
-  // One fetch, best-effort, no API key. See lib/scrape.js for what this
-  // can and can't reliably find.
+  const isGoogleUrl = url => /google\.[a-z.]+\/maps|goo\.gl\/maps|maps\.app\.goo\.gl/i.test(url);
+
+  // "Paste a link, get a website" — reads the page the same way pasting a
+  // link into a Claude conversation would, via the local Claude Code CLI
+  // (see lib/ai-import.js). Falls back to a plain no-API HTTP fetch +
+  // Open Graph/JSON-LD parse (lib/scrape.js) when Claude Code isn't
+  // available, so this still works either way — just less thoroughly.
+  async function lookupBusiness(url, url2) {
+    try {
+      const data = await runClaudeLookup(url, url2);
+      return { ...data, method: 'claude' };
+    } catch (err) {
+      if (err.message !== 'claude-not-found') console.error('[ai-import] Claude lookup failed, falling back:', err.message);
+      const fbUrl = [url, url2].find(u => u && !isGoogleUrl(u));
+      const gUrl = [url, url2].find(u => u && isGoogleUrl(u));
+      const [fb, g] = await Promise.all([
+        fbUrl ? scrapeFacebook(fbUrl).catch(e => ({ error: e.message })) : null,
+        gUrl ? Promise.resolve(parseGoogleMapsUrl(gUrl)) : null
+      ]);
+      return {
+        method: 'fallback',
+        name: fb?.name || g?.name,
+        about: fb?.about,
+        phone: fb?.phone,
+        address: fb?.address,
+        hours: fb?.hours,
+        images: fb?.images,
+        mapsUrl: g?.mapsUrl,
+        fallbackError: fb?.error
+      };
+    }
+  }
+
   app.post('/api/import', async (req, res) => {
     const url = String(req.body?.url || '').trim();
-    if (!url) return res.status(400).json({ error: 'URL is required' });
+    const url2 = String(req.body?.url2 || '').trim();
+    if (!url && !url2) return res.status(400).json({ error: 'A Facebook or Google Maps link is required' });
     try {
-      const isGoogle = /google\.[a-z.]+\/maps|goo\.gl\/maps|maps\.app\.goo\.gl/i.test(url);
-      const result = isGoogle ? parseGoogleMapsUrl(url) : await scrapeFacebook(url);
-      res.json(result);
+      res.json(await lookupBusiness(url || undefined, url2 || undefined));
+    } catch (err) {
+      res.status(502).json({ error: `Could not read that page: ${err.message}` });
+    }
+  });
+
+  // Create a site and import into it in one step — the primary "paste a
+  // link, get a website" action.
+  app.post('/api/quick-import', async (req, res) => {
+    const url = String(req.body?.url || '').trim();
+    const url2 = String(req.body?.url2 || '').trim();
+    if (!url && !url2) return res.status(400).json({ error: 'A Facebook or Google Maps link is required' });
+    try {
+      const data = await lookupBusiness(url || undefined, url2 || undefined);
+      const project = storage.createProject(data.name || 'New site');
+      const businessProfile = {};
+      if (data.address) businessProfile.address = data.address;
+      if (data.phone) businessProfile.phone = data.phone;
+      if (data.about) businessProfile.about = data.about;
+      if (data.mapsUrl) businessProfile.mapsUrl = data.mapsUrl;
+      if (data.hours?.length) businessProfile.hours = data.hours;
+      const raw = { name: data.name || project.name, tagline: data.category, location: data.location, businessProfile };
+      const aiFilled = data.about ? [] : ['about'];
+      const saved = storage.saveProject(project.slug, { raw, aiFilled, lastImportUrl: url || url2, importImages: data.images || [] });
+      sync.pushOne(saved);
+      res.json(saved);
     } catch (err) {
       res.status(502).json({ error: `Could not read that page: ${err.message}` });
     }

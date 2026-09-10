@@ -1,24 +1,5 @@
 (() => {
-  const state = { projects: [], current: null, found: {}, activeTab: 'builder' };
-
-  const STAGE_LABELS = {
-    potential: 'Potential', info_needed: 'Information needed', ready_to_build: 'Ready to build',
-    building: 'Building', ready_to_send: 'Ready to send', demo_sent: 'Demo sent',
-    waiting_reply: 'Waiting for reply', interested: 'Interested', complete: 'Complete', archived: 'Archived'
-  };
-  const STAGE_ORDER = Object.keys(STAGE_LABELS);
-  const NEXT_ACTION = {
-    potential: { label: 'Find info', run: p => startImportFor(p) },
-    info_needed: { label: 'Add missing info', run: p => openBuilder(p.slug) },
-    ready_to_build: { label: 'Build demo', run: p => buildDemo(p) },
-    building: { label: 'Open in Builder', run: p => openBuilder(p.slug) },
-    ready_to_send: { label: 'Mark sent', run: p => setStage(p.slug, 'demo_sent') },
-    demo_sent: { label: 'Log reply', run: p => setStage(p.slug, 'waiting_reply') },
-    waiting_reply: { label: 'Mark interested', run: p => setStage(p.slug, 'interested') },
-    interested: { label: 'Mark complete', run: p => setStage(p.slug, 'complete') },
-    complete: { label: 'Archive', run: p => setStage(p.slug, 'archived') },
-    archived: { label: 'Reopen', run: p => setStage(p.slug, 'potential') }
-  };
+  const state = { projects: [], current: null, found: {} };
 
   const el = {
     projectList: document.getElementById('projectList'),
@@ -29,9 +10,6 @@
     exportBtn: document.getElementById('exportBtn'),
     browserLinkBtn: document.getElementById('browserLinkBtn'),
     notice: document.getElementById('noticeStrip'),
-    salesWrap: document.getElementById('salesWrap'),
-    builderView: document.getElementById('builderView'),
-    salesView: document.getElementById('salesView'),
     gearBtn: document.getElementById('gearBtn'),
     settingsDialog: document.getElementById('settingsDialog'),
     closeSettingsBtn: document.getElementById('closeSettingsBtn')
@@ -52,56 +30,6 @@
     if (!opts.sticky) noticeTimer = setTimeout(() => (el.notice.hidden = true), 4500);
   }
 
-  // --- deterministic completeness meter (no AI involved in computing this) ---
-  const COMPLETENESS_FIELDS = [
-    { key: 'name', get: p => p.raw?.name },
-    { key: 'tagline', get: p => p.raw?.tagline },
-    { key: 'location', get: p => p.raw?.location },
-    { key: 'phone', get: p => p.raw?.businessProfile?.phone || p.contact?.phone },
-    { key: 'address', get: p => p.raw?.businessProfile?.address },
-    { key: 'about', get: p => p.raw?.businessProfile?.about }
-  ];
-  function completeness(project) {
-    const aiFields = new Set(project.aiFilled || []);
-    let verified = 0, ai = 0, missing = 0;
-    COMPLETENESS_FIELDS.forEach(f => {
-      const value = f.get(project);
-      if (!value) missing += 1;
-      else if (aiFields.has(f.key)) ai += 1;
-      else verified += 1;
-    });
-    const total = COMPLETENESS_FIELDS.length;
-    return { verified, ai, missing, total, verifiedPct: Math.round((verified / total) * 100) };
-  }
-  function meterHtml(project) {
-    const c = completeness(project);
-    const verifiedW = (c.verified / c.total) * 100;
-    const aiW = (c.ai / c.total) * 100;
-    return `<div class="info-meter"><div class="fill" style="width:${verifiedW}%"></div><div class="fill ai-part" style="left:${verifiedW}%;width:${aiW}%"></div></div><span class="info-pct">${c.verifiedPct}% real</span>`;
-  }
-  // minimum info required to begin a build (per spec): name, category,
-  // location, one contact method, one source, enough to pick a template —
-  // template picking is automatic once category is known, so that folds in.
-  function hasMinimumInfo(project) {
-    const raw = project.raw || {};
-    const contact = project.contact || {};
-    const hasContact = raw.businessProfile?.phone || contact.phone || contact.whatsapp || contact.email;
-    const hasSource = project.lastImportUrl || contact.facebookUrl || contact.googleUrl;
-    return !!(raw.name && raw.tagline && raw.location && hasContact && hasSource);
-  }
-
-  // ---------------- tabs ----------------
-  document.querySelectorAll('header .tab').forEach(btn => {
-    btn.onclick = () => switchTab(btn.dataset.tab);
-  });
-  function switchTab(tab) {
-    state.activeTab = tab;
-    document.querySelectorAll('header .tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    el.builderView.hidden = tab !== 'builder';
-    el.salesView.hidden = tab !== 'sales';
-    if (tab === 'sales') renderSales();
-  }
-
   el.gearBtn.onclick = () => el.settingsDialog.showModal();
   el.closeSettingsBtn.onclick = () => el.settingsDialog.close();
 
@@ -109,13 +37,11 @@
   async function loadProjects() {
     state.projects = await api('/api/projects');
     renderSidebar();
-    if (state.activeTab === 'sales') renderSales();
   }
 
   function renderSidebar() {
-    const builderProjects = state.projects.filter(p => ['ready_to_build', 'building', 'ready_to_send'].includes(p.pipelineStage || 'ready_to_build') || !p.pipelineStage);
     el.projectList.innerHTML = '';
-    builderProjects.forEach(p => {
+    state.projects.forEach(p => {
       const row = document.createElement('div');
       row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
       row.textContent = p.raw?.name || p.name || p.slug;
@@ -127,24 +53,10 @@
   async function selectProject(slug) {
     state.current = await api(`/api/projects/${slug}`);
     state.found = {};
+    if (state.current.importImages?.length) state.found.hero = state.current.importImages[0];
     renderSidebar();
     renderEditor();
     renderPreview();
-  }
-
-  function openBuilder(slug) {
-    switchTab('builder');
-    selectProject(slug);
-  }
-
-  async function createProject(name, pipelineStage) {
-    const project = await api('/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, pipelineStage })
-    });
-    await loadProjects();
-    return project;
   }
 
   async function persist() {
@@ -179,23 +91,72 @@
       </label>`).join('');
   }
 
+  // ---------------- start screen (no project selected) ----------------
+  function renderStartScreen() {
+    el.editor.innerHTML = `
+      <h2>Paste a link, get a website</h2>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:-4px 0 14px">
+        Paste the business's Facebook Page and/or Google Maps link (either, or both) and it reads the
+        page — the same way pasting a link into a Claude conversation works — and builds the site.
+      </p>
+      <div class="field"><label>Facebook Page link</label>
+        <input id="startFb" type="text" placeholder="https://www.facebook.com/..."></div>
+      <div class="field"><label>Google Maps / Business link</label>
+        <input id="startGoogle" type="text" placeholder="https://www.google.com/maps/place/..."></div>
+      <div class="import-box"><button id="startBuildBtn" style="width:100%">Build website</button></div>
+      <div class="import-status" id="startStatus"></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:20px">
+        Or <a href="#" id="startBlankLink">start a blank site</a> and fill it in by hand.
+      </p>
+    `;
+    document.getElementById('startBuildBtn').onclick = runQuickImport;
+    document.getElementById('startBlankLink').onclick = async e => {
+      e.preventDefault();
+      const name = prompt('Business name?');
+      if (!name) return;
+      const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+      await loadProjects();
+      await selectProject(project.slug);
+    };
+  }
+
+  async function runQuickImport() {
+    const url = document.getElementById('startFb').value.trim();
+    const url2 = document.getElementById('startGoogle').value.trim();
+    const status = document.getElementById('startStatus');
+    const btn = document.getElementById('startBuildBtn');
+    if (!url && !url2) return;
+    btn.disabled = true;
+    status.textContent = 'Reading the page…';
+    try {
+      const project = await api('/api/quick-import', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, url2 })
+      });
+      await loadProjects();
+      await selectProject(project.slug);
+      notify(`Built a site for ${project.raw?.name || 'this business'}.`);
+    } catch (err) {
+      status.textContent = err.message;
+      notify(err.message, { sticky: false });
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   // ---------------- Builder editor ----------------
   function renderEditor() {
-    if (!state.current) {
-      el.editor.innerHTML = '<div class="empty-state">Create or select a site on the left to get started.</div>';
-      return;
-    }
+    if (!state.current) return renderStartScreen();
     const raw = state.current.raw || {};
     const profile = raw.businessProfile || {};
 
     el.editor.innerHTML = `
       <h2>Import</h2>
-      <div class="import-box">
-        <input id="importUrl" type="text" placeholder="Paste a Facebook Page or Google Maps link" value="${escapeAttr(state.current.lastImportUrl || '')}">
-        <button id="importBtn">Fetch</button>
-      </div>
+      <div class="field"><label>Facebook Page link</label>
+        <input id="f_fb" type="text" placeholder="https://www.facebook.com/..." value="${escapeAttr(state.current.contact?.facebookUrl || (state.current.lastImportUrl && !/google/i.test(state.current.lastImportUrl) ? state.current.lastImportUrl : '') || '')}"></div>
+      <div class="field"><label>Google Maps link</label>
+        <input id="f_google" type="text" placeholder="https://www.google.com/maps/place/..." value="${escapeAttr(profile.mapsUrl || '')}"></div>
+      <div class="import-box"><button id="importBtn" style="width:100%">Re-fetch</button></div>
       <div class="import-status" id="importStatus"></div>
-      ${meterHtml(state.current)}
 
       <h2>Business</h2>
       <div class="field"><label>Name</label>
@@ -400,18 +361,21 @@
   }
 
   async function runImport() {
-    const url = document.getElementById('importUrl').value.trim();
+    const url = document.getElementById('f_fb').value.trim();
+    const url2 = document.getElementById('f_google').value.trim();
     const status = document.getElementById('importStatus');
-    if (!url) return;
-    status.textContent = 'Fetching…';
+    if (!url && !url2) return;
+    status.textContent = 'Reading the page…';
     try {
       const data = await api('/api/import', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, url2 })
       });
       const aiFilled = (state.current.aiFilled || []).slice();
       const raw = state.current.raw || {};
       const profile = { ...(raw.businessProfile || {}) };
       if (data.name && !raw.name) setRaw({ name: data.name });
+      if (data.category && !raw.tagline) setRaw({ tagline: data.category });
+      if (data.location && !raw.location) setRaw({ location: data.location });
       if (data.address) profile.address = data.address;
       if (data.phone) profile.phone = data.phone;
       if (data.about) profile.about = data.about;
@@ -420,17 +384,18 @@
       if (!data.about && !aiFilled.includes('about')) aiFilled.push('about');
       setRaw({ businessProfile: profile });
       state.current.aiFilled = aiFilled;
-      state.current.lastImportUrl = url;
+      state.current.lastImportUrl = url || url2;
       const contact = { ...(state.current.contact || {}) };
-      if (data.source === 'facebook') contact.facebookUrl = url;
-      if (data.source === 'google') contact.googleUrl = url;
+      if (url) contact.facebookUrl = url;
+      if (url2) contact.googleUrl = url2;
       state.current.contact = contact;
-      if (data.images?.length) state.found[data.source === 'facebook' ? 'hero' : 'logo'] = data.images[0];
+      if (data.images?.length) state.found.hero = data.images[0];
       await persist();
       renderEditor();
       schedulePreview();
-      status.textContent = `Fetched from ${data.source}. ${data.images?.length ? data.images.length + ' image(s) found — see "Use found".' : 'No photos found on the page.'}`;
-      notify(`Imported from ${data.source} for ${state.current.raw.name || 'this site'}.`);
+      const source = data.method === 'claude' ? 'Claude' : (data.fallbackError ? 'partial fallback' : 'the page');
+      status.textContent = `Read via ${source}. ${data.images?.length ? data.images.length + ' image(s) found — see "Use found".' : ''}`;
+      notify(`Imported for ${state.current.raw.name || 'this site'}.`);
     } catch (err) {
       status.textContent = err.message;
       notify(err.message, { sticky: false });
@@ -463,123 +428,14 @@
     }
   }
 
-  // ---------------- Sales tab ----------------
-  async function setStage(slug, stage) {
-    await api(`/api/projects/${slug}/stage`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stage })
-    });
-    notify(`Moved to "${STAGE_LABELS[stage]}".`);
-    await loadProjects();
-    renderSales();
-  }
-
-  async function buildDemo(project) {
-    await setStage(project.slug, 'building');
-    openBuilder(project.slug);
-    notify('Building homepage…');
-  }
-
-  async function startImportFor(project) {
-    openBuilder(project.slug);
-  }
-
-  async function addLead() {
-    const input = document.getElementById('newLeadInput');
-    const name = input.value.trim();
-    if (!name) return;
-    await createProject(name, 'potential');
-    input.value = '';
-    notify(`${name} added to Sales.`);
-    renderSales();
-  }
-
-  function renderSales() {
-    const groups = {};
-    STAGE_ORDER.forEach(s => (groups[s] = []));
-    state.projects.forEach(p => {
-      const stage = p.pipelineStage || 'ready_to_build';
-      (groups[stage] || (groups[stage] = [])).push(p);
-    });
-
-    el.salesWrap.innerHTML = `
-      <div class="discovery-box">
-        <h4>Discover businesses</h4>
-        <p class="dim">There's no reliable API-free way to auto-search Facebook/Google for businesses without a website — this just opens the right Google Maps search for you to browse, then bulk-adds whatever names you paste back in as "Potential" leads.</p>
-        <div class="row1">
-          <select id="discoveryCategory">${categoryOptions('')}</select>
-          <input id="discoveryLocation" placeholder="Location, e.g. Beverley">
-          <button id="discoveryOpenBtn">Open Google Maps search</button>
-        </div>
-        <textarea id="discoveryNames" placeholder="Paste business names here, one per line…"></textarea>
-        <button class="add-all" id="discoveryAddBtn">Add all to Sales</button>
-      </div>
-      <div class="new-lead-row">
-        <input id="newLeadInput" placeholder="Add a business by name…">
-        <button id="addLeadBtn">Add to Sales</button>
-      </div>
-      ${STAGE_ORDER.filter(s => groups[s].length).map(stage => `
-        <div class="stage-group">
-          <h3>${STAGE_LABELS[stage]} <span class="count">${groups[stage].length}</span></h3>
-          ${groups[stage].map(rowHtml).join('')}
-        </div>
-      `).join('') || '<div class="empty-state">No businesses yet — add one above or create a site in Builder.</div>'}
-    `;
-
-    document.getElementById('addLeadBtn').onclick = addLead;
-    document.getElementById('newLeadInput').onkeydown = e => { if (e.key === 'Enter') addLead(); };
-    document.getElementById('discoveryOpenBtn').onclick = () => {
-      const category = document.getElementById('discoveryCategory').value || 'businesses';
-      const location = document.getElementById('discoveryLocation').value.trim();
-      if (!location) return notify('Add a location first.', { sticky: false });
-      const query = encodeURIComponent(`${category} near ${location}`);
-      window.open(`https://www.google.com/maps/search/${query}`, '_blank');
-    };
-    document.getElementById('discoveryAddBtn').onclick = async () => {
-      const textarea = document.getElementById('discoveryNames');
-      const names = textarea.value.split('\n').map(s => s.trim()).filter(Boolean);
-      if (!names.length) return;
-      const created = await api('/api/leads/bulk', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ names })
-      });
-      textarea.value = '';
-      notify(`Added ${created.length} business${created.length === 1 ? '' : 'es'} to Sales as Potential.`);
-      await loadProjects();
-      renderSales();
-    };
-
-    state.projects.forEach(p => {
-      const select = document.getElementById(`stage_${p.slug}`);
-      if (select) select.onchange = e => setStage(p.slug, e.target.value);
-      const actionBtn = document.getElementById(`action_${p.slug}`);
-      if (actionBtn) actionBtn.onclick = () => NEXT_ACTION[p.pipelineStage || 'ready_to_build'].run(p);
-    });
-  }
-
-  function rowHtml(p) {
-    const raw = p.raw || {};
-    const thumbStyle = raw.heroImage ? `style="background-image:url('/projects/${p.slug}/${raw.heroImage}')"` : '';
-    const stage = p.pipelineStage || 'ready_to_build';
-    const action = NEXT_ACTION[stage];
-    const infoWarning = stage === 'potential' && !hasMinimumInfo(p) ? ' · missing info' : '';
-    return `
-      <div class="sales-row">
-        <div class="mini-preview" ${thumbStyle}></div>
-        <div><div class="name">${escapeHtml(raw.name || p.name)}</div><div class="cat">${escapeHtml(raw.tagline || 'Uncategorised')}${infoWarning}</div></div>
-        <div class="meter-cell">${meterHtml(p)}</div>
-        <select class="stage-select" id="stage_${p.slug}">
-          ${STAGE_ORDER.map(s => `<option value="${s}" ${s === stage ? 'selected' : ''}>${STAGE_LABELS[s]}</option>`).join('')}
-        </select>
-        <button class="next-action" id="action_${p.slug}">${action.label}</button>
-      </div>`;
-  }
-
   function escapeHtml(s) { return String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
   function escapeAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
 
   el.newProjectBtn.onclick = async () => {
     const name = prompt('Business name?');
     if (!name) return;
-    const project = await createProject(name, 'ready_to_build');
+    const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+    await loadProjects();
     await selectProject(project.slug);
   };
   el.openBrowserBtn.onclick = () => window.open(location.href, '_blank');
@@ -593,10 +449,9 @@
     const result = await api(`/api/projects/${state.current.slug}/export`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html: el.preview.dataset.lastHtml })
     });
-    await setStage(state.current.slug, 'ready_to_send');
-    notify('Website ready to review — exported and marked "Ready to send".');
+    notify('Website exported and ready to send.');
     alert(`Exported to:\n${result.path}`);
   };
 
-  loadProjects();
+  loadProjects().then(() => renderEditor());
 })();

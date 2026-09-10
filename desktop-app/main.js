@@ -1,9 +1,18 @@
-const { app, BrowserWindow, shell, Menu } = require('electron');
+const { app, BrowserWindow, shell, Menu, nativeImage } = require('electron');
+const path = require('path');
 const { createApp, PORT } = require('./server');
+
+const ICON_PATH = path.join(__dirname, 'public', 'icon.png');
 
 let server;
 
 function start() {
+  // Sets the Dock icon for local `npm start` runs — the packaged .app
+  // (see package.json build.mac.icon) gets the same icon baked in, so
+  // this only matters during development.
+  if (process.platform === 'darwin') {
+    app.dock.setIcon(nativeImage.createFromPath(ICON_PATH));
+  }
   server = createApp().listen(PORT, () => {
     createWindow();
   });
@@ -16,6 +25,7 @@ function createWindow() {
     minWidth: 1080,
     minHeight: 680,
     title: 'BrightSite Studio',
+    icon: ICON_PATH,
     webPreferences: { contextIsolation: true, nodeIntegration: false }
   });
   win.loadURL(`http://localhost:${PORT}`);

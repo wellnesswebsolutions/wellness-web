@@ -1,0 +1,49 @@
+// The real "paste a link, get a website" import — reads the page the same
+// way pasting a link into a Claude conversation would: through the user's
+// local Claude Code CLI (their own subscription, no API key), which has
+// its own web-fetch tool and can work with whatever it actually gets back
+// far better than a raw regex scraper can. Falls back to lib/scrape.js
+// (plain no-API HTTP fetch + Open Graph/JSON-LD parsing) when Claude Code
+// isn't installed/signed in, so the app still works either way.
+const { spawn } = require('child_process');
+
+function buildPrompt(url, url2) {
+  const urls = [url, url2].filter(Boolean);
+  return `Look up ${urls.join(' and ')} — a business's Facebook Page and/or Google Maps/Business ` +
+    `listing. Fetch the page(s) and extract what's really there. Never invent or guess facts — ` +
+    `omit any field you can't actually find.\n\n` +
+    `Reply with ONLY a JSON object, no prose, no markdown fences, with these fields (omit any you ` +
+    `couldn't find, don't fill them with placeholders):\n` +
+    `{"name": "...", "category": "one of: Hair & Beauty, Aesthetics, Health & Wellness, Fitness, ` +
+    `Automotive, Trades, Home & Garden, Food & Drink, Professional Services, Creative, Pets, Other", ` +
+    `"location": "town/area", "phone": "...", "address": "...", "about": "1-2 sentence description ` +
+    `in the business's own voice, based on what the page actually says", "hours": ["Mon: 9am-5pm", ...], ` +
+    `"mapsUrl": "...", "images": ["direct image urls if any are visible, e.g. og:image, cover photo"]}`;
+}
+
+function extractJson(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('No JSON in Claude response');
+  return JSON.parse(match[0]);
+}
+
+function runClaudeLookup(url, url2) {
+  return new Promise((resolve, reject) => {
+    const child = spawn('claude', ['-p', buildPrompt(url, url2), '--output-format', 'text'], { stdio: ['ignore', 'pipe', 'pipe'] });
+    let out = '';
+    let err = '';
+    child.stdout.on('data', d => (out += d));
+    child.stderr.on('data', d => (err += d));
+    child.on('error', () => reject(new Error('claude-not-found')));
+    child.on('close', code => {
+      if (code !== 0) return reject(new Error(err.trim() || `Claude Code exited with code ${code}`));
+      try {
+        resolve(extractJson(out));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });
+}
+
+module.exports = { runClaudeLookup };
