@@ -96,20 +96,20 @@
     el.editor.innerHTML = `
       <h2>Paste a link, get a website</h2>
       <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:-4px 0 14px">
-        Paste the business's Facebook Page and/or Google Maps link (either, or both) and it reads the
-        page — the same way pasting a link into a Claude conversation works — and builds the site.
+        Paste a business's Facebook Page or Google Maps link and it reads the page — the same way
+        pasting a link into a Claude conversation works — and builds the site.
       </p>
-      <div class="field"><label>Facebook Page link</label>
-        <input id="startFb" type="text" placeholder="https://www.facebook.com/..."></div>
-      <div class="field"><label>Google Maps / Business link</label>
-        <input id="startGoogle" type="text" placeholder="https://www.google.com/maps/place/..."></div>
-      <div class="import-box"><button id="startBuildBtn" style="width:100%">Build website</button></div>
+      <div class="link-bar">
+        <input id="startLink" type="text" placeholder="Paste a Facebook or Google Maps link…">
+        <button id="startBuildBtn">Build website</button>
+      </div>
       <div class="import-status" id="startStatus"></div>
       <p style="font-size:12px;color:var(--muted);margin-top:20px">
         Or <a href="#" id="startBlankLink">start a blank site</a> and fill it in by hand.
       </p>
     `;
     document.getElementById('startBuildBtn').onclick = runQuickImport;
+    document.getElementById('startLink').onkeydown = e => { if (e.key === 'Enter') runQuickImport(); };
     document.getElementById('startBlankLink').onclick = async e => {
       e.preventDefault();
       const name = prompt('Business name?');
@@ -120,9 +120,13 @@
     };
   }
 
+  function splitLinks(text) {
+    const urls = (text.match(/https?:\/\/\S+/g) || []).map(u => u.trim());
+    return [urls[0], urls[1]];
+  }
+
   async function runQuickImport() {
-    const url = document.getElementById('startFb').value.trim();
-    const url2 = document.getElementById('startGoogle').value.trim();
+    const [url, url2] = splitLinks(document.getElementById('startLink').value.trim());
     const status = document.getElementById('startStatus');
     const btn = document.getElementById('startBuildBtn');
     if (!url && !url2) return;
@@ -151,11 +155,10 @@
 
     el.editor.innerHTML = `
       <h2>Import</h2>
-      <div class="field"><label>Facebook Page link</label>
-        <input id="f_fb" type="text" placeholder="https://www.facebook.com/..." value="${escapeAttr(state.current.contact?.facebookUrl || (state.current.lastImportUrl && !/google/i.test(state.current.lastImportUrl) ? state.current.lastImportUrl : '') || '')}"></div>
-      <div class="field"><label>Google Maps link</label>
-        <input id="f_google" type="text" placeholder="https://www.google.com/maps/place/..." value="${escapeAttr(profile.mapsUrl || '')}"></div>
-      <div class="import-box"><button id="importBtn" style="width:100%">Re-fetch</button></div>
+      <div class="link-bar">
+        <input id="f_link" type="text" placeholder="Paste a Facebook or Google Maps link…" value="${escapeAttr(state.current.lastImportUrl || state.current.contact?.facebookUrl || profile.mapsUrl || '')}">
+        <button id="importBtn">Re-fetch</button>
+      </div>
       <div class="import-status" id="importStatus"></div>
 
       <h2>Business</h2>
@@ -361,8 +364,7 @@
   }
 
   async function runImport() {
-    const url = document.getElementById('f_fb').value.trim();
-    const url2 = document.getElementById('f_google').value.trim();
+    const [url, url2] = splitLinks(document.getElementById('f_link').value.trim());
     const status = document.getElementById('importStatus');
     if (!url && !url2) return;
     status.textContent = 'Reading the page…';

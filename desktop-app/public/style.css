@@ -119,24 +119,34 @@ dialog button { margin-top: 10px; padding: 7px 14px; border-radius: 8px; border:
 .editor h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 22px 0 10px; }
 .editor h2:first-of-type { margin-top: 0; }
 
-.import-box { display: flex; gap: 8px; }
-.import-box input {
-  flex: 1;
-  padding: 10px 12px;
+.link-bar {
+  display: flex;
   border: 1px solid var(--line);
-  border-radius: 9px;
-  font-size: 13.5px;
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
 }
-.import-box button {
-  padding: 10px 16px;
+.link-bar input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 13px;
   border: none;
-  border-radius: 9px;
+  font-size: 13.5px;
+  background: transparent;
+}
+.link-bar input:focus { outline: none; }
+.link-bar button {
+  padding: 0 16px;
+  border: none;
+  border-left: 1px solid var(--line);
   background: var(--ink);
   color: #fff;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
 }
-.import-box button:disabled { opacity: 0.5; cursor: default; }
+.link-bar button:disabled { opacity: 0.5; cursor: default; }
 .import-status { margin-top: 8px; font-size: 12.5px; color: var(--muted); min-height: 16px; }
 
 .field { margin-bottom: 12px; }
