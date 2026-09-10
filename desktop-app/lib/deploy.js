@@ -8,6 +8,7 @@
 // (https://brightsite-<slug>.vercel.app) instead of creating a new one
 // every time.
 const { spawn } = require('child_process');
+const { spawnEnv } = require('./shell-path');
 
 function projectNameFor(slug) {
   // Vercel project names: lowercase letters, digits, hyphens only, <= 100 chars.
@@ -16,7 +17,7 @@ function projectNameFor(slug) {
 
 function run(cmd, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
     let out = '';
     let err = '';
     child.stdout.on('data', d => (out += d));

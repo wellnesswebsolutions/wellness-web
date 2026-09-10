@@ -152,7 +152,10 @@ dialog button.danger:hover { background: #c93a35; }
   display: grid;
   grid-template-columns: 220px minmax(360px, 1fr) minmax(360px, 1fr);
   min-height: 0;
-  transition: grid-template-columns 0.15s;
+  /* No transition here on purpose: fitPreviewFrame() reads the preview
+     pane's clientWidth right after toggling full screen, and an animated
+     grid-template-columns would still be mid-transition at that point,
+     making the read (and the resulting scale) briefly wrong. */
 }
 /* No site open — drop the empty preview pane and let the sidebar/start
    screen use the full window instead of staying squeezed into a narrow
@@ -285,7 +288,20 @@ dialog button.danger:hover { background: #c93a35; }
 .link-bar.compact { margin-bottom: 4px; }
 .link-bar.compact input { padding: 9px 12px; font-size: 13px; }
 .link-bar.compact button { padding: 0 14px; font-size: 12.5px; }
-.import-status { margin: 4px 0 10px; font-size: 12px; color: var(--muted); min-height: 14px; }
+.import-status { margin: 4px 0 10px; font-size: 12px; color: var(--muted); min-height: 14px; display: flex; align-items: center; gap: 7px; }
+
+.status-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--accent-tint);
+  border-top-color: var(--accent);
+  animation: status-spin 0.7s linear infinite;
+}
+.status-spinner.light { border-color: rgba(255,255,255,0.35); border-top-color: #fff; }
+@keyframes status-spin { to { transform: rotate(360deg); } }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
 .phone-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0 10px; align-items: end; }
@@ -516,7 +532,7 @@ iframe#preview {
 .ai-edit-box textarea { width: 100%; min-height: 54px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; font-family: inherit; }
 .ai-edit-box button { margin-top: 6px; padding: 7px 12px; border-radius: 8px; border: none; background: var(--ai); color: #fff; font-size: 12.5px; cursor: pointer; }
 .ai-edit-box button:disabled { opacity: 0.5; cursor: default; }
-.ai-edit-status { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.ai-edit-status { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 7px; }
 .edit-log { margin-top: 10px; font-size: 12px; color: var(--muted); }
 .edit-log .entry { border-top: 1px solid var(--line); padding: 6px 0; }
 .edit-log button.undo { font-size: 11px; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); background: #fff; cursor: pointer; margin-left: 6px; }

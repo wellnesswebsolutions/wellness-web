@@ -272,7 +272,7 @@
     const btn = document.getElementById('startBuildBtn');
     if (!url && !url2) return;
     btn.disabled = true;
-    status.textContent = 'Reading the page…';
+    setLoading(status, 'Reading the page…');
     try {
       const project = await api('/api/quick-import', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, url2 })
@@ -390,7 +390,7 @@
     const btn = document.getElementById('aiEditBtn');
     if (!instruction) return;
     btn.disabled = true;
-    status.textContent = 'Asking Claude Code…';
+    setLoading(status, 'Asking Claude Code…');
     try {
       const updated = await api(`/api/projects/${state.current.slug}/ai-edit`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction })
@@ -523,7 +523,7 @@
     const [url, url2] = splitLinks(document.getElementById('f_link').value.trim());
     const status = document.getElementById('importStatus');
     if (!url && !url2) return;
-    status.textContent = 'Reading the page…';
+    setLoading(status, 'Reading the page…');
     try {
       const data = await api('/api/import', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, url2 })
@@ -657,6 +657,12 @@
     box.style.height = `${contentHeight * scale}px`;
   }
 
+  // A small spinner + text for "this is in progress" states, instead of
+  // plain status text that looked identical to a finished/error message.
+  function setLoading(el, text) {
+    el.innerHTML = `<span class="status-spinner"></span>${escapeHtml(text)}`;
+  }
+
   function escapeHtml(s) { return String(s || '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
   function escapeAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
 
@@ -688,10 +694,11 @@
     }).catch(err => notify(err.message, { sticky: false }));
   }
 
+  // Straight into the blank builder form — no "what's it called?" prompt
+  // first. The Name field is right there at the top of the form for them
+  // to fill in themselves, same as every other field.
   el.newProjectBtn.onclick = async () => {
-    const name = await showPrompt('New site', 'Business name');
-    if (!name) return;
-    const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+    const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '' }) });
     await loadProjects();
     await selectProject(project.slug);
   };
@@ -702,7 +709,12 @@
     if (!el.preview.dataset.lastHtml) return;
     state.appFullscreen = !state.appFullscreen;
     document.querySelector('.layout').classList.toggle('preview-fullscreen', state.appFullscreen);
-    el.fullscreenBtn.textContent = state.appFullscreen ? 'Exit full screen ⤢' : 'Full screen ⤢';
+    // Keep this a single icon glyph, not a text label — the button is a
+    // fixed-size icon-only square (see .icon-only), and swapping in a full
+    // sentence here used to overflow/clip it, making it hard to click a
+    // second time to exit full screen.
+    el.fullscreenBtn.textContent = state.appFullscreen ? '⤡' : '⤢';
+    el.fullscreenBtn.title = state.appFullscreen ? 'Exit full screen' : 'Full screen';
     fitPreviewFrame();
   };
   document.addEventListener('keydown', e => {
@@ -738,7 +750,7 @@
   el.deployBtn.onclick = async () => {
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
     el.deployBtn.disabled = true;
-    el.deployBtn.textContent = 'Deploying…';
+    el.deployBtn.innerHTML = `<span class="status-spinner light"></span>Deploying…`;
     el.deployBtn.classList.remove('status-not-live', 'status-live', 'status-needs-update');
     el.deployBtn.classList.add('status-deploying');
     try {

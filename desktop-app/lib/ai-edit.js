@@ -6,6 +6,7 @@
 // fails, the caller gets a clear error and the rest of the app keeps
 // working — this feature is additive, never load-bearing.
 const { spawn } = require('child_process');
+const { spawnEnv } = require('./shell-path');
 
 const EDITABLE_FIELDS = ['name', 'location', 'tagline', 'layout'];
 const PROFILE_FIELDS = ['about'];
@@ -36,7 +37,7 @@ function extractJson(text) {
 async function runClaudeEdit(project, instruction) {
   const prompt = buildPrompt(project, instruction);
   const output = await new Promise((resolve, reject) => {
-    const child = spawn('claude', ['-p', prompt, '--output-format', 'text'], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn('claude', ['-p', prompt, '--output-format', 'text'], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
     let out = '';
     let err = '';
     child.stdout.on('data', d => (out += d));

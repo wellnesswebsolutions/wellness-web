@@ -6,6 +6,7 @@
 // (plain no-API HTTP fetch + Open Graph/JSON-LD parsing) when Claude Code
 // isn't installed/signed in, so the app still works either way.
 const { spawn } = require('child_process');
+const { spawnEnv } = require('./shell-path');
 
 function buildPrompt(url, url2) {
   const urls = [url, url2].filter(Boolean);
@@ -48,7 +49,7 @@ function runClaudeExtract(pageText, urls) {
     const child = spawn('claude', [
       '-p', buildExtractPrompt(pageText, urls),
       '--output-format', 'text'
-    ], { stdio: ['ignore', 'pipe', 'pipe'] });
+    ], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
     let out = '';
     let err = '';
     child.stdout.on('data', d => (out += d));
@@ -74,7 +75,7 @@ function runClaudeLookup(url, url2) {
       '-p', buildPrompt(url, url2),
       '--allowedTools', 'WebFetch',
       '--output-format', 'text'
-    ], { stdio: ['ignore', 'pipe', 'pipe'] });
+    ], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
     let out = '';
     let err = '';
     child.stdout.on('data', d => (out += d));
