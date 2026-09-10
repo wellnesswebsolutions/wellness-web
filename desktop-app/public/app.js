@@ -6,8 +6,10 @@
     newProjectBtn: document.getElementById('newProjectBtn'),
     editor: document.getElementById('editor'),
     preview: document.getElementById('preview'),
+    fullscreenBtn: document.getElementById('fullscreenBtn'),
     openBrowserBtn: document.getElementById('openBrowserBtn'),
     exportBtn: document.getElementById('exportBtn'),
+    deployBtn: document.getElementById('deployBtn'),
     browserLinkBtn: document.getElementById('browserLinkBtn'),
     notice: document.getElementById('noticeStrip'),
     gearBtn: document.getElementById('gearBtn'),
@@ -484,6 +486,10 @@
     await loadProjects();
     await selectProject(project.slug);
   };
+  el.fullscreenBtn.onclick = () => {
+    if (!el.preview.dataset.lastHtml) return;
+    el.preview.requestFullscreen().catch(() => notify('Full screen isn\'t available right now.', { sticky: false }));
+  };
   el.openBrowserBtn.onclick = () => window.open(location.href, '_blank');
   el.browserLinkBtn.onclick = async () => {
     try { await navigator.clipboard.writeText(location.href); el.browserLinkBtn.textContent = 'Copied!'; }
@@ -497,6 +503,23 @@
     });
     notify('Website exported and ready to send.');
     alert(`Exported to:\n${result.path}`);
+  };
+  el.deployBtn.onclick = async () => {
+    if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
+    el.deployBtn.disabled = true;
+    el.deployBtn.textContent = 'Deploying…';
+    try {
+      const result = await api(`/api/projects/${state.current.slug}/deploy`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html: el.preview.dataset.lastHtml })
+      });
+      try { await navigator.clipboard.writeText(result.url); } catch { /* clipboard may be unavailable */ }
+      notify(`Live at ${result.url} (copied to clipboard).`, { sticky: true });
+    } catch (err) {
+      notify(err.message, { sticky: true });
+    } finally {
+      el.deployBtn.disabled = false;
+      el.deployBtn.textContent = 'Make live';
+    }
   };
 
   loadProjects().then(() => renderEditor());

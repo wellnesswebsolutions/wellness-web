@@ -232,6 +232,7 @@ dialog button { margin-top: 10px; padding: 7px 14px; border-radius: 8px; border:
 .preview-pane { display: flex; flex-direction: column; background: #eeece6; min-height: 0; }
 .preview-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--line);

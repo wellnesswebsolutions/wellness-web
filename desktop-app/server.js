@@ -8,6 +8,7 @@ const { runClaudeEdit } = require('./lib/ai-edit');
 const { runClaudeLookup, runClaudeExtract } = require('./lib/ai-import');
 const browserFetch = require('./lib/browser-fetch');
 const sync = require('./lib/supabase-sync');
+const { deployToVercel } = require('./lib/deploy');
 
 const PORT = process.env.PORT || 4173;
 const GENERATOR_DIR = fs.existsSync(path.join(__dirname, '..', 'demo-generator.js'))
@@ -258,21 +259,43 @@ function createApp() {
   // Write the generated HTML the browser already built (client-side,
   // via the same generator scripts used for the live preview) out to a
   // sendable static folder.
+  function writeExport(slug, html) {
+    const dir = storage.projectDir(slug);
+    const outDir = path.join(dir, 'export');
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(path.join(outDir, 'index.html'), html);
+    const srcImg = path.join(dir, 'img');
+    const outImg = path.join(outDir, 'img');
+    if (fs.existsSync(srcImg)) fs.cpSync(srcImg, outImg, { recursive: true });
+    return outDir;
+  }
+
   app.post('/api/projects/:slug/export', (req, res) => {
-    const { slug } = req.params;
     const html = req.body?.html;
     if (!html) return res.status(400).json({ error: 'html is required' });
     try {
-      const dir = storage.projectDir(slug);
-      const outDir = path.join(dir, 'export');
-      fs.mkdirSync(outDir, { recursive: true });
-      fs.writeFileSync(path.join(outDir, 'index.html'), html);
-      const srcImg = path.join(dir, 'img');
-      const outImg = path.join(outDir, 'img');
-      if (fs.existsSync(srcImg)) fs.cpSync(srcImg, outImg, { recursive: true });
-      res.json({ path: outDir });
+      res.json({ path: writeExport(req.params.slug, html) });
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Ships the exported site with the Vercel CLI already signed in on this
+  // Mac (see lib/deploy.js) — no API token handled by the app itself.
+  app.post('/api/projects/:slug/deploy', async (req, res) => {
+    const html = req.body?.html;
+    if (!html) return res.status(400).json({ error: 'html is required' });
+    try {
+      const outDir = writeExport(req.params.slug, html);
+      const url = await deployToVercel(outDir, req.params.slug);
+      const saved = storage.saveProject(req.params.slug, { liveUrl: url });
+      sync.pushOne(saved);
+      res.json({ url });
+    } catch (err) {
+      const message = err.message === 'vercel-not-found'
+        ? 'Vercel CLI not found — install it with `npm install -g vercel` and run `vercel login` once.'
+        : err.message;
+      res.status(502).json({ error: message });
     }
   });
 
