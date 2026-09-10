@@ -72,22 +72,51 @@ duplicated between them.
   flagged (the info meter's blue "AI" portion) so you know what to check
   before sending.
 
+## Discovery ("find businesses with no website in X")
+
+There's no reliable API-free way to auto-search Facebook/Google for
+businesses — the only real option is the Google Places API, which was
+deliberately left out to avoid API keys/costs. Instead, the Sales tab has
+a **Discover businesses** box: pick a category + location and it opens the
+right Google Maps search in your browser for you to look through, then a
+paste-box bulk-adds whatever names you copy back in as "Potential" leads
+(deterministic, instant, no AI).
+
+## Cross-device sync (optional, off by default)
+
+Everything works purely on local files in `~/BrightSiteProjects/` unless
+you opt in to Supabase sync. To enable it:
+
+1. Run `supabase/businesses_schema.sql` once in your Supabase project's
+   SQL editor (I did **not** run this for you — it changes your database,
+   so that's your call).
+2. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` env vars before `npm start`.
+
+With those set, every save also pushes to Supabase, and opening the app
+pulls in anything newer from another device. Without them, nothing about
+sync ever runs — see `lib/supabase-sync.js`.
+
 ## Notifications
 
 A slim strip at the top shows one message at a time (import result, stage
 change, AI edit applied/failed, export ready) and clears itself after a
 few seconds.
 
+## Undo
+
+Undoing an AI edit restores the exact field values from before that edit
+(captured server-side when the edit was applied), not just a blanked
+field — safe to use without losing real data.
+
 ## Known gaps (not built)
 
-- **Discovery mode** ("find businesses with no website in Beverley") —
-  needs its own Google Places category-search + no-website filter + de-dupe
-  logic against existing records; deliberately deferred as its own phase.
-- **No Supabase sync** — everything is local JSON files in
-  `~/BrightSiteProjects/`, which keeps this simple and credential-free, but
-  means there's currently no cross-device sync (unlike the old tracker).
-  If you want that back, the migration plan from the original design
-  conversation is the place to pick it up.
-- **Undo** on an AI edit clears the touched fields back to blank rather
-  than restoring the exact previous value (no full field history is kept)
-  — re-import or retype after an undo you didn't want.
+- Discovery is a browse-and-bulk-paste helper, not a live automated
+  search — see above for why.
+- Sync is opt-in and requires you to run the schema SQL yourself.
+- This was built and tested in a sandboxed dev environment without a full
+  interactive display; `npm start` was verified to launch a real,
+  correctly-rendered native window (Builder/Sales tabs, styling, main +
+  renderer + GPU processes all confirmed running), but do a quick
+  end-to-end pass yourself the first time you use it for real — paste a
+  real Facebook/Google link, upload real media, export a real site —
+  before sending anything to a client.

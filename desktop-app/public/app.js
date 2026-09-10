@@ -292,20 +292,15 @@
     const log = state.current.editLog || [];
     const entry = log[index];
     if (!entry) return;
-    // Undo by reversing exactly what that edit changed back to the value
-    // beforehand, using the previous entry's patch trail — simplest safe
-    // approach without keeping full field history: re-fetch is not
-    // possible, so we just clear the touched fields back to blank and
-    // let you retype/re-import rather than risk showing a wrong value.
-    const clearedRaw = { ...state.current.raw };
-    Object.keys(entry.fieldPatch || {}).forEach(k => delete clearedRaw[k]);
-    if (entry.profilePatch && Object.keys(entry.profilePatch).length) {
-      const profile = { ...(clearedRaw.businessProfile || {}) };
-      Object.keys(entry.profilePatch).forEach(k => delete profile[k]);
-      clearedRaw.businessProfile = profile;
+    // Restore the exact pre-edit values captured server-side when the
+    // edit was applied (see server.js /ai-edit), rather than just
+    // clearing the touched fields.
+    const restoredRaw = { ...state.current.raw, ...(entry.beforeFields || {}) };
+    if (entry.beforeProfile && Object.keys(entry.beforeProfile).length) {
+      restoredRaw.businessProfile = { ...(restoredRaw.businessProfile || {}), ...entry.beforeProfile };
     }
     const newLog = log.filter((_, i) => i !== index);
-    state.current.raw = clearedRaw;
+    state.current.raw = restoredRaw;
     state.current.editLog = newLog;
     await persist();
     renderEditor();
@@ -507,6 +502,17 @@
     });
 
     el.salesWrap.innerHTML = `
+      <div class="discovery-box">
+        <h4>Discover businesses</h4>
+        <p class="dim">There's no reliable API-free way to auto-search Facebook/Google for businesses without a website — this just opens the right Google Maps search for you to browse, then bulk-adds whatever names you paste back in as "Potential" leads.</p>
+        <div class="row1">
+          <select id="discoveryCategory">${categoryOptions('')}</select>
+          <input id="discoveryLocation" placeholder="Location, e.g. Beverley">
+          <button id="discoveryOpenBtn">Open Google Maps search</button>
+        </div>
+        <textarea id="discoveryNames" placeholder="Paste business names here, one per line…"></textarea>
+        <button class="add-all" id="discoveryAddBtn">Add all to Sales</button>
+      </div>
       <div class="new-lead-row">
         <input id="newLeadInput" placeholder="Add a business by name…">
         <button id="addLeadBtn">Add to Sales</button>
@@ -521,6 +527,25 @@
 
     document.getElementById('addLeadBtn').onclick = addLead;
     document.getElementById('newLeadInput').onkeydown = e => { if (e.key === 'Enter') addLead(); };
+    document.getElementById('discoveryOpenBtn').onclick = () => {
+      const category = document.getElementById('discoveryCategory').value || 'businesses';
+      const location = document.getElementById('discoveryLocation').value.trim();
+      if (!location) return notify('Add a location first.', { sticky: false });
+      const query = encodeURIComponent(`${category} near ${location}`);
+      window.open(`https://www.google.com/maps/search/${query}`, '_blank');
+    };
+    document.getElementById('discoveryAddBtn').onclick = async () => {
+      const textarea = document.getElementById('discoveryNames');
+      const names = textarea.value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!names.length) return;
+      const created = await api('/api/leads/bulk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ names })
+      });
+      textarea.value = '';
+      notify(`Added ${created.length} business${created.length === 1 ? '' : 'es'} to Sales as Potential.`);
+      await loadProjects();
+      renderSales();
+    };
 
     state.projects.forEach(p => {
       const select = document.getElementById(`stage_${p.slug}`);

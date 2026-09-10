@@ -88,6 +88,15 @@ function saveProject(slug, patch) {
   return next;
 }
 
+// Used only by Supabase sync (server.js) to write a record pulled from
+// another device that doesn't have a local folder yet.
+function upsertProject(slug, data) {
+  ensureRoot();
+  const dir = projectDir(slug);
+  fs.mkdirSync(path.join(dir, 'img', 'gallery'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'data.json'), JSON.stringify({ ...data, slug }, null, 2));
+}
+
 function mediaDir(slug, slot) {
   const dir = slot === 'gallery'
     ? path.join(projectDir(slug), 'img', 'gallery')
@@ -96,4 +105,4 @@ function mediaDir(slug, slot) {
   return dir;
 }
 
-module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, mediaDir, PIPELINE_STAGES };
+module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, upsertProject, mediaDir, PIPELINE_STAGES };

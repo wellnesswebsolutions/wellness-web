@@ -5,6 +5,7 @@ const multer = require('multer');
 const storage = require('./lib/site-storage');
 const { scrapeFacebook, parseGoogleMapsUrl } = require('./lib/scrape');
 const { runClaudeEdit } = require('./lib/ai-edit');
+const sync = require('./lib/supabase-sync');
 
 const PORT = process.env.PORT || 4173;
 const GENERATOR_DIR = fs.existsSync(path.join(__dirname, '..', 'demo-generator.js'))
@@ -20,12 +21,26 @@ function createApp() {
 
   const upload = multer({ limits: { fileSize: 15 * 1024 * 1024 } });
 
-  app.get('/api/projects', (req, res) => {
+  // If Supabase sync is configured (see lib/supabase-sync.js), merge in
+  // any remote records newer than what's on disk — e.g. from another Mac
+  // — before listing. Purely additive: local-only stays fully functional
+  // when sync isn't configured (pullAll resolves to []).
+  app.get('/api/projects', async (req, res) => {
+    if (sync.enabled()) {
+      const remote = await sync.pullAll();
+      remote.forEach(row => {
+        const local = storage.readProject(row.id);
+        if (!local || new Date(row.updated_at) > new Date(local.updatedAt || 0)) {
+          storage.upsertProject(row.id, row.data);
+        }
+      });
+    }
     res.json(storage.listProjects());
   });
 
   app.post('/api/projects', (req, res) => {
     const project = storage.createProject(req.body?.name || '', { pipelineStage: req.body?.pipelineStage });
+    sync.pushOne(project);
     res.json(project);
   });
 
@@ -38,6 +53,7 @@ function createApp() {
   app.put('/api/projects/:slug', (req, res) => {
     try {
       const project = storage.saveProject(req.params.slug, req.body || {});
+      sync.pushOne(project);
       res.json(project);
     } catch (err) {
       res.status(404).json({ error: err.message });
@@ -46,11 +62,31 @@ function createApp() {
 
   app.get('/api/pipeline-stages', (req, res) => res.json(storage.PIPELINE_STAGES));
 
+  // Discovery is deliberately not an automated "find businesses" search —
+  // there is no reliable no-API way to do that (Google Places search is
+  // the only real option and was explicitly ruled out to avoid API costs/
+  // keys). Instead this just turns a category+location into the right
+  // Google Maps search for you to browse yourself, and bulk-adds whatever
+  // names you paste back in as "potential" Sales records — deterministic,
+  // no AI, no scraping.
+  app.post('/api/leads/bulk', (req, res) => {
+    const names = Array.isArray(req.body?.names) ? req.body.names : [];
+    const created = names
+      .map(n => String(n || '').trim())
+      .filter(Boolean)
+      .slice(0, 100)
+      .map(name => storage.createProject(name, { pipelineStage: 'potential' }));
+    created.forEach(p => sync.pushOne(p));
+    res.json(created);
+  });
+
   app.post('/api/projects/:slug/stage', (req, res) => {
     const stage = String(req.body?.stage || '');
     if (!storage.PIPELINE_STAGES.includes(stage)) return res.status(400).json({ error: 'Unknown stage' });
     try {
-      res.json(storage.saveProject(req.params.slug, { pipelineStage: stage }));
+      const project = storage.saveProject(req.params.slug, { pipelineStage: stage });
+      sync.pushOne(project);
+      res.json(project);
     } catch (err) {
       res.status(404).json({ error: err.message });
     }
@@ -66,12 +102,20 @@ function createApp() {
     if (!project) return res.status(404).json({ error: 'Project not found' });
     try {
       const { fieldPatch, profilePatch } = await runClaudeEdit(project, instruction);
+      // Capture the exact previous values for every touched field so an
+      // undo can restore them precisely, not just clear them.
+      const beforeFields = {};
+      Object.keys(fieldPatch).forEach(k => (beforeFields[k] = project.raw[k]));
+      const beforeProfile = {};
+      Object.keys(profilePatch).forEach(k => (beforeProfile[k] = project.raw.businessProfile?.[k]));
+
       const nextRaw = { ...project.raw, ...fieldPatch };
       if (Object.keys(profilePatch).length) {
         nextRaw.businessProfile = { ...(project.raw.businessProfile || {}), ...profilePatch };
       }
-      const editLog = [...(project.editLog || []), { instruction, fieldPatch, profilePatch, at: new Date().toISOString() }].slice(-20);
+      const editLog = [...(project.editLog || []), { instruction, fieldPatch, profilePatch, beforeFields, beforeProfile, at: new Date().toISOString() }].slice(-20);
       const saved = storage.saveProject(req.params.slug, { raw: nextRaw, editLog });
+      sync.pushOne(saved);
       res.json(saved);
     } catch (err) {
       res.status(502).json({ error: err.message });

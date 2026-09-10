@@ -273,3 +273,14 @@ iframe#preview {
 .new-lead-row { display: flex; gap: 8px; margin-bottom: 16px; }
 .new-lead-row input { flex: 1; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; font-size: 13px; }
 .new-lead-row button { padding: 9px 14px; border-radius: 9px; border: none; background: var(--ink); color: #fff; cursor: pointer; font-size: 13px; }
+
+.discovery-box { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; background: var(--panel); }
+.discovery-box h4 { margin: 0 0 4px; font-size: 12.5px; }
+.discovery-box .dim { color: var(--muted); font-size: 12px; margin: 0 0 10px; line-height: 1.5; }
+.discovery-box .row1 { display: flex; gap: 8px; margin-bottom: 8px; }
+.discovery-box .row1 select, .discovery-box .row1 input { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
+.discovery-box .row1 select { flex: 1; }
+.discovery-box .row1 input { flex: 1; }
+.discovery-box .row1 button { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.discovery-box textarea { width: 100%; min-height: 60px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; font-family: inherit; margin-bottom: 8px; }
+.discovery-box .add-all { padding: 7px 12px; border-radius: 8px; border: none; background: var(--ai); color: #fff; font-size: 12.5px; cursor: pointer; }
