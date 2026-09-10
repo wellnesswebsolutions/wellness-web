@@ -30,6 +30,24 @@
     return body;
   }
 
+  // Build/Re-fetch/AI-edit/Deploy all depend on tools (Claude Code CLI,
+  // Vercel CLI) that live on whoever's Mac is set up as "admin" — a
+  // colleague without those installed would otherwise see a raw, technical
+  // "claude-not-found"/"Vercel CLI not found, run npm install..." message.
+  // Collapse that whole class of error into one plain sentence.
+  function friendlyError(message) {
+    const toolMissing = /claude-not-found|claude code cli|vercel-not-found|vercel cli not found/i.test(message || '');
+    return toolMissing ? 'Only admin can update sites' : message;
+  }
+
+  // Shows a message in a status element and clears it again after a few
+  // seconds, instead of leaving a stale error sitting there forever.
+  function showTempStatus(target, message, ms = 4000) {
+    target.textContent = message;
+    clearTimeout(target._clearTimer);
+    target._clearTimer = setTimeout(() => { if (target.textContent === message) target.textContent = ''; }, ms);
+  }
+
   // Shared sync (see lib/supabase-sync.js) is entirely optional — when
   // it's not configured, "disabled" comes back and the indicator just
   // stays hidden, no visual change from before this feature existed.
@@ -281,8 +299,8 @@
       await selectProject(project.slug);
       notify(`Built a site for ${project.raw?.name || 'this business'}.`);
     } catch (err) {
-      status.textContent = err.message;
-      notify(err.message, { sticky: false });
+      showTempStatus(status, friendlyError(err.message));
+      notify(friendlyError(err.message), { sticky: false });
     } finally {
       btn.disabled = false;
     }
@@ -402,9 +420,7 @@
       renderPreview();
       renderLiveActions();
     } catch (err) {
-      status.textContent = err.message.includes('not found')
-        ? 'Claude Code isn\'t available on this Mac right now — the rest of the app still works fine.'
-        : err.message;
+      showTempStatus(status, friendlyError(err.message));
     } finally {
       btn.disabled = false;
     }
@@ -555,8 +571,8 @@
       status.textContent = `Read via ${source}. ${data.images?.length ? data.images.length + ' image(s) found — see "Use found".' : ''}`;
       notify(`Imported for ${state.current.raw.name || 'this site'}.`);
     } catch (err) {
-      status.textContent = err.message;
-      notify(err.message, { sticky: false });
+      showTempStatus(status, friendlyError(err.message));
+      notify(friendlyError(err.message), { sticky: false });
     }
   }
 
@@ -762,7 +778,7 @@
       try { await navigator.clipboard.writeText(result.url); } catch { /* clipboard may be unavailable */ }
       notify(`Live at ${result.url} (copied to clipboard).`, { sticky: true });
     } catch (err) {
-      notify(err.message, { sticky: true });
+      notify(friendlyError(err.message), { sticky: false });
     } finally {
       el.deployBtn.disabled = false;
       renderLiveActions();
