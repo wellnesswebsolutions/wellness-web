@@ -50,7 +50,15 @@ function readProject(slug) {
   }
 }
 
-function createProject(name) {
+// One record per business, shared by both tabs — Builder and Sales just
+// render different views/filters over the same file, so nothing is ever
+// duplicated between them.
+const PIPELINE_STAGES = [
+  'potential', 'info_needed', 'ready_to_build', 'building', 'ready_to_send',
+  'demo_sent', 'waiting_reply', 'interested', 'complete', 'archived'
+];
+
+function createProject(name, opts = {}) {
   ensureRoot();
   const slug = uniqueSlug(slugify(name));
   const dir = projectDir(slug);
@@ -59,6 +67,11 @@ function createProject(name) {
     slug,
     name: name || 'Untitled business',
     raw: { name: name || '' },
+    pipelineStage: opts.pipelineStage || 'ready_to_build',
+    contact: { phone: '', whatsapp: '', email: '', instagram: '', facebookUrl: '', googleUrl: '', existingWebsite: '' },
+    paymentStatus: 'no',
+    price: '',
+    notes: '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -83,4 +96,4 @@ function mediaDir(slug, slot) {
   return dir;
 }
 
-module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, mediaDir };
+module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, mediaDir, PIPELINE_STAGES };

@@ -9,29 +9,50 @@
 <body>
 <header class="topbar">
   <div class="brand"><span class="dot"></span> BrightSite Studio</div>
-  <button class="browser-link" id="browserLinkBtn" title="Copy a link colleagues can open in their own browser">Copy browser link</button>
+  <nav class="tabs">
+    <button class="tab active" data-tab="builder">Builder</button>
+    <button class="tab" data-tab="sales">Sales</button>
+  </nav>
+  <div class="topbar-actions">
+    <button class="browser-link" id="browserLinkBtn" title="Copy a link colleagues can open in their own browser">Copy browser link</button>
+    <button class="gear" id="gearBtn" title="Settings">⚙</button>
+  </div>
 </header>
 
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div id="projectList"></div>
-    <button class="new-project" id="newProjectBtn">+ New site</button>
-  </aside>
+<div class="notice-strip" id="noticeStrip" hidden></div>
 
-  <section class="editor" id="editor">
-    <div class="empty-state">Create or select a site on the left to get started.</div>
-  </section>
+<div class="view" id="builderView">
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div id="projectList"></div>
+      <button class="new-project" id="newProjectBtn">+ New site</button>
+    </aside>
 
-  <section class="preview-pane">
-    <div class="preview-actions">
-      <button id="openBrowserBtn">Open in browser</button>
-      <button id="exportBtn" class="primary">Export folder</button>
-    </div>
-    <div class="preview-frame-wrap">
-      <iframe id="preview"></iframe>
-    </div>
-  </section>
+    <section class="editor" id="editor">
+      <div class="empty-state">Create or select a site on the left to get started.</div>
+    </section>
+
+    <section class="preview-pane">
+      <div class="preview-actions">
+        <button id="openBrowserBtn">Open in browser</button>
+        <button id="exportBtn" class="primary">Export folder</button>
+      </div>
+      <div class="preview-frame-wrap">
+        <iframe id="preview"></iframe>
+      </div>
+    </section>
+  </div>
 </div>
+
+<div class="view" id="salesView" hidden>
+  <div class="sales-wrap" id="salesWrap"></div>
+</div>
+
+<dialog id="settingsDialog">
+  <h3>Settings</h3>
+  <p class="dim">Nothing to configure here yet — Facebook/Google import needs no API key, and natural-language editing uses your local Claude Code sign-in automatically.</p>
+  <button id="closeSettingsBtn">Close</button>
+</dialog>
 
 <!-- Shared, deterministic site generator — the same code that runs on
      brightsite.app. Loaded from the live repo (or bundled resources in
