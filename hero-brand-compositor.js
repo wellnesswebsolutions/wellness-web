@@ -566,7 +566,7 @@
   // colour is part of the physical scene, not a customer-configurable theme.
   const HERO_BRAND_COLOURS = {
     hairbeauty: { face: '#1a1a1a', accent: '#4a4a4a' },
-    aesthetics: { face: '#a98755', accent: '#e8d2a4' },
+    aesthetics: { face: '#1a1a1a', accent: '#4a4a4a' },
     health: { face: '#344c45', accent: '#789b8c' },
     fitness: { face: '#f0eee7', accent: '#b8c1c6' },
     automotive: { face: '#f5f5ef', accent: '#236db4' },
