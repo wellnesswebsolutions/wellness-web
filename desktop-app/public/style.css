@@ -157,6 +157,15 @@ dialog button.danger:hover { background: #c93a35; }
      grid-template-columns would still be mid-transition at that point,
      making the read (and the resulting scale) briefly wrong. */
 }
+/* Pin each pane to its track explicitly. Without this, CSS Grid's
+   auto-placement packs *visible* items into the earliest free tracks —
+   so when full screen hides the sidebar/editor (display:none removes
+   them from the grid entirely), the preview pane was getting auto-placed
+   into column 1 instead of column 3, landing in a 0-width track and
+   never actually growing to fill the screen. */
+.sidebar { grid-column: 1; }
+.editor { grid-column: 2; }
+.preview-pane { grid-column: 3; }
 /* No site open — drop the empty preview pane and let the sidebar/start
    screen use the full window instead of staying squeezed into a narrow
    column beside two empty panes. */
@@ -464,13 +473,13 @@ dialog button.danger:hover { background: #c93a35; }
   height: 34px;
   padding: 0 !important;
   font-size: 16px !important;
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
+  border-color: var(--muted) !important;
+  color: var(--muted) !important;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.close-x:hover { background: var(--accent-tint) !important; }
+.close-x:hover { border-color: var(--accent) !important; color: var(--accent) !important; background: var(--accent-tint) !important; }
 
 /* Deploy button: red = not live, amber = deploying/needs updating, green = live-and-current */
 .preview-actions button.primary {

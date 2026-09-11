@@ -1,5 +1,5 @@
 (() => {
-  const state = { projects: [], current: null, found: {}, dirty: false, sort: 'newest', viewport: 'desktop', appFullscreen: false };
+  const state = { projects: [], current: null, found: {}, sort: 'newest', viewport: 'desktop', appFullscreen: false };
 
   const el = {
     projectList: document.getElementById('projectList'),
@@ -198,18 +198,16 @@
   async function selectProject(slug) {
     state.current = await api(`/api/projects/${slug}`);
     state.found = {};
-    state.dirty = false;
     if (state.current.importImages?.length) state.found.hero = state.current.importImages[0];
     renderSidebar();
     renderEditor();
-    renderPreview();
+    renderPreview({ seedDeployed: true });
     renderLiveActions();
   }
 
   function closeCurrentProject() {
     state.current = null;
     state.found = {};
-    state.dirty = false;
     renderSidebar();
     renderEditor();
     el.preview.srcdoc = '';
@@ -220,25 +218,39 @@
   // Shows a "copy site URL" button and switches the deploy button's label/
   // colour once a site has a live URL — the button itself always still
   // triggers a fresh deploy (pushing edits live). Colour is a simple
-  // traffic light: red = never deployed, amber = live but edited since
-  // (needs updating), green = live and matches what's currently shown.
+  // traffic light: red = never deployed, amber = live but the current
+  // preview no longer matches what was last deployed, green = live and
+  // matching. Comparing the actual rendered HTML (rather than a sticky
+  // "has anything been touched" flag) means undoing an edit back to what's
+  // already live correctly goes back to green instead of staying amber.
   function renderLiveActions() {
     const liveUrl = state.current?.liveUrl;
-    const needsUpdate = Boolean(liveUrl) && state.dirty;
+    const currentHtml = el.preview.dataset.lastHtml;
+    const needsUpdate = Boolean(liveUrl) && currentHtml !== state.current?.deployedHtml;
     el.deployBtn.textContent = liveUrl ? 'Update live site' : 'Make live';
     el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live', 'status-needs-update');
     el.deployBtn.classList.add(!liveUrl ? 'status-not-live' : needsUpdate ? 'status-needs-update' : 'status-live');
     el.copyLiveBtn.hidden = !liveUrl;
   }
 
+  // `deployedHtml` is a client-only snapshot (the server has no concept of
+  // it) — every time the server hands back a fresh project object it has
+  // to be carried over by hand, or the "matches what's live" comparison
+  // would forget it on every save and show amber even when nothing
+  // actually changed.
+  function replaceCurrent(updated) {
+    const deployedHtml = state.current?.deployedHtml;
+    state.current = updated;
+    if (deployedHtml !== undefined) state.current.deployedHtml = deployedHtml;
+  }
+
   async function persist() {
     if (!state.current) return;
-    state.dirty = true;
-    state.current = await api(`/api/projects/${state.current.slug}`, {
+    replaceCurrent(await api(`/api/projects/${state.current.slug}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(state.current)
-    });
+    }));
     renderLiveActions();
     loadProjects();
   }
@@ -413,8 +425,7 @@
       const updated = await api(`/api/projects/${state.current.slug}/ai-edit`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction })
       });
-      state.current = updated;
-      state.dirty = true;
+      replaceCurrent(updated);
       status.textContent = 'Edit applied — you can undo it below if it\'s not right.';
       renderEditor();
       renderPreview();
@@ -620,7 +631,7 @@
     }
   }
 
-  async function renderPreview() {
+  async function renderPreview(opts = {}) {
     if (!state.current || !state.current.raw?.name) return;
     const raw = projectMediaAbsolute(state.current.raw, state.current.slug);
     if (!raw.heroImage) {
@@ -632,6 +643,10 @@
       const html = buildDemoHTML(raw);
       el.preview.srcdoc = html;
       el.preview.dataset.lastHtml = html;
+      // Freshly opening a project: whatever it currently renders is assumed
+      // to match what's live, until an edit changes it.
+      if (opts.seedDeployed) state.current.deployedHtml = html;
+      renderLiveActions();
     } catch (err) {
       el.preview.srcdoc = `<pre style="padding:20px;font:12px monospace">${err.message}</pre>`;
     }
@@ -774,7 +789,7 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html: el.preview.dataset.lastHtml })
       });
       state.current.liveUrl = result.url;
-      state.dirty = false;
+      state.current.deployedHtml = el.preview.dataset.lastHtml;
       try { await navigator.clipboard.writeText(result.url); } catch { /* clipboard may be unavailable */ }
       notify(`Live at ${result.url} (copied to clipboard).`, { sticky: true });
     } catch (err) {
