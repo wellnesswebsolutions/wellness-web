@@ -1,6 +1,6 @@
 (() => {
   const state = {
-    projects: [], current: null, found: {}, sort: 'newest', search: '',
+    projects: [], current: null, found: {}, stageFilter: 'all', search: '',
     viewport: 'desktop', appFullscreen: false, desktopExpanded: true,
     tab: 'businesses', liveAdding: false
   };
@@ -13,8 +13,10 @@
     liveList: document.getElementById('liveList'),
     projectList: document.getElementById('projectList'),
     projectSearch: document.getElementById('projectSearch'),
-    newProjectBtn: document.getElementById('newProjectBtn'),
-    sortSelect: document.getElementById('sortSelect'),
+    stageFilter: document.getElementById('stageFilter'),
+    sidebarLink: document.getElementById('sidebarLink'),
+    sidebarBuildBtn: document.getElementById('sidebarBuildBtn'),
+    sidebarBuildStatus: document.getElementById('sidebarBuildStatus'),
     editor: document.getElementById('editor'),
     preview: document.getElementById('preview'),
     previewFrameWrap: document.getElementById('previewFrameWrap'),
@@ -135,27 +137,37 @@
     refreshSyncStatus();
   }
 
+  // Red/yellow/green sales-stage colour, not live-deploy status (that's
+  // liveStatusFor below, shown separately as a small icon on the row) —
+  // this is what the sort and the filter dropdown both use.
+  const STAGE_COLOUR_RANK = { red: 0, yellow: 1, green: 2, grey: 3 };
+  function stageColour(p) {
+    const stage = stageOf(p);
+    if (stage === 'uncontacted') return 'red';
+    if (stage === 'interested') return 'green';
+    if (stage === 'not_interested') return 'grey';
+    return 'yellow'; // called, follow_up, demo_sent — waiting to hear back
+  }
+
   function sortedProjects() {
     let list = state.projects.slice();
     if (state.search.trim()) {
       const q = state.search.trim().toLowerCase();
       list = list.filter(p => (p.raw?.name || p.name || p.slug).toLowerCase().includes(q));
     }
-    if (state.sort === 'name') {
-      list.sort((a, b) => (a.raw?.name || a.name || '').localeCompare(b.raw?.name || b.name || ''));
-    } else if (state.sort === 'oldest') {
-      list.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
-    } else {
-      list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-    }
+    if (state.stageFilter !== 'all') list = list.filter(p => stageColour(p) === state.stageFilter);
+    list.sort((a, b) => {
+      const rankDiff = STAGE_COLOUR_RANK[stageColour(a)] - STAGE_COLOUR_RANK[stageColour(b)];
+      return rankDiff !== 0 ? rankDiff : (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
     return list;
   }
 
-  // Same red/amber/green vocabulary as the deploy button (renderLiveActions)
-  // so the sidebar dot always reads consistently with it. The open project
-  // reuses that exact comparison (current render vs what's actually live);
-  // for the rest we only know whether they've ever been deployed, since
-  // computing their current render just for a status dot isn't worth it.
+  // Live-deploy status (is the actual website online right now) — separate
+  // from the sales-stage dot. The open project reuses the exact same
+  // comparison as the deploy button (current render vs what's actually
+  // live); for the rest we only know whether they've ever been deployed,
+  // since computing their current render just for a row icon isn't worth it.
   function liveStatusFor(p) {
     if (state.current && state.current.slug === p.slug) {
       const liveUrl = state.current.liveUrl;
@@ -166,62 +178,42 @@
     return p.liveUrl ? 'live' : 'not-live';
   }
 
-  // The business list is split in two: businesses being cold-called on
-  // top, the rest of the (non-paying) database underneath. Paying customers
-  // live on the Live & Paying tab instead.
+  // One flat list, red → yellow → green (→ grey), newest first within each
+  // colour. Paying customers live on the Live & Paying tab instead.
   function renderSidebar() {
-    const scrolls = [...el.projectList.querySelectorAll('.side-half-scroll')].map(s => s.scrollTop);
+    const scrollTop = el.projectList.scrollTop;
     const list = sortedProjects().filter(p => !isLivePaying(p));
     el.projectList.innerHTML = '';
-    [
-      ['Cold calling', list.filter(p => !isUncontacted(p)), 'Nobody yet — press ↑ on a business below.'],
-      ['Database', list.filter(isUncontacted), 'No businesses waiting.']
-    ].forEach(([title, items, empty], i) => {
-      const half = document.createElement('section');
-      half.className = 'side-half';
-      half.innerHTML = `<h3>${title} <span class="crm-count">${items.length}</span></h3><div class="side-half-scroll"></div>`;
-      const scroll = half.lastElementChild;
-      if (items.length) items.forEach(p => scroll.appendChild(projectRow(p)));
-      else scroll.innerHTML = `<p class="side-empty">${empty}</p>`;
-      el.projectList.appendChild(half);
-      scroll.scrollTop = scrolls[i] || 0;
-    });
+    if (list.length) list.forEach(p => el.projectList.appendChild(projectRow(p)));
+    else el.projectList.innerHTML = `<p class="side-empty">${state.search || state.stageFilter !== 'all' ? 'No businesses match.' : 'No businesses yet — add one above.'}</p>`;
+    el.projectList.scrollTop = scrollTop;
   }
 
   function projectRow(p) {
-    const inCalling = !isUncontacted(p);
+    const colour = stageColour(p);
     const row = document.createElement('div');
     row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
     const dot = document.createElement('span');
-    dot.className = `project-dot status-${liveStatusFor(p)}`;
-    dot.title = { 'not-live': 'Not live', 'needs-update': 'Live — needs updating', live: 'Live' }[liveStatusFor(p)];
+    dot.className = `project-dot stage-${colour}`;
+    dot.title = stageLabel(stageOf(p));
     const name = document.createElement('span');
     name.className = 'project-name';
     name.textContent = businessName(p);
-    // Moving between the halves is just a stage change on the same record.
-    const move = document.createElement('button');
-    move.className = 'project-move';
-    move.textContent = inCalling ? '↓' : '↑';
-    move.title = inCalling ? 'Back to database' : 'Move to cold calling';
-    move.onclick = async e => {
-      e.stopPropagation();
-      move.disabled = true;
-      try {
-        if (state.current?.slug === p.slug) await flushSave();
-        await saveProjectFields(p.slug, { pipelineStage: inCalling ? 'uncontacted' : 'called' });
-        renderSidebar();
-        if (state.current?.slug === p.slug) renderSales();
-      } catch (err) {
-        notify(friendlyError(err.message), { sticky: false });
-        move.disabled = false;
-      }
-    };
+    const site = websiteOf(p);
+    // Live status as a small secondary icon, separate from the stage dot —
+    // opens the site directly, same as the green deploy button does.
+    const live = document.createElement('button');
+    live.className = `project-live status-${liveStatusFor(p)}`;
+    live.title = site ? { 'not-live': 'Not live', 'needs-update': 'Live — needs updating', live: 'Open live site' }[liveStatusFor(p)] : 'No website yet';
+    live.textContent = '●';
+    live.hidden = !site;
+    live.onclick = e => { e.stopPropagation(); if (site) openExternal(site); };
     const del = document.createElement('button');
     del.className = 'project-delete';
     del.title = 'Delete this business';
     del.textContent = '✕';
     del.onclick = e => { e.stopPropagation(); deleteProject(p.slug, name.textContent); };
-    row.append(dot, name, move, del);
+    row.append(dot, name, live, del);
     // Clicking the already-open site again closes it back to the start screen.
     row.onclick = () => {
       if (state.current?.slug === p.slug) closeCurrentProject();
@@ -230,7 +222,7 @@
     return row;
   }
 
-  el.sortSelect.onchange = () => { state.sort = el.sortSelect.value; renderSidebar(); };
+  el.stageFilter.onchange = () => { state.stageFilter = el.stageFilter.value; renderSidebar(); };
   el.projectSearch.oninput = () => { state.search = el.projectSearch.value; renderSidebar(); };
 
   async function deleteProject(slug, displayName) {
@@ -285,7 +277,7 @@
     const liveUrl = state.current?.liveUrl;
     const currentHtml = el.preview.dataset.lastHtml;
     const needsUpdate = Boolean(liveUrl) && currentHtml !== state.current?.deployedHtml;
-    el.deployBtn.textContent = liveUrl ? 'Update live site' : 'Make live';
+    el.deployBtn.textContent = !liveUrl ? 'Make live' : needsUpdate ? 'Update live site' : 'Open live site';
     el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live', 'status-needs-update');
     el.deployBtn.classList.add(!liveUrl ? 'status-not-live' : needsUpdate ? 'status-needs-update' : 'status-live');
     el.copyLiveBtn.hidden = !liveUrl;
@@ -428,14 +420,13 @@
       <div class="start-screen">
         <img src="/generator/img/brightsite-logo.png" alt="BrightSite" class="start-logo">
         <div class="link-bar">
-          <input id="startLink" type="text" placeholder="Paste a Facebook or Google Maps link…">
+          <input id="startLink" type="text" placeholder="Paste a link, type a name, or ask AI to find some…">
           <button id="startBuildBtn">Build website</button>
         </div>
         <div class="import-status" id="startStatus"></div>
       </div>
     `;
-    document.getElementById('startBuildBtn').onclick = runQuickImport;
-    document.getElementById('startLink').onkeydown = e => { if (e.key === 'Enter') runQuickImport(); };
+    wireBuildBar(document.getElementById('startLink'), document.getElementById('startBuildBtn'), document.getElementById('startStatus'));
   }
 
   function splitLinks(text) {
@@ -443,25 +434,86 @@
     return [urls[0], urls[1]];
   }
 
-  async function runQuickImport() {
-    const [url, url2] = splitLinks(document.getElementById('startLink').value.trim());
-    const status = document.getElementById('startStatus');
-    const btn = document.getElementById('startBuildBtn');
-    if (!url && !url2) return;
+  // What a typed request means: a link (the existing lookup flow), a short
+  // name (just create it, nothing to look up), or a longer natural-language
+  // request ("find hairdressers in Beverley") — search the web for several
+  // real matches instead of one. The word-count cutoff is a heuristic, not
+  // a parser — a very short "find X" still reads as a name, and an unusual
+  // multi-word business name could misfire into search mode, but a plain
+  // name is always still one Enter-press away from working via a link.
+  function classifyBuildInput(text) {
+    const trimmed = text.trim();
+    const [url, url2] = splitLinks(trimmed);
+    if (url) return { mode: 'link', url, url2 };
+    const words = trimmed.split(/\s+/).filter(Boolean);
+    if (!words.length) return { mode: 'empty' };
+    return words.length >= 5 ? { mode: 'search', query: trimmed } : { mode: 'name', name: trimmed };
+  }
+
+  // Shared by the sidebar's build box and the empty-state one on the start
+  // screen — same three modes, same behaviour, wherever it's typed.
+  function wireBuildBar(input, btn, status) {
+    const bar = input.closest('.link-bar');
+    const updateMode = () => {
+      const mode = classifyBuildInput(input.value).mode;
+      if (bar) bar.classList.toggle('ai-mode', mode === 'search');
+      btn.textContent = mode === 'search' ? 'Search & add' : 'Build website';
+    };
+    updateMode();
+    input.oninput = updateMode;
+    input.onkeydown = e => { if (e.key === 'Enter') runSmartBuild(input, btn, status); };
+    btn.onclick = () => runSmartBuild(input, btn, status);
+  }
+
+  async function runSmartBuild(input, btn, status) {
+    const parsed = classifyBuildInput(input.value);
+    if (parsed.mode === 'empty') return;
     btn.disabled = true;
-    setLoading(status, 'Reading the page…');
     try {
-      const project = await api('/api/quick-import', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, url2 })
-      });
-      await loadProjects();
-      await selectProject(project.slug);
-      notify(`Built a site for ${project.raw?.name || 'this business'}.`);
+      if (parsed.mode === 'link') {
+        if (status) setLoading(status, 'Reading the page…');
+        const project = await api('/api/quick-import', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: parsed.url, url2: parsed.url2 })
+        });
+        await loadProjects();
+        await selectProject(project.slug);
+        notify(`Built a site for ${project.raw?.name || 'this business'}.`);
+      } else if (parsed.mode === 'name') {
+        if (status) setLoading(status, 'Adding…');
+        const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: parsed.name }) });
+        await loadProjects();
+        await selectProject(project.slug);
+        notify(`Added ${parsed.name}.`);
+      } else {
+        // AI search mode: several businesses at once, so there's no single
+        // one to open — just drop them into the list.
+        if (status) setLoading(status, `Searching the web for "${parsed.query}"…`);
+        const result = await api('/api/ai-search', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: parsed.query })
+        });
+        await loadProjects();
+        notify(
+          result.projects.length
+            ? `Found ${result.projects.length} business${result.projects.length === 1 ? '' : 'es'} — added to the list.`
+            : "Couldn't find any real businesses matching that.",
+          { sticky: !result.projects.length }
+        );
+      }
+      input.value = '';
+      if (status) status.textContent = '';
     } catch (err) {
-      showTempStatus(status, friendlyError(err.message));
+      if (status) showTempStatus(status, friendlyError(err.message));
       notify(friendlyError(err.message), { sticky: false });
     } finally {
       btn.disabled = false;
+      // Reflect whatever's left in the box (cleared on success, still there
+      // after a failure) rather than assuming it's back to empty.
+      if (input.isConnected) {
+        const mode = classifyBuildInput(input.value).mode;
+        const bar = input.closest('.link-bar');
+        if (bar) bar.classList.toggle('ai-mode', mode === 'search');
+        btn.textContent = mode === 'search' ? 'Search & add' : 'Build website';
+      }
     }
   }
 
@@ -981,14 +1033,10 @@
     }).catch(err => notify(err.message, { sticky: false }));
   }
 
-  // Straight into the blank builder form — no "what's it called?" prompt
-  // first. The Name field is right there at the top of the form for them
-  // to fill in themselves, same as every other field.
-  el.newProjectBtn.onclick = async () => {
-    const project = await api('/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '' }) });
-    await loadProjects();
-    await selectProject(project.slug);
-  };
+  // The sidebar's own build box — always there, project open or not,
+  // unlike the start screen's copy which only shows when nothing's open.
+  wireBuildBar(el.sidebarLink, el.sidebarBuildBtn, el.sidebarBuildStatus);
+
   // Reflects state.viewport onto the toggle buttons + expand indicator.
   // Full screen is desktop-only, so switching into it while on mobile
   // routes through here too, to force the view back to desktop.
@@ -1062,6 +1110,12 @@
     }
   };
   el.deployBtn.onclick = async () => {
+    // Green already means "live and matching what's on screen" — clicking
+    // it then opens the site instead of redeploying something unchanged.
+    // Red/amber (never deployed, or deployed but stale) still deploy.
+    if (el.deployBtn.classList.contains('status-live') && state.current?.liveUrl) {
+      return openExternal(state.current.liveUrl);
+    }
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
     el.deployBtn.disabled = true;
     el.deployBtn.innerHTML = `<span class="status-spinner light"></span>Deploying…`;

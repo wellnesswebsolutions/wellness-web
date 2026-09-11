@@ -222,22 +222,16 @@ dialog button.danger:hover { background: #c93a35; }
   display: flex;
   flex-direction: column;
 }
-.sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 10px; }
+.sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 6px; }
 .sidebar-head-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .sidebar-head h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
-.sidebar-head .add-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.sidebar-head .add-icon:hover { background: #2f6fe0; }
+/* Build box: link / name / AI-search, all through one input. ai-mode is
+   toggled as you type, purely a visual cue that Enter will search instead
+   of creating one business straight away. */
+.sidebar-build-bar { margin-bottom: 6px; }
+.sidebar-build-bar.ai-mode { border-color: var(--ai); box-shadow: 0 0 0 3px var(--ai-bg); }
+.sidebar-build-bar.ai-mode button { background: var(--ai); }
+.build-status { min-height: 14px; margin: 0 0 6px 2px; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .project-search {
   width: 100%;
   padding: 7px 10px;
@@ -262,29 +256,12 @@ dialog button.danger:hover { background: #c93a35; }
   cursor: pointer;
 }
 .sort-select:hover { background: #f1efe9; }
-/* Business list split in half: cold calling on top, database underneath. */
-#projectList { flex: 1; display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
-.side-half { display: flex; flex-direction: column; min-height: 0; }
-.side-half + .side-half { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; }
-.side-half h3 {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 4px;
-  padding: 0 4px;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-.side-half-scroll { flex: 1; overflow-y: auto; min-height: 0; }
-.side-empty { margin: 0; padding: 6px 4px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+#projectList { flex: 1; overflow-y: auto; min-height: 0; }
+.side-empty { margin: 0; padding: 10px 4px; font-size: 12px; color: var(--muted); line-height: 1.4; }
 .sidebar .project {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   padding: 9px 8px 9px 10px;
   border-radius: 10px;
   cursor: pointer;
@@ -295,15 +272,18 @@ dialog button.danger:hover { background: #c93a35; }
 }
 .sidebar .project:hover { background: #f1efe9; }
 .sidebar .project.active { background: var(--accent-tint); font-weight: 600; }
+/* Sales-stage dot: red = uncontacted, yellow = waiting to hear back,
+   green = interested, grey = not interested. */
 .sidebar .project .project-dot {
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
-.sidebar .project .project-dot.status-not-live { background: #e0453f; }
-.sidebar .project .project-dot.status-needs-update { background: #dd9a1f; }
-.sidebar .project .project-dot.status-live { background: #1f9d55; }
+.sidebar .project .project-dot.stage-red { background: #e0453f; }
+.sidebar .project .project-dot.stage-yellow { background: #dd9a1f; }
+.sidebar .project .project-dot.stage-green { background: #1f9d55; }
+.sidebar .project .project-dot.stage-grey { background: #b7b3aa; }
 .sidebar .project .project-name {
   flex: 1;
   min-width: 0;
@@ -311,6 +291,25 @@ dialog button.danger:hover { background: #c93a35; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Live-deploy status, separate from the stage dot above — a small filled
+   dot that opens the site when there is one, same red/amber/green meaning
+   as the deploy button in the preview pane. */
+.sidebar .project .project-live {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 9px;
+  line-height: 16px;
+  cursor: pointer;
+}
+.sidebar .project .project-live.status-not-live { color: #e0453f; }
+.sidebar .project .project-live.status-needs-update { color: #dd9a1f; }
+.sidebar .project .project-live.status-live { color: #1f9d55; }
+.sidebar .project .project-live:hover { background: rgba(23,24,26,0.06); }
+.sidebar .project .project-live[hidden] { display: none; }
 .sidebar .project .project-delete {
   flex: none;
   border: none;
@@ -325,20 +324,6 @@ dialog button.danger:hover { background: #c93a35; }
   transition: opacity 0.1s;
 }
 .sidebar .project:hover .project-delete { opacity: 1; }
-.sidebar .project .project-move {
-  flex: none;
-  width: 22px;
-  height: 20px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.sidebar .project .project-move:hover { background: var(--accent-tint); border-color: var(--accent); }
-.sidebar .project .project-move:disabled { opacity: 0.5; cursor: default; }
 .sidebar .project .project-delete:hover { background: #e6d5d5; color: #a03b3b; }
 
 .editor {

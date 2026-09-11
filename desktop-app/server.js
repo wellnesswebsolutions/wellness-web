@@ -5,7 +5,7 @@ const multer = require('multer');
 const storage = require('./lib/site-storage');
 const { scrapeFacebook, parseGoogleMapsUrl } = require('./lib/scrape');
 const { runClaudeEdit } = require('./lib/ai-edit');
-const { runClaudeLookup, runClaudeExtract } = require('./lib/ai-import');
+const { runClaudeLookup, runClaudeExtract, runClaudeSearch } = require('./lib/ai-import');
 const browserFetch = require('./lib/browser-fetch');
 const sync = require('./lib/supabase-sync');
 const { deployToVercel } = require('./lib/deploy');
@@ -263,6 +263,36 @@ function createApp() {
       res.json(saved);
     } catch (err) {
       res.status(502).json({ error: `Could not read that page: ${err.message}` });
+    }
+  });
+
+  // Bulk counterpart to quick-import: one free-text request ("hairdressers
+  // in Beverley") becomes several new, uncontacted businesses. Each is
+  // created exactly like a quick-import result (same fields, same
+  // pipelineStage default), just without a lookup — a plain name and,
+  // where found, a phone/address/link to work from.
+  app.post('/api/ai-search', async (req, res) => {
+    const query = String(req.body?.query || '').trim();
+    if (!query) return res.status(400).json({ error: 'A search query is required' });
+    try {
+      const results = await runClaudeSearch(query);
+      const projects = [];
+      for (const data of results) {
+        if (!data?.name) continue;
+        const project = storage.createProject(data.name);
+        const businessProfile = {};
+        if (data.address) businessProfile.address = data.address;
+        if (data.phone) businessProfile.phone = data.phone;
+        if (data.mapsUrl) businessProfile.mapsUrl = data.mapsUrl;
+        const raw = { name: data.name, tagline: data.category, location: data.location, businessProfile };
+        const contact = data.facebookUrl ? { facebookUrl: data.facebookUrl } : undefined;
+        const saved = storage.saveProject(project.slug, { raw, contact, lastImportUrl: data.facebookUrl || data.mapsUrl || '' });
+        sync.pushOne(saved);
+        projects.push(saved);
+      }
+      res.json({ projects, query });
+    } catch (err) {
+      res.status(502).json({ error: err.message === 'claude-not-found' ? 'claude-not-found' : `Search failed: ${err.message}` });
     }
   });
 

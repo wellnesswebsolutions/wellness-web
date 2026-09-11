@@ -60,14 +60,20 @@
       <div class="sidebar-head">
         <div class="sidebar-head-left">
           <h2>Businesses</h2>
-          <select class="sort-select" id="sortSelect" title="Sort businesses">
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-            <option value="name">Name A–Z</option>
+          <select class="sort-select" id="stageFilter" title="Filter by stage">
+            <option value="all">All</option>
+            <option value="red">🔴 Uncontacted</option>
+            <option value="yellow">🟡 Waiting</option>
+            <option value="green">🟢 Interested</option>
+            <option value="grey">⚪ Not interested</option>
           </select>
         </div>
-        <button class="add-icon" id="newProjectBtn" title="Add a business">+</button>
       </div>
+      <div class="link-bar compact sidebar-build-bar" id="sidebarBuildBar">
+        <input type="text" id="sidebarLink" placeholder="Paste a link, type a name, or ask AI to find some…">
+        <button id="sidebarBuildBtn">Build website</button>
+      </div>
+      <div class="build-status" id="sidebarBuildStatus"></div>
       <input type="text" class="project-search" id="projectSearch" placeholder="Search businesses…">
       <div id="projectList"></div>
     </aside>

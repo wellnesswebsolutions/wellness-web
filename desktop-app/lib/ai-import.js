@@ -66,6 +66,55 @@ function runClaudeExtract(pageText, urls) {
   });
 }
 
+const SEARCH_RESULT_CAP = 15;
+
+function buildSearchPrompt(query) {
+  return `Search the web to find real, currently-trading local businesses matching this request: ` +
+    `"${query}". Only include businesses you can actually confirm exist — never invent one. Find up ` +
+    `to ${SEARCH_RESULT_CAP} of them. For each, include a Facebook Page or Google Maps/Business URL ` +
+    `if you found one, but still include the business if you only found its name and roughly where it is.\n\n` +
+    `Reply with ONLY a JSON array, no prose, no markdown fences. Each item:\n` +
+    `{"name": "...", "category": "one of: Hair & Beauty, Aesthetics, Health & Wellness, Fitness, ` +
+    `Automotive, Trades, Home & Garden, Food & Drink, Professional Services, Creative, Pets, Other", ` +
+    `"location": "town/area", "phone": "...", "address": "...", "facebookUrl": "...", "mapsUrl": "..."}\n` +
+    `Omit any field you couldn't find — don't fill it with a placeholder. If you find nothing real, reply with [].`;
+}
+
+function extractJsonArray(text) {
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('No JSON array in Claude response');
+  const parsed = JSON.parse(match[0]);
+  if (!Array.isArray(parsed)) throw new Error('Expected a JSON array');
+  return parsed.slice(0, SEARCH_RESULT_CAP);
+}
+
+// The bulk-add counterpart to runClaudeLookup: given a free-text request
+// ("hairdressers in Beverley"), searches the web and returns a list rather
+// than reading one specific page. Same non-interactive `claude -p` CLI, with
+// WebSearch (not WebFetch) whitelisted for this invocation.
+function runClaudeSearch(query) {
+  return new Promise((resolve, reject) => {
+    const child = spawn('claude', [
+      '-p', buildSearchPrompt(query),
+      '--allowedTools', 'WebSearch',
+      '--output-format', 'text'
+    ], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
+    let out = '';
+    let err = '';
+    child.stdout.on('data', d => (out += d));
+    child.stderr.on('data', d => (err += d));
+    child.on('error', () => reject(new Error('claude-not-found')));
+    child.on('close', code => {
+      if (code !== 0) return reject(new Error(err.trim() || `Claude Code exited with code ${code}`));
+      try {
+        resolve(extractJsonArray(out));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });
+}
+
 function runClaudeLookup(url, url2) {
   return new Promise((resolve, reject) => {
     // --allowedTools is required: `claude -p` (non-interactive) refuses to
@@ -92,4 +141,4 @@ function runClaudeLookup(url, url2) {
   });
 }
 
-module.exports = { runClaudeLookup, runClaudeExtract };
+module.exports = { runClaudeLookup, runClaudeExtract, runClaudeSearch };
