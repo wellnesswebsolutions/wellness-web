@@ -1,5 +1,5 @@
 (() => {
-  const state = { projects: [], current: null, found: {}, sort: 'newest', viewport: 'desktop', appFullscreen: false };
+  const state = { projects: [], current: null, found: {}, sort: 'newest', viewport: 'desktop', appFullscreen: false, desktopExpanded: false };
 
   const el = {
     projectList: document.getElementById('projectList'),
@@ -9,6 +9,7 @@
     preview: document.getElementById('preview'),
     previewFrameWrap: document.getElementById('previewFrameWrap'),
     viewportToggle: document.getElementById('viewportToggle'),
+    expandDesktopBtn: document.getElementById('expandDesktopBtn'),
     fullscreenBtn: document.getElementById('fullscreenBtn'),
     exportBtn: document.getElementById('exportBtn'),
     deployBtn: document.getElementById('deployBtn'),
@@ -692,13 +693,24 @@
     const padY = (isMobile ? FRAME_PAD_Y.mobile : FRAME_PAD_Y.desktop) * 2;
     const wrapWidth = el.previewFrameWrap.clientWidth - 32 - padX;
     const wrapHeight = el.previewFrameWrap.clientHeight - 32 - padY;
-    const scale = Math.max(0.2, Math.min(1, wrapWidth / deviceWidth, wrapHeight / deviceHeight));
+    let scale, finalHeight;
+    if (!isMobile && state.desktopExpanded) {
+      // "Fill the preview area" — scale by width only, then stretch the
+      // device viewport's height to use all the vertical room that frees
+      // up, instead of stopping at the fixed 900px device height. More of
+      // the real page is visible before you need to scroll it at all.
+      scale = Math.max(0.2, Math.min(1, wrapWidth / deviceWidth));
+      finalHeight = wrapHeight / scale;
+    } else {
+      scale = Math.max(0.2, Math.min(1, wrapWidth / deviceWidth, wrapHeight / deviceHeight));
+      finalHeight = deviceHeight;
+    }
     el.preview.style.width = `${deviceWidth}px`;
-    el.preview.style.height = `${deviceHeight}px`;
+    el.preview.style.height = `${finalHeight}px`;
     el.preview.style.transform = `scale(${scale})`;
     const box = document.getElementById('previewScaleBox');
     box.style.width = `${deviceWidth * scale}px`;
-    box.style.height = `${deviceHeight * scale}px`;
+    box.style.height = `${finalHeight * scale}px`;
   }
 
   // A small spinner + text for "this is in progress" states, instead of
@@ -749,15 +761,13 @@
   // "Full screen" expands the preview to fill the app window itself
   // (hiding the sidebar/editor) rather than taking over the whole Mac
   // display — a real OS-level fullscreen felt jarring for a quick preview.
+  const EXPAND_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  const CONTRACT_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
   el.fullscreenBtn.onclick = () => {
     if (!el.preview.dataset.lastHtml) return;
     state.appFullscreen = !state.appFullscreen;
     document.querySelector('.layout').classList.toggle('preview-fullscreen', state.appFullscreen);
-    // Keep this a single icon glyph, not a text label — the button is a
-    // fixed-size icon-only square (see .icon-only), and swapping in a full
-    // sentence here used to overflow/clip it, making it hard to click a
-    // second time to exit full screen.
-    el.fullscreenBtn.textContent = state.appFullscreen ? '⤡' : '⤢';
+    el.fullscreenBtn.innerHTML = state.appFullscreen ? CONTRACT_ICON : EXPAND_ICON;
     el.fullscreenBtn.title = state.appFullscreen ? 'Exit full screen' : 'Full screen';
     fitPreviewFrame();
   };
@@ -765,11 +775,28 @@
     if (e.key === 'Escape' && state.appFullscreen) el.fullscreenBtn.onclick();
   });
   el.closePreviewBtn.onclick = () => closeCurrentProject();
+  // Desktop-only "fill the pane" toggle, sitting right next to the
+  // desktop/mobile switch — only makes sense in desktop view, so it's
+  // hidden whenever mobile is selected (and reset back to collapsed, so
+  // switching back to desktop later always starts from the same state).
+  el.expandDesktopBtn.onclick = () => {
+    state.desktopExpanded = !state.desktopExpanded;
+    el.expandDesktopBtn.classList.toggle('expanded', state.desktopExpanded);
+    el.expandDesktopBtn.title = state.desktopExpanded ? 'Collapse to fit' : 'Fill the preview area';
+    fitPreviewFrame();
+  };
   el.viewportToggle.addEventListener('click', e => {
     const btn = e.target.closest('button[data-viewport]');
     if (!btn) return;
     state.viewport = btn.dataset.viewport;
     el.viewportToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    const isDesktop = state.viewport === 'desktop';
+    el.expandDesktopBtn.hidden = !isDesktop;
+    if (!isDesktop) {
+      state.desktopExpanded = false;
+      el.expandDesktopBtn.classList.remove('expanded');
+      el.expandDesktopBtn.title = 'Fill the preview area';
+    }
     fitPreviewFrame();
   });
   window.addEventListener('resize', fitPreviewFrame);

@@ -54,11 +54,16 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="1.5"/><path d="M11 18h2"/></svg>
           </button>
         </div>
-        <button id="fullscreenBtn" class="icon-only" title="Full screen" aria-label="Full screen">⤢</button>
+        <button id="expandDesktopBtn" title="Fill the preview area" aria-label="Fill the preview area">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <button id="fullscreenBtn" class="icon-only" title="Full screen" aria-label="Full screen">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
         <button id="exportBtn">Export folder</button>
         <button id="copyLiveBtn" hidden>Copy site URL</button>
         <button id="deployBtn" class="primary">Make live</button>
-        <button id="closePreviewBtn" class="close-x" title="Close this site">✕</button>
+        <button id="closePreviewBtn" class="icon-only" title="Close this site">✕</button>
       </div>
       <div class="preview-frame-wrap" id="previewFrameWrap">
         <div class="preview-frame-border" id="previewFrameBorder">

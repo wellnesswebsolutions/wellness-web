@@ -450,9 +450,13 @@ dialog button.danger:hover { background: #c93a35; }
 .preview-actions button:hover { border-color: var(--accent); color: var(--accent); }
 .preview-actions button:active { transform: scale(0.97); }
 .preview-actions button[hidden] { display: none; }
-.preview-actions button.icon-only { width: 32px; padding: 0; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+/* Square icon buttons (full screen, close) — light grey outline at rest,
+   turning blue on hover (handled by the shared .preview-actions
+   button/:hover rules above). Shared by any icon-only action so they all
+   look and behave consistently. */
+.preview-actions button.icon-only { width: 34px; height: 34px; padding: 0 !important; font-size: 16px !important; display: flex; align-items: center; justify-content: center; }
 
-.viewport-toggle { display: flex; border: 1.5px solid var(--line); border-radius: 9px; padding: 2px; margin-right: auto; flex: none; }
+.viewport-toggle { display: flex; align-items: center; gap: 4px; border: 1.5px solid var(--line); border-radius: 9px; padding: 2px; margin-right: auto; flex: none; }
 .viewport-toggle button {
   border: none;
   border-radius: 7px;
@@ -468,18 +472,13 @@ dialog button.danger:hover { background: #c93a35; }
 .viewport-toggle button.active { background: var(--accent); color: #fff; }
 .viewport-toggle button:hover:not(.active) { border-color: transparent; color: var(--ink); }
 
-/* Square, but otherwise styled exactly like every other preview-actions
-   button — light grey outline at rest, turning blue on hover (handled by
-   the shared .preview-actions button/:hover rules above). */
-.close-x {
-  width: 34px;
-  height: 34px;
-  padding: 0 !important;
-  font-size: 16px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* Desktop-only "fill the pane" toggle, shown right after the viewport
+   toggle group. The chevron flips to point up once expanded. */
+#expandDesktopBtn { border: none; background: transparent; color: var(--muted); width: 22px; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+#expandDesktopBtn[hidden] { display: none; }
+#expandDesktopBtn:hover { color: var(--accent); }
+#expandDesktopBtn svg { transition: transform 0.15s; }
+#expandDesktopBtn.expanded svg { transform: rotate(180deg); }
 
 /* Deploy button: red = not live, amber = deploying/needs updating, green = live-and-current */
 .preview-actions button.primary {
