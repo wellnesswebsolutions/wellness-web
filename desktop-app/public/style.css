@@ -678,22 +678,10 @@ iframe#preview {
   -webkit-mask-position: inherit;
 }
 .ll-letter.ll-i2body { top: 16.28px; height: 36.26px; }
-/* The dot gets its own, much bigger flash than the letters — a little
-   spark/twinkle moment on the brand's blue accent, not just a uniform
-   glow across the whole word. A drop-shadow bloom alone read as too soft
-   to register as a "flash" (it's white blurring into an already-white
-   shape), so ::after adds a genuine expanding ring — the actual spark —
-   on top of it. */
+/* Give the dot a small, circular glint.  The earlier expanding pseudo-
+   element was promoted to a rectangular GPU layer in Electron, so its
+   flash showed a visible square around the dot on some displays. */
 .ll-dot { position: absolute; top: 0; height: 13.32px; border-radius: 50%; background: #fff; animation-name: ls-letter-in, ls-glow-dot; }
-.ll-dot::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: #fff;
-  opacity: 0;
-  animation: ls-spark 640ms ease-out 900ms forwards;
-}
 .loading-logo-final {
   position: absolute;
   inset: 0;
@@ -720,17 +708,8 @@ iframe#preview {
   30% { filter: drop-shadow(0 0 8px rgba(255,255,255,1)) drop-shadow(0 0 40px rgba(255,255,255,1)); }
 }
 @keyframes ls-glow-dot {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) drop-shadow(0 0 0 rgba(255,255,255,0)); }
-  14% { filter: drop-shadow(0 0 18px rgba(255,255,255,1)) drop-shadow(0 0 90px rgba(255,255,255,1)); }
-  30% { filter: drop-shadow(0 0 18px rgba(255,255,255,1)) drop-shadow(0 0 90px rgba(255,255,255,1)); }
-}
-/* The actual spark: a disc that snaps out to several times the dot's
-   size and fades, like a shutter flash rather than a glow. */
-@keyframes ls-spark {
-  0% { opacity: 0; transform: scale(1); }
-  14% { opacity: 0.95; transform: scale(4.5); }
-  60% { opacity: 0; transform: scale(5.5); }
-  100% { opacity: 0; transform: scale(5.5); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+  14%, 30% { box-shadow: 0 0 9px 4px rgba(255,255,255,.95), 0 0 28px 9px rgba(255,255,255,.62); }
 }
 @keyframes ls-fade-in { to { opacity: 1; } }
 @keyframes ls-fade-out { to { opacity: 0; visibility: hidden; } }
