@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const bizNameInput = document.getElementById('bizName');
   const bizTagline = document.getElementById('bizTagline');
   const bizLocation = document.getElementById('bizLocation');
+  const qaSuggest = document.getElementById('qaSuggest');
   const bizServices = document.getElementById('bizServices');
   const bizPrices = document.getElementById('bizPrices');
   const bizGoal = document.getElementById('bizGoal');
@@ -430,11 +431,87 @@ document.addEventListener('DOMContentLoaded', () => {
   let personalisingTimer = null;
   const enrichmentApiBase = 'https://wellnessweb-coral.vercel.app';
 
-  async function findBusiness(source, name, location, timeoutMs) {
+  // Autocomplete lets the user pick the exact Google listing instead of us
+  // guessing from free-text name+location. Picking a suggestion means the
+  // Google side of the lookup goes straight to Place Details by ID (cheaper
+  // and far more accurate than the fuzzy text search fallback below).
+  let placesSessionToken = '';
+  let selectedPlaceId = '';
+  let suggestAbortController = null;
+  let suggestDebounce = null;
+  let suggestActiveIndex = -1;
+
+  function newSessionToken() {
+    return (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+  }
+
+  function clearSuggestions() {
+    qaSuggest.hidden = true;
+    qaSuggest.innerHTML = '';
+    suggestActiveIndex = -1;
+  }
+
+  function renderSuggestions(suggestions) {
+    qaSuggest.innerHTML = '';
+    if (!suggestions.length) return clearSuggestions();
+    suggestions.forEach((s, index) => {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      li.dataset.index = String(index);
+      li.innerHTML = `${s.mainText || s.text}${s.secondaryText ? `<small>${s.secondaryText}</small>` : ''}`;
+      li.addEventListener('mousedown', (e) => { e.preventDefault(); choosePlace(s); });
+      qaSuggest.appendChild(li);
+    });
+    qaSuggest.hidden = false;
+    suggestActiveIndex = -1;
+  }
+
+  function choosePlace(suggestion) {
+    selectedPlaceId = suggestion.placeId;
+    bizLocation.value = suggestion.mainText ? `${suggestion.mainText}, ${suggestion.secondaryText || ''}`.replace(/,\s*$/, '') : suggestion.text;
+    bizLocation.dispatchEvent(new Event('input'));
+    clearSuggestions();
+  }
+
+  async function fetchSuggestions(input) {
+    if (suggestAbortController) suggestAbortController.abort();
+    suggestAbortController = new AbortController();
+    if (!placesSessionToken) placesSessionToken = newSessionToken();
+    try {
+      const query = new URLSearchParams({ input, sessionToken: placesSessionToken });
+      const response = await fetch(`${enrichmentApiBase}/api/place-autocomplete?${query}`, { signal: suggestAbortController.signal });
+      if (!response.ok) return;
+      const data = await response.json();
+      renderSuggestions(data.suggestions || []);
+    } catch (error) {
+      if (error.name !== 'AbortError') console.info('Business search suggestions unavailable', error);
+    }
+  }
+
+  bizLocation.addEventListener('input', () => {
+    selectedPlaceId = '';
+    clearTimeout(suggestDebounce);
+    const name = bizNameInput.value.trim();
+    const loc = bizLocation.value.trim();
+    if (!name || loc.length < 2) return clearSuggestions();
+    suggestDebounce = setTimeout(() => fetchSuggestions(`${name} ${loc}`), 220);
+  });
+  bizLocation.addEventListener('keydown', (e) => {
+    const items = [...qaSuggest.children];
+    if (!items.length || qaSuggest.hidden) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); suggestActiveIndex = Math.min(suggestActiveIndex + 1, items.length - 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); suggestActiveIndex = Math.max(suggestActiveIndex - 1, 0); }
+    else if (e.key === 'Escape') { clearSuggestions(); return; }
+    else return;
+    items.forEach((li, i) => li.classList.toggle('qa-suggest-active', i === suggestActiveIndex));
+  });
+  bizLocation.addEventListener('blur', () => setTimeout(clearSuggestions, 120));
+
+  async function findBusiness(source, name, location, timeoutMs, placeId) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const query = new URLSearchParams({ name, location });
+      const query = new URLSearchParams(placeId ? { placeId } : { name, location });
       const response = await fetch(`${enrichmentApiBase}/api/${source}-lookup?${query}`, { signal: controller.signal });
       if (!response.ok) return null;
       const data = await response.json();
@@ -478,11 +555,19 @@ document.addEventListener('DOMContentLoaded', () => {
       facebookId: f.id || '',
       name: g.name || f.name || '',
       address: g.address || f.address || '',
+      city: g.city || '',
+      postcode: g.postcode || '',
+      lat: g.lat ?? null,
+      lng: g.lng ?? null,
       phone: g.phone || f.phone || '',
       website: g.website || f.website || '',
       mapsUrl: g.mapsUrl || '',
       facebookUrl: f.facebookUrl || '',
       category: g.category || f.category || '',
+      types: g.types || [],
+      businessStatus: g.businessStatus || '',
+      priceLevel: g.priceLevel || null,
+      attributes: g.attributes || null,
       about: f.about || '',
       rating: g.rating || null,
       reviewCount: g.reviewCount || 0,
@@ -528,11 +613,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startEnrichment(name, location) {
     const run = ++enrichmentRun;
+    const placeId = selectedPlaceId;
+    placesSessionToken = ''; // spent — Google bills the details fetch against this session
     enrichmentPending = 1;
     googleProfile = null;
     facebookProfile = null;
     businessProfile = null;
     previewIsVisible = false;
+
+    // The user picked an exact listing from autocomplete: go straight to an
+    // accurate Place Details fetch instead of guessing from free text, and
+    // still run Facebook alongside it for photos/about copy Google lacks.
+    if (placeId) {
+      enrichmentPending = 2;
+      findBusiness('business', name, location, 4200, placeId)
+        .then(google => applyEnrichment('business', google, run))
+        .finally(() => finishEnrichment(run));
+      findBusiness('facebook', name, location, 2400)
+        .then(result => applyEnrichment('facebook', result, run))
+        .finally(() => finishEnrichment(run));
+      return;
+    }
+
     findBusiness('facebook', name, location, 2400)
       .then(result => {
         applyEnrichment('facebook', result, run);
@@ -667,8 +769,8 @@ document.addEventListener('DOMContentLoaded', () => {
       services: bizServices.value.split(',').map(s => s.trim()).filter(Boolean),
       prices: bizPrices.value.split(',').map(s => s.trim()).filter(Boolean),
       goal: bizGoal.value,
-      about: '',
-      phone: '',
+      about: businessProfile?.about || '',
+      phone: businessProfile?.phone || '',
       tones: selectedTones,
       layout: selectedLayout,
       font: selectedFont,

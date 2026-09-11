@@ -1,6 +1,22 @@
-const GOOGLE_PLACES_URL = 'https://places.googleapis.com/v1/places:searchText';
+const PLACES_ROOT = 'https://places.googleapis.com/v1';
 const DAILY_LIMIT = 25;
 const MONTHLY_LIMIT = 850;
+
+const DETAILS_FIELD_MASK = [
+  'id', 'displayName', 'formattedAddress', 'addressComponents', 'location',
+  'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteUri', 'googleMapsUri',
+  'primaryTypeDisplayName', 'primaryType', 'types', 'businessStatus',
+  'rating', 'userRatingCount', 'regularOpeningHours', 'priceLevel', 'photos', 'reviews',
+  'delivery', 'dineIn', 'takeout', 'reservable', 'servesBreakfast', 'servesLunch', 'servesDinner'
+].join(',');
+
+const SEARCH_FIELD_MASK = [
+  'places.id', 'places.displayName', 'places.formattedAddress',
+  'places.nationalPhoneNumber', 'places.internationalPhoneNumber',
+  'places.websiteUri', 'places.googleMapsUri', 'places.primaryTypeDisplayName',
+  'places.rating', 'places.userRatingCount', 'places.regularOpeningHours',
+  'places.reviews'
+].join(',');
 
 function normalise(value = '') {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -48,30 +64,102 @@ function tokenScore(expected, actual) {
   return matches / wanted.size;
 }
 
+function addressPart(components, type) {
+  const match = (components || []).find(c => (c.types || []).includes(type));
+  return match?.longText || '';
+}
+
+// Photos are never linked to directly with our API key attached — the photo
+// name is resolved through /api/place-photo, which fetches the actual CDN
+// URL server-side and redirects the browser there.
+function mapPhoto(photo, index) {
+  if (!photo?.name) return null;
+  return {
+    id: `google:${photo.name}`,
+    url: `/api/place-photo?name=${encodeURIComponent(photo.name)}&w=1600`,
+    width: photo.widthPx || 1600,
+    height: photo.heightPx || 900,
+    createdAt: '',
+    attribution: (photo.authorAttributions || [])[0]?.displayName || 'Google',
+    source: 'google',
+    rank: index
+  };
+}
+
 function mapPlace(place) {
+  const city = addressPart(place.addressComponents, 'postal_town') || addressPart(place.addressComponents, 'locality');
+  const postcode = addressPart(place.addressComponents, 'postal_code');
   return {
     placeId: place.id,
     name: place.displayName?.text || '',
     address: place.formattedAddress || '',
+    city,
+    postcode,
+    lat: place.location?.latitude ?? null,
+    lng: place.location?.longitude ?? null,
     phone: place.nationalPhoneNumber || place.internationalPhoneNumber || '',
     website: place.websiteUri || '',
     mapsUrl: place.googleMapsUri || '',
     category: place.primaryTypeDisplayName?.text || '',
+    types: place.types || [],
+    businessStatus: place.businessStatus || '',
     rating: place.rating || null,
     reviewCount: place.userRatingCount || 0,
     hours: place.regularOpeningHours?.weekdayDescriptions || [],
     openNow: place.regularOpeningHours?.openNow,
-    reviews: (place.reviews || []).slice(0, 3).map(review => ({
+    priceLevel: place.priceLevel || null,
+    attributes: {
+      delivery: place.delivery ?? null,
+      dineIn: place.dineIn ?? null,
+      takeout: place.takeout ?? null,
+      reservable: place.reservable ?? null
+    },
+    reviews: (place.reviews || []).slice(0, 5).map(review => ({
       text: review.text?.text || review.originalText?.text || '',
       rating: review.rating || 5,
       author: review.authorAttribution?.displayName || 'Google reviewer',
       authorUrl: review.authorAttribution?.uri || '',
       relativeTime: review.relativePublishTimeDescription || ''
     })).filter(review => review.text),
-    // One Google image per preview keeps the demo inside the monthly photo
-    // allowance at roughly 30 previews/day. Facebook can still add more.
-    photos: []
+    photos: (place.photos || []).slice(0, 10).map(mapPhoto).filter(Boolean)
   };
+}
+
+async function fetchByPlaceId(placeId, key) {
+  const response = await fetch(`${PLACES_ROOT}/places/${encodeURIComponent(placeId)}`, {
+    headers: {
+      'X-Goog-Api-Key': key,
+      'X-Goog-FieldMask': DETAILS_FIELD_MASK
+    }
+  });
+  if (!response.ok) {
+    console.error('Place details failed', response.status, await response.text());
+    return null;
+  }
+  return response.json();
+}
+
+async function fetchByTextSearch(name, location, key) {
+  const response = await fetch(`${PLACES_ROOT}/places:searchText`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': key,
+      'X-Goog-FieldMask': SEARCH_FIELD_MASK
+    },
+    body: JSON.stringify({ textQuery: `${name}, ${location}`, maxResultCount: 5, languageCode: 'en-GB' })
+  });
+  if (!response.ok) {
+    console.error('Places lookup failed', response.status, await response.text());
+    return null;
+  }
+  const data = await response.json();
+  const ranked = (data.places || []).map(place => ({
+    place,
+    score: tokenScore(name, place.displayName?.text) * 0.75 + tokenScore(location, place.formattedAddress) * 0.25
+  })).sort((a, b) => b.score - a.score);
+  const best = ranked[0];
+  return best && best.score >= 0.45 ? best.place : null;
 }
 
 export default async function handler(request, response) {
@@ -87,46 +175,24 @@ export default async function handler(request, response) {
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseKey) return response.status(503).json({ error: 'Safe lookup quota is not configured' });
 
+  const placeId = String(request.query.placeId || '').trim().slice(0, 200);
   const name = String(request.query.name || '').trim().slice(0, 120);
   const location = String(request.query.location || '').trim().slice(0, 120);
-  if (!name || !location) return response.status(400).json({ error: 'Business name and location are required' });
+  if (!placeId && (!name || !location)) {
+    return response.status(400).json({ error: 'A placeId, or business name and location, are required' });
+  }
 
   try {
-    const lookupKey = cacheKey(name, location);
+    const lookupKey = placeId ? `place:${placeId}` : cacheKey(name, location);
     const cached = await getCachedMatch(supabaseUrl, supabaseKey, lookupKey);
     if (cached) return response.status(200).json({ match: cached, cached: true });
     const allowed = await claimLookup(supabaseUrl, supabaseKey);
     if (!allowed) return response.status(429).json({ error: 'Free Google lookup allowance reached' });
 
-    const googleResponse = await fetch(GOOGLE_PLACES_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask': [
-          'places.id', 'places.displayName', 'places.formattedAddress',
-          'places.nationalPhoneNumber', 'places.internationalPhoneNumber',
-          'places.websiteUri', 'places.googleMapsUri', 'places.primaryTypeDisplayName',
-          'places.rating', 'places.userRatingCount', 'places.regularOpeningHours',
-          'places.reviews'
-        ].join(',')
-      },
-      body: JSON.stringify({ textQuery: `${name}, ${location}`, maxResultCount: 5, languageCode: 'en-GB' })
-    });
-    if (!googleResponse.ok) {
-      console.error('Places lookup failed', googleResponse.status, await googleResponse.text());
-      return response.status(502).json({ error: 'Business lookup failed' });
-    }
+    const place = placeId ? await fetchByPlaceId(placeId, key) : await fetchByTextSearch(name, location, key);
+    if (!place) return response.status(200).json({ match: null });
 
-    const data = await googleResponse.json();
-    const ranked = (data.places || []).map(place => ({
-      place,
-      score: tokenScore(name, place.displayName?.text) * 0.75 + tokenScore(location, place.formattedAddress) * 0.25
-    })).sort((a, b) => b.score - a.score);
-    const best = ranked[0];
-    if (!best || best.score < 0.45) return response.status(200).json({ match: null });
-
-    const match = mapPlace(best.place);
+    const match = mapPlace(place);
     await storeCachedMatch(supabaseUrl, supabaseKey, lookupKey, match);
     response.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
     return response.status(200).json({ match });

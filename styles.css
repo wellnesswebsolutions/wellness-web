@@ -562,6 +562,13 @@
   .qa-field.qa-filled input,.qa-field.qa-focused input,.qa-field.qa-filled select,.qa-field.qa-focused select{opacity:1}
   .qa-field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237a6d81' stroke-width='2'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 6px center;background-size:16px;cursor:pointer}
+  .qa-suggest{position:absolute;left:0;right:8px;top:calc(100% + 6px);z-index:20;margin:0;padding:6px;list-style:none;
+    background:var(--bg,#fff);border:1px solid rgba(0,0,0,.08);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.14);
+    max-height:220px;overflow-y:auto}
+  .qa-suggest[hidden]{display:none}
+  .qa-suggest li{padding:9px 12px;border-radius:9px;cursor:pointer;font-family:var(--body);font-size:14.5px;color:var(--ink)}
+  .qa-suggest li:hover,.qa-suggest li.qa-suggest-active{background:rgba(0,0,0,.06)}
+  .qa-suggest li small{display:block;color:var(--muted);font-size:12.5px}
   /* visible from the start (not gated behind typing something first) — it's
      the primary call to action, so it shouldn't be hidden on first paint */
   .qa-go{flex:none;align-self:center;width:52px;height:52px;padding:0;margin-right:5px;border-radius:16px;border:none;
