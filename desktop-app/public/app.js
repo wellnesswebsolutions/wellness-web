@@ -276,6 +276,19 @@
     ).join('');
   }
 
+  // Which template the preview is actually rendering right now — mirrors
+  // fresh-templates.js's own fallback exactly (an explicit choice if it's
+  // still a valid id, otherwise the category default), so the picker
+  // shows the true active template even before anyone's clicked a tile.
+  // Without this, a brand-new or freshly-imported project (raw.layout
+  // unset) always rendered a fallback template but showed no tile as
+  // selected, leaving no way to tell which one was actually in use.
+  function effectiveLayout(raw) {
+    if (DEMO_LAYOUTS.some(t => t.id === raw.layout)) return raw.layout;
+    const info = typeInfo(raw.tagline) || BUSINESS_TYPES[BUSINESS_TYPES.length - 1];
+    return demoLayoutForCategory(info.cat || 'office');
+  }
+
   // ---------------- start screen (no project selected) ----------------
   function renderStartScreen() {
     el.editor.innerHTML = `
@@ -365,7 +378,7 @@
       </div>
 
       <div class="field"><label>Template</label>
-        <div class="template-grid-6" id="templateGrid">${templateOptions(raw.layout)}</div></div>
+        <div class="template-grid-6" id="templateGrid">${templateOptions(effectiveLayout(raw))}</div></div>
 
       <div class="ai-edit-box">
         <label>Edit with AI</label>
