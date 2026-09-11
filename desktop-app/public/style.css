@@ -468,18 +468,18 @@ dialog button.danger:hover { background: #c93a35; }
 .viewport-toggle button.active { background: var(--accent); color: #fff; }
 .viewport-toggle button:hover:not(.active) { border-color: transparent; color: var(--ink); }
 
+/* Square, but otherwise styled exactly like every other preview-actions
+   button — light grey outline at rest, turning blue on hover (handled by
+   the shared .preview-actions button/:hover rules above). */
 .close-x {
   width: 34px;
   height: 34px;
   padding: 0 !important;
   font-size: 16px !important;
-  border-color: var(--muted) !important;
-  color: var(--muted) !important;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.close-x:hover { border-color: var(--accent) !important; color: var(--accent) !important; background: var(--accent-tint) !important; }
 
 /* Deploy button: red = not live, amber = deploying/needs updating, green = live-and-current */
 .preview-actions button.primary {
@@ -502,7 +502,7 @@ dialog button.danger:hover { background: #c93a35; }
   min-height: 0;
   overflow: auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 .preview-frame-border {

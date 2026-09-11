@@ -632,7 +632,15 @@
   }
 
   async function renderPreview(opts = {}) {
-    if (!state.current || !state.current.raw?.name) return;
+    if (!state.current || !state.current.raw?.name) {
+      // Nothing to preview yet (e.g. a brand-new blank project) — clear
+      // it out rather than leaving the previously open site's preview on
+      // screen looking like it belongs to this one.
+      el.preview.srcdoc = '';
+      delete el.preview.dataset.lastHtml;
+      renderLiveActions();
+      return;
+    }
     const raw = projectMediaAbsolute(state.current.raw, state.current.slug);
     if (!raw.heroImage) {
       const auto = await composeAutoHero(state.current.raw, state.current.slug);
@@ -653,22 +661,25 @@
   }
 
   // The preview iframe always renders at a real desktop (or mobile) pixel
-  // width — same as a real visitor would see — then gets scaled down to
-  // fit the pane. Without this, a narrow pane would trigger the generated
-  // site's own mobile CSS breakpoint regardless of which view you picked,
-  // since an iframe's viewport is simply however wide it's laid out.
+  // width AND height — a fixed device viewport, same ratio as a real
+  // browser window / phone screen — then gets scaled to fit the pane.
+  // The site itself can be any length; the iframe's own native scrollbar
+  // handles that, exactly like scrolling a real page in a real window,
+  // instead of shrinking the whole page down to see it all at once. This
+  // also means full screen actually pays off: a bigger pane just means a
+  // bigger, closer-to-real-size device window, not more of a tiny page
+  // crammed into view.
   const DEVICE_WIDTHS = { desktop: 1440, mobile: 390 };
-  el.preview.onload = () => {
-    let contentHeight = 900;
-    try { contentHeight = el.preview.contentDocument.documentElement.scrollHeight || 900; } catch { /* cross-origin — won't happen for srcdoc */ }
-    el.preview.dataset.contentHeight = contentHeight;
-    fitPreviewFrame();
-  };
+  const DEVICE_HEIGHTS = { desktop: 900, mobile: 844 };
+  el.preview.onload = fitPreviewFrame;
 
-  // Horizontal padding the white frame (.preview-frame-border) adds on each
-  // side — kept in sync with style.css so the scale math leaves room for
-  // it instead of the frame pushing the content wider than the pane.
+  // Padding the white frame (.preview-frame-border) adds on each side —
+  // kept in sync with style.css so the scale math leaves room for it
+  // instead of the frame pushing the content past the pane's edges.
+  // Mobile gets a thicker top/bottom bezel than left/right (see
+  // .mobile-frame in style.css), hence separate X/Y values.
   const FRAME_PAD_X = { desktop: 10, mobile: 9 };
+  const FRAME_PAD_Y = { desktop: 10, mobile: 26 };
 
   function fitPreviewFrame() {
     if (!el.preview.dataset.lastHtml) return;
@@ -676,16 +687,18 @@
     const border = document.getElementById('previewFrameBorder');
     border.classList.toggle('mobile-frame', isMobile);
     const deviceWidth = DEVICE_WIDTHS[state.viewport] || DEVICE_WIDTHS.desktop;
-    const contentHeight = Number(el.preview.dataset.contentHeight) || 900;
+    const deviceHeight = DEVICE_HEIGHTS[state.viewport] || DEVICE_HEIGHTS.desktop;
     const padX = (isMobile ? FRAME_PAD_X.mobile : FRAME_PAD_X.desktop) * 2;
+    const padY = (isMobile ? FRAME_PAD_Y.mobile : FRAME_PAD_Y.desktop) * 2;
     const wrapWidth = el.previewFrameWrap.clientWidth - 32 - padX;
-    const scale = Math.max(0.2, Math.min(1, wrapWidth / deviceWidth));
+    const wrapHeight = el.previewFrameWrap.clientHeight - 32 - padY;
+    const scale = Math.max(0.2, Math.min(1, wrapWidth / deviceWidth, wrapHeight / deviceHeight));
     el.preview.style.width = `${deviceWidth}px`;
-    el.preview.style.height = `${contentHeight}px`;
+    el.preview.style.height = `${deviceHeight}px`;
     el.preview.style.transform = `scale(${scale})`;
     const box = document.getElementById('previewScaleBox');
     box.style.width = `${deviceWidth * scale}px`;
-    box.style.height = `${contentHeight * scale}px`;
+    box.style.height = `${deviceHeight * scale}px`;
   }
 
   // A small spinner + text for "this is in progress" states, instead of
