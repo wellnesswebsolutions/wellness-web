@@ -9,6 +9,7 @@
     "start": "electron .",
     "server": "node server.js",
     "build": "electron-builder --mac",
+    "build:win": "electron-builder --win",
     "test:sync": "node tests/sync-smoke.js"
   },
   "dependencies": {
@@ -47,6 +48,14 @@
       "target": "dmg",
       "category": "public.app-category.productivity",
       "icon": "public/icon.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }

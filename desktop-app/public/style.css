@@ -361,7 +361,7 @@ dialog button.danger:hover { background: #c93a35; }
   box-shadow: 0 0 0 3px var(--accent-tint);
 }
 .field textarea { min-height: 48px; resize: vertical; }
-#f_about { min-height: 160px; }
+#f_about { min-height: 84px; }
 .badge-ai {
   font-size: 10px;
   font-weight: 700;
@@ -703,7 +703,12 @@ iframe#preview {
   animation: ls-fade-in 450ms ease 1650ms forwards;
 }
 
-@keyframes ls-wipe { to { clip-path: inset(0 0% 0 0); } }
+/* The end state adds vertical slack (-50px top/bottom) beyond the
+   wordmark's own box — with none, this clip-path (still needed for the
+   left-to-right wipe reveal itself) sliced the top off the dot's
+   burst/glow later, since the dot sits flush with the container's top
+   edge and the scaled-up burst extends past it. */
+@keyframes ls-wipe { to { clip-path: inset(-50px 0% -50px 0%); } }
 @keyframes ls-letter-in { to { opacity: 1; transform: translateY(0); } }
 @keyframes ls-glow {
   0%, 100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) drop-shadow(0 0 0 rgba(255,255,255,0)); }
