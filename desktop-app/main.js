@@ -1,10 +1,12 @@
 const { app, BrowserWindow, shell, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { createApp, PORT } = require('./server');
+const { initAutoUpdates } = require('./lib/app-updater');
 
 const ICON_PATH = path.join(__dirname, 'public', 'icon.png');
 
 let server;
+let mainWindow;
 
 function start() {
   // Sets the Dock icon for local `npm start` runs — the packaged .app
@@ -15,19 +17,25 @@ function start() {
   }
   server = createApp().listen(PORT, () => {
     createWindow();
+    // Background only — never blocks startup; no-op in development.
+    initAutoUpdates(() => mainWindow);
   });
 }
 
 function createWindow() {
-  const win = new BrowserWindow({
+  const win = (mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
     minWidth: 1080,
     minHeight: 680,
     title: 'BrightSite Studio',
     icon: ICON_PATH,
-    webPreferences: { contextIsolation: true, nodeIntegration: false }
-  });
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  }));
   win.loadURL(`http://localhost:${PORT}`);
 
   const menu = Menu.buildFromTemplate([

@@ -107,6 +107,62 @@ Env vars `SUPABASE_URL` / `SUPABASE_ANON_KEY` still override
 `shared-config.js` if set, useful for testing against a different project
 without editing that file.
 
+## Publishing app updates
+
+Installed copies check GitHub Releases on
+[`wellnesswebsolutions/wellness-web`](https://github.com/wellnesswebsolutions/wellness-web/releases)
+a few seconds after launch (and every few hours), download any newer
+version quietly in the background, then show a small **New version ready ·
+Restart to update** notice in the top bar. Nothing installs until someone
+clicks that button. This is separate from the Supabase business sync, and
+it never touches `~/BrightSiteProjects/`, which lives outside the app
+install, so projects are kept across updates.
+
+To ship an update:
+
+1. Bump `"version"` in `desktop-app/package.json` (e.g. `0.1.0` → `0.2.0`).
+   Installed apps only update to a **higher** version.
+2. Build: `npm run build` (Mac) and/or `npm run build:win` (Windows).
+3. On GitHub, **Releases → Draft a new release**, tag it `v0.2.0`, and
+   attach the files from `desktop-app/dist/`:
+   - Mac: `BrightSite-Studio-<version>-arm64.dmg`, `…-arm64.zip`, their
+     `.blockmap` files, and **`latest-mac.yml`**
+   - Windows: `BrightSite-Studio-Setup-<version>.exe`, its `.blockmap`,
+     and **`latest.yml`**
+
+   The `latest*.yml` files are what the apps look for, so don't skip them.
+   Publish it as a normal release (not a draft or pre-release).
+4. That's it. Installed apps find it on their next launch and offer the
+   update automatically.
+
+Optional shortcut: `GH_TOKEN=<token> npx electron-builder --mac --win
+--publish always` builds and uploads a draft release for you (then press
+Publish on GitHub). Use a token from your own shell. Never commit one.
+
+Notes:
+- The repo is public, so installed apps read releases without any
+  credentials. If it's ever made private, don't embed a token in the app;
+  publish releases to a separate public repo instead (change `owner`/
+  `repo` under `build.publish` in `package.json`).
+- **macOS:** automatic install on other Macs needs the app **signed with an
+  Apple Developer ID certificate and notarised**. Unsigned builds still
+  launch, but the update step fails, and Gatekeeper warns on first open.
+  With the certificate in your Keychain, set `APPLE_ID`,
+  `APPLE_APP_SPECIFIC_PASSWORD` and `APPLE_TEAM_ID` in your shell before
+  `npm run build` and electron-builder signs and notarises automatically.
+  Until then, Mac users update by downloading the new `.dmg` from the
+  release. The build is Apple-silicon (`arm64`) only.
+- **Windows:** updates work unsigned, but SmartScreen may warn on the first
+  install. A code-signing certificate removes that.
+- Copies installed before auto-update existed (anything built before this
+  section was added) need one manual reinstall from a release. After that
+  they update themselves.
+- Offline, no release yet, or GitHub down: the app just carries on, and
+  nothing is shown to the user. Details are logged to
+  `~/Library/Logs/brightsite-studio/updates.log` (Mac) or
+  `%APPDATA%\brightsite-studio\logs\updates.log` (Windows). `npm start`
+  never checks for updates.
+
 ## Known gaps
 
 - Facebook/Google scraping fallback (when Claude Code isn't available) is

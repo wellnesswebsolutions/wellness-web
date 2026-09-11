@@ -13,6 +13,7 @@
     "test:sync": "node tests/sync-smoke.js"
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "express": "^4.22.2",
     "multer": "^1.4.5-lts.2"
   },
@@ -44,16 +45,26 @@
         ]
       }
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "wellnesswebsolutions",
+        "repo": "wellness-web",
+        "releaseType": "release"
+      }
+    ],
     "mac": {
-      "target": "dmg",
+      "target": ["dmg", "zip"],
       "category": "public.app-category.productivity",
-      "icon": "public/icon.png"
+      "icon": "public/icon.png",
+      "artifactName": "BrightSite-Studio-${version}-${arch}.${ext}"
     },
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
       "icon": "public/icon.png"
     },
     "nsis": {
+      "artifactName": "BrightSite-Studio-Setup-${version}.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
