@@ -1,5 +1,5 @@
 (() => {
-  const state = { projects: [], current: null, found: {}, sort: 'newest', viewport: 'desktop', appFullscreen: false, desktopExpanded: false };
+  const state = { projects: [], current: null, found: {}, sort: 'newest', viewport: 'desktop', appFullscreen: false, desktopExpanded: true };
 
   const el = {
     projectList: document.getElementById('projectList'),
@@ -77,25 +77,9 @@
   el.gearBtn.onclick = () => { el.settingsDialog.showModal(); refreshSignInStatus(); };
   el.closeSettingsBtn.onclick = () => el.settingsDialog.close();
 
-  // Electron's renderer doesn't implement window.prompt() (it silently
-  // returns null), so a plain `prompt()` call does nothing when clicked —
-  // these two dialogs replace prompt()/confirm() with real, reliable UI.
-  const promptDialog = document.getElementById('promptDialog');
-  const promptInput = document.getElementById('promptInput');
-  function showPrompt(title, placeholder) {
-    return new Promise(resolve => {
-      document.getElementById('promptTitle').textContent = title;
-      promptInput.placeholder = placeholder || '';
-      promptInput.value = '';
-      promptDialog.showModal();
-      setTimeout(() => promptInput.focus(), 50);
-      const cleanup = value => { promptDialog.close(); resolve(value); };
-      document.getElementById('promptOkBtn').onclick = () => cleanup(promptInput.value.trim() || null);
-      document.getElementById('promptCancelBtn').onclick = () => cleanup(null);
-      promptInput.onkeydown = e => { if (e.key === 'Enter') cleanup(promptInput.value.trim() || null); };
-    });
-  }
-
+  // Electron's renderer doesn't implement window.prompt()/confirm() (they
+  // silently return null/false), so this dialog replaces confirm() with a
+  // real, reliable UI (used for delete confirmations).
   const confirmDialog = document.getElementById('confirmDialog');
   function showConfirm(title, message) {
     return new Promise(resolve => {
@@ -189,7 +173,6 @@
       renderEditor();
       renderPreview();
       renderLiveActions();
-      el.preview.srcdoc = state.current ? el.preview.srcdoc : '';
       notify(`Deleted "${displayName}".`);
     } catch (err) {
       notify(err.message, { sticky: false });
@@ -253,7 +236,17 @@
       body: JSON.stringify(state.current)
     }));
     renderLiveActions();
-    loadProjects();
+    // Patch the already-loaded sidebar list in place instead of calling
+    // loadProjects() here — that re-fetches /api/projects, which (when
+    // shared sync is on) pulls from Supabase every time, and persist()
+    // fires (debounced) while typing via scheduleSave(). The PUT response
+    // already has everything the sidebar needs (name, timestamps); a real
+    // remote
+    // refresh happens on the actions that actually warrant one (opening
+    // the app, creating/deleting/importing a project).
+    const idx = state.projects.findIndex(p => p.slug === state.current.slug);
+    if (idx !== -1) state.projects[idx] = state.current;
+    renderSidebar();
   }
 
   function setRaw(patch) {
@@ -342,7 +335,7 @@
     el.editor.innerHTML = `
       <div class="link-bar compact">
         <input id="f_link" type="text" placeholder="Paste a Facebook or Google Maps link…" value="${escapeAttr(state.current.lastImportUrl || state.current.contact?.facebookUrl || profile.mapsUrl || '')}">
-        <button id="importBtn">Re-fetch</button>
+        <button id="importBtn">${state.current.lastImportUrl ? 'Re-fetch' : 'Fetch'}</button>
       </div>
       <div class="import-status" id="importStatus"></div>
 
@@ -390,24 +383,25 @@
     `;
 
     document.getElementById('importBtn').onclick = runImport;
-    document.getElementById('f_name').oninput = e => { setRaw({ name: e.target.value }); schedulePreview(); };
-    document.getElementById('f_category').onchange = e => { setRaw({ tagline: e.target.value }); schedulePreview(); };
-    document.getElementById('f_phone').oninput = e => { setRaw({ businessProfile: { ...profile, phone: e.target.value } }); schedulePreview(); };
+    document.getElementById('f_name').oninput = e => { setRaw({ name: e.target.value }); scheduleSave(); };
+    document.getElementById('f_category').onchange = e => { setRaw({ tagline: e.target.value }); scheduleSave(); };
+    document.getElementById('f_phone').oninput = e => { setRaw({ businessProfile: { ...profile, phone: e.target.value } }); scheduleSave(); };
     document.getElementById('f_email').oninput = e => {
       state.current.contact = { ...(state.current.contact || {}), email: e.target.value };
-      persist();
+      scheduleSave();
     };
     document.getElementById('whatsappBtn').onclick = () => openWhatsApp(document.getElementById('f_phone').value);
     document.getElementById('f_location').oninput = e => {
       setRaw({ location: e.target.value, businessProfile: { ...profile, address: e.target.value } });
-      schedulePreview();
+      scheduleSave();
     };
-    document.getElementById('f_about').oninput = e => { setRaw({ businessProfile: { ...profile, about: e.target.value } }); schedulePreview(); };
+    document.getElementById('f_about').oninput = e => { setRaw({ businessProfile: { ...profile, about: e.target.value } }); scheduleSave(); };
     document.getElementById('templateGrid').addEventListener('click', e => {
       const tile = e.target.closest('.template-tile');
       if (!tile) return;
       setRaw({ layout: tile.dataset.layout });
       document.querySelectorAll('.template-tile').forEach(t => t.classList.toggle('selected', t === tile));
+      persist();
       schedulePreview();
     });
     document.getElementById('galleryUploadBtn').onclick = () => document.getElementById('galleryUpload').click();
@@ -601,11 +595,26 @@
     }
   }
 
+  // Debounces just the (CPU-bound: HTML string build + hero compositing)
+  // preview re-render — renderPreview() only reads already-updated local
+  // state, so it never needs to wait on a server response. Used after
+  // callers that persist a change immediately themselves (media actions,
+  // template picks) and just want the preview to catch up.
   let previewTimer = null;
   function schedulePreview() {
-    persist();
     clearTimeout(previewTimer);
     previewTimer = setTimeout(renderPreview, 150);
+  }
+
+  // Debounces the (network) save too, on top of the preview render above —
+  // for continuous-typing field edits, where persisting on every single
+  // keystroke would mean a PUT request (and, with shared sync on, a
+  // Supabase write) per character typed.
+  let saveTimer = null;
+  function scheduleSave() {
+    schedulePreview();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persist, 500);
   }
 
   function projectMediaAbsolute(raw, slug) {
@@ -815,8 +824,11 @@
     const alreadyOnDesktop = state.viewport === 'desktop' && clickedViewport === 'desktop';
     if (alreadyOnDesktop) {
       if (!state.appFullscreen) state.desktopExpanded = !state.desktopExpanded;
-    } else if (clickedViewport === 'mobile') {
-      state.desktopExpanded = false;
+    } else if (clickedViewport === 'desktop') {
+      // Desktop view always starts expanded by default (mirrors the
+      // initial state), whether that's the first switch back from mobile
+      // or any later one — only an explicit second click collapses it.
+      state.desktopExpanded = true;
     }
     setViewport(clickedViewport);
     fitPreviewFrame();

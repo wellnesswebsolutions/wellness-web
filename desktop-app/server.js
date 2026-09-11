@@ -59,10 +59,30 @@ function createApp() {
     res.json(project);
   });
 
+  // A logo/hero/gallery path that's no longer referenced after this save
+  // (removed, or replaced by a same-slot re-upload with a different file
+  // extension — gallery uploads always get a fresh filename, so removing
+  // one only ever drops it from this list) is genuinely orphaned: nothing
+  // in the app will ever read it again. Clean it up both locally and from
+  // the shared bucket instead of leaking it forever.
+  function mediaPaths(raw) {
+    return [raw?.logoImage, raw?.heroImage, ...(raw?.gallery || [])].filter(Boolean);
+  }
+  function cleanupRemovedMedia(slug, beforeRaw, afterRaw) {
+    const kept = new Set(mediaPaths(afterRaw));
+    for (const relPath of mediaPaths(beforeRaw)) {
+      if (kept.has(relPath)) continue;
+      sync.deleteMedia(slug, relPath);
+      try { fs.unlinkSync(path.join(storage.projectDir(slug), relPath)); } catch { /* already gone */ }
+    }
+  }
+
   app.put('/api/projects/:slug', (req, res) => {
     try {
+      const before = storage.readProject(req.params.slug);
       const project = storage.saveProject(req.params.slug, req.body || {});
       sync.pushOne(project);
+      cleanupRemovedMedia(req.params.slug, before?.raw, project.raw);
       res.json(project);
     } catch (err) {
       res.status(404).json({ error: err.message });
@@ -71,8 +91,10 @@ function createApp() {
 
   app.delete('/api/projects/:slug', (req, res) => {
     try {
+      const project = storage.readProject(req.params.slug);
       storage.deleteProject(req.params.slug);
       sync.deleteOne(req.params.slug);
+      mediaPaths(project?.raw).forEach(relPath => sync.deleteMedia(req.params.slug, relPath));
       res.json({ ok: true });
     } catch (err) {
       res.status(404).json({ error: err.message });

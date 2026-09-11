@@ -65,7 +65,7 @@
     <section class="preview-pane">
       <div class="preview-actions">
         <div class="viewport-toggle" id="viewportToggle">
-          <span class="desktop-expand-indicator" id="desktopExpandIndicator" title="Desktop view is full length — click the desktop icon again to fit">
+          <span class="desktop-expand-indicator expanded" id="desktopExpandIndicator" title="Desktop view is full length — click the desktop icon again to fit">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
           </span>
           <button data-viewport="desktop" class="active" title="Desktop view — click again for full length" aria-label="Desktop view">
@@ -107,15 +107,6 @@
   </div>
   <p class="dim" style="margin-top:14px">Natural-language editing uses your local Claude Code sign-in automatically.</p>
   <button id="closeSettingsBtn">Close</button>
-</dialog>
-
-<dialog id="promptDialog">
-  <h3 id="promptTitle">New site</h3>
-  <input type="text" id="promptInput" placeholder="Business name">
-  <div class="dialog-actions">
-    <button id="promptCancelBtn" class="ghost">Cancel</button>
-    <button id="promptOkBtn" class="primary">Create</button>
-  </div>
 </dialog>
 
 <dialog id="confirmDialog">
