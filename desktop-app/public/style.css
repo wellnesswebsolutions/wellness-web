@@ -262,7 +262,25 @@ dialog button.danger:hover { background: #c93a35; }
   cursor: pointer;
 }
 .sort-select:hover { background: #f1efe9; }
-#projectList { flex: 1; overflow-y: auto; }
+/* Business list split in half: cold calling on top, database underneath. */
+#projectList { flex: 1; display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
+.side-half { display: flex; flex-direction: column; min-height: 0; }
+.side-half + .side-half { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; }
+.side-half h3 {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  padding: 0 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.side-half-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.side-empty { margin: 0; padding: 6px 4px; font-size: 12px; color: var(--muted); line-height: 1.4; }
 .sidebar .project {
   display: flex;
   align-items: center;
@@ -307,6 +325,20 @@ dialog button.danger:hover { background: #c93a35; }
   transition: opacity 0.1s;
 }
 .sidebar .project:hover .project-delete { opacity: 1; }
+.sidebar .project .project-move {
+  flex: none;
+  width: 22px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sidebar .project .project-move:hover { background: var(--accent-tint); border-color: var(--accent); }
+.sidebar .project .project-move:disabled { opacity: 0.5; cursor: default; }
 .sidebar .project .project-delete:hover { background: #e6d5d5; color: #a03b3b; }
 
 .editor {
@@ -666,20 +698,6 @@ iframe#preview {
    Deliberately list-first and plain: these are for working through
    businesses quickly, not for designing websites, so they borrow the
    app's existing field/panel styling rather than inventing a new look. */
-.crm-layout { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 0; }
-.crm-lists { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--line); }
-.crm-toolbar { padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
-.crm-search {
-  width: 100%;
-  padding: 8px 11px;
-  border: 1.5px solid var(--line);
-  border-radius: 9px;
-  font-size: 13px;
-  font-family: inherit;
-  background: #fff;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.crm-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
 .crm-scroll { flex: 1; overflow-y: auto; padding: 14px; min-height: 0; }
 
 .crm-section { margin-bottom: 20px; }
@@ -696,7 +714,6 @@ iframe#preview {
 }
 .crm-count { padding: 1px 7px; border-radius: 20px; background: #f1efe9; font-size: 11px; letter-spacing: 0; }
 .crm-empty { font-size: 12.5px; color: var(--muted); margin: 0; padding: 10px 2px; }
-.crm-detail-empty { padding: 18px; line-height: 1.5; }
 
 .crm-row {
   position: relative;
@@ -755,8 +772,6 @@ iframe#preview {
 .crm-move:hover { background: var(--accent-tint); border-color: var(--accent); }
 .crm-move:disabled { opacity: 0.5; cursor: default; }
 
-.crm-detail { overflow-y: auto; padding: 14px 16px 24px; background: var(--panel); min-height: 0; }
-.crm-detail-name { margin: 0 0 12px; font-size: 15px; font-weight: 700; }
 .crm-save {
   margin-top: 4px;
   padding: 8px 16px;
@@ -771,8 +786,6 @@ iframe#preview {
   transition: background 0.15s;
 }
 .crm-save:hover { background: #2f6fe0; }
-.crm-save-status { margin-left: 9px; font-size: 12px; color: #1f9d55; font-weight: 600; }
-.crm-live-link { display: block; margin-top: 14px; font-size: 12.5px; font-weight: 600; }
 
 .live-layout { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .live-totals { display: flex; gap: 28px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--panel); flex: none; }
@@ -890,25 +903,7 @@ iframe#preview {
   #loadingScreen { animation: ls-fade-out 400ms ease 700ms forwards; }
 }
 
-/* Cold Calling tab: one column split in half — the calling list on top,
-   the rest of the (non-paying) business database underneath. */
-.crm-split { flex: 1; display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
-.crm-half { display: flex; flex-direction: column; min-height: 0; }
-.crm-half + .crm-half { border-top: 1px solid var(--line); background: #faf9f6; }
-.crm-half h3 {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0;
-  padding: 12px 14px 8px;
-  font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-.crm-half-scroll { flex: 1; overflow-y: auto; padding: 0 14px 14px; min-height: 0; }
+/* Buttons along the bottom of a Live & Paying row */
 .crm-row-actions { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
 .crm-row-actions .crm-move { margin-top: 0; }
 .crm-move-quiet { color: var(--muted); }
@@ -931,3 +926,8 @@ iframe#preview {
 .live-add-form, .live-add-form:hover { cursor: default; border-color: var(--accent); }
 .live-add-grid { display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 10px; margin-bottom: 4px; }
 .live-add-form .crm-move { margin-left: 6px; }
+
+/* Cold-calling details at the top of the builder form */
+.sales-block { margin-bottom: 12px; padding: 10px 12px 0; border: 1px solid var(--line); border-radius: 11px; background: #faf9f6; }
+.sales-row { display: grid; grid-template-columns: 1fr 0.7fr 1.1fr; gap: 0 8px; }
+.sales-block textarea { min-height: 44px; }

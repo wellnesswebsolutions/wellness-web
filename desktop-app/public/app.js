@@ -2,17 +2,13 @@
   const state = {
     projects: [], current: null, found: {}, sort: 'newest', search: '',
     viewport: 'desktop', appFullscreen: false, desktopExpanded: true,
-    tab: 'businesses', coldSearch: '', coldSelected: null, liveAdding: false
+    tab: 'businesses', liveAdding: false
   };
 
   const el = {
     mainTabs: document.getElementById('mainTabs'),
     builderView: document.getElementById('builderView'),
-    coldView: document.getElementById('coldView'),
     liveView: document.getElementById('liveView'),
-    coldSearch: document.getElementById('coldSearch'),
-    coldLists: document.getElementById('coldLists'),
-    coldDetail: document.getElementById('coldDetail'),
     liveTotals: document.getElementById('liveTotals'),
     liveList: document.getElementById('liveList'),
     projectList: document.getElementById('projectList'),
@@ -170,30 +166,68 @@
     return p.liveUrl ? 'live' : 'not-live';
   }
 
+  // The business list is split in two: businesses being cold-called on
+  // top, the rest of the (non-paying) database underneath. Paying customers
+  // live on the Live & Paying tab instead.
   function renderSidebar() {
+    const scrolls = [...el.projectList.querySelectorAll('.side-half-scroll')].map(s => s.scrollTop);
+    const list = sortedProjects().filter(p => !isLivePaying(p));
     el.projectList.innerHTML = '';
-    sortedProjects().forEach(p => {
-      const row = document.createElement('div');
-      row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
-      const dot = document.createElement('span');
-      dot.className = `project-dot status-${liveStatusFor(p)}`;
-      dot.title = { 'not-live': 'Not live', 'needs-update': 'Live — needs updating', live: 'Live' }[liveStatusFor(p)];
-      const name = document.createElement('span');
-      name.className = 'project-name';
-      name.textContent = p.raw?.name || p.name || p.slug;
-      const del = document.createElement('button');
-      del.className = 'project-delete';
-      del.title = 'Delete this site';
-      del.textContent = '✕';
-      del.onclick = e => { e.stopPropagation(); deleteProject(p.slug, name.textContent); };
-      row.append(dot, name, del);
-      // Clicking the already-open site again closes it back to the start screen.
-      row.onclick = () => {
-        if (state.current?.slug === p.slug) closeCurrentProject();
-        else selectProject(p.slug);
-      };
-      el.projectList.appendChild(row);
+    [
+      ['Cold calling', list.filter(p => !isUncontacted(p)), 'Nobody yet — press ↑ on a business below.'],
+      ['Database', list.filter(isUncontacted), 'No businesses waiting.']
+    ].forEach(([title, items, empty], i) => {
+      const half = document.createElement('section');
+      half.className = 'side-half';
+      half.innerHTML = `<h3>${title} <span class="crm-count">${items.length}</span></h3><div class="side-half-scroll"></div>`;
+      const scroll = half.lastElementChild;
+      if (items.length) items.forEach(p => scroll.appendChild(projectRow(p)));
+      else scroll.innerHTML = `<p class="side-empty">${empty}</p>`;
+      el.projectList.appendChild(half);
+      scroll.scrollTop = scrolls[i] || 0;
     });
+  }
+
+  function projectRow(p) {
+    const inCalling = !isUncontacted(p);
+    const row = document.createElement('div');
+    row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
+    const dot = document.createElement('span');
+    dot.className = `project-dot status-${liveStatusFor(p)}`;
+    dot.title = { 'not-live': 'Not live', 'needs-update': 'Live — needs updating', live: 'Live' }[liveStatusFor(p)];
+    const name = document.createElement('span');
+    name.className = 'project-name';
+    name.textContent = businessName(p);
+    // Moving between the halves is just a stage change on the same record.
+    const move = document.createElement('button');
+    move.className = 'project-move';
+    move.textContent = inCalling ? '↓' : '↑';
+    move.title = inCalling ? 'Back to database' : 'Move to cold calling';
+    move.onclick = async e => {
+      e.stopPropagation();
+      move.disabled = true;
+      try {
+        if (state.current?.slug === p.slug) await flushSave();
+        await saveProjectFields(p.slug, { pipelineStage: inCalling ? 'uncontacted' : 'called' });
+        renderSidebar();
+        if (state.current?.slug === p.slug) renderSales();
+      } catch (err) {
+        notify(friendlyError(err.message), { sticky: false });
+        move.disabled = false;
+      }
+    };
+    const del = document.createElement('button');
+    del.className = 'project-delete';
+    del.title = 'Delete this business';
+    del.textContent = '✕';
+    del.onclick = e => { e.stopPropagation(); deleteProject(p.slug, name.textContent); };
+    row.append(dot, name, move, del);
+    // Clicking the already-open site again closes it back to the start screen.
+    row.onclick = () => {
+      if (state.current?.slug === p.slug) closeCurrentProject();
+      else selectProject(p.slug);
+    };
+    return row;
   }
 
   el.sortSelect.onchange = () => { state.sort = el.sortSelect.value; renderSidebar(); };
@@ -209,9 +243,7 @@
         state.found = {};
       }
       await loadProjects();
-      if (state.coldSelected === slug) state.coldSelected = null;
-      if (state.tab === 'cold') renderCold();
-      else if (state.tab === 'live') renderLive();
+      if (state.tab === 'live') renderLive();
       renderEditor();
       renderPreview();
       renderLiveActions();
@@ -441,6 +473,7 @@
     const profile = raw.businessProfile || {};
 
     el.editor.innerHTML = `
+      <div class="sales-block" id="salesBlock"></div>
       <div class="link-bar compact">
         <input id="f_link" type="text" placeholder="Paste a Facebook or Google Maps link…" value="${escapeAttr(state.current.lastImportUrl || state.current.contact?.facebookUrl || profile.mapsUrl || '')}">
         <button id="importBtn">${state.current.lastImportUrl ? 'Re-fetch' : 'Fetch'}</button>
@@ -546,6 +579,37 @@
     document.querySelectorAll('.gallery-grid .thumb-remove').forEach(btn => (btn.onclick = () => removeGalleryItem(Number(btn.dataset.i))));
     wireMediaSlot('logo');
     wireMediaSlot('hero');
+    renderSales();
+  }
+
+  // Cold-calling details for the open business, at the top of the form.
+  // Changing the stage moves it between the sidebar halves; setting it to
+  // Paid moves it onto the Live & Paying tab.
+  function renderSales() {
+    const box = document.getElementById('salesBlock');
+    if (!box || !state.current) return;
+    const p = state.current;
+    const options = (list, selected) => list.map(([id, label]) =>
+      `<option value="${id}" ${id === selected ? 'selected' : ''}>${label}</option>`).join('');
+    box.innerHTML = `
+      <div class="sales-row">
+        <div class="field"><label>Stage</label>
+          <select id="s_stage">${options(SALES_STAGES, stageOf(p))}</select></div>
+        <div class="field"><label>Monthly price</label>
+          <input id="s_price" value="${escapeAttr(p.price || '')}" placeholder="e.g. 45"></div>
+        <div class="field"><label>Paying?</label>
+          <select id="s_payment">${options(PAYMENT_STATUSES, p.paymentStatus || 'no')}</select></div>
+      </div>
+      <div class="field"><label>Call notes</label>
+        <textarea id="s_notes" placeholder="What happened on the call, what to do next…">${escapeHtml(p.notes || '')}</textarea></div>`;
+    document.getElementById('s_stage').onchange = e => { state.current.pipelineStage = e.target.value; persist(); };
+    document.getElementById('s_price').oninput = e => { state.current.price = e.target.value; scheduleSave(); };
+    document.getElementById('s_notes').oninput = e => { state.current.notes = e.target.value; scheduleSave(); };
+    document.getElementById('s_payment').onchange = async e => {
+      state.current.paymentStatus = e.target.value;
+      await persist();
+      if (e.target.value === 'paid') notify(`"${businessName(state.current)}" is now on the Live & Paying tab.`);
+    };
   }
 
   function editLogHtml() {
@@ -1066,7 +1130,7 @@
     };
   }
 
-  // ---------------- Cold Calling + Live & Paying ----------------
+  // ---------------- Sales stages + Live & Paying ----------------
   // Both tabs are pure views over the same project records the Businesses
   // tab edits (one data.json per business, synced by lib/supabase-sync.js),
   // reading and writing the fields that already exist on them:
@@ -1080,9 +1144,6 @@
     ['demo_sent', 'Demo sent'],
     ['not_interested', 'Not interested']
   ];
-  // Stages offered once a business is in the cold-calling list —
-  // 'uncontacted' is the bucket it came from, not something you pick.
-  const COLD_STAGES = SALES_STAGES.filter(([id]) => id !== 'uncontacted');
   const PAYMENT_STATUSES = [['no', 'Not paying'], ['pending', 'Pending'], ['paid', 'Paid']];
 
   const stageLabel = id => (SALES_STAGES.find(([s]) => s === id) || [])[1] || 'Uncontacted';
@@ -1097,7 +1158,6 @@
   const isUncontacted = p => stageOf(p) === 'uncontacted';
   const businessName = p => p.raw?.name || p.name || p.slug;
   const phoneOf = p => p.raw?.businessProfile?.phone || p.contact?.phone || '';
-  const emailOf = p => p.contact?.email || '';
   // Paying is what puts a business on the Live tab — with or without a site
   // built here (customers can be added straight onto that tab).
   const isLivePaying = p => p.paymentStatus === 'paid';
@@ -1131,145 +1191,6 @@
     return state.projects.find(p => p.slug === slug) || null;
   }
 
-  function coldMatches(p) {
-    const q = state.coldSearch.trim().toLowerCase();
-    if (!q) return true;
-    return [businessName(p), phoneOf(p), emailOf(p), p.notes || ''].some(v => String(v).toLowerCase().includes(q));
-  }
-
-  function crmRow(p) {
-    const stage = stageOf(p);
-    const note = (p.notes || '').trim().replace(/\s+/g, ' ');
-    return `
-      <div class="crm-row${state.coldSelected === p.slug ? ' selected' : ''}" data-slug="${escapeAttr(p.slug)}">
-        <div class="crm-row-main">
-          <span class="crm-name">${escapeHtml(businessName(p))}</span>
-          <span class="crm-stage stage-${stage}">${escapeHtml(stageLabel(stage))}</span>
-        </div>
-        <div class="crm-row-meta">
-          ${phoneOf(p) ? `<span>${escapeHtml(phoneOf(p))}</span>` : '<span class="crm-dim">No phone</span>'}
-          ${emailOf(p) ? `<span>${escapeHtml(emailOf(p))}</span>` : '<span class="crm-dim">No email</span>'}
-        </div>
-        ${note ? `<div class="crm-row-note">${escapeHtml(note.length > 120 ? note.slice(0, 120) + '…' : note)}</div>` : ''}
-        <div class="crm-row-actions">
-          ${isUncontacted(p)
-            ? `<button type="button" class="crm-move" data-move="${escapeAttr(p.slug)}" data-to="called">Move to cold calling ↑</button>`
-            : `<button type="button" class="crm-move" data-build="${escapeAttr(p.slug)}">Build website</button>
-               <button type="button" class="crm-move crm-move-quiet" data-move="${escapeAttr(p.slug)}" data-to="uncontacted">↓ Back to database</button>`}
-          <button type="button" class="crm-delete" data-delete="${escapeAttr(p.slug)}" title="Delete this business">✕</button>
-        </div>
-      </div>`;
-  }
-
-  // One column split in half: the calling list on top, every other
-  // non-paying business (the database) underneath. Paying customers live
-  // on the Live tab instead.
-  function renderCold() {
-    const matching = state.projects.filter(p => !isLivePaying(p) && coldMatches(p));
-    const calling = matching.filter(p => !isUncontacted(p));
-    const database = matching.filter(isUncontacted);
-    const scrolls = [...el.coldLists.querySelectorAll('.crm-half-scroll')].map(s => s.scrollTop);
-    const half = (title, list, empty) => `
-      <section class="crm-half">
-        <h3>${title} <span class="crm-count">${list.length}</span></h3>
-        <div class="crm-half-scroll">
-          ${list.length ? list.map(crmRow).join('') : `<p class="crm-empty">${empty}</p>`}
-        </div>
-      </section>`;
-    el.coldLists.innerHTML =
-      half('Cold Calling', calling, 'Nobody to call yet — move a business up from the database below.') +
-      half('Business database', database, 'No businesses waiting. Add one on the Businesses tab.');
-    el.coldLists.querySelectorAll('.crm-half-scroll').forEach((s, i) => { s.scrollTop = scrolls[i] || 0; });
-    renderColdDetail();
-  }
-
-  function renderColdDetail() {
-    const p = state.coldSelected ? projectBySlug(state.coldSelected) : null;
-    if (!p) {
-      el.coldDetail.innerHTML = `<p class="crm-empty crm-detail-empty">Select a business to edit its contact details, stage and notes.</p>`;
-      return;
-    }
-    const stage = stageOf(p);
-    el.coldDetail.innerHTML = `
-      <h3 class="crm-detail-name">${escapeHtml(businessName(p))}</h3>
-      <div class="field"><label>Phone</label>
-        <input id="cc_phone" value="${escapeAttr(phoneOf(p))}"></div>
-      <div class="field"><label>Email</label>
-        <input id="cc_email" type="email" value="${escapeAttr(emailOf(p))}"></div>
-      <div class="field"><label>Stage</label>
-        <select id="cc_stage">
-          ${(stage === 'uncontacted' ? SALES_STAGES : COLD_STAGES).map(([id, label]) =>
-            `<option value="${id}" ${id === stage ? 'selected' : ''}>${label}</option>`).join('')}
-        </select></div>
-      <div class="form-grid">
-        <div class="field"><label>Monthly price</label>
-          <input id="cc_price" value="${escapeAttr(p.price || '')}" placeholder="e.g. 45"></div>
-        <div class="field"><label>Payment status</label>
-          <select id="cc_payment">
-            ${PAYMENT_STATUSES.map(([id, label]) =>
-              `<option value="${id}" ${id === (p.paymentStatus || 'no') ? 'selected' : ''}>${label}</option>`).join('')}
-          </select></div>
-      </div>
-      <div class="field"><label>Notes / follow-up</label>
-        <textarea id="cc_notes" placeholder="What happened on the call, what to do next…">${escapeHtml(p.notes || '')}</textarea></div>
-      <button type="button" class="crm-save" id="cc_save">Save</button>
-      <span class="crm-save-status" id="cc_saveStatus"></span>
-      ${p.liveUrl ? `<a class="crm-live-link" href="#" id="cc_openSite">Open live site ↗</a>` : ''}
-    `;
-    document.getElementById('cc_save').onclick = async () => {
-      const status = document.getElementById('cc_saveStatus');
-      const profile = { ...(p.raw?.businessProfile || {}), phone: document.getElementById('cc_phone').value };
-      try {
-        await saveProjectFields(p.slug, {
-          raw: { ...(p.raw || {}), businessProfile: profile },
-          contact: { ...(p.contact || {}), email: document.getElementById('cc_email').value },
-          pipelineStage: document.getElementById('cc_stage').value,
-          price: document.getElementById('cc_price').value,
-          paymentStatus: document.getElementById('cc_payment').value,
-          notes: document.getElementById('cc_notes').value
-        });
-        renderCold();
-        renderSidebar();
-        showTempStatus(document.getElementById('cc_saveStatus') || status, 'Saved.', 2500);
-      } catch (err) {
-        showTempStatus(status, friendlyError(err.message));
-      }
-    };
-    const openSite = document.getElementById('cc_openSite');
-    if (openSite) openSite.onclick = e => { e.preventDefault(); openExternal(p.liveUrl); };
-  }
-
-  el.coldSearch.oninput = () => { state.coldSearch = el.coldSearch.value; renderCold(); };
-  el.coldLists.addEventListener('click', async e => {
-    const btn = e.target.closest('button');
-    const slug = btn && (btn.dataset.move || btn.dataset.build || btn.dataset.delete);
-    if (slug) {
-      e.stopPropagation();
-      const p = projectBySlug(slug);
-      if (btn.dataset.delete) return deleteProject(slug, p ? businessName(p) : slug);
-      if (btn.dataset.build) {
-        await switchTab('businesses');
-        return selectProject(slug);
-      }
-      btn.disabled = true;
-      try {
-        // Moving between the two halves is just a stage change on the same
-        // record — 'called' going up, 'uncontacted' going back down.
-        await saveProjectFields(slug, { pipelineStage: btn.dataset.to });
-        state.coldSelected = slug;
-        renderCold();
-      } catch (err) {
-        notify(friendlyError(err.message), { sticky: false });
-        btn.disabled = false;
-      }
-      return;
-    }
-    const row = e.target.closest('.crm-row');
-    if (!row) return;
-    state.coldSelected = state.coldSelected === row.dataset.slug ? null : row.dataset.slug;
-    renderCold();
-  });
-
   function renderLive() {
     const paying = state.projects.filter(isLivePaying);
     const total = paying.reduce((sum, p) => sum + monthlyValue(p), 0);
@@ -1299,12 +1220,13 @@
         </div>
         ${p.notes ? `<div class="crm-row-note">${escapeHtml(p.notes.trim().replace(/\s+/g, ' '))}</div>` : ''}
         <div class="crm-row-actions">
+          <button type="button" class="crm-move" data-edit="${escapeAttr(p.slug)}">Edit website</button>
           ${websiteOf(p) ? `<button type="button" class="crm-move" data-open="${escapeAttr(websiteOf(p))}">Open site ↗</button>` : ''}
           <button type="button" class="crm-move crm-move-quiet" data-unpay="${escapeAttr(p.slug)}">Not paying any more</button>
           <button type="button" class="crm-delete" data-delete="${escapeAttr(p.slug)}" title="Delete this customer">✕</button>
         </div>
       </div>`).join('')
-      : (state.liveAdding ? '' : `<p class="crm-empty">No paying customers yet. Click “+ Add customer”, or set a business's payment status to Paid on the Cold Calling tab.</p>`));
+      : (state.liveAdding ? '' : `<p class="crm-empty">No paying customers yet. Click “+ Add customer”, or set “Paying?” to Paid on a business in the Businesses tab.</p>`));
     if (state.liveAdding) el.liveList.querySelector('input[name="name"]').focus();
   }
 
@@ -1316,6 +1238,10 @@
     const btn = e.target.closest('button');
     if (!btn) return;
     if (btn.dataset.open) return openExternal(btn.dataset.open);
+    if (btn.dataset.edit) {
+      await switchTab('businesses');
+      return selectProject(btn.dataset.edit);
+    }
     if ('cancelAdd' in btn.dataset) { state.liveAdding = false; return renderLive(); }
     if (btn.dataset.delete) {
       const p = projectBySlug(btn.dataset.delete);
@@ -1376,13 +1302,12 @@
     state.tab = tab;
     el.mainTabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     el.builderView.hidden = tab !== 'businesses';
-    el.coldView.hidden = tab !== 'cold';
     el.liveView.hidden = tab !== 'live';
-    if (tab === 'cold' || tab === 'live') {
+    if (tab === 'live') {
       // Pull anything teammates changed elsewhere before showing a list
       // that's all about shared status.
       await loadProjects();
-      if (tab === 'cold') renderCold(); else renderLive();
+      renderLive();
     } else {
       fitPreviewFrame();
     }
