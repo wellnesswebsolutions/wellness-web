@@ -9,7 +9,7 @@
     preview: document.getElementById('preview'),
     previewFrameWrap: document.getElementById('previewFrameWrap'),
     viewportToggle: document.getElementById('viewportToggle'),
-    expandDesktopBtn: document.getElementById('expandDesktopBtn'),
+    desktopExpandIndicator: document.getElementById('desktopExpandIndicator'),
     fullscreenBtn: document.getElementById('fullscreenBtn'),
     exportBtn: document.getElementById('exportBtn'),
     deployBtn: document.getElementById('deployBtn'),
@@ -775,28 +775,28 @@
     if (e.key === 'Escape' && state.appFullscreen) el.fullscreenBtn.onclick();
   });
   el.closePreviewBtn.onclick = () => closeCurrentProject();
-  // Desktop-only "fill the pane" toggle, sitting right next to the
-  // desktop/mobile switch — only makes sense in desktop view, so it's
-  // hidden whenever mobile is selected (and reset back to collapsed, so
-  // switching back to desktop later always starts from the same state).
-  el.expandDesktopBtn.onclick = () => {
-    state.desktopExpanded = !state.desktopExpanded;
-    el.expandDesktopBtn.classList.toggle('expanded', state.desktopExpanded);
-    el.expandDesktopBtn.title = state.desktopExpanded ? 'Collapse to fit' : 'Fill the preview area';
-    fitPreviewFrame();
-  };
+  // The desktop button doubles as the "fill full length" toggle: clicking
+  // it while desktop view is already active flips between the default
+  // device ratio and filling all available vertical space, rather than
+  // that living on a separate control. The chevron to its left is a
+  // read-only indicator of which state you're in — only app-level full
+  // screen (el.fullscreenBtn) already fills everything, so this toggle
+  // is inert while that's active to avoid the two fighting each other.
   el.viewportToggle.addEventListener('click', e => {
     const btn = e.target.closest('button[data-viewport]');
     if (!btn) return;
-    state.viewport = btn.dataset.viewport;
+    const clickedViewport = btn.dataset.viewport;
+    const alreadyOnDesktop = state.viewport === 'desktop' && clickedViewport === 'desktop';
+    if (alreadyOnDesktop) {
+      if (!state.appFullscreen) state.desktopExpanded = !state.desktopExpanded;
+    } else if (clickedViewport === 'mobile') {
+      state.desktopExpanded = false;
+    }
+    state.viewport = clickedViewport;
     el.viewportToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
     const isDesktop = state.viewport === 'desktop';
-    el.expandDesktopBtn.hidden = !isDesktop;
-    if (!isDesktop) {
-      state.desktopExpanded = false;
-      el.expandDesktopBtn.classList.remove('expanded');
-      el.expandDesktopBtn.title = 'Fill the preview area';
-    }
+    el.desktopExpandIndicator.hidden = !isDesktop;
+    el.desktopExpandIndicator.classList.toggle('expanded', state.desktopExpanded);
     fitPreviewFrame();
   });
   window.addEventListener('resize', fitPreviewFrame);

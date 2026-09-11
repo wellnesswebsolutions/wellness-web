@@ -472,13 +472,15 @@ dialog button.danger:hover { background: #c93a35; }
 .viewport-toggle button.active { background: var(--accent); color: #fff; }
 .viewport-toggle button:hover:not(.active) { border-color: transparent; color: var(--ink); }
 
-/* Desktop-only "fill the pane" toggle, shown right after the viewport
-   toggle group. The chevron flips to point up once expanded. */
-#expandDesktopBtn { border: none; background: transparent; color: var(--muted); width: 22px; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-#expandDesktopBtn[hidden] { display: none; }
-#expandDesktopBtn:hover { color: var(--accent); }
-#expandDesktopBtn svg { transition: transform 0.15s; }
-#expandDesktopBtn.expanded svg { transform: rotate(180deg); }
+/* Purely a visual indicator, sat to the left of the desktop icon inside
+   the toggle group — the "fill full length" behaviour itself lives on
+   the desktop button (a second click while already on desktop view
+   toggles it). Chevron flips to point up once full length is active. */
+#desktopExpandIndicator { display: flex; align-items: center; justify-content: center; width: 14px; color: var(--muted); pointer-events: none; }
+#desktopExpandIndicator[hidden] { display: none; }
+#desktopExpandIndicator svg { transition: transform 0.15s; }
+#desktopExpandIndicator.expanded svg { transform: rotate(180deg); }
+#desktopExpandIndicator.expanded { color: var(--accent); }
 
 /* Deploy button: red = not live, amber = deploying/needs updating, green = live-and-current */
 .preview-actions button.primary {
@@ -544,3 +546,88 @@ iframe#preview {
 .edit-log { margin-top: 10px; font-size: 12px; color: var(--muted); }
 .edit-log .entry { border-top: 1px solid var(--line); padding: 6px 0; }
 .edit-log button.undo { font-size: 11px; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); background: #fff; cursor: pointer; margin-left: 6px; }
+
+/* ---------------- Startup loading screen ----------------
+   A full-screen brand-blue overlay shown the instant the app loads. The
+   BrightSite wordmark is rebuilt from individual letter elements, each
+   one a CSS mask of the real black logo PNG (see loading-logo-url below)
+   sliced to that letter's exact pixel bounds — so positions/proportions
+   are pulled directly from the real logo, not approximated with a font.
+   Letters fly into place while a left-to-right wipe reveals them, the
+   assembled white logo gets a brief glow, then it cross-fades into the
+   real black logo (the actual <img>, for a pixel-perfect end state)
+   while this whole overlay fades away to reveal the loaded app. Timing
+   is a pure CSS animation on a fixed clock — nothing here waits on
+   Supabase or any other network call, so a slow/offline connection can
+   never delay revealing the app (see app.js: sync keeps polling in the
+   background regardless). */
+:root { --loading-logo-url: url('/generator/img/brightsite-logo.png'); }
+
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  animation: ls-fade-out 480ms ease 1650ms forwards;
+}
+.loading-logo { position: relative; width: 381.1px; height: 53.28px; }
+.loading-letters {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 100% 0 0);
+  animation:
+    ls-wipe 550ms cubic-bezier(.4,0,.2,1) forwards,
+    ls-glow 520ms ease-in-out 900ms,
+    ls-fade-out 420ms ease 1650ms forwards;
+}
+.ll-letter, .ll-dot {
+  position: absolute;
+  top: 0;
+  height: 53.28px;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: ls-letter-in 420ms cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay: calc(var(--i) * 38ms + 60ms);
+}
+.ll-letter {
+  background: #fff;
+  mask-image: var(--loading-logo-url);
+  -webkit-mask-image: var(--loading-logo-url);
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-size: 381.1px 53.28px;
+  -webkit-mask-size: 381.1px 53.28px;
+  -webkit-mask-position: inherit;
+}
+.ll-letter.ll-i2body { top: 16.28px; height: 36.26px; }
+.ll-dot { top: 0; height: 13.32px; border-radius: 50%; background: #fff; }
+.loading-logo-final {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  animation: ls-fade-in 450ms ease 1650ms forwards;
+}
+
+@keyframes ls-wipe { to { clip-path: inset(0 0% 0 0); } }
+@keyframes ls-letter-in { to { opacity: 1; transform: translateY(0); } }
+@keyframes ls-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  50% { filter: drop-shadow(0 0 16px rgba(255,255,255,0.85)); }
+}
+@keyframes ls-fade-in { to { opacity: 1; } }
+@keyframes ls-fade-out { to { opacity: 0; visibility: hidden; } }
+
+/* Reduced motion: no wipe, no per-letter flight, no glow — just the
+   fully-formed white logo held briefly on the blue screen, then the same
+   cross-fade into the real app. */
+@media (prefers-reduced-motion: reduce) {
+  .loading-letters { animation: ls-fade-out 400ms ease 700ms forwards; clip-path: none; }
+  .ll-letter, .ll-dot { animation: none; opacity: 1; transform: none; }
+  .loading-logo-final { animation: ls-fade-in 400ms ease 700ms forwards; }
+  #loadingScreen { animation: ls-fade-out 400ms ease 700ms forwards; }
+}
