@@ -14,9 +14,6 @@
     projectList: document.getElementById('projectList'),
     projectSearch: document.getElementById('projectSearch'),
     stageFilter: document.getElementById('stageFilter'),
-    sidebarLink: document.getElementById('sidebarLink'),
-    sidebarBuildBtn: document.getElementById('sidebarBuildBtn'),
-    sidebarBuildStatus: document.getElementById('sidebarBuildStatus'),
     editor: document.getElementById('editor'),
     preview: document.getElementById('preview'),
     previewFrameWrap: document.getElementById('previewFrameWrap'),
@@ -1081,10 +1078,6 @@
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
     }).catch(err => notify(err.message, { sticky: false }));
   }
-
-  // The sidebar's own build box — always there, project open or not,
-  // unlike the start screen's copy which only shows when nothing's open.
-  wireBuildBar(el.sidebarLink, el.sidebarBuildBtn, el.sidebarBuildStatus);
 
   // Reflects state.viewport onto the toggle buttons + expand indicator.
   // Full screen is desktop-only, so switching into it while on mobile

@@ -225,12 +225,6 @@ dialog button.danger:hover { background: #c93a35; }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 6px; }
 .sidebar-head-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .sidebar-head h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
-/* Build box: link / name / AI-search, all through one input. ai-mode is
-   toggled as you type, purely a visual cue that Enter will search instead
-   of creating one business straight away. */
-.sidebar-build-bar { margin-bottom: 6px; }
-.sidebar-build-bar.ai-mode { border-color: var(--ai); box-shadow: 0 0 0 3px var(--ai-bg); }
-.sidebar-build-bar.ai-mode button { background: var(--ai); }
 .build-status { min-height: 14px; margin: 0 0 6px 2px; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .project-search {
   width: 100%;
