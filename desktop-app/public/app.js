@@ -2,7 +2,7 @@
   const state = {
     projects: [], current: null, found: {}, sort: 'newest', search: '',
     viewport: 'desktop', appFullscreen: false, desktopExpanded: true,
-    tab: 'businesses', coldSearch: '', coldSelected: null
+    tab: 'businesses', coldSearch: '', coldSelected: null, liveAdding: false
   };
 
   const el = {
@@ -209,6 +209,9 @@
         state.found = {};
       }
       await loadProjects();
+      if (state.coldSelected === slug) state.coldSelected = null;
+      if (state.tab === 'cold') renderCold();
+      else if (state.tab === 'live') renderLive();
       renderEditor();
       renderPreview();
       renderLiveActions();
@@ -1095,7 +1098,10 @@
   const businessName = p => p.raw?.name || p.name || p.slug;
   const phoneOf = p => p.raw?.businessProfile?.phone || p.contact?.phone || '';
   const emailOf = p => p.contact?.email || '';
-  const isLivePaying = p => Boolean(p.liveUrl) && p.paymentStatus === 'paid';
+  // Paying is what puts a business on the Live tab — with or without a site
+  // built here (customers can be added straight onto that tab).
+  const isLivePaying = p => p.paymentStatus === 'paid';
+  const websiteOf = p => p.liveUrl || p.contact?.existingWebsite || '';
 
   // Only prices that are actually a number contribute to the monthly
   // total — an agreed price written as free text ("TBC", "£50 + VAT") still
@@ -1145,22 +1151,35 @@
           ${emailOf(p) ? `<span>${escapeHtml(emailOf(p))}</span>` : '<span class="crm-dim">No email</span>'}
         </div>
         ${note ? `<div class="crm-row-note">${escapeHtml(note.length > 120 ? note.slice(0, 120) + '…' : note)}</div>` : ''}
-        ${isUncontacted(p) ? `<button type="button" class="crm-move" data-move="${escapeAttr(p.slug)}">Start cold calling →</button>` : ''}
+        <div class="crm-row-actions">
+          ${isUncontacted(p)
+            ? `<button type="button" class="crm-move" data-move="${escapeAttr(p.slug)}" data-to="called">Move to cold calling ↑</button>`
+            : `<button type="button" class="crm-move" data-build="${escapeAttr(p.slug)}">Build website</button>
+               <button type="button" class="crm-move crm-move-quiet" data-move="${escapeAttr(p.slug)}" data-to="uncontacted">↓ Back to database</button>`}
+          <button type="button" class="crm-delete" data-delete="${escapeAttr(p.slug)}" title="Delete this business">✕</button>
+        </div>
       </div>`;
   }
 
+  // One column split in half: the calling list on top, every other
+  // non-paying business (the database) underneath. Paying customers live
+  // on the Live tab instead.
   function renderCold() {
-    const matching = state.projects.filter(coldMatches);
-    const uncontacted = matching.filter(isUncontacted);
+    const matching = state.projects.filter(p => !isLivePaying(p) && coldMatches(p));
     const calling = matching.filter(p => !isUncontacted(p));
-    const section = (title, list, empty) => `
-      <section class="crm-section">
+    const database = matching.filter(isUncontacted);
+    const scrolls = [...el.coldLists.querySelectorAll('.crm-half-scroll')].map(s => s.scrollTop);
+    const half = (title, list, empty) => `
+      <section class="crm-half">
         <h3>${title} <span class="crm-count">${list.length}</span></h3>
-        ${list.length ? list.map(crmRow).join('') : `<p class="crm-empty">${empty}</p>`}
+        <div class="crm-half-scroll">
+          ${list.length ? list.map(crmRow).join('') : `<p class="crm-empty">${empty}</p>`}
+        </div>
       </section>`;
     el.coldLists.innerHTML =
-      section('Uncontacted', uncontacted, 'Nothing waiting — every business has been contacted.') +
-      section('Cold Calling', calling, 'No businesses in the calling list yet.');
+      half('Cold Calling', calling, 'Nobody to call yet — move a business up from the database below.') +
+      half('Business database', database, 'No businesses waiting. Add one on the Businesses tab.');
+    el.coldLists.querySelectorAll('.crm-half-scroll').forEach((s, i) => { s.scrollTop = scrolls[i] || 0; });
     renderColdDetail();
   }
 
@@ -1222,20 +1241,26 @@
 
   el.coldSearch.oninput = () => { state.coldSearch = el.coldSearch.value; renderCold(); };
   el.coldLists.addEventListener('click', async e => {
-    const moveBtn = e.target.closest('[data-move]');
-    if (moveBtn) {
+    const btn = e.target.closest('button');
+    const slug = btn && (btn.dataset.move || btn.dataset.build || btn.dataset.delete);
+    if (slug) {
       e.stopPropagation();
-      const slug = moveBtn.dataset.move;
-      moveBtn.disabled = true;
+      const p = projectBySlug(slug);
+      if (btn.dataset.delete) return deleteProject(slug, p ? businessName(p) : slug);
+      if (btn.dataset.build) {
+        await switchTab('businesses');
+        return selectProject(slug);
+      }
+      btn.disabled = true;
       try {
-        // Moving into the calling list is just a stage change on the same
-        // record — 'called' is where a first attempt naturally lands.
-        await saveProjectFields(slug, { pipelineStage: 'called' });
+        // Moving between the two halves is just a stage change on the same
+        // record — 'called' going up, 'uncontacted' going back down.
+        await saveProjectFields(slug, { pipelineStage: btn.dataset.to });
         state.coldSelected = slug;
         renderCold();
       } catch (err) {
         notify(friendlyError(err.message), { sticky: false });
-        moveBtn.disabled = false;
+        btn.disabled = false;
       }
       return;
     }
@@ -1249,27 +1274,96 @@
     const paying = state.projects.filter(isLivePaying);
     const total = paying.reduce((sum, p) => sum + monthlyValue(p), 0);
     el.liveTotals.innerHTML = `
-      <div class="live-stat"><b>${paying.length}</b><span>paying live client${paying.length === 1 ? '' : 's'}</span></div>
-      <div class="live-stat"><b>£${total.toFixed(2).replace(/\.00$/, '')}</b><span>total monthly value</span></div>`;
-    el.liveList.innerHTML = paying.length ? paying.map(p => `
+      <div class="live-stat"><b>${paying.length}</b><span>paying customer${paying.length === 1 ? '' : 's'}</span></div>
+      <div class="live-stat"><b>£${total.toFixed(2).replace(/\.00$/, '')}</b><span>total monthly value</span></div>
+      <button type="button" class="crm-save live-add-btn" data-add-customer ${state.liveAdding ? 'hidden' : ''}>+ Add customer</button>`;
+    const form = state.liveAdding ? `
+      <form class="crm-row live-add-form" id="liveAddForm">
+        <div class="live-add-grid">
+          <div class="field"><label>Business name</label><input name="name" required></div>
+          <div class="field"><label>Monthly price</label><input name="price" placeholder="e.g. 45"></div>
+          <div class="field"><label>Website (optional)</label><input name="website" placeholder="https://…"></div>
+        </div>
+        <button type="submit" class="crm-save">Add customer</button>
+        <button type="button" class="crm-move" data-cancel-add>Cancel</button>
+      </form>` : '';
+    el.liveList.innerHTML = form + (paying.length ? paying.map(p => `
       <div class="crm-row live-row">
         <div class="crm-row-main">
           <span class="crm-name">${escapeHtml(businessName(p))}</span>
-          <span class="crm-stage stage-paid">${escapeHtml(paymentLabel(p.paymentStatus))}</span>
+          <span class="crm-stage stage-paid">Paying</span>
         </div>
         <div class="crm-row-meta">
           <span class="live-price">${p.price ? escapeHtml(String(p.price).replace(/^£?/, '£')) + ' /mo' : 'No price set'}</span>
-          <span class="crm-dim live-url">${escapeHtml(p.liveUrl)}</span>
+          ${websiteOf(p) ? `<span class="crm-dim live-url">${escapeHtml(websiteOf(p))}</span>` : '<span class="crm-dim">No website yet</span>'}
         </div>
         ${p.notes ? `<div class="crm-row-note">${escapeHtml(p.notes.trim().replace(/\s+/g, ' '))}</div>` : ''}
-        <button type="button" class="crm-move" data-open="${escapeAttr(p.liveUrl)}">Open site ↗</button>
+        <div class="crm-row-actions">
+          ${websiteOf(p) ? `<button type="button" class="crm-move" data-open="${escapeAttr(websiteOf(p))}">Open site ↗</button>` : ''}
+          <button type="button" class="crm-move crm-move-quiet" data-unpay="${escapeAttr(p.slug)}">Not paying any more</button>
+          <button type="button" class="crm-delete" data-delete="${escapeAttr(p.slug)}" title="Delete this customer">✕</button>
+        </div>
       </div>`).join('')
-      : `<p class="crm-empty">No live, paying clients yet. A business appears here once its website is live and its payment status is set to Paid.</p>`;
+      : (state.liveAdding ? '' : `<p class="crm-empty">No paying customers yet. Click “+ Add customer”, or set a business's payment status to Paid on the Cold Calling tab.</p>`));
+    if (state.liveAdding) el.liveList.querySelector('input[name="name"]').focus();
   }
 
-  el.liveList.addEventListener('click', e => {
-    const btn = e.target.closest('[data-open]');
-    if (btn) openExternal(btn.dataset.open);
+  el.liveTotals.addEventListener('click', e => {
+    if (e.target.closest('[data-add-customer]')) { state.liveAdding = true; renderLive(); }
+  });
+
+  el.liveList.addEventListener('click', async e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.dataset.open) return openExternal(btn.dataset.open);
+    if ('cancelAdd' in btn.dataset) { state.liveAdding = false; return renderLive(); }
+    if (btn.dataset.delete) {
+      const p = projectBySlug(btn.dataset.delete);
+      return deleteProject(btn.dataset.delete, p ? businessName(p) : btn.dataset.delete);
+    }
+    if (btn.dataset.unpay) {
+      btn.disabled = true;
+      try {
+        // Goes back to wherever it was before (database or calling list).
+        await saveProjectFields(btn.dataset.unpay, { paymentStatus: 'no' });
+        renderLive();
+      } catch (err) {
+        notify(friendlyError(err.message), { sticky: false });
+        btn.disabled = false;
+      }
+    }
+  });
+
+  // A customer added here is an ordinary business record, just created as
+  // paying — so it also shows in the Businesses tab and syncs like any other.
+  // Their existing website goes in contact.existingWebsite, not liveUrl, so
+  // the builder never mistakes it for a site it deployed.
+  el.liveList.addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target;
+    const data = new FormData(form);
+    const name = String(data.get('name') || '').trim();
+    if (!name) return;
+    const submit = form.querySelector('[type="submit"]');
+    submit.disabled = true;
+    try {
+      const created = await api('/api/projects', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name })
+      });
+      const website = String(data.get('website') || '').trim();
+      await saveProjectFields(created.slug, {
+        paymentStatus: 'paid',
+        price: String(data.get('price') || '').trim(),
+        contact: { ...(created.contact || {}), existingWebsite: website }
+      });
+      state.liveAdding = false;
+      await loadProjects();
+      renderLive();
+      notify(`Added "${name}" as a paying customer.`);
+    } catch (err) {
+      notify(friendlyError(err.message), { sticky: false });
+      submit.disabled = false;
+    }
   });
 
   // Switching tabs only shows/hides views — the builder view keeps its DOM

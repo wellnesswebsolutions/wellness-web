@@ -889,3 +889,45 @@ iframe#preview {
   .loading-logo-final { animation: ls-fade-in 400ms ease 700ms forwards; }
   #loadingScreen { animation: ls-fade-out 400ms ease 700ms forwards; }
 }
+
+/* Cold Calling tab: one column split in half — the calling list on top,
+   the rest of the (non-paying) business database underneath. */
+.crm-split { flex: 1; display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
+.crm-half { display: flex; flex-direction: column; min-height: 0; }
+.crm-half + .crm-half { border-top: 1px solid var(--line); background: #faf9f6; }
+.crm-half h3 {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 12px 14px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.crm-half-scroll { flex: 1; overflow-y: auto; padding: 0 14px 14px; min-height: 0; }
+.crm-row-actions { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.crm-row-actions .crm-move { margin-top: 0; }
+.crm-move-quiet { color: var(--muted); }
+.crm-delete {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.crm-delete:hover { background: #fbeceb; border-color: #f3c9c7; color: #c93a35; }
+
+/* Live tab: "+ Add customer" */
+.live-totals { align-items: center; }
+.live-add-btn { margin-left: auto; }
+.live-add-form, .live-add-form:hover { cursor: default; border-color: var(--accent); }
+.live-add-grid { display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 10px; margin-bottom: 4px; }
+.live-add-form .crm-move { margin-left: 6px; }
