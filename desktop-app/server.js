@@ -9,6 +9,7 @@ const { runClaudeLookup, runClaudeExtract } = require('./lib/ai-import');
 const browserFetch = require('./lib/browser-fetch');
 const sync = require('./lib/supabase-sync');
 const { deployToVercel } = require('./lib/deploy');
+const { version: APP_VERSION } = require('./package.json');
 
 const PORT = process.env.PORT || 4173;
 const GENERATOR_DIR = fs.existsSync(path.join(__dirname, '..', 'demo-generator.js'))
@@ -46,6 +47,7 @@ function createApp() {
   });
 
   app.get('/api/sync-status', (req, res) => res.json(sync.getStatus()));
+  app.get('/api/app-info', (req, res) => res.json({ version: APP_VERSION }));
 
   app.post('/api/projects', (req, res) => {
     const project = storage.createProject(req.body?.name || '', { pipelineStage: req.body?.pipelineStage });

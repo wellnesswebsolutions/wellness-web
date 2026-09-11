@@ -30,6 +30,8 @@
     copyLiveBtn: document.getElementById('copyLiveBtn'),
     closePreviewBtn: document.getElementById('closePreviewBtn'),
     notice: document.getElementById('noticeStrip'),
+    appVersion: document.getElementById('appVersion'),
+    updateBtn: document.getElementById('updateBtn'),
     syncStatus: document.getElementById('syncStatus'),
     syncStatusText: document.getElementById('syncStatusText'),
     syncTooltipUrl: document.getElementById('syncTooltipUrl'),
@@ -1013,6 +1015,53 @@
       renderLiveActions();
     }
   };
+
+  // ---------------- version + app updates ----------------
+  // The version shows everywhere, including colleagues on the plain browser
+  // at localhost:4173. The update button only exists inside the installed
+  // app, where preload.js exposes window.brightsiteUpdates.
+  api('/api/app-info').then(info => {
+    el.appVersion.textContent = `v${info.version}`;
+    el.appVersion.hidden = false;
+  }).catch(() => {});
+
+  const updates = window.brightsiteUpdates;
+  let upToDateTimer = null;
+  function renderUpdateState(s) {
+    const btn = el.updateBtn;
+    clearTimeout(upToDateTimer);
+    btn.hidden = !s || s.status === 'dev';
+    if (btn.hidden) return;
+    btn.disabled = s.status === 'checking' || s.status === 'downloading';
+    btn.classList.toggle('is-ready', s.status === 'ready');
+    btn.classList.toggle('is-error', s.status === 'error');
+    btn.title = s.status === 'error' ? `Last check failed: ${s.message || 'unknown error'}` : '';
+    const labels = {
+      idle: 'Check for updates',
+      checking: 'Checking…',
+      downloading: `Downloading${s.newVersion ? ` v${s.newVersion}` : ''} ${s.percent || 0}%`,
+      ready: `Restart to update${s.newVersion ? ` to v${s.newVersion}` : ''}`,
+      'up-to-date': 'Up to date ✓',
+      error: 'Update failed — retry'
+    };
+    btn.innerHTML = (btn.disabled ? '<span class="status-spinner"></span>' : '') + escapeHtml(labels[s.status] || labels.idle);
+    // "Up to date" is a confirmation, not a resting state — fall back to
+    // the check button after a moment.
+    if (s.status === 'up-to-date') upToDateTimer = setTimeout(() => renderUpdateState({ ...s, status: 'idle' }), 5000);
+  }
+  if (updates) {
+    updates.getState().then(renderUpdateState).catch(() => {});
+    updates.onState(renderUpdateState);
+    el.updateBtn.onclick = () => {
+      if (el.updateBtn.classList.contains('is-ready')) {
+        el.updateBtn.disabled = true;
+        el.updateBtn.textContent = 'Restarting…';
+        updates.install();
+      } else {
+        updates.check().then(renderUpdateState).catch(() => {});
+      }
+    };
+  }
 
   // ---------------- Cold Calling + Live & Paying ----------------
   // Both tabs are pure views over the same project records the Businesses
