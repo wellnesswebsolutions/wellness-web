@@ -282,6 +282,26 @@
     return demoLayoutForCategory(info.cat || 'office');
   }
 
+  // Same named colour palettes brightsite.app's own live builder offers
+  // (homepage-builder.js) — duplicated here as plain data rather than
+  // loading that file, since it's wired directly to the marketing site's
+  // own DOM, not a reusable generator module. A flat compact grid instead
+  // of that builder's family-tabs + horizontal scroll, matching the
+  // template picker's own dense-grid style.
+  const PALETTES = [
+    ['Porcelain', '#b59b94'], ['Rose', '#b77988'], ['Lavender', '#9180a5'], ['Cloud', '#8b9ca7'], ['Sand', '#b69b72'], ['Pearl', '#92918b'],
+    ['Ruby', '#ac2637'], ['Cobalt', '#245bb0'], ['Forest', '#286148'], ['Ochre', '#a97618'], ['Plum', '#763d67'], ['Copper', '#a75132'],
+    ['Sage', '#70836a'], ['Clay', '#a86e52'], ['Olive', '#797744'], ['Ocean', '#3d7479'], ['Oat', '#a29378'], ['Moss', '#506951'],
+    ['Coral', '#cf5547'], ['Azure', '#267fba'], ['Berry', '#b33e7e'], ['Tangerine', '#c96623'], ['Teal', '#16847b'], ['Violet', '#7652b0'],
+    ['Ink', '#26313e'], ['Espresso', '#4a3630'], ['Midnight', '#283958'], ['Pine', '#29473e'], ['Charcoal', '#3e4145'], ['Aubergine', '#4f354d']
+  ];
+
+  function colourOptions(selectedHex) {
+    return PALETTES.map(([name, hex]) =>
+      `<button type="button" class="colour-swatch${hex === selectedHex ? ' selected' : ''}" data-hex="${hex}" title="${name}" style="background:${hex}"></button>`
+    ).join('');
+  }
+
   // ---------------- start screen (no project selected) ----------------
   function renderStartScreen() {
     el.editor.innerHTML = `
@@ -373,6 +393,9 @@
       <div class="field"><label>Template</label>
         <div class="template-grid-6" id="templateGrid">${templateOptions(effectiveLayout(raw))}</div></div>
 
+      <div class="field"><label>Colour</label>
+        <div class="colour-grid" id="colourGrid">${colourOptions(raw.tones?.base)}</div></div>
+
       <div class="ai-edit-box">
         <label>Edit with AI</label>
         <textarea id="aiInstruction" placeholder="e.g. Make the about section warmer and mention it's family-run"></textarea>
@@ -401,6 +424,14 @@
       if (!tile) return;
       setRaw({ layout: tile.dataset.layout });
       document.querySelectorAll('.template-tile').forEach(t => t.classList.toggle('selected', t === tile));
+      persist();
+      schedulePreview();
+    });
+    document.getElementById('colourGrid').addEventListener('click', e => {
+      const swatch = e.target.closest('.colour-swatch');
+      if (!swatch) return;
+      setRaw({ tones: tonesFromHex(swatch.dataset.hex) });
+      document.querySelectorAll('.colour-swatch').forEach(s => s.classList.toggle('selected', s === swatch));
       persist();
       schedulePreview();
     });
