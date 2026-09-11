@@ -1,8 +1,9 @@
 (() => {
-  const state = { projects: [], current: null, found: {}, sort: 'newest', viewport: 'desktop', appFullscreen: false, desktopExpanded: true };
+  const state = { projects: [], current: null, found: {}, sort: 'newest', search: '', viewport: 'desktop', appFullscreen: false, desktopExpanded: true };
 
   const el = {
     projectList: document.getElementById('projectList'),
+    projectSearch: document.getElementById('projectSearch'),
     newProjectBtn: document.getElementById('newProjectBtn'),
     sortSelect: document.getElementById('sortSelect'),
     editor: document.getElementById('editor'),
@@ -124,7 +125,11 @@
   }
 
   function sortedProjects() {
-    const list = state.projects.slice();
+    let list = state.projects.slice();
+    if (state.search.trim()) {
+      const q = state.search.trim().toLowerCase();
+      list = list.filter(p => (p.raw?.name || p.name || p.slug).toLowerCase().includes(q));
+    }
     if (state.sort === 'name') {
       list.sort((a, b) => (a.raw?.name || a.name || '').localeCompare(b.raw?.name || b.name || ''));
     } else if (state.sort === 'oldest') {
@@ -135,11 +140,29 @@
     return list;
   }
 
+  // Same red/amber/green vocabulary as the deploy button (renderLiveActions)
+  // so the sidebar dot always reads consistently with it. The open project
+  // reuses that exact comparison (current render vs what's actually live);
+  // for the rest we only know whether they've ever been deployed, since
+  // computing their current render just for a status dot isn't worth it.
+  function liveStatusFor(p) {
+    if (state.current && state.current.slug === p.slug) {
+      const liveUrl = state.current.liveUrl;
+      const currentHtml = el.preview.dataset.lastHtml;
+      const needsUpdate = Boolean(liveUrl) && currentHtml !== state.current.deployedHtml;
+      return !liveUrl ? 'not-live' : needsUpdate ? 'needs-update' : 'live';
+    }
+    return p.liveUrl ? 'live' : 'not-live';
+  }
+
   function renderSidebar() {
     el.projectList.innerHTML = '';
     sortedProjects().forEach(p => {
       const row = document.createElement('div');
       row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
+      const dot = document.createElement('span');
+      dot.className = `project-dot status-${liveStatusFor(p)}`;
+      dot.title = { 'not-live': 'Not live', 'needs-update': 'Live — needs updating', live: 'Live' }[liveStatusFor(p)];
       const name = document.createElement('span');
       name.className = 'project-name';
       name.textContent = p.raw?.name || p.name || p.slug;
@@ -148,7 +171,7 @@
       del.title = 'Delete this site';
       del.textContent = '✕';
       del.onclick = e => { e.stopPropagation(); deleteProject(p.slug, name.textContent); };
-      row.append(name, del);
+      row.append(dot, name, del);
       // Clicking the already-open site again closes it back to the start screen.
       row.onclick = () => {
         if (state.current?.slug === p.slug) closeCurrentProject();
@@ -159,6 +182,7 @@
   }
 
   el.sortSelect.onchange = () => { state.sort = el.sortSelect.value; renderSidebar(); };
+  el.projectSearch.oninput = () => { state.search = el.projectSearch.value; renderSidebar(); };
 
   async function deleteProject(slug, displayName) {
     const ok = await showConfirm(`Delete "${displayName}"?`, "This removes its files permanently and can't be undone.");
@@ -215,6 +239,7 @@
     el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live', 'status-needs-update');
     el.deployBtn.classList.add(!liveUrl ? 'status-not-live' : needsUpdate ? 'status-needs-update' : 'status-live');
     el.copyLiveBtn.hidden = !liveUrl;
+    renderSidebar();
   }
 
   // `deployedHtml` is a client-only snapshot (the server has no concept of
@@ -285,21 +310,21 @@
   // Same named colour palettes brightsite.app's own live builder offers
   // (homepage-builder.js) — duplicated here as plain data rather than
   // loading that file, since it's wired directly to the marketing site's
-  // own DOM, not a reusable generator module. A flat compact grid instead
-  // of that builder's family-tabs + horizontal scroll, matching the
-  // template picker's own dense-grid style.
-  const PALETTES = [
-    ['Porcelain', '#b59b94'], ['Rose', '#b77988'], ['Lavender', '#9180a5'], ['Cloud', '#8b9ca7'], ['Sand', '#b69b72'], ['Pearl', '#92918b'],
-    ['Ruby', '#ac2637'], ['Cobalt', '#245bb0'], ['Forest', '#286148'], ['Ochre', '#a97618'], ['Plum', '#763d67'], ['Copper', '#a75132'],
-    ['Sage', '#70836a'], ['Clay', '#a86e52'], ['Olive', '#797744'], ['Ocean', '#3d7479'], ['Oat', '#a29378'], ['Moss', '#506951'],
-    ['Coral', '#cf5547'], ['Azure', '#267fba'], ['Berry', '#b33e7e'], ['Tangerine', '#c96623'], ['Teal', '#16847b'], ['Violet', '#7652b0'],
-    ['Ink', '#26313e'], ['Espresso', '#4a3630'], ['Midnight', '#283958'], ['Pine', '#29473e'], ['Charcoal', '#3e4145'], ['Aubergine', '#4f354d']
-  ];
+  // own DOM, not a reusable generator module. Grouped into the same 5
+  // mood families as that builder, rather than one flat 30-swatch grid,
+  // so the field stays compact — a family is a single pill until opened.
+  const COLOUR_FAMILIES = {
+    Soft: [['Porcelain', '#b59b94'], ['Rose', '#b77988'], ['Lavender', '#9180a5'], ['Cloud', '#8b9ca7'], ['Sand', '#b69b72'], ['Pearl', '#92918b']],
+    Bold: [['Ruby', '#ac2637'], ['Cobalt', '#245bb0'], ['Forest', '#286148'], ['Ochre', '#a97618'], ['Plum', '#763d67'], ['Copper', '#a75132']],
+    Natural: [['Sage', '#70836a'], ['Clay', '#a86e52'], ['Olive', '#797744'], ['Ocean', '#3d7479'], ['Oat', '#a29378'], ['Moss', '#506951']],
+    Bright: [['Coral', '#cf5547'], ['Azure', '#267fba'], ['Berry', '#b33e7e'], ['Tangerine', '#c96623'], ['Teal', '#16847b'], ['Violet', '#7652b0']],
+    Dark: [['Ink', '#26313e'], ['Espresso', '#4a3630'], ['Midnight', '#283958'], ['Pine', '#29473e'], ['Charcoal', '#3e4145'], ['Aubergine', '#4f354d']]
+  };
 
   // Black or white, whichever reads clearly on a given swatch colour —
-  // the 30 palette hexes span from near-white (Pearl) to near-black
-  // (Ink), so the name label needs its own contrast check per swatch
-  // rather than one fixed text colour.
+  // the palette hexes span from near-white (Pearl) to near-black (Ink),
+  // so the name label needs its own contrast check per swatch rather
+  // than one fixed text colour.
   function contrastTextColor(hex) {
     const c = hex.replace('#', '');
     const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
@@ -307,10 +332,44 @@
     return luminance > 0.55 ? '#17181a' : '#ffffff';
   }
 
-  function colourOptions(selectedHex) {
-    return PALETTES.map(([name, hex]) =>
-      `<button type="button" class="colour-swatch${hex === selectedHex ? ' selected' : ''}" data-hex="${hex}" title="${name}" style="background:${hex};color:${contrastTextColor(hex)}">${name}</button>`
-    ).join('');
+  function familyForHex(hex) {
+    for (const [family, choices] of Object.entries(COLOUR_FAMILIES)) {
+      if (choices.some(([, h]) => h === hex)) return family;
+    }
+    return null;
+  }
+
+  function nameForHex(hex) {
+    for (const choices of Object.values(COLOUR_FAMILIES)) {
+      const match = choices.find(([, h]) => h === hex);
+      if (match) return match[0];
+    }
+    return null;
+  }
+
+  function colourCurrentHtml(hex) {
+    return hex ? `<i style="background:${hex}"></i>${nameForHex(hex) || ''}` : '';
+  }
+
+  // The whole "Colour" field: a row of 5 family pills (each a tiny 3-dot
+  // preview of its own colours) plus, when one is open, a floating panel
+  // of that family's 6 swatches underneath. Picking a swatch closes the
+  // panel straight back down — the compact state is always what's on
+  // screen except for the moment you're actually choosing.
+  function colourPickerHtml(selectedHex, openFamily) {
+    const activeFamily = familyForHex(selectedHex);
+    const families = Object.entries(COLOUR_FAMILIES).map(([family, choices]) => `
+      <button type="button" class="colour-cat-btn${family === openFamily ? ' open' : ''}${family === activeFamily ? ' selected-fam' : ''}" data-family="${family}">
+        <span class="colour-cat-dots">${choices.slice(0, 3).map(([, hex]) => `<i style="background:${hex}"></i>`).join('')}</span>
+        ${family}
+      </button>`).join('');
+    const popover = openFamily ? `
+      <div class="colour-popover">
+        <div class="colour-grid">${COLOUR_FAMILIES[openFamily].map(([name, hex]) =>
+          `<button type="button" class="colour-swatch${hex === selectedHex ? ' selected' : ''}" data-hex="${hex}" title="${name}" style="background:${hex};color:${contrastTextColor(hex)}">${name}</button>`
+        ).join('')}</div>
+      </div>` : '';
+    return `<div class="colour-families">${families}</div>${popover}`;
   }
 
   // ---------------- start screen (no project selected) ----------------
@@ -404,8 +463,8 @@
       <div class="field"><label>Template</label>
         <div class="template-grid-6" id="templateGrid">${templateOptions(effectiveLayout(raw))}</div></div>
 
-      <div class="field"><label>Colour</label>
-        <div class="colour-grid" id="colourGrid">${colourOptions(raw.tones?.base)}</div></div>
+      <div class="field"><label>Colour <span class="colour-current" id="colourCurrent">${colourCurrentHtml(raw.tones?.base)}</span></label>
+        <div class="colour-picker" id="colourPicker">${colourPickerHtml(raw.tones?.base, null)}</div></div>
 
       <div class="ai-edit-box">
         <label>Edit with AI</label>
@@ -438,14 +497,30 @@
       persist();
       schedulePreview();
     });
-    document.getElementById('colourGrid').addEventListener('click', e => {
-      const swatch = e.target.closest('.colour-swatch');
-      if (!swatch) return;
-      setRaw({ tones: tonesFromHex(swatch.dataset.hex) });
-      document.querySelectorAll('.colour-swatch').forEach(s => s.classList.toggle('selected', s === swatch));
-      persist();
-      schedulePreview();
-    });
+    (() => {
+      const colourPicker = document.getElementById('colourPicker');
+      const colourCurrent = document.getElementById('colourCurrent');
+      let selectedColourHex = raw.tones?.base;
+      let openColourFamily = null;
+      const rerender = () => { colourPicker.innerHTML = colourPickerHtml(selectedColourHex, openColourFamily); };
+      colourPicker.addEventListener('click', e => {
+        const catBtn = e.target.closest('.colour-cat-btn');
+        if (catBtn) {
+          openColourFamily = openColourFamily === catBtn.dataset.family ? null : catBtn.dataset.family;
+          rerender();
+          return;
+        }
+        const swatch = e.target.closest('.colour-swatch');
+        if (!swatch) return;
+        selectedColourHex = swatch.dataset.hex;
+        openColourFamily = null;
+        setRaw({ tones: tonesFromHex(selectedColourHex) });
+        rerender();
+        colourCurrent.innerHTML = colourCurrentHtml(selectedColourHex);
+        persist();
+        schedulePreview();
+      });
+    })();
     document.getElementById('galleryUploadBtn').onclick = () => document.getElementById('galleryUpload').click();
     document.getElementById('galleryUpload').addEventListener('change', e => uploadGallery(e.target.files));
     document.getElementById('aiEditBtn').onclick = runAiEdit;

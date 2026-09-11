@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["-y", "serve", "-l", "8934", "."],
       "port": 8934
+    },
+    {
+      "name": "brightsite-studio",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["desktop-app/server.js"],
+      "port": 4173
     }
   ]
 }
