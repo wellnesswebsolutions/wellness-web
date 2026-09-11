@@ -12,6 +12,19 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["desktop-app/server.js"],
       "port": 4173
+    },
+    {
+      "name": "brightsite-studio-test",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "HOME=/private/tmp/claude-501/-Users-tomconroy-Documents-Websites-wellness-web/054f3538-a6d6-4b05-9084-d802afc10a6d/scratchpad/testhome",
+        "PORT=4178",
+        "SUPABASE_URL=http://127.0.0.1:9",
+        "SUPABASE_ANON_KEY=sandbox",
+        "node",
+        "desktop-app/server.js"
+      ],
+      "port": 4178
     }
   ]
 }

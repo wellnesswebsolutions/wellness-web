@@ -4,18 +4,20 @@
 // replaces the app itself. User data lives in ~/BrightSiteProjects, outside
 // the install folder, so an update never touches it.
 //
-// Behaviour: check a few seconds after launch (and every few hours), or when
-// someone clicks "Check for updates" in the top bar. A newer version
-// downloads quietly in the background, and is only installed when the user
-// clicks "Restart to update" — never on quit. Every state change is pushed to
-// the renderer (see preload.js), and every failure (offline, GitHub down) is
-// logged to <logs>/updates.log and shown on the button, never blocking the app.
+// Behaviour: check straight away at launch (the loading screen waits a few
+// seconds for the answer, see public/launch-gate.js), again every few hours,
+// and whenever someone clicks "Check for updates" in the top bar. A newer
+// version downloads in the background and installs silently when either the
+// loading screen or the "Restart to update" button asks for it, never on quit.
+// Every state change is pushed to the renderer (see preload.js), and every
+// failure (offline, GitHub down) is logged to <logs>/updates.log and shown on
+// the button, never blocking the app.
 
-const { app, ipcMain } = require('electron');
+const { app, ipcMain, shell } = require('electron');
+const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const FIRST_CHECK_DELAY_MS = 8 * 1000;
 const RECHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
 
 let logFile;
@@ -41,14 +43,43 @@ function isNoReleaseError(err) {
   );
 }
 
+// Squirrel.Mac only installs an update signed with a real Developer ID.
+// An ad-hoc signed build (no Apple Developer certificate yet) still downloads
+// the update and reports it ready, then the install silently never happens.
+// So a Mac only downloads and installs itself when that signature is really
+// there; otherwise it points people at the download page instead.
+function canInstallUpdates() {
+  if (process.platform === 'win32') return true;
+  if (process.platform !== 'darwin') return false;
+  const bundle = path.resolve(process.execPath, '..', '..', '..');
+  const res = spawnSync('codesign', ['-dv', '--verbose=2', bundle], { encoding: 'utf8', timeout: 3000 });
+  return /Authority=Developer ID Application/.test(`${res.stdout || ''}${res.stderr || ''}`);
+}
+
+// Where to download the newest version by hand, read from the same
+// app-update.yml electron-updater uses.
+function releasesPageUrl() {
+  try {
+    const yml = fs.readFileSync(path.join(process.resourcesPath, 'app-update.yml'), 'utf8');
+    const owner = /^owner:\s*(\S+)/m.exec(yml)?.[1];
+    const repo = /^repo:\s*(\S+)/m.exec(yml)?.[1];
+    return owner && repo ? `https://github.com/${owner}/${repo}/releases/latest` : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 function initAutoUpdates(getWindow) {
   let autoUpdater = null;
   let pendingVersion = null;
-  // status: dev | idle | checking | downloading | ready | up-to-date | error
-  let state = { status: app.isPackaged ? 'idle' : 'dev', version: app.getVersion() };
+  const canAutoInstall = app.isPackaged ? canInstallUpdates() : false;
+  const downloadUrl = app.isPackaged ? releasesPageUrl() : null;
+  // status: dev | idle | checking | downloading | ready | available | up-to-date | error
+  // ('available' = newer version out, but this build can't install it itself)
+  let state = { version: app.getVersion(), canAutoInstall, status: app.isPackaged ? 'idle' : 'dev' };
 
   const setState = (next) => {
-    state = { version: app.getVersion(), ...next };
+    state = { version: app.getVersion(), canAutoInstall, ...next };
     const win = getWindow();
     if (win && !win.isDestroyed()) win.webContents.send('app-update:state', state);
   };
@@ -87,15 +118,19 @@ function initAutoUpdates(getWindow) {
     return state;
   });
   ipcMain.on('app-update:install', () => {
-    if (!autoUpdater || state.status !== 'ready') return;
-    log('info', `User chose to restart and install ${state.newVersion}`);
+    if (!autoUpdater || !canAutoInstall || state.status !== 'ready') return;
+    log('info', `Installing ${state.newVersion} and restarting`);
     setImmediate(() => {
       try {
-        autoUpdater.quitAndInstall(false, true);
+        // Silent (no Windows installer wizard) and relaunch afterwards.
+        autoUpdater.quitAndInstall(true, true);
       } catch (err) {
         log('error', 'quitAndInstall failed', err);
       }
     });
+  });
+  ipcMain.on('app-update:open-download', () => {
+    if (downloadUrl) shell.openExternal(downloadUrl);
   });
 
   if (!app.isPackaged) {
@@ -111,7 +146,7 @@ function initAutoUpdates(getWindow) {
     return;
   }
 
-  autoUpdater.autoDownload = true;
+  autoUpdater.autoDownload = canAutoInstall;
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.logger = {
     info: (...a) => log('info', ...a),
@@ -123,14 +158,20 @@ function initAutoUpdates(getWindow) {
     },
     debug: () => {}
   };
+  if (!canAutoInstall) log('info', 'This build cannot install updates itself (no Developer ID signature) — will point to the download page');
 
   autoUpdater.on('checking-for-update', () => {
     if (state.status !== 'ready') setState({ status: 'checking' });
   });
   autoUpdater.on('update-available', (info) => {
     pendingVersion = info.version;
-    log('info', `Update available: ${info.version}, downloading`);
-    setState({ status: 'downloading', newVersion: pendingVersion, percent: 0 });
+    if (canAutoInstall) {
+      log('info', `Update available: ${info.version}, downloading`);
+      setState({ status: 'downloading', newVersion: pendingVersion, percent: 0 });
+    } else {
+      log('info', `Update available: ${info.version} — manual download`);
+      setState({ status: 'available', newVersion: pendingVersion, downloadUrl });
+    }
   });
   autoUpdater.on('download-progress', (p) => {
     setState({ status: 'downloading', newVersion: pendingVersion, percent: Math.round(p.percent || 0) });
@@ -145,7 +186,8 @@ function initAutoUpdates(getWindow) {
   });
   autoUpdater.on('error', handleError);
 
-  setTimeout(check, FIRST_CHECK_DELAY_MS);
+  // Straight away: the loading screen is waiting on this answer.
+  check();
   setInterval(check, RECHECK_INTERVAL_MS).unref();
 }
 

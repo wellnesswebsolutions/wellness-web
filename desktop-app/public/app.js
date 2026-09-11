@@ -1094,20 +1094,26 @@
 
   const updates = window.brightsiteUpdates;
   let upToDateTimer = null;
+  let updateState = null;
   function renderUpdateState(s) {
     const btn = el.updateBtn;
+    updateState = s;
     clearTimeout(upToDateTimer);
     btn.hidden = !s || s.status === 'dev';
     if (btn.hidden) return;
     btn.disabled = s.status === 'checking' || s.status === 'downloading';
-    btn.classList.toggle('is-ready', s.status === 'ready');
+    // 'available' = newer version out, but this build can't install it
+    // itself (a Mac without a Developer ID signature) — offer the download.
+    btn.classList.toggle('is-ready', s.status === 'ready' || s.status === 'available');
     btn.classList.toggle('is-error', s.status === 'error');
-    btn.title = s.status === 'error' ? `Last check failed: ${s.message || 'unknown error'}` : '';
+    btn.title = s.status === 'error' ? `Last check failed: ${s.message || 'unknown error'}`
+      : s.status === 'available' ? 'Opens the download page — this Mac can’t install updates automatically yet.' : '';
     const labels = {
       idle: 'Check for updates',
       checking: 'Checking…',
       downloading: `Downloading${s.newVersion ? ` v${s.newVersion}` : ''} ${s.percent || 0}%`,
       ready: `Restart to update${s.newVersion ? ` to v${s.newVersion}` : ''}`,
+      available: `Download v${s.newVersion || 'update'}`,
       'up-to-date': 'Up to date ✓',
       error: 'Update failed — retry'
     };
@@ -1120,10 +1126,13 @@
     updates.getState().then(renderUpdateState).catch(() => {});
     updates.onState(renderUpdateState);
     el.updateBtn.onclick = () => {
-      if (el.updateBtn.classList.contains('is-ready')) {
+      const status = updateState?.status;
+      if (status === 'ready') {
         el.updateBtn.disabled = true;
         el.updateBtn.textContent = 'Restarting…';
         updates.install();
+      } else if (status === 'available') {
+        updates.openDownload();
       } else {
         updates.check().then(renderUpdateState).catch(() => {});
       }

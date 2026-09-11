@@ -893,6 +893,61 @@ iframe#preview {
 @keyframes ls-fade-in { to { opacity: 1; } }
 @keyframes ls-fade-out { to { opacity: 0; visibility: hidden; } }
 
+/* Launch update gate (public/launch-gate.js). Inside the installed app the
+   screen is held (.ls-hold) instead of leaving on the clock above, until the
+   launch update check has answered; .ls-leave then plays the same exit as
+   transitions. While updating, a spinner and status line sit under the logo
+   (positioned absolutely so the logo itself never moves). */
+#loadingScreen.ls-hold { animation: none; }
+#loadingScreen.ls-hold .loading-letters { animation: ls-wipe 550ms cubic-bezier(.4,0,.2,1) forwards; }
+#loadingScreen.ls-hold .loading-logo-final { animation: none; }
+#loadingScreen.ls-leave { opacity: 0; visibility: hidden; transition: opacity 480ms ease, visibility 0s linear 480ms; }
+#loadingScreen.ls-leave .loading-letters { opacity: 0; transition: opacity 420ms ease; }
+#loadingScreen.ls-leave .loading-logo-final { opacity: 1; transition: opacity 450ms ease; }
+
+.ls-update {
+  position: absolute;
+  top: calc(50% + 54px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 250ms ease;
+}
+#loadingScreen.ls-updating:not(.ls-leave) .ls-update { opacity: 1; visibility: visible; }
+.ls-update-line { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ls-spinner {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  animation: status-spin 0.75s linear infinite;
+}
+.ls-skip {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.78);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ls-skip:hover { color: #fff; }
+.ls-skip[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #loadingScreen.ls-hold .loading-letters { animation: none; }
+  .ls-spinner { animation-duration: 1.6s; }
+}
+
 /* Reduced motion: no wipe, no per-letter flight, no glow — just the
    fully-formed white logo held briefly on the blue screen, then the same
    cross-fade into the real app. */
