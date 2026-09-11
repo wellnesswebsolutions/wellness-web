@@ -53,10 +53,31 @@ function initAutoUpdates(getWindow) {
     if (win && !win.isDestroyed()) win.webContents.send('app-update:state', state);
   };
 
+  // One failure reaches us twice — as the 'error' event and as the rejected
+  // checkForUpdates() promise. Whichever arrives first settles the state;
+  // the second finds nothing in progress and is ignored.
+  const handleError = (err) => {
+    if (!['checking', 'downloading'].includes(state.status)) return;
+    if (isNoReleaseError(err)) {
+      log('info', 'No release published yet — treating as up to date');
+      setState({ status: 'up-to-date' });
+      return;
+    }
+    log('error', 'Update check/download failed', err);
+    setState({ status: 'error', message: String((err && err.message) || err).split('\n')[0].slice(0, 200) });
+  };
+
   const check = () => {
     if (!autoUpdater || ['checking', 'downloading', 'ready'].includes(state.status)) return;
     setState({ status: 'checking' });
-    autoUpdater.checkForUpdates().catch((err) => log('error', 'checkForUpdates rejected', err));
+    autoUpdater
+      .checkForUpdates()
+      .then((result) => {
+        // null = updater inactive (e.g. no app-update.yml), and no events
+        // will follow — don't leave the button spinning.
+        if (!result && state.status === 'checking') setState({ status: 'up-to-date' });
+      })
+      .catch(handleError);
   };
 
   // Registered even in dev so the renderer's requests always resolve.
@@ -95,7 +116,11 @@ function initAutoUpdates(getWindow) {
   autoUpdater.logger = {
     info: (...a) => log('info', ...a),
     warn: (...a) => log('warn', ...a),
-    error: (...a) => log('error', ...a),
+    // electron-updater logs every failure itself; handleError decides what
+    // is actually an error, so "no release yet" isn't written as one.
+    error: (...a) => {
+      if (!a.some(isNoReleaseError)) log('error', ...a);
+    },
     debug: () => {}
   };
 
@@ -118,16 +143,7 @@ function initAutoUpdates(getWindow) {
     log('info', `Update ${info.version} downloaded and ready`);
     setState({ status: 'ready', newVersion: info.version });
   });
-  autoUpdater.on('error', (err) => {
-    if (state.status === 'ready') return;
-    if (isNoReleaseError(err)) {
-      log('info', 'No release published yet — treating as up to date');
-      setState({ status: 'up-to-date' });
-      return;
-    }
-    log('error', 'Update check/download failed', err);
-    setState({ status: 'error', message: String((err && err.message) || err).split('\n')[0].slice(0, 200) });
-  });
+  autoUpdater.on('error', handleError);
 
   setTimeout(check, FIRST_CHECK_DELAY_MS);
   setInterval(check, RECHECK_INTERVAL_MS).unref();
