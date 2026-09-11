@@ -42,6 +42,12 @@
 
 <div class="notice-strip" id="noticeStrip" hidden></div>
 
+<nav class="main-tabs" id="mainTabs">
+  <button type="button" data-tab="businesses" class="active">Businesses</button>
+  <button type="button" data-tab="cold">Cold Calling</button>
+  <button type="button" data-tab="live">Live &amp; Paying</button>
+</nav>
+
 <div class="view" id="builderView">
   <div class="layout">
     <aside class="sidebar" id="sidebar">
@@ -92,6 +98,25 @@
         </div>
       </div>
     </section>
+  </div>
+</div>
+
+<div class="view" id="coldView" hidden>
+  <div class="crm-layout">
+    <div class="crm-lists">
+      <div class="crm-toolbar">
+        <input type="text" class="crm-search" id="coldSearch" placeholder="Search businesses…">
+      </div>
+      <div class="crm-scroll" id="coldLists"></div>
+    </div>
+    <aside class="crm-detail" id="coldDetail"></aside>
+  </div>
+</div>
+
+<div class="view" id="liveView" hidden>
+  <div class="live-layout">
+    <div class="live-totals" id="liveTotals"></div>
+    <div class="crm-scroll" id="liveList"></div>
   </div>
 </div>
 

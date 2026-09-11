@@ -101,6 +101,25 @@ header.topbar button.gear:hover { background: var(--accent-tint); }
   transition: opacity 0.2s;
 }
 
+/* The three top-level tabs, full width directly under the top bar. Each
+   one shows a different view over the same business records. */
+.main-tabs { display: flex; background: var(--panel); border-bottom: 1px solid var(--line); flex: none; }
+.main-tabs button {
+  flex: 1;
+  padding: 10px 8px 9px;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.main-tabs button:hover:not(.active) { background: #faf9f6; color: var(--ink); }
+.main-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-tint); }
+
 .view { flex: 1; display: flex; min-height: 0; }
 .view[hidden] { display: none; }
 
@@ -615,6 +634,126 @@ iframe#preview {
 .edit-log { margin-top: 10px; font-size: 12px; color: var(--muted); }
 .edit-log .entry { border-top: 1px solid var(--line); padding: 6px 0; }
 .edit-log button.undo { font-size: 11px; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); background: #fff; cursor: pointer; margin-left: 6px; }
+
+/* ---------------- Cold Calling + Live & Paying ----------------
+   Deliberately list-first and plain: these are for working through
+   businesses quickly, not for designing websites, so they borrow the
+   app's existing field/panel styling rather than inventing a new look. */
+.crm-layout { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 0; }
+.crm-lists { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--line); }
+.crm-toolbar { padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.crm-search {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.crm-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.crm-scroll { flex: 1; overflow-y: auto; padding: 14px; min-height: 0; }
+
+.crm-section { margin-bottom: 20px; }
+.crm-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.crm-count { padding: 1px 7px; border-radius: 20px; background: #f1efe9; font-size: 11px; letter-spacing: 0; }
+.crm-empty { font-size: 12.5px; color: var(--muted); margin: 0; padding: 10px 2px; }
+.crm-detail-empty { padding: 18px; line-height: 1.5; }
+
+.crm-row {
+  position: relative;
+  padding: 10px 12px;
+  margin-bottom: 7px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel);
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.crm-row:hover { border-color: var(--accent); }
+.crm-row.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.crm-row-main { display: flex; align-items: center; gap: 8px; }
+.crm-name { font-size: 13.5px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-stage {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: #f1efe9;
+  color: var(--muted);
+}
+.crm-stage.stage-called { background: #eaf1fe; color: #1e5bc4; }
+.crm-stage.stage-follow_up { background: #fdf2dd; color: #8a5d08; }
+.crm-stage.stage-interested { background: #e6f6ec; color: #146c3a; }
+.crm-stage.stage-demo_sent { background: #efe9fb; color: #53339b; }
+.crm-stage.stage-not_interested { background: #fbeceb; color: #a03b3b; }
+.crm-stage.stage-paid { background: #e6f6ec; color: #146c3a; }
+.crm-row-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 12px; color: var(--ink); }
+.crm-dim { color: var(--muted); }
+.live-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.live-price { font-weight: 600; }
+.crm-row-note {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.crm-move {
+  margin-top: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.crm-move:hover { background: var(--accent-tint); border-color: var(--accent); }
+.crm-move:disabled { opacity: 0.5; cursor: default; }
+
+.crm-detail { overflow-y: auto; padding: 14px 16px 24px; background: var(--panel); min-height: 0; }
+.crm-detail-name { margin: 0 0 12px; font-size: 15px; font-weight: 700; }
+.crm-save {
+  margin-top: 4px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.crm-save:hover { background: #2f6fe0; }
+.crm-save-status { margin-left: 9px; font-size: 12px; color: #1f9d55; font-weight: 600; }
+.crm-live-link { display: block; margin-top: 14px; font-size: 12.5px; font-weight: 600; }
+
+.live-layout { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.live-totals { display: flex; gap: 28px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--panel); flex: none; }
+.live-stat { display: flex; flex-direction: column; gap: 1px; }
+.live-stat b { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.live-stat span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.live-row { cursor: default; }
+.live-row:hover { border-color: var(--line); }
 
 /* ---------------- Startup loading screen ----------------
    A full-screen brand-blue overlay shown the instant the app loads. The

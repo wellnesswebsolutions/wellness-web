@@ -50,12 +50,16 @@ function readProject(slug) {
   }
 }
 
-// One record per business, shared by both tabs — Builder and Sales just
-// render different views/filters over the same file, so nothing is ever
-// duplicated between them.
+// One record per business, shared by every tab — Businesses, Cold Calling
+// and Live & Paying just render different views/filters over the same
+// file, so nothing is ever duplicated between them.
+//
+// 'uncontacted' is the entry point for a newly added business; every
+// other value means it's in the cold-calling list. Anything not in this
+// list (older records predating these stages) is treated as uncontacted
+// by the UI, so no migration is needed.
 const PIPELINE_STAGES = [
-  'potential', 'info_needed', 'ready_to_build', 'building', 'ready_to_send',
-  'demo_sent', 'waiting_reply', 'interested', 'complete', 'archived'
+  'uncontacted', 'called', 'follow_up', 'interested', 'demo_sent', 'not_interested'
 ];
 
 function createProject(name, opts = {}) {
@@ -67,7 +71,7 @@ function createProject(name, opts = {}) {
     slug,
     name: name || 'Untitled business',
     raw: { name: name || '' },
-    pipelineStage: opts.pipelineStage || 'ready_to_build',
+    pipelineStage: opts.pipelineStage || 'uncontacted',
     contact: { phone: '', whatsapp: '', email: '', instagram: '', facebookUrl: '', googleUrl: '', existingWebsite: '' },
     paymentStatus: 'no',
     price: '',

@@ -1,7 +1,20 @@
 (() => {
-  const state = { projects: [], current: null, found: {}, sort: 'newest', search: '', viewport: 'desktop', appFullscreen: false, desktopExpanded: true };
+  const state = {
+    projects: [], current: null, found: {}, sort: 'newest', search: '',
+    viewport: 'desktop', appFullscreen: false, desktopExpanded: true,
+    tab: 'businesses', coldSearch: '', coldSelected: null
+  };
 
   const el = {
+    mainTabs: document.getElementById('mainTabs'),
+    builderView: document.getElementById('builderView'),
+    coldView: document.getElementById('coldView'),
+    liveView: document.getElementById('liveView'),
+    coldSearch: document.getElementById('coldSearch'),
+    coldLists: document.getElementById('coldLists'),
+    coldDetail: document.getElementById('coldDetail'),
+    liveTotals: document.getElementById('liveTotals'),
+    liveList: document.getElementById('liveList'),
     projectList: document.getElementById('projectList'),
     projectSearch: document.getElementById('projectSearch'),
     newProjectBtn: document.getElementById('newProjectBtn'),
@@ -731,7 +744,17 @@
   function scheduleSave() {
     schedulePreview();
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(persist, 500);
+    saveTimer = setTimeout(() => { saveTimer = null; persist(); }, 500);
+  }
+
+  // Runs a still-pending debounced save immediately. Leaving the Businesses
+  // tab goes through here, so a tab switch can never drop an edit that was
+  // sat waiting on its timer.
+  async function flushSave() {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    await persist();
   }
 
   function projectMediaAbsolute(raw, slug) {
@@ -990,6 +1013,242 @@
       renderLiveActions();
     }
   };
+
+  // ---------------- Cold Calling + Live & Paying ----------------
+  // Both tabs are pure views over the same project records the Businesses
+  // tab edits (one data.json per business, synced by lib/supabase-sync.js),
+  // reading and writing the fields that already exist on them:
+  // pipelineStage, contact.email, raw.businessProfile.phone, notes, price,
+  // paymentStatus and liveUrl. Nothing here creates a second record.
+  const SALES_STAGES = [
+    ['uncontacted', 'Uncontacted'],
+    ['called', 'Called'],
+    ['follow_up', 'Follow-up needed'],
+    ['interested', 'Interested'],
+    ['demo_sent', 'Demo sent'],
+    ['not_interested', 'Not interested']
+  ];
+  // Stages offered once a business is in the cold-calling list —
+  // 'uncontacted' is the bucket it came from, not something you pick.
+  const COLD_STAGES = SALES_STAGES.filter(([id]) => id !== 'uncontacted');
+  const PAYMENT_STATUSES = [['no', 'Not paying'], ['pending', 'Pending'], ['paid', 'Paid']];
+
+  const stageLabel = id => (SALES_STAGES.find(([s]) => s === id) || [])[1] || 'Uncontacted';
+  const paymentLabel = id => (PAYMENT_STATUSES.find(([s]) => s === id) || [])[1] || 'Not paying';
+
+  // Records created before these stages existed (or with no stage at all)
+  // count as uncontacted, so nothing needs migrating on disk.
+  function stageOf(p) {
+    const stage = p.pipelineStage;
+    return SALES_STAGES.some(([id]) => id === stage) ? stage : 'uncontacted';
+  }
+  const isUncontacted = p => stageOf(p) === 'uncontacted';
+  const businessName = p => p.raw?.name || p.name || p.slug;
+  const phoneOf = p => p.raw?.businessProfile?.phone || p.contact?.phone || '';
+  const emailOf = p => p.contact?.email || '';
+  const isLivePaying = p => Boolean(p.liveUrl) && p.paymentStatus === 'paid';
+
+  // Only prices that are actually a number contribute to the monthly
+  // total — an agreed price written as free text ("TBC", "£50 + VAT") still
+  // shows on its row, it just can't be summed.
+  function monthlyValue(p) {
+    const amount = parseFloat(String(p.price ?? '').replace(/[^0-9.]/g, ''));
+    return Number.isFinite(amount) ? amount : 0;
+  }
+
+  // Saves a patch against any business by slug (not just the open one, the
+  // way persist() does). Goes through the same PUT the Businesses tab uses,
+  // so it saves locally first and pushes through Supabase sync exactly the
+  // same way.
+  async function saveProjectFields(slug, patch) {
+    const saved = await api(`/api/projects/${slug}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch)
+    });
+    const idx = state.projects.findIndex(p => p.slug === slug);
+    if (idx !== -1) state.projects[idx] = saved;
+    // Keep the Businesses tab's in-memory copy in step, so its next save
+    // can't overwrite what was just changed here with a stale object.
+    if (state.current?.slug === slug) replaceCurrent(saved);
+    return saved;
+  }
+
+  function projectBySlug(slug) {
+    return state.projects.find(p => p.slug === slug) || null;
+  }
+
+  function coldMatches(p) {
+    const q = state.coldSearch.trim().toLowerCase();
+    if (!q) return true;
+    return [businessName(p), phoneOf(p), emailOf(p), p.notes || ''].some(v => String(v).toLowerCase().includes(q));
+  }
+
+  function crmRow(p) {
+    const stage = stageOf(p);
+    const note = (p.notes || '').trim().replace(/\s+/g, ' ');
+    return `
+      <div class="crm-row${state.coldSelected === p.slug ? ' selected' : ''}" data-slug="${escapeAttr(p.slug)}">
+        <div class="crm-row-main">
+          <span class="crm-name">${escapeHtml(businessName(p))}</span>
+          <span class="crm-stage stage-${stage}">${escapeHtml(stageLabel(stage))}</span>
+        </div>
+        <div class="crm-row-meta">
+          ${phoneOf(p) ? `<span>${escapeHtml(phoneOf(p))}</span>` : '<span class="crm-dim">No phone</span>'}
+          ${emailOf(p) ? `<span>${escapeHtml(emailOf(p))}</span>` : '<span class="crm-dim">No email</span>'}
+        </div>
+        ${note ? `<div class="crm-row-note">${escapeHtml(note.length > 120 ? note.slice(0, 120) + '…' : note)}</div>` : ''}
+        ${isUncontacted(p) ? `<button type="button" class="crm-move" data-move="${escapeAttr(p.slug)}">Start cold calling →</button>` : ''}
+      </div>`;
+  }
+
+  function renderCold() {
+    const matching = state.projects.filter(coldMatches);
+    const uncontacted = matching.filter(isUncontacted);
+    const calling = matching.filter(p => !isUncontacted(p));
+    const section = (title, list, empty) => `
+      <section class="crm-section">
+        <h3>${title} <span class="crm-count">${list.length}</span></h3>
+        ${list.length ? list.map(crmRow).join('') : `<p class="crm-empty">${empty}</p>`}
+      </section>`;
+    el.coldLists.innerHTML =
+      section('Uncontacted', uncontacted, 'Nothing waiting — every business has been contacted.') +
+      section('Cold Calling', calling, 'No businesses in the calling list yet.');
+    renderColdDetail();
+  }
+
+  function renderColdDetail() {
+    const p = state.coldSelected ? projectBySlug(state.coldSelected) : null;
+    if (!p) {
+      el.coldDetail.innerHTML = `<p class="crm-empty crm-detail-empty">Select a business to edit its contact details, stage and notes.</p>`;
+      return;
+    }
+    const stage = stageOf(p);
+    el.coldDetail.innerHTML = `
+      <h3 class="crm-detail-name">${escapeHtml(businessName(p))}</h3>
+      <div class="field"><label>Phone</label>
+        <input id="cc_phone" value="${escapeAttr(phoneOf(p))}"></div>
+      <div class="field"><label>Email</label>
+        <input id="cc_email" type="email" value="${escapeAttr(emailOf(p))}"></div>
+      <div class="field"><label>Stage</label>
+        <select id="cc_stage">
+          ${(stage === 'uncontacted' ? SALES_STAGES : COLD_STAGES).map(([id, label]) =>
+            `<option value="${id}" ${id === stage ? 'selected' : ''}>${label}</option>`).join('')}
+        </select></div>
+      <div class="form-grid">
+        <div class="field"><label>Monthly price</label>
+          <input id="cc_price" value="${escapeAttr(p.price || '')}" placeholder="e.g. 45"></div>
+        <div class="field"><label>Payment status</label>
+          <select id="cc_payment">
+            ${PAYMENT_STATUSES.map(([id, label]) =>
+              `<option value="${id}" ${id === (p.paymentStatus || 'no') ? 'selected' : ''}>${label}</option>`).join('')}
+          </select></div>
+      </div>
+      <div class="field"><label>Notes / follow-up</label>
+        <textarea id="cc_notes" placeholder="What happened on the call, what to do next…">${escapeHtml(p.notes || '')}</textarea></div>
+      <button type="button" class="crm-save" id="cc_save">Save</button>
+      <span class="crm-save-status" id="cc_saveStatus"></span>
+      ${p.liveUrl ? `<a class="crm-live-link" href="#" id="cc_openSite">Open live site ↗</a>` : ''}
+    `;
+    document.getElementById('cc_save').onclick = async () => {
+      const status = document.getElementById('cc_saveStatus');
+      const profile = { ...(p.raw?.businessProfile || {}), phone: document.getElementById('cc_phone').value };
+      try {
+        await saveProjectFields(p.slug, {
+          raw: { ...(p.raw || {}), businessProfile: profile },
+          contact: { ...(p.contact || {}), email: document.getElementById('cc_email').value },
+          pipelineStage: document.getElementById('cc_stage').value,
+          price: document.getElementById('cc_price').value,
+          paymentStatus: document.getElementById('cc_payment').value,
+          notes: document.getElementById('cc_notes').value
+        });
+        renderCold();
+        renderSidebar();
+        showTempStatus(document.getElementById('cc_saveStatus') || status, 'Saved.', 2500);
+      } catch (err) {
+        showTempStatus(status, friendlyError(err.message));
+      }
+    };
+    const openSite = document.getElementById('cc_openSite');
+    if (openSite) openSite.onclick = e => { e.preventDefault(); openExternal(p.liveUrl); };
+  }
+
+  el.coldSearch.oninput = () => { state.coldSearch = el.coldSearch.value; renderCold(); };
+  el.coldLists.addEventListener('click', async e => {
+    const moveBtn = e.target.closest('[data-move]');
+    if (moveBtn) {
+      e.stopPropagation();
+      const slug = moveBtn.dataset.move;
+      moveBtn.disabled = true;
+      try {
+        // Moving into the calling list is just a stage change on the same
+        // record — 'called' is where a first attempt naturally lands.
+        await saveProjectFields(slug, { pipelineStage: 'called' });
+        state.coldSelected = slug;
+        renderCold();
+      } catch (err) {
+        notify(friendlyError(err.message), { sticky: false });
+        moveBtn.disabled = false;
+      }
+      return;
+    }
+    const row = e.target.closest('.crm-row');
+    if (!row) return;
+    state.coldSelected = state.coldSelected === row.dataset.slug ? null : row.dataset.slug;
+    renderCold();
+  });
+
+  function renderLive() {
+    const paying = state.projects.filter(isLivePaying);
+    const total = paying.reduce((sum, p) => sum + monthlyValue(p), 0);
+    el.liveTotals.innerHTML = `
+      <div class="live-stat"><b>${paying.length}</b><span>paying live client${paying.length === 1 ? '' : 's'}</span></div>
+      <div class="live-stat"><b>£${total.toFixed(2).replace(/\.00$/, '')}</b><span>total monthly value</span></div>`;
+    el.liveList.innerHTML = paying.length ? paying.map(p => `
+      <div class="crm-row live-row">
+        <div class="crm-row-main">
+          <span class="crm-name">${escapeHtml(businessName(p))}</span>
+          <span class="crm-stage stage-paid">${escapeHtml(paymentLabel(p.paymentStatus))}</span>
+        </div>
+        <div class="crm-row-meta">
+          <span class="live-price">${p.price ? escapeHtml(String(p.price).replace(/^£?/, '£')) + ' /mo' : 'No price set'}</span>
+          <span class="crm-dim live-url">${escapeHtml(p.liveUrl)}</span>
+        </div>
+        ${p.notes ? `<div class="crm-row-note">${escapeHtml(p.notes.trim().replace(/\s+/g, ' '))}</div>` : ''}
+        <button type="button" class="crm-move" data-open="${escapeAttr(p.liveUrl)}">Open site ↗</button>
+      </div>`).join('')
+      : `<p class="crm-empty">No live, paying clients yet. A business appears here once its website is live and its payment status is set to Paid.</p>`;
+  }
+
+  el.liveList.addEventListener('click', e => {
+    const btn = e.target.closest('[data-open]');
+    if (btn) openExternal(btn.dataset.open);
+  });
+
+  // Switching tabs only shows/hides views — the builder view keeps its DOM
+  // (and so its editor state, preview iframe and scroll position) exactly
+  // as it was. Any debounced edit still pending is flushed first so a tab
+  // change can never drop it.
+  async function switchTab(tab) {
+    if (state.tab === tab) return;
+    if (state.tab === 'businesses') await flushSave();
+    state.tab = tab;
+    el.mainTabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    el.builderView.hidden = tab !== 'businesses';
+    el.coldView.hidden = tab !== 'cold';
+    el.liveView.hidden = tab !== 'live';
+    if (tab === 'cold' || tab === 'live') {
+      // Pull anything teammates changed elsewhere before showing a list
+      // that's all about shared status.
+      await loadProjects();
+      if (tab === 'cold') renderCold(); else renderLive();
+    } else {
+      fitPreviewFrame();
+    }
+  }
+
+  el.mainTabs.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-tab]');
+    if (btn) switchTab(btn.dataset.tab);
+  });
 
   loadProjects().then(() => { renderEditor(); renderLiveActions(); });
 })();
