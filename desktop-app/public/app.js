@@ -723,6 +723,9 @@
     const autoHeroHint = slot === 'hero' && !path
       ? `<div class="auto-hint">Auto: ${raw.logoImage ? 'your logo' : 'name'} on a 3D scene</div>`
       : '';
+    // Realistic placement needs a real uploaded photo (not the procedurally
+    // composited hero) plus a real logo — offer it only once both exist.
+    const canPlaceLogo = slot === 'hero' && path && raw.logoImage;
     return `
       <div class="media-slot" data-slot="${slot}">
         <label>${label}</label>
@@ -731,6 +734,7 @@
         <div class="actions">
           <button data-action="upload">${path ? 'Replace' : 'Upload'}</button>
           ${found ? `<button data-action="use-found" class="found">Use found</button>` : ''}
+          ${canPlaceLogo ? `<button data-action="place-logo" class="found">Place logo on photo</button>` : ''}
         </div>
         <input type="file" accept="image/*" style="display:none">
       </div>`;
@@ -752,6 +756,51 @@
     if (useFound) useFound.onclick = () => useFoundImage(slot);
     const remove = wrap.querySelector('[data-action="remove"]');
     if (remove) remove.onclick = e => { e.stopPropagation(); removeMedia(slot); };
+    const placeLogo = wrap.querySelector('[data-action="place-logo"]');
+    if (placeLogo) placeLogo.onclick = () => openLogoPlacement();
+  }
+
+  // Realistic Logo Placement — warps and blends the uploaded logo onto the
+  // uploaded hero photo (wall, sign, window or van panel) so it reads as
+  // physically installed rather than pasted on, then saves the result as
+  // the hero image. Auto-suggests a flat placement area but the user can
+  // drag the four corners to fit the real surface exactly.
+  async function openLogoPlacement() {
+    const raw = state.current.raw || {};
+    if (!raw.heroImage || !raw.logoImage) return;
+    const slug = state.current.slug;
+    const photo = `/projects/${slug}/${raw.heroImage}`;
+    let logo = `/projects/${slug}/${raw.logoImage}`;
+    try {
+      const cleaned = await LogoPlacement.removeBackground(await loadImageEl(logo));
+      logo = cleaned.toDataURL('image/png');
+    } catch (error) {
+      console.error('Logo background removal skipped', error);
+    }
+    LogoPlacement.openEditor({
+      photo, logo,
+      onSave: async ({ dataUrl }) => {
+        const blob = await (await fetch(dataUrl)).blob();
+        const form = new FormData();
+        form.append('file', blob, 'hero-with-logo.jpg');
+        const result = await api(`/api/projects/${slug}/media/hero`, { method: 'POST', body: form });
+        setRaw({ heroImage: result.path });
+        await persist();
+        renderEditor();
+        schedulePreview();
+        notify('Logo placed on the hero photo.');
+      }
+    });
+  }
+
+  function loadImageEl(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Could not load image.'));
+      img.src = src;
+    });
   }
 
   async function removeMedia(slot) {
