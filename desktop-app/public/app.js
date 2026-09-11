@@ -296,9 +296,20 @@
     ['Ink', '#26313e'], ['Espresso', '#4a3630'], ['Midnight', '#283958'], ['Pine', '#29473e'], ['Charcoal', '#3e4145'], ['Aubergine', '#4f354d']
   ];
 
+  // Black or white, whichever reads clearly on a given swatch colour —
+  // the 30 palette hexes span from near-white (Pearl) to near-black
+  // (Ink), so the name label needs its own contrast check per swatch
+  // rather than one fixed text colour.
+  function contrastTextColor(hex) {
+    const c = hex.replace('#', '');
+    const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.55 ? '#17181a' : '#ffffff';
+  }
+
   function colourOptions(selectedHex) {
     return PALETTES.map(([name, hex]) =>
-      `<button type="button" class="colour-swatch${hex === selectedHex ? ' selected' : ''}" data-hex="${hex}" title="${name}" style="background:${hex}"></button>`
+      `<button type="button" class="colour-swatch${hex === selectedHex ? ' selected' : ''}" data-hex="${hex}" title="${name}" style="background:${hex};color:${contrastTextColor(hex)}">${name}</button>`
     ).join('');
   }
 

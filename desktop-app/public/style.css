@@ -394,19 +394,22 @@ dialog button.danger:hover { background: #c93a35; }
 .template-tile:hover { border-color: var(--accent); color: var(--ink); }
 .template-tile.selected { border-color: var(--accent); background: var(--accent-tint); color: var(--accent); }
 
-.colour-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; }
+.colour-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
 .colour-swatch {
-  width: 100%;
-  aspect-ratio: 1;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 50%;
+  padding: 8px 2px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(23,24,26,0.12);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: border-color 0.1s, transform 0.1s;
 }
-.colour-swatch:hover { transform: scale(1.12); }
-.colour-swatch.selected { border-color: var(--ink); }
+.colour-swatch:hover { transform: scale(1.04); }
+.colour-swatch.selected { border-color: var(--ink); box-shadow: 0 0 0 2px rgba(23,24,26,0.25) inset; }
 
 .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 5px; }
 .gallery-grid .thumb { position: relative; height: 30px; border-radius: 6px; background: #f1efe9 center/cover no-repeat; margin-bottom: 0; }
@@ -608,7 +611,10 @@ iframe#preview {
   -webkit-mask-position: inherit;
 }
 .ll-letter.ll-i2body { top: 16.28px; height: 36.26px; }
-.ll-dot { top: 0; height: 13.32px; border-radius: 50%; background: #fff; }
+/* The dot gets its own, much bigger flash than the letters — a little
+   spark/twinkle moment on the brand's blue accent, not just a uniform
+   glow across the whole word. */
+.ll-dot { top: 0; height: 13.32px; border-radius: 50%; background: #fff; animation-name: ls-letter-in, ls-glow-dot; }
 .loading-logo-final {
   position: absolute;
   inset: 0;
@@ -626,6 +632,11 @@ iframe#preview {
      slow breathing glow. Blur radii pushed well past the letters' own
      size so the bloom is unmistakable, not just a faint edge softening. */
   18% { filter: drop-shadow(0 0 8px rgba(255,255,255,1)) drop-shadow(0 0 40px rgba(255,255,255,1)); }
+  100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) drop-shadow(0 0 0 rgba(255,255,255,0)); }
+}
+@keyframes ls-glow-dot {
+  0% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  18% { filter: drop-shadow(0 0 18px rgba(255,255,255,1)) drop-shadow(0 0 90px rgba(255,255,255,1)); }
   100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)) drop-shadow(0 0 0 rgba(255,255,255,0)); }
 }
 @keyframes ls-fade-in { to { opacity: 1; } }
