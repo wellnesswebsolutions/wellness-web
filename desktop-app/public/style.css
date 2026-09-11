@@ -476,11 +476,13 @@ dialog button.danger:hover { background: #c93a35; }
    the toggle group — the "fill full length" behaviour itself lives on
    the desktop button (a second click while already on desktop view
    toggles it). Chevron flips to point up once full length is active. */
+/* Always present (never hidden) so switching desktop/mobile doesn't
+   resize the pill — just dimmed while it doesn't apply (mobile view). */
 #desktopExpandIndicator { display: flex; align-items: center; justify-content: center; width: 14px; color: var(--muted); pointer-events: none; }
-#desktopExpandIndicator[hidden] { display: none; }
 #desktopExpandIndicator svg { transition: transform 0.15s; }
 #desktopExpandIndicator.expanded svg { transform: rotate(180deg); }
 #desktopExpandIndicator.expanded { color: var(--accent); }
+#desktopExpandIndicator.on-mobile { opacity: 0.35; }
 
 /* Deploy button: red = not live, amber = deploying/needs updating, green = live-and-current */
 .preview-actions button.primary {

@@ -771,14 +771,27 @@
     await loadProjects();
     await selectProject(project.slug);
   };
+  // Reflects state.viewport onto the toggle buttons + expand indicator.
+  // Full screen is desktop-only, so switching into it while on mobile
+  // routes through here too, to force the view back to desktop.
+  function setViewport(viewport) {
+    state.viewport = viewport;
+    el.viewportToggle.querySelectorAll('button[data-viewport]').forEach(b => b.classList.toggle('active', b.dataset.viewport === viewport));
+    el.desktopExpandIndicator.classList.toggle('on-mobile', viewport !== 'desktop');
+    el.desktopExpandIndicator.classList.toggle('expanded', state.desktopExpanded);
+  }
+
   // "Full screen" expands the preview to fill the app window itself
   // (hiding the sidebar/editor) rather than taking over the whole Mac
   // display — a real OS-level fullscreen felt jarring for a quick preview.
+  // It only ever shows the desktop ratio, so entering it while mobile
+  // view is selected switches back to desktop first.
   const EXPAND_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
   const CONTRACT_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
   el.fullscreenBtn.onclick = () => {
     if (!el.preview.dataset.lastHtml) return;
     state.appFullscreen = !state.appFullscreen;
+    if (state.appFullscreen && state.viewport !== 'desktop') setViewport('desktop');
     document.querySelector('.layout').classList.toggle('preview-fullscreen', state.appFullscreen);
     el.fullscreenBtn.innerHTML = state.appFullscreen ? CONTRACT_ICON : EXPAND_ICON;
     el.fullscreenBtn.title = state.appFullscreen ? 'Exit full screen' : 'Full screen';
@@ -805,11 +818,7 @@
     } else if (clickedViewport === 'mobile') {
       state.desktopExpanded = false;
     }
-    state.viewport = clickedViewport;
-    el.viewportToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
-    const isDesktop = state.viewport === 'desktop';
-    el.desktopExpandIndicator.hidden = !isDesktop;
-    el.desktopExpandIndicator.classList.toggle('expanded', state.desktopExpanded);
+    setViewport(clickedViewport);
     fitPreviewFrame();
   });
   window.addEventListener('resize', fitPreviewFrame);
