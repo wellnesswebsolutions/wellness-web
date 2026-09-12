@@ -48,15 +48,20 @@
 </header>
 
 <div class="notice-strip" id="noticeStrip" hidden></div>
+<div class="setup-strip" id="setupStrip" hidden>
+  <span class="setup-strip-items" id="setupStripText"></span>
+  <button type="button" id="setupStripOpen">Finish setup</button>
+  <button type="button" class="setup-strip-close" id="setupStripClose" title="Hide — nothing here is required" aria-label="Hide">✕</button>
+</div>
 
 <div class="view" id="builderView">
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <div class="tab-switch">
-        <button type="button" data-tab="businesses" class="active">Businesses</button>
-        <button type="button" data-tab="live">Live</button>
+        <button type="button" data-tab="businesses" class="active">Leads</button>
+        <button type="button" data-tab="live">Clients</button>
       </div>
-      <input type="text" class="project-search" id="projectSearch" placeholder="Search businesses…">
+      <input type="text" class="project-search" id="projectSearch" placeholder="Search leads…">
       <div id="projectList"></div>
     </aside>
 
@@ -105,8 +110,8 @@
   <div class="live-layout">
     <div class="live-top">
       <div class="tab-switch">
-        <button type="button" data-tab="businesses" class="active">Businesses</button>
-        <button type="button" data-tab="live">Live</button>
+        <button type="button" data-tab="businesses" class="active">Leads</button>
+        <button type="button" data-tab="live">Clients</button>
       </div>
       <div class="live-totals" id="liveTotals"></div>
     </div>

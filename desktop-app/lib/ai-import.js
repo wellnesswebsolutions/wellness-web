@@ -256,4 +256,4 @@ function runClaudeLookup(url, url2) {
   });
 }
 
-module.exports = { runClaudeLookup, runClaudeExtract, runClaudeSearch };
+module.exports = { runClaudeLookup, runClaudeExtract, runClaudeSearch, extractJson, extractJsonArray };

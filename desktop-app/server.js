@@ -51,6 +51,7 @@ function createApp() {
   });
 
   app.get('/api/sync-status', (req, res) => res.json(sync.getStatus()));
+  app.get('/api/demo-views', async (req, res) => res.json(await sync.pullDemoViews()));
   app.get('/api/can-deploy', async (req, res) => res.json({ canDeploy: await canDeploy() }));
   app.get('/api/app-info', (req, res) => res.json({ version: APP_VERSION }));
 
@@ -435,6 +436,7 @@ function createApp() {
     try {
       const data = await lookupBusiness(url || undefined, url2 || undefined);
       const project = storage.createProject(data.name || 'New site');
+      storage.saveImportSnapshot(project.slug, [url, url2].filter(Boolean), data);
       const businessProfile = {};
       if (data.address) businessProfile.address = data.address;
       if (data.phone) businessProfile.phone = data.phone;
@@ -605,7 +607,11 @@ function createApp() {
     // The preview points uploaded photos at this local server; the export
     // ships its own copy of img/, so make those links relative.
     const local = new RegExp(`https?://(?:localhost|127\\.0\\.0\\.1):\\d+/projects/${slug.replace(/[^\w-]/g, '\\$&')}/`, 'g');
-    fs.writeFileSync(path.join(outDir, 'index.html'), html.replace(local, ''));
+    let out = html.replace(local, '');
+    const beacon = sync.viewBeaconScript(slug);
+    const bodyEnd = out.toLowerCase().lastIndexOf('</body>');
+    out = bodyEnd === -1 ? out + beacon : out.slice(0, bodyEnd) + beacon + out.slice(bodyEnd);
+    fs.writeFileSync(path.join(outDir, 'index.html'), out);
     const srcImg = path.join(dir, 'img');
     const outImg = path.join(outDir, 'img');
     if (fs.existsSync(srcImg)) fs.cpSync(srcImg, outImg, { recursive: true });

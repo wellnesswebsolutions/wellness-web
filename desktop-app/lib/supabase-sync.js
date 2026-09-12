@@ -228,7 +228,42 @@ async function syncMediaForProject(projectDir, data) {
   }
 }
 
+// ---------------- "Demo opened" tracking (supabase/demo_views.sql) ----------------
+
+// Added to every exported site: records one view per page open. Our own
+// opens carry ?bs_owner=1 (see ownerUrl in public/app.js), which that
+// browser remembers and skips from then on; local previews never count.
+function viewBeaconScript(slug) {
+  if (!enabled()) return '';
+  const { url, key } = config();
+  return `<script>(function(){try{var s=localStorage;if(/[?&]bs_owner=1/.test(location.search))s.setItem('bs_owner','1');` +
+    `if(s.getItem('bs_owner')||location.protocol!=='https:'||/localhost|127\\.0\\.0\\.1/.test(location.hostname))return;` +
+    `fetch(${JSON.stringify(`${url}/rest/v1/demo_views`)},{method:'POST',keepalive:true,headers:{apikey:${JSON.stringify(key)},` +
+    `Authorization:${JSON.stringify(`Bearer ${key}`)},'Content-Type':'application/json',Prefer:'return=minimal'},` +
+    `body:${JSON.stringify(JSON.stringify({ slug }))}})}catch(e){}})();</script>`;
+}
+
+// { slug: { count, last } } — {} if sync is off or the table isn't set up yet.
+async function pullDemoViews() {
+  if (!enabled()) return {};
+  try {
+    const { url } = config();
+    const res = await fetch(`${url}/rest/v1/demo_views?select=slug,viewed_at&order=viewed_at.desc&limit=10000`, { headers: headers() });
+    if (!res.ok) return {};
+    const views = {};
+    for (const row of await res.json()) {
+      const v = views[row.slug] || (views[row.slug] = { count: 0, last: row.viewed_at });
+      v.count += 1;
+    }
+    return views;
+  } catch {
+    return {};
+  }
+}
+
 module.exports = {
+  viewBeaconScript,
+  pullDemoViews,
   enabled, pullAll, pushOne, deleteOne, flushPending, getStatus,
   uploadMedia, downloadMedia, deleteMedia, syncMediaForProject
 };

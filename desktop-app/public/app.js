@@ -174,6 +174,29 @@
   const serviceRows = () => [...el.settingsDialog.querySelectorAll('[data-service]')];
   const stripeForm = document.getElementById('stripeForm');
   const stripeInput = document.getElementById('stripeKeyInput');
+  // Setup strip under the top bar: which optional services this copy is
+  // missing. None are required, so ✕ hides it for good.
+  const SETUP_SERVICES = [['claude', 'Claude'], ['vercel', 'Vercel'], ['stripe', 'Stripe'], ['sync', 'Sync']];
+  const setupStrip = document.getElementById('setupStrip');
+  async function refreshSetupStrip() {
+    let dismissed = false;
+    try { dismissed = localStorage.getItem('setupStripHidden') === '1'; } catch {}
+    if (dismissed) { setupStrip.hidden = true; return; }
+    let s;
+    try { s = await api('/api/connections'); } catch { return; }
+    const done = SETUP_SERVICES.filter(([key]) => s[key]?.signedIn).length;
+    setupStrip.hidden = done === SETUP_SERVICES.length;
+    document.getElementById('setupStripText').innerHTML = `<b>Setup ${done}/${SETUP_SERVICES.length}</b>` +
+      SETUP_SERVICES.map(([key, label]) => `<span class="${s[key]?.signedIn ? 'is-ok' : 'is-missing'}">${s[key]?.signedIn ? '✓' : '✗'} ${label}</span>`).join('');
+  }
+  document.getElementById('setupStripOpen').onclick = () => el.gearBtn.click();
+  document.getElementById('setupStripClose').onclick = () => {
+    try { localStorage.setItem('setupStripHidden', '1'); } catch {}
+    setupStrip.hidden = true;
+  };
+  el.settingsDialog.addEventListener('close', refreshSetupStrip);
+  refreshSetupStrip();
+
   async function refreshServices() {
     try { services = await api('/api/connections'); } catch { return; }
     for (const row of serviceRows()) {
@@ -328,6 +351,26 @@
     state.projectsLoaded = true;
     renderSidebar();
     refreshSyncStatus();
+    loadDemoViews();
+  }
+
+  // How often each live demo has been opened by the business (see
+  // supabase/demo_views.sql) — a tick in the sidebar, a line under Contact.
+  state.views = {};
+  async function loadDemoViews() {
+    try { state.views = (await api('/api/demo-views')) || {}; } catch { return; }
+    renderSidebar();
+    renderDemoViews();
+  }
+  setInterval(loadDemoViews, 60000);
+  const viewsText = v => `Demo opened ${v.count}× · last ${timeAgo(v.last).replace(/^Just/, 'just')}`;
+  function renderDemoViews() {
+    const box = document.getElementById('demoViews');
+    if (!box || !state.current) return;
+    const v = state.views[state.current.slug];
+    box.hidden = !state.current.liveUrl && !v;
+    box.classList.toggle('is-opened', Boolean(v));
+    box.textContent = `👁 ${v ? viewsText(v) : 'Demo not opened yet'}`;
   }
 
   // Red/yellow/green sales-stage colour, not live-deploy status (that's
@@ -425,7 +468,15 @@
     live.title = site ? { 'not-live': 'Not live', 'needs-update': 'Live — needs updating', live: 'Open live site' }[liveStatusFor(p)] : 'No website yet';
     live.textContent = '●';
     live.hidden = !site;
-    live.onclick = e => { e.stopPropagation(); if (site) openExternal(site); };
+    live.onclick = e => { e.stopPropagation(); if (site) openExternal(ownerUrl(site)); };
+    const views = state.views?.[p.slug];
+    if (views) {
+      const tick = document.createElement('span');
+      tick.className = 'project-opened';
+      tick.textContent = '✓';
+      tick.title = viewsText(views);
+      name.append(tick);
+    }
     const del = document.createElement('button');
     del.className = 'project-delete';
     del.title = 'Delete this business';
@@ -917,6 +968,7 @@
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>
         </button>
       </div>
+      <div class="demo-views" id="demoViews" hidden></div>
       <div class="field"><label>Location / address</label>
         <input id="f_location" value="${escapeAttr(profile.address || raw.location || '')}"></div>
 
@@ -973,6 +1025,7 @@
     };
     document.getElementById('whatsappBtn').onclick = () => openWhatsApp(document.getElementById('f_phone').value);
     document.getElementById('emailBtn').onclick = () => openEmail(document.getElementById('f_email').value);
+    renderDemoViews();
     document.getElementById('f_location').oninput = e => {
       setRaw({ location: e.target.value, businessProfile: { ...profile, address: e.target.value } });
       scheduleSave();
@@ -1051,7 +1104,7 @@
     document.getElementById('s_payment').onchange = async e => {
       state.current.paymentStatus = e.target.value;
       await persist();
-      if (e.target.value !== 'no') notify(`"${businessName(state.current)}" is now on the Live tab${e.target.value === 'pending' ? ', under Pending' : ''}.`);
+      if (e.target.value !== 'no') notify(`"${businessName(state.current)}" is now on the Clients tab${e.target.value === 'pending' ? ', under Pending' : ''}.`);
     };
   }
 
@@ -1996,6 +2049,12 @@ document.addEventListener('focusout',e=>{
   // (no window-open handler configured), so external links are opened via
   // the main process's shell.openExternal instead — same real system
   // browser a person would expect.
+  // Our own opens of a live site carry ?bs_owner=1 so its view counter
+  // skips this browser from then on — only the business's opens count.
+  function ownerUrl(url) {
+    return `${url}${url.includes('?') ? '&' : '?'}bs_owner=1`;
+  }
+
   function openExternal(url) {
     api('/api/open-external', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
@@ -2079,7 +2138,7 @@ document.addEventListener('focusout',e=>{
     // it then opens the site instead of redeploying something unchanged.
     // Red/amber (never deployed, or deployed but stale) still deploy.
     if (el.deployBtn.classList.contains('status-live') && state.current?.liveUrl) {
-      return openExternal(state.current.liveUrl);
+      return openExternal(ownerUrl(state.current.liveUrl));
     }
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
     // No Vercel on this computer: hand it to a copy that has it, via the
@@ -2476,7 +2535,7 @@ document.addEventListener('focusout',e=>{
           ${section === 'pending'
             ? `<button type="button" class="crm-move" data-status="paid" data-slug="${slug}">Mark paid</button>
                <button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}">Not going ahead</button>`
-            : `<button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}" title="Takes them off the Live tab">${section === 'urgent' ? 'Remove' : 'Stopped paying'}</button>`}
+            : `<button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}" title="Takes them off the Clients tab">${section === 'urgent' ? 'Remove' : 'Stopped paying'}</button>`}
           <button type="button" class="crm-delete" data-delete="${slug}" title="Delete this customer">✕</button>
         </div>
       </div>`;
@@ -2513,7 +2572,7 @@ document.addEventListener('focusout',e=>{
     const alert = offline.length ? `
       <div class="live-alert">⚠️ <span><b>${offline.length} paying customer${offline.length === 1 ? '’s site is' : 's’ sites are'} offline:</b> ${offline.map(p => escapeHtml(businessName(p))).join(', ')} — click “Make live” to put ${offline.length === 1 ? 'it' : 'them'} back up.</span></div>` : '';
     el.liveList.innerHTML = form + alert
-      + half('Pending', pending, 'Nobody pending. Set “Paying?” to Pending on a business in the Businesses tab, or click “+ Add customer”.')
+      + half('Pending', pending, 'Nobody pending. Set “Paying?” to Pending on a business in the Leads tab, or click “+ Add customer”.')
       + half('Live', paying, 'No paying customers yet. They move here automatically once their Stripe subscription is active, or click “Mark paid”.')
       + (urgent.length ? half('⚠️ Urgent — stopped paying or cancelled', urgent, '', 'is-urgent') : '');
     if (state.liveAdding) el.liveList.querySelector('input[name="name"]').focus();

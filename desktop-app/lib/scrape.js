@@ -79,7 +79,11 @@ function findLocalBusiness(blocks) {
 }
 
 async function scrapeFacebook(url) {
-  const html = await fetchFacebookHtml(url);
+  return parseFacebookHtml(await fetchFacebookHtml(url), url);
+}
+
+// Pure HTML → business fields, split out so tests can replay saved pages.
+function parseFacebookHtml(html, url) {
   const blocks = jsonLdBlocks(html);
   const biz = findLocalBusiness(blocks);
   const name = metaContent(html, 'property', 'og:title') || biz?.name || '';
@@ -116,4 +120,4 @@ function parseGoogleMapsUrl(url) {
   return { source: 'google', url, name, mapsUrl: url };
 }
 
-module.exports = { scrapeFacebook, parseGoogleMapsUrl };
+module.exports = { scrapeFacebook, parseFacebookHtml, parseGoogleMapsUrl };

@@ -108,6 +108,22 @@ function deleteProject(slug) {
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
+// Keeps exactly what an import returned (imports/<timestamp>.json), so when
+// Facebook or Google change their pages there's a record of what used to
+// come back to compare against. Never fails the import itself.
+const MAX_IMPORT_SNAPSHOTS = 10;
+
+function saveImportSnapshot(slug, urls, result) {
+  try {
+    const dir = path.join(projectDir(slug), 'imports');
+    fs.mkdirSync(dir, { recursive: true });
+    const at = new Date().toISOString();
+    fs.writeFileSync(path.join(dir, `${at.replace(/[:.]/g, '-')}.json`), JSON.stringify({ at, urls, result }, null, 2));
+    const old = fs.readdirSync(dir).filter(f => f.endsWith('.json')).sort().slice(0, -MAX_IMPORT_SNAPSHOTS);
+    for (const f of old) fs.rmSync(path.join(dir, f));
+  } catch { /* a snapshot is a nice-to-have */ }
+}
+
 function mediaDir(slug, slot) {
   const dir = slot === 'gallery'
     ? path.join(projectDir(slug), 'img', 'gallery')
@@ -116,4 +132,4 @@ function mediaDir(slug, slot) {
   return dir;
 }
 
-module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, upsertProject, deleteProject, mediaDir, PIPELINE_STAGES };
+module.exports = { ROOT, ensureRoot, slugify, projectDir, listProjects, readProject, createProject, saveProject, upsertProject, deleteProject, mediaDir, saveImportSnapshot, PIPELINE_STAGES };
