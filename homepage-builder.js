@@ -949,13 +949,29 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   mobileActions.querySelectorAll('[data-mobile-swipe]').forEach(zone => {
     let startX = null;
-    zone.addEventListener('pointerdown', event => { startX = event.clientX; });
-    zone.addEventListener('pointerup', event => {
+    let hasSwiped = false;
+    zone.addEventListener('pointerdown', event => {
+      startX = event.clientX;
+      hasSwiped = false;
+      zone.setPointerCapture?.(event.pointerId);
+    });
+    zone.addEventListener('pointermove', event => {
       if (startX === null) return;
       const delta = event.clientX - startX;
-      if (Math.abs(delta) > 24) cycleMobileStyle(zone.dataset.mobileSwipe, delta > 0 ? -1 : 1);
-      startX = null;
+      if (!hasSwiped && Math.abs(delta) > 32) {
+        hasSwiped = true;
+        cycleMobileStyle(zone.dataset.mobileSwipe, delta > 0 ? -1 : 1);
+      }
     });
+    const finishSwipe = event => {
+      if (startX === null) return;
+      const delta = event.clientX - startX;
+      if (!hasSwiped && Math.abs(delta) > 24) cycleMobileStyle(zone.dataset.mobileSwipe, delta > 0 ? -1 : 1);
+      startX = null;
+      hasSwiped = false;
+    };
+    zone.addEventListener('pointerup', finishSwipe);
+    zone.addEventListener('pointercancel', finishSwipe);
   });
   const options = controls.querySelector('.builder-options');
   let activeTool = null;

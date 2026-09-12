@@ -39,7 +39,7 @@
      over the preview only while edit mode is active, so ordinary browsing and
      scrolling stay native the rest of the time. */
   .mobile-swipe-zones{position:fixed;z-index:61;top:var(--header-h,75px);bottom:76px;left:0;right:0;display:grid;grid-template-rows:repeat(3,1fr);pointer-events:auto}
-  .mobile-swipe-zones[hidden]{display:none}.mobile-swipe-zones button{border:0;background:transparent;touch-action:pan-y;cursor:ew-resize}
+  .mobile-swipe-zones[hidden]{display:none}.mobile-swipe-zones button{border:0;background:transparent;touch-action:none;cursor:ew-resize}
   .mobile-swipe-zones button:focus-visible{outline:3px solid rgba(255,255,255,.85);outline-offset:-5px}
   .mobile-swipe-rail{z-index:62}
   @keyframes mobile-send-in{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
