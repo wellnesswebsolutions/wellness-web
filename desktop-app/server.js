@@ -371,6 +371,24 @@ function createApp() {
 
   // Ships the exported site with the Vercel CLI already signed in on this
   // Mac (see lib/deploy.js) — no API token handled by the app itself.
+  // Asks the live URL whether it's still up. Only a definite 404 (Vercel's
+  // "deployment not found" once a site is removed) clears liveUrl — a
+  // network error or timeout never marks a site offline.
+  app.post('/api/projects/:slug/check-live', async (req, res) => {
+    const project = storage.readProject(req.params.slug);
+    if (!project) return res.status(404).json({ error: 'Not found' });
+    if (!project.liveUrl) return res.json(project);
+    try {
+      const check = await fetch(project.liveUrl, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(8000) });
+      if (check.status === 404) {
+        const saved = storage.saveProject(req.params.slug, { liveUrl: '' });
+        sync.pushOne(saved);
+        return res.json(saved);
+      }
+    } catch { /* unreachable right now — leave it as it was */ }
+    res.json(project);
+  });
+
   app.post('/api/projects/:slug/offline', async (req, res) => {
     try {
       await takeOffline(req.params.slug);

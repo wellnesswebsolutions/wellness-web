@@ -653,7 +653,9 @@ dialog .account-row button:disabled { opacity: 0.6; cursor: default; }
 }
 .preview-actions button:hover { border-color: var(--accent); color: var(--accent); }
 .preview-actions button:active { transform: scale(0.97); }
-.preview-actions button[hidden] { display: none; }
+/* !important so display rules on specific buttons (.icon-only, .offline-btn)
+   can't override hidden — equal specificity, and they're declared later. */
+.preview-actions button[hidden] { display: none !important; }
 /* Square icon buttons (full screen, close) — light grey outline at rest,
    turning blue on hover (handled by the shared .preview-actions
    button/:hover rules above). Shared by any icon-only action so they all

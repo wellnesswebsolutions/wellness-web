@@ -335,6 +335,7 @@
     renderEditor();
     renderPreview({ seedDeployed: true });
     renderLiveActions();
+    checkLive();
   }
 
   function closeCurrentProject() {
@@ -1558,6 +1559,25 @@ document.addEventListener('focusout',e=>{
       renderLiveActions();
     }
   };
+
+  // A site can go offline outside this app (removed in Vercel, or taken
+  // offline from another computer) — so the open site's live URL is
+  // re-checked when it's opened and every minute, and the button drops
+  // back to red "Make live" if it's gone.
+  async function checkLive() {
+    const slug = state.current?.slug;
+    if (!slug || !state.current.liveUrl || el.deployBtn.disabled) return;
+    try {
+      const checked = await api(`/api/projects/${slug}/check-live`, { method: 'POST' });
+      if (!checked.liveUrl && state.current?.slug === slug && state.current.liveUrl) {
+        replaceCurrent(checked);
+        delete state.current.deployedHtml;
+        renderLiveActions();
+        notify('This site is offline — click Make live to put it back up.');
+      }
+    } catch { /* best-effort */ }
+  }
+  setInterval(checkLive, 60000);
 
   el.offlineBtn.onclick = async () => {
     if (!state.current?.liveUrl) return;
