@@ -104,7 +104,9 @@ async function downloadMacUpdate(info, onProgress) {
   if (!r || !file) throw new Error('No Mac download found in the release');
   const url = /^https:\/\//.test(file.url) ? file.url : `https://github.com/${r.owner}/${r.repo}/releases/download/v${info.version}/${file.url}`;
   const dir = path.join(app.getPath('temp'), `brightsite-update-${info.version}`);
-  fs.rmSync(dir, { recursive: true, force: true });
+  // original-fs: Electron's fs treats the leftover unpacked app's .asar
+  // files as folders, so re-downloading the same version failed with ENOTDIR.
+  require('original-fs').rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
   const zipPath = path.join(dir, 'update.zip');
 
