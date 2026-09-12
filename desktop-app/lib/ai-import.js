@@ -88,26 +88,106 @@ function extractJsonArray(text) {
   return parsed.slice(0, SEARCH_RESULT_CAP);
 }
 
+const SEARCH_TIMEOUT_MS = 6 * 60 * 1000;
+
+function hostOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
+
+// Pulls the result links out of a WebSearch tool_result so the UI can show
+// which sites Claude is reading ("fresha.com, facebook.com, …").
+function sourcesFromToolResult(content) {
+  const text = Array.isArray(content) ? content.map(c => c.text || '').join('\n') : String(content || '');
+  const match = text.match(/Links:\s*(\[[\s\S]*?\])\s*\n/);
+  if (!match) return [];
+  try {
+    return JSON.parse(match[1]).map(l => ({ title: l.title, host: hostOf(l.url) })).filter(l => l.host);
+  } catch { return []; }
+}
+
 // The bulk-add counterpart to runClaudeLookup: given a free-text request
 // ("hairdressers in Beverley"), searches the web and returns a list rather
 // than reading one specific page. Same non-interactive `claude -p` CLI, with
-// WebSearch (not WebFetch) whitelisted for this invocation.
-function runClaudeSearch(query) {
+// WebSearch (not WebFetch) whitelisted for this invocation. Runs in
+// stream-json mode so `onEvent` can report each step live — searches run,
+// sites read, and business names as Claude writes its answer.
+function runClaudeSearch(query, onEvent = () => {}) {
   return new Promise((resolve, reject) => {
     const child = spawn('claude', [
       '-p', buildSearchPrompt(query),
       '--allowedTools', 'WebSearch',
-      '--output-format', 'text'
+      '--output-format', 'stream-json', '--verbose', '--include-partial-messages'
     ], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
-    let out = '';
+    let buf = '';
     let err = '';
-    child.stdout.on('data', d => (out += d));
+    let finalText = '';
+    let lastText = '';
+    let partial = '';
+    const seenNames = new Set();
+    let thinking = false;
+
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error('the search took too long — try a shorter, more specific request'));
+    }, SEARCH_TIMEOUT_MS);
+
+    const handle = ev => {
+      if (ev.type === 'system' && ev.subtype === 'thinking_tokens') {
+        if (!thinking) { thinking = true; onEvent({ type: 'thinking' }); }
+      } else if (ev.type === 'stream_event') {
+        const e = ev.event || {};
+        if (e.type === 'message_start') partial = '';
+        if (e.type === 'content_block_delta' && e.delta?.type === 'text_delta') {
+          partial += e.delta.text;
+          const start = partial.indexOf('[');
+          if (start === -1) return;
+          for (const [, name] of partial.slice(start).matchAll(/"name"\s*:\s*"((?:[^"\\]|\\.)+)"/g)) {
+            if (seenNames.has(name)) continue;
+            seenNames.add(name);
+            onEvent({ type: 'found', name });
+          }
+        }
+      } else if (ev.type === 'assistant') {
+        thinking = false;
+        for (const block of ev.message?.content || []) {
+          if (block.type === 'tool_use' && block.name === 'WebSearch') {
+            onEvent({ type: 'search', query: block.input?.query || '' });
+          } else if (block.type === 'text' && block.text.trim()) {
+            lastText = block.text;
+            // Commentary between searches ("Found a few on Fresha, checking
+            // Facebook next") — but not the final JSON answer itself.
+            if (!/^\s*\[/.test(block.text)) onEvent({ type: 'note', text: block.text.trim().slice(0, 240) });
+          }
+        }
+      } else if (ev.type === 'user') {
+        for (const block of ev.message?.content || []) {
+          if (block.type === 'tool_result') {
+            const sources = sourcesFromToolResult(block.content);
+            if (sources.length) onEvent({ type: 'sources', sources: sources.slice(0, 6), count: sources.length });
+          }
+        }
+      } else if (ev.type === 'result') {
+        if (typeof ev.result === 'string') finalText = ev.result;
+      }
+    };
+
+    child.stdout.on('data', d => {
+      buf += d;
+      let nl;
+      while ((nl = buf.indexOf('\n')) !== -1) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        try { handle(JSON.parse(line)); } catch { /* non-JSON noise */ }
+      }
+    });
     child.stderr.on('data', d => (err += d));
-    child.on('error', () => reject(new Error('claude-not-found')));
+    child.on('error', () => { clearTimeout(timer); reject(new Error('claude-not-found')); });
     child.on('close', code => {
+      clearTimeout(timer);
       if (code !== 0) return reject(new Error(err.trim() || `Claude Code exited with code ${code}`));
       try {
-        resolve(extractJsonArray(out));
+        resolve(extractJsonArray(finalText || lastText));
       } catch (e) {
         reject(e);
       }

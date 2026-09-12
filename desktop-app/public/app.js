@@ -553,6 +553,119 @@
     btn.onclick = () => runSmartBuild(input, btn, status);
   }
 
+  // Live "what Claude is doing" feed for AI search — the server streams
+  // newline-delimited JSON events (see /api/ai-search) and each one becomes
+  // a step in the panel: searches run, sites read, notes, names found.
+  const SEARCH_TIPS = [
+    'Checking each business is real before adding it…',
+    'Looking through Facebook pages and Google listings…',
+    'Cross-checking names, phone numbers and addresses…',
+    'Good searches take a couple of minutes — hang tight…'
+  ];
+
+  async function runAiSearch(query, anchor) {
+    const panel = document.createElement('div');
+    panel.className = 'ai-live';
+    panel.innerHTML = `
+      <div class="ai-live-head">
+        <span class="ai-orb"></span>
+        <span class="ai-live-phase">Starting Claude…</span>
+        <span class="ai-live-time">0:00</span>
+      </div>
+      <div class="ai-live-query">“${escapeHtml(query)}”</div>
+      <div class="ai-live-steps"></div>
+      <div class="ai-live-found" hidden><div class="ai-live-label">Found so far</div><div class="ai-live-chips"></div></div>`;
+    if (anchor) anchor.after(panel);
+    const $ = sel => panel.querySelector(sel);
+    const phase = text => { $('.ai-live-phase').textContent = text; };
+    const started = Date.now();
+    let lastActivity = Date.now();
+    let tipIndex = 0;
+    const tick = setInterval(() => {
+      const s = Math.floor((Date.now() - started) / 1000);
+      $('.ai-live-time').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      // Long quiet gaps (Claude reading results) get a rotating reassurance.
+      if (Date.now() - lastActivity > 9000) {
+        phase(SEARCH_TIPS[tipIndex++ % SEARCH_TIPS.length]);
+        lastActivity = Date.now();
+      }
+    }, 1000);
+
+    const addStep = (icon, html, cls = '') => {
+      panel.querySelectorAll('.ai-step.current').forEach(s => s.classList.remove('current'));
+      const row = document.createElement('div');
+      row.className = `ai-step current ${cls}`;
+      row.innerHTML = `<span class="ai-step-icon">${icon}</span><span class="ai-step-text">${html}</span>`;
+      $('.ai-live-steps').appendChild(row);
+      const steps = $('.ai-live-steps');
+      while (steps.children.length > 6) steps.firstElementChild.remove();
+      lastActivity = Date.now();
+    };
+    let searches = 0;
+    let found = 0;
+
+    const onEvent = ev => {
+      if (ev.type === 'thinking') {
+        phase(searches ? 'Thinking about what it found…' : 'Planning the search…');
+        lastActivity = Date.now();
+      } else if (ev.type === 'search') {
+        searches++;
+        phase(`Searching the web (${searches})…`);
+        addStep('🔍', `Searching <b>${escapeHtml(ev.query)}</b>`);
+      } else if (ev.type === 'sources') {
+        const hosts = [...new Set(ev.sources.map(s => s.host))].slice(0, 4);
+        addStep('📄', `Reading ${ev.count} results ${hosts.map(h => `<span class="ai-host">${escapeHtml(h)}</span>`).join('')}`, 'muted');
+        phase('Reading the results…');
+      } else if (ev.type === 'note') {
+        addStep('💭', escapeHtml(ev.text), 'note');
+      } else if (ev.type === 'found') {
+        found++;
+        phase(`Writing up the list — ${found} found…`);
+        const box = $('.ai-live-found');
+        box.hidden = false;
+        const chip = document.createElement('span');
+        chip.className = 'ai-chip';
+        chip.textContent = ev.name;
+        box.querySelector('.ai-live-chips').appendChild(chip);
+        lastActivity = Date.now();
+      } else if (ev.type === 'saving') {
+        phase(`Adding ${ev.count} to your list…`);
+      }
+    };
+
+    try {
+      const res = await fetch('/api/ai-search', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query })
+      });
+      if (!res.ok || !res.body) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Request failed (${res.status})`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let nl;
+        while ((nl = buf.indexOf('\n')) !== -1) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line) continue;
+          const ev = JSON.parse(line);
+          if (ev.type === 'done') return ev;
+          if (ev.type === 'error') throw new Error(ev.error);
+          onEvent(ev);
+        }
+      }
+      throw new Error('Search stopped unexpectedly');
+    } finally {
+      clearInterval(tick);
+      panel.remove();
+    }
+  }
+
   async function runSmartBuild(input, btn, status) {
     const parsed = classifyBuildInput(input.value);
     if (parsed.mode === 'empty') return;
@@ -575,10 +688,8 @@
       } else {
         // AI search mode: several businesses at once, so there's no single
         // one to open — just drop them into the list.
-        if (status) setLoading(status, `Searching the web for "${parsed.query}"…`);
-        const result = await api('/api/ai-search', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: parsed.query })
-        });
+        if (status) status.textContent = '';
+        const result = await runAiSearch(parsed.query, status);
         await loadProjects();
         notify(
           result.projects.length

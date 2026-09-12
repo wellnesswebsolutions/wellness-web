@@ -280,8 +280,14 @@ function createApp() {
   app.post('/api/ai-search', async (req, res) => {
     const query = String(req.body?.query || '').trim();
     if (!query) return res.status(400).json({ error: 'A search query is required' });
+    // Streamed as newline-delimited JSON: progress events while Claude
+    // works, then one final {type:'done'} or {type:'error'} line.
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    res.setHeader('Cache-Control', 'no-cache');
+    const send = obj => res.write(JSON.stringify(obj) + '\n');
     try {
-      const results = await runClaudeSearch(query);
+      const results = await runClaudeSearch(query, send);
+      send({ type: 'saving', count: results.length });
       const projects = [];
       for (const data of results) {
         if (!data?.name) continue;
@@ -296,10 +302,11 @@ function createApp() {
         sync.pushOne(saved);
         projects.push(saved);
       }
-      res.json({ projects, query });
+      send({ type: 'done', projects, query });
     } catch (err) {
-      res.status(502).json({ error: err.message === 'claude-not-found' ? 'claude-not-found' : `Search failed: ${err.message}` });
+      send({ type: 'error', error: err.message === 'claude-not-found' ? 'claude-not-found' : `Search failed: ${err.message}` });
     }
+    res.end();
   });
 
   // Save an uploaded file (logo / hero / gallery) into the project folder,
