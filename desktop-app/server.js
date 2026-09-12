@@ -8,7 +8,7 @@ const { runClaudeEdit } = require('./lib/ai-edit');
 const { runClaudeLookup, runClaudeExtract, runClaudeSearch } = require('./lib/ai-import');
 const browserFetch = require('./lib/browser-fetch');
 const sync = require('./lib/supabase-sync');
-const { deployToVercel, canDeploy } = require('./lib/deploy');
+const { deployToVercel, canDeploy, takeOffline } = require('./lib/deploy');
 const { version: APP_VERSION } = require('./package.json');
 
 const PORT = process.env.PORT || 4173;
@@ -371,13 +371,24 @@ function createApp() {
 
   // Ships the exported site with the Vercel CLI already signed in on this
   // Mac (see lib/deploy.js) — no API token handled by the app itself.
+  app.post('/api/projects/:slug/offline', async (req, res) => {
+    try {
+      await takeOffline(req.params.slug);
+      const saved = storage.saveProject(req.params.slug, { liveUrl: '', deployRequestedAt: '', offlineRequestedAt: '', deployError: '' });
+      sync.pushOne(saved);
+      res.json(saved);
+    } catch (err) {
+      res.status(502).json({ error: err.message });
+    }
+  });
+
   app.post('/api/projects/:slug/deploy', async (req, res) => {
     const html = req.body?.html;
     if (!html) return res.status(400).json({ error: 'html is required' });
     try {
       const outDir = writeExport(req.params.slug, html);
       const url = await deployToVercel(outDir, req.params.slug);
-      const saved = storage.saveProject(req.params.slug, { liveUrl: url, deployRequestedAt: '', deployError: '' });
+      const saved = storage.saveProject(req.params.slug, { liveUrl: url, deployRequestedAt: '', offlineRequestedAt: '', deployError: '' });
       sync.pushOne(saved);
       res.json({ url });
     } catch (err) {

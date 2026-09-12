@@ -192,7 +192,7 @@ dialog .account-row button:disabled { opacity: 0.6; cursor: default; }
 .layout {
   flex: 1;
   display: grid;
-  grid-template-columns: 220px minmax(360px, 1fr) minmax(360px, 1fr);
+  grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1fr);
   min-height: 0;
   /* No transition here on purpose: fitPreviewFrame() reads the preview
      pane's clientWidth right after toggling full screen, and an animated
@@ -242,17 +242,14 @@ dialog .account-row button:disabled { opacity: 0.6; cursor: default; }
 }
 .project-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
 #projectList { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
-.side-section { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
-.side-section-head { flex: none; display: flex; align-items: center; gap: 7px; padding: 7px 10px; font-size: 11.5px; font-weight: 700; }
-.side-section-head i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-.side-section-head b { margin-left: auto; padding: 1px 7px; border-radius: 10px; background: rgba(255,255,255,0.75); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.side-red .side-section-head { background: #fdeeed; color: #b5332e; }
-.side-red .side-section-head i { background: #e0453f; }
-.side-yellow .side-section-head { background: #fdf4e3; color: #95650c; }
-.side-yellow .side-section-head i { background: #dd9a1f; }
-.side-green .side-section-head { background: #e7f5ed; color: #17804a; }
-.side-green .side-section-head i { background: #1f9d55; }
-.side-section-list { flex: 1; min-height: 0; overflow-y: auto; padding: 4px; }
+.side-section { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.side-section-head { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 4px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.side-section-head::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.25; order: 1; }
+.side-section-head b { order: 2; font-size: 11px; font-weight: 700; opacity: 0.8; font-variant-numeric: tabular-nums; }
+.side-red .side-section-head { color: #c0392f; }
+.side-yellow .side-section-head { color: #a8720e; }
+.side-green .side-section-head { color: #17804a; }
+.side-section-list { flex: 1; min-height: 0; overflow-y: auto; }
 .side-empty { margin: 0; padding: 8px 6px; font-size: 11.5px; color: var(--muted); line-height: 1.4; }
 .sidebar .project {
   display: flex;
@@ -268,18 +265,6 @@ dialog .account-row button:disabled { opacity: 0.6; cursor: default; }
 }
 .sidebar .project:hover { background: #f1efe9; }
 .sidebar .project.active { background: var(--accent-tint); font-weight: 600; }
-/* Sales-stage dot: red = uncontacted, yellow = waiting to hear back,
-   green = interested, grey = not interested. */
-.sidebar .project .project-dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.sidebar .project .project-dot.stage-red { background: #e0453f; }
-.sidebar .project .project-dot.stage-yellow { background: #dd9a1f; }
-.sidebar .project .project-dot.stage-green { background: #1f9d55; }
-.sidebar .project .project-dot.stage-grey { background: #b7b3aa; }
 .sidebar .project .project-name {
   flex: 1;
   min-width: 0;
@@ -685,6 +670,9 @@ dialog .account-row button:disabled { opacity: 0.6; cursor: default; }
 .preview-actions button.primary.status-live { background: #1f9d55; }
 .preview-actions button.primary.status-live:hover { background: #188045; }
 .preview-actions button.primary:disabled { opacity: 0.75; cursor: default; transform: none; }
+.preview-actions button.offline-btn { display: inline-flex; align-items: center; gap: 6px; color: #c0392f; }
+.preview-actions button.offline-btn:hover { border-color: #e0453f; background: #fdeeed; color: #c0392f; }
+.preview-actions button.offline-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
 
 .preview-frame-wrap {
   flex: 1;
@@ -859,8 +847,11 @@ iframe#preview {
 .crm-save:hover { background: #2f6fe0; }
 
 .live-layout { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-.live-top { display: flex; align-items: center; gap: 10px; padding-left: 14px; border-bottom: 1px solid var(--line); background: var(--panel); flex: none; }
-.live-top .tab-switch { margin: 0; width: 196px; }
+/* The switch sits exactly where the sidebar's does (10px in, and the
+   sidebar's 199px content width), so it doesn't jump when changing tab. */
+.live-top { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0 0 10px; border-bottom: 1px solid var(--line); background: var(--panel); flex: none; }
+.live-top .tab-switch { margin: 0; width: 199px; }
+.live-top .live-totals { padding-top: 4px; }
 .live-totals { flex: 1; display: flex; gap: 28px; padding: 14px 18px; }
 .live-stat { display: flex; flex-direction: column; gap: 1px; }
 .live-stat b { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }

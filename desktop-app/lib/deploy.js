@@ -43,6 +43,16 @@ async function deployToVercel(exportDir, slug) {
   throw new Error(lastLine || `vercel deploy exited with code ${deployed.code}`);
 }
 
+// Removes the site's deployments but keeps its Vercel project, so making
+// it live again later comes back on the same brightsite-<slug> URL.
+async function takeOffline(slug) {
+  const result = await run('vercel', ['remove', projectNameFor(slug), '--yes']);
+  const output = `${result.err}\n${result.out}`;
+  if (result.code === 0 || /could not find|no deployments/i.test(output)) return;
+  const lastLine = output.trim().split('\n').filter(Boolean).pop();
+  throw new Error(lastLine || `vercel remove exited with code ${result.code}`);
+}
+
 // Whether this computer has the Vercel CLI installed and signed in. Copies
 // without it (colleagues) send "go live" requests instead, which a copy
 // that can deploy picks up — see public/app.js processDeployRequests().
@@ -54,4 +64,4 @@ async function canDeploy() {
   return canDeployCache.ok;
 }
 
-module.exports = { deployToVercel, projectNameFor, canDeploy };
+module.exports = { deployToVercel, projectNameFor, canDeploy, takeOffline };

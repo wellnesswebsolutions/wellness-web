@@ -22,6 +22,7 @@
     deployBtn: document.getElementById('deployBtn'),
     copyLiveBtn: document.getElementById('copyLiveBtn'),
     closePreviewBtn: document.getElementById('closePreviewBtn'),
+    offlineBtn: document.getElementById('offlineBtn'),
     editTextBtn: document.getElementById('editTextBtn'),
     notice: document.getElementById('noticeStrip'),
     appVersion: document.getElementById('appVersion'),
@@ -122,10 +123,11 @@
   // silently return null/false), so this dialog replaces confirm() with a
   // real, reliable UI (used for delete confirmations).
   const confirmDialog = document.getElementById('confirmDialog');
-  function showConfirm(title, message) {
+  function showConfirm(title, message, okLabel = 'Delete') {
     return new Promise(resolve => {
       document.getElementById('confirmTitle').textContent = title;
       document.getElementById('confirmMessage').textContent = message || '';
+      document.getElementById('confirmOkBtn').textContent = okLabel;
       confirmDialog.showModal();
       const cleanup = value => { confirmDialog.close(); resolve(value); };
       document.getElementById('confirmOkBtn').onclick = () => cleanup(true);
@@ -247,7 +249,7 @@
       const items = list.filter(section.match);
       const box = document.createElement('section');
       box.className = `side-section side-${section.id}`;
-      box.innerHTML = `<div class="side-section-head"><i></i><span>${section.label}</span><b>${items.length}</b></div><div class="side-section-list"></div>`;
+      box.innerHTML = `<div class="side-section-head"><span>${section.label}</span><b>${items.length}</b></div><div class="side-section-list"></div>`;
       const body = box.querySelector('.side-section-list');
       if (items.length) items.forEach(p => body.appendChild(projectRow(p)));
       else body.innerHTML = `<p class="side-empty">${state.search.trim() ? 'No matches' : 'None yet'}</p>`;
@@ -257,12 +259,9 @@
   }
 
   function projectRow(p) {
-    const colour = stageColour(p);
     const row = document.createElement('div');
     row.className = 'project' + (state.current && state.current.slug === p.slug ? ' active' : '');
-    const dot = document.createElement('span');
-    dot.className = `project-dot stage-${colour}`;
-    dot.title = stageLabel(stageOf(p));
+    row.title = stageLabel(stageOf(p));
     const name = document.createElement('span');
     name.className = 'project-name';
     name.textContent = businessName(p);
@@ -280,7 +279,7 @@
     del.title = 'Delete this business';
     del.textContent = '✕';
     del.onclick = e => { e.stopPropagation(); deleteProject(p.slug, name.textContent); };
-    row.append(dot, name, live, del);
+    row.append(name, live, del);
     // Clicking the already-open site again closes it back to the start screen.
     row.onclick = () => {
       if (state.current?.slug === p.slug) closeCurrentProject();
@@ -356,6 +355,10 @@
     el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live', 'status-needs-update');
     el.deployBtn.classList.add(waiting ? 'status-deploying' : !liveUrl ? 'status-not-live' : needsUpdate ? 'status-needs-update' : 'status-live');
     el.copyLiveBtn.hidden = !liveUrl;
+    const goingOffline = isOfflinePending(state.current);
+    el.offlineBtn.hidden = !liveUrl || waiting;
+    el.offlineBtn.disabled = goingOffline;
+    el.offlineBtn.textContent = goingOffline ? 'Going offline…' : 'Take offline';
     renderSidebar();
   }
 
@@ -1152,13 +1155,25 @@
   // A computer that can deploy (Vercel signed in) publishes any site a
   // teammate asked to go live, then the new live URL syncs back to them.
   const isDeployPending = p => Boolean(p?.deployRequestedAt);
+  const isOfflinePending = p => Boolean(p?.offlineRequestedAt);
   let processingDeploys = false;
   async function processDeployRequests() {
     if (!state.canDeploy || !syncEnabled || processingDeploys) return;
     processingDeploys = true;
     try {
-      const pending = (await api('/api/projects')).filter(isDeployPending);
+      const pending = (await api('/api/projects')).filter(p => isDeployPending(p) || isOfflinePending(p));
       for (const p of pending) {
+        if (isOfflinePending(p)) {
+          try {
+            const saved = await api(`/api/projects/${p.slug}/offline`, { method: 'POST' });
+            if (state.current?.slug === p.slug) { replaceCurrent(saved); delete state.current.deployedHtml; }
+            notify(`Took “${businessName(p)}” offline for a teammate.`);
+          } catch (err) {
+            await saveProjectFields(p.slug, { offlineRequestedAt: '', deployError: friendlyError(err.message) }).catch(() => {});
+            notify(`Couldn’t take “${businessName(p)}” offline: ${friendlyError(err.message)}`, { sticky: false });
+          }
+          continue;
+        }
         try {
           const html = await buildSiteHtml(p);
           const result = await api(`/api/projects/${p.slug}/deploy`, {
@@ -1513,6 +1528,32 @@ document.addEventListener('focusout',e=>{
       notify(friendlyError(err.message), { sticky: false });
     } finally {
       el.deployBtn.disabled = false;
+      renderLiveActions();
+    }
+  };
+
+  el.offlineBtn.onclick = async () => {
+    if (!state.current?.liveUrl) return;
+    const ok = await showConfirm(`Take “${businessName(state.current)}” offline?`,
+      'The live link stops working until you make it live again — it comes back on the same link.', 'Take offline');
+    if (!ok) return;
+    if (!state.canDeploy) {
+      if (!syncEnabled) return notify('Can’t send this — shared sync is off.', { sticky: false });
+      state.current.offlineRequestedAt = new Date().toISOString();
+      await persist();
+      renderLiveActions();
+      return notify('Sent — it goes offline from the admin’s computer while their app is open.');
+    }
+    el.offlineBtn.disabled = true;
+    el.offlineBtn.innerHTML = '<span class="status-spinner"></span>Taking offline…';
+    try {
+      replaceCurrent(await api(`/api/projects/${state.current.slug}/offline`, { method: 'POST' }));
+      delete state.current.deployedHtml;
+      notify('Site taken offline.');
+    } catch (err) {
+      notify(friendlyError(err.message), { sticky: false });
+    } finally {
+      el.offlineBtn.disabled = false;
       renderLiveActions();
     }
   };
