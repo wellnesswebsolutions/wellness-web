@@ -632,9 +632,11 @@
         ${mediaSlot('logo', 'Logo')}
         ${mediaSlot('hero', 'Hero image')}
         <div class="media-slot" data-slot="gallery">
-          <label>Gallery</label>
+          <div class="media-head">
+            <label>Gallery</label>
+            <div class="media-head-actions"><button id="galleryUploadBtn">+ Add</button></div>
+          </div>
           <div class="gallery-grid" id="galleryGrid">${galleryThumbs()}</div>
-          <div class="actions"><button id="galleryUploadBtn">+ Add</button></div>
           <input type="file" id="galleryUpload" accept="image/*" multiple hidden>
         </div>
       </div>
@@ -823,12 +825,16 @@
     const suggestion = slot === 'hero' ? placementSuggestionHtml() : '';
     return `
       <div class="media-slot" data-slot="${slot}">
-        <label>${label}</label>
+        <div class="media-head">
+          <label>${label}</label>
+          ${path ? `<div class="media-head-actions">
+            <button data-action="upload">Replace</button>
+            <button class="media-remove" data-action="remove" title="Remove" aria-label="Remove">✕</button>
+          </div>` : ''}
+        </div>
         <div class="thumb ${path ? '' : 'is-empty'}" data-action="pick" ${thumbStyle} title="${path ? 'Replace' : 'Upload'}">${path ? '' : '<span>+ Upload</span>'}</div>
         ${autoHeroHint}
-        <div class="actions">
-          ${path ? `<button data-action="upload">Replace</button>
-          <button class="media-remove" data-action="remove" title="Remove" aria-label="Remove">✕</button>` : ''}
+        <div class="actions extra">
           ${found ? `<button data-action="use-found" class="found">Use found</button>` : ''}
           ${canPlaceLogo ? `<button data-action="place-logo" class="found">Place logo on photo</button>` : ''}
         </div>
