@@ -949,29 +949,40 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   mobileActions.querySelectorAll('[data-mobile-swipe]').forEach(zone => {
     let startX = null;
+    let startY = null;
     let hasSwiped = false;
+    let pointerId = null;
     zone.addEventListener('pointerdown', event => {
       startX = event.clientX;
+      startY = event.clientY;
       hasSwiped = false;
-      zone.setPointerCapture?.(event.pointerId);
+      pointerId = event.pointerId;
+      zone.setPointerCapture?.(pointerId);
+      event.preventDefault();
     });
     zone.addEventListener('pointermove', event => {
       if (startX === null) return;
-      const delta = event.clientX - startX;
-      if (!hasSwiped && Math.abs(delta) > 32) {
+      const deltaX = event.clientX - startX;
+      const deltaY = event.clientY - startY;
+      if (!hasSwiped && Math.abs(deltaX) > 32 && Math.abs(deltaX) > Math.abs(deltaY)) {
         hasSwiped = true;
-        cycleMobileStyle(zone.dataset.mobileSwipe, delta > 0 ? -1 : 1);
+        cycleMobileStyle(zone.dataset.mobileSwipe, deltaX > 0 ? -1 : 1);
       }
     });
-    const finishSwipe = event => {
-      if (startX === null) return;
-      const delta = event.clientX - startX;
-      if (!hasSwiped && Math.abs(delta) > 24) cycleMobileStyle(zone.dataset.mobileSwipe, delta > 0 ? -1 : 1);
+    const reset = () => {
+      if (pointerId !== null) zone.releasePointerCapture?.(pointerId);
       startX = null;
+      startY = null;
       hasSwiped = false;
+      pointerId = null;
     };
-    zone.addEventListener('pointerup', finishSwipe);
-    zone.addEventListener('pointercancel', finishSwipe);
+    zone.addEventListener('pointerup', event => {
+      if (startX === null) return;
+      const deltaX = event.clientX - startX;
+      if (!hasSwiped && Math.abs(deltaX) > 24) cycleMobileStyle(zone.dataset.mobileSwipe, deltaX > 0 ? -1 : 1);
+      reset();
+    });
+    zone.addEventListener('pointercancel', reset);
   });
   const options = controls.querySelector('.builder-options');
   let activeTool = null;
@@ -1058,20 +1069,23 @@ document.addEventListener('DOMContentLoaded', () => {
       options.innerHTML = `<h2 class="builder-options-title">Choose your template</h2><div class="builder-choice-list">${DEMO_LAYOUTS.map(l => `<button type="button" data-layout="${l.id}" aria-pressed="${(selectedLayout || recommended) === l.id}">${l.name}<small>${l.id === recommended ? 'Recommended' : l.detail}</small></button>`).join('')}</div>`;
     }
   }
+  function openTool(tool) {
+    const trigger = controls.querySelector(`[data-tool="${tool}"]`);
+    const previous = activeTool;
+    closeOptions();
+    if (previous === tool) return;
+    activeTool = tool;
+    if (tool === 'colour') {
+      paletteFamily = paletteFamilyForColour(selectedTones?.base);
+    }
+    trigger?.setAttribute('aria-expanded','true');
+    renderOptions();
+  }
   controls.addEventListener('click', async event => {
     const button = event.target.closest('button');
     if (!button) return;
     if (button.dataset.tool) {
-      const next = button.dataset.tool;
-      const previous = activeTool;
-      closeOptions();
-      if (previous === next) return;
-      activeTool = next;
-      if (next === 'colour') {
-        paletteFamily = paletteFamilyForColour(selectedTones?.base);
-      }
-      button.setAttribute('aria-expanded','true');
-      renderOptions();
+      openTool(button.dataset.tool);
     } else if (button.dataset.family) {
       paletteFamily = button.dataset.family;
       renderOptions();
