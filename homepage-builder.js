@@ -818,6 +818,9 @@ document.addEventListener('DOMContentLoaded', () => {
       previewFrame.classList.remove('is-refreshing');
       const win = previewFrame.contentWindow;
       const doc = win.document;
+      // Scrolling or touching the site brings the mobile action bar back.
+      win.addEventListener('scroll', wakeMobileBar, { capture: true, passive: true });
+      doc.addEventListener('touchstart', wakeMobileBar, { passive: true });
       doc.querySelectorAll('.page').forEach(page => {page.hidden = page.dataset.page !== position.page;});
       win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
       const restoredY = win.scrollY;
@@ -904,6 +907,21 @@ document.addEventListener('DOMContentLoaded', () => {
     void mobileEdit.offsetWidth;
     mobileEdit.classList.add('label-swap');
   }
+  // Declared as a hoisted function and looked up by selector, because the
+  // preview iframe can finish loading before this block has run.
+  function wakeMobileBar() {
+    const bar = document.querySelector('.mobile-builder-bottom');
+    if (!bar) return;
+    bar.classList.remove('is-idle');
+    clearTimeout(bar.idleTimer);
+    bar.idleTimer = setTimeout(() => {
+      const choicesOpen = !document.querySelector('.mobile-send-choices')?.hidden;
+      if (choicesOpen) wakeMobileBar();
+      else bar.classList.add('is-idle');
+    }, 2200);
+  }
+  mobileActions.addEventListener('pointerdown', wakeMobileBar, { passive: true });
+  wakeMobileBar();
   function mobileHaptic() {
     try { navigator.vibrate?.(8); } catch (err) { /* unsupported */ }
   }
@@ -921,8 +939,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const choices = Object.values(palettes).flat();
       const current = choices.findIndex(([, hex]) => hex.toLowerCase() === selectedTones?.base?.toLowerCase());
       const [name, hex] = choices[(current + direction + choices.length) % choices.length];
+      const family = Object.keys(palettes).find(key => palettes[key].some(([, h]) => h === hex));
       hasManualPalette = true;
-      selectedTones = {...tonesFromHex(hex), mode: 'light'};
+      selectedTones = {...tonesFromHex(hex), mode: family === 'Dark' ? 'dark' : 'light'};
       selectedPaletteName = name;
       refreshPreview({ appearanceOnly: true });
       updateSwipeIndicators();
@@ -1045,7 +1064,11 @@ Colour palette: ${design.palette}`;
       if (Math.abs(event.clientX - startX) < Math.abs(deltaY)) return;
       const now = performance.now();
       const dt = now - lastMoveTime;
-      if (dt > 0) velocity = (event.clientX - lastMoveX) / dt;
+      // Smooth the speed over recent moves and ignore near-simultaneous
+      // events; a single twitchy sample used to read as a huge flick and
+      // throw the picker several colours past where the finger stopped.
+      if (dt >= 8) velocity = velocity * 0.6 + ((event.clientX - lastMoveX) / dt) * 0.4;
+      else return;
       lastMoveTime = now;
       lastMoveX = event.clientX;
       const distance = event.clientX - lastStepX;
@@ -1064,7 +1087,7 @@ Colour palette: ${design.palette}`;
       const totalDelta = event.clientX - startX;
       if (lastStepX === startX && Math.abs(totalDelta) > 28) {
         cycleMobileStyle(tool, totalDelta > 0 ? 1 : -1);
-      } else if (Math.abs(velocity) > 0.9) {
+      } else if (Math.abs(velocity) > 0.9 && performance.now() - lastMoveTime < 80) {
         // Fast flick: keep flying through options after release, apple-picker style.
         let v = velocity * 0.7;
         let accum = 0;
