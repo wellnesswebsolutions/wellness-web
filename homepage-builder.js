@@ -951,9 +951,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fontTab) fontTab.style.fontFamily = chosenFont?.family || layoutFont || '';
     const colourTab = mobileRail.querySelector('[data-mobile-swipe="colour"]');
     if (colourTab && selectedTones?.base) {
-      colourTab.style.background = selectedTones.base;
-      const [, , lightness] = hexToHsl(selectedTones.base);
-      colourTab.style.color = lightness > 55 ? '#102039' : '#fff';
+      // Tab stays glassy; only the lettering takes the chosen colour.
+      colourTab.style.color = selectedTones.base;
+      colourTab.style.textShadow = '0 1px 2px rgba(255,255,255,.55)';
     }
     const fontIndex = Math.max(DEMO_FONTS.findIndex(item => item.id === selectedFont), 0);
     renderSwipeDots('font', DEMO_FONTS.length, fontIndex);

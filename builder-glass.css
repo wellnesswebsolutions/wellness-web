@@ -43,10 +43,12 @@
   .mobile-swipe-rail button{position:relative;flex:1;width:39px;border:1px solid rgba(255,255,255,.36);border-left:0;border-radius:0 14px 14px 0;background:rgba(236,244,255,.32);box-shadow:6px 0 20px rgba(0,0,0,.09),inset -1px 0 rgba(255,255,255,.18);backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px);color:#102039;display:grid;place-items:center;padding:0 0 0 9px;font:700 10px/1.95 var(--body);letter-spacing:.08em;text-transform:uppercase;opacity:0;transform:translate3d(-110%,0,0);will-change:transform;transition:transform .5s cubic-bezier(.32,.72,0,1),opacity .3s ease,background .25s,color .25s}
   .mobile-swipe-rail button:nth-child(2){transition-delay:.04s,.04s,0s,0s}.mobile-swipe-rail button:nth-child(3){transition-delay:.08s,.08s,0s,0s}
   .mobile-swipe-rail button span{text-align:center}.builder-overlay.mobile-editor-active .mobile-swipe-rail button{opacity:1;transform:translate3d(0,0,0)}
-  .swipe-dots{position:absolute;left:4px;top:8px;bottom:8px;width:5px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none;opacity:0;transition:opacity .25s}
+  /* Progress reads as a segmented bar: slim rectangles stacked with hairline
+     gaps, the current one darker and a touch wider. */
+  .swipe-dots{position:absolute;left:5px;top:10px;bottom:10px;width:4px;display:flex;flex-direction:column;gap:1.5px;align-items:center;pointer-events:none;opacity:0;transition:opacity .25s}
   .builder-overlay.mobile-editor-active .swipe-dots{opacity:1}
-  .swipe-dots i{width:3px;height:3px;flex:0 0 auto;border-radius:50%;background:rgba(0,0,0,.16);transition:background .15s,width .15s,height .15s}
-  .swipe-dots i.active{width:4px;height:4px;background:rgba(0,0,0,.62)}
+  .swipe-dots i{width:2px;flex:1 1 0;min-height:2px;border-radius:1px;background:rgba(0,0,0,.14);transition:background .2s,width .2s cubic-bezier(.32,.72,0,1)}
+  .swipe-dots i.active{width:4px;background:rgba(0,0,0,.66)}
   /* Full-width gesture bands mirror the three labels at the left. They sit
      over the preview only while edit mode is active, so ordinary browsing and
      scrolling stay native the rest of the time. */
