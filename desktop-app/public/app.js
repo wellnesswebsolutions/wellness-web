@@ -230,6 +230,8 @@
       if (state.current?.slug === slug) {
         state.current = null;
         state.found = {};
+        state.placementSuggestion = null;
+        state.placementDismissed = null;
       }
       await loadProjects();
       if (state.tab === 'live') renderLive();
@@ -245,6 +247,8 @@
   async function selectProject(slug) {
     state.current = await api(`/api/projects/${slug}`);
     state.found = {};
+    state.placementSuggestion = null;
+    state.placementDismissed = null;
     if (state.current.importImages?.length) state.found.hero = state.current.importImages[0];
     renderSidebar();
     renderEditor();
@@ -255,6 +259,8 @@
   function closeCurrentProject() {
     state.current = null;
     state.found = {};
+    state.placementSuggestion = null;
+    state.placementDismissed = null;
     renderSidebar();
     renderEditor();
     el.preview.srcdoc = '';
@@ -629,6 +635,8 @@
     wireMediaSlot('logo');
     wireMediaSlot('hero');
     renderSales();
+    wirePlacementSuggestion();
+    maybeSuggestPlacement();
   }
 
   // Cold-calling details for the open business, at the top of the form.
@@ -723,6 +731,7 @@
     // Realistic placement needs a real uploaded photo (not the procedurally
     // composited hero) plus a real logo — offer it only once both exist.
     const canPlaceLogo = slot === 'hero' && path && raw.logoImage;
+    const suggestion = slot === 'hero' ? placementSuggestionHtml() : '';
     return `
       <div class="media-slot" data-slot="${slot}">
         <label>${label}</label>
@@ -733,8 +742,87 @@
           ${found ? `<button data-action="use-found" class="found">Use found</button>` : ''}
           ${canPlaceLogo ? `<button data-action="place-logo" class="found">Place logo on photo</button>` : ''}
         </div>
+        ${suggestion}
         <input type="file" accept="image/*" style="display:none">
       </div>`;
+  }
+
+  // BrightSite automatically works out the best spot for the logo on the
+  // uploaded/imported hero photo as soon as both exist, and offers it here
+  // rather than silently overwriting the photo — a bad auto-guess should
+  // never surprise the user on the live site.
+  function placementSuggestionHtml() {
+    const s = state.placementSuggestion;
+    const raw = state.current.raw || {};
+    if (!s || s.key !== placementKey(raw) || raw.heroPlacementApplied) return '';
+    if (state.placementDismissed === s.key) return '';
+    return `
+      <div class="placement-suggestion" id="placementSuggestion">
+        <div class="thumb" style="background-image:url('${s.dataUrl}')"></div>
+        <div class="ps-text">Suggested: your logo placed on this photo.</div>
+        <div class="ps-actions">
+          <button data-action="ps-use" class="found">Use this</button>
+          <button data-action="ps-adjust">Adjust</button>
+          <button data-action="ps-dismiss" class="ghost">Dismiss</button>
+        </div>
+      </div>`;
+  }
+
+  function wirePlacementSuggestion() {
+    const box = document.getElementById('placementSuggestion');
+    if (!box) return;
+    const s = state.placementSuggestion;
+    box.querySelector('[data-action="ps-use"]').onclick = async () => {
+      const blob = await (await fetch(s.dataUrl)).blob();
+      const form = new FormData();
+      form.append('file', blob, 'hero-with-logo.jpg');
+      const result = await api(`/api/projects/${state.current.slug}/media/hero`, { method: 'POST', body: form });
+      setRaw({ heroImage: result.path, heroPlacementApplied: true });
+      await persist();
+      renderEditor();
+      schedulePreview();
+      notify('Logo placed on the hero photo.');
+    };
+    box.querySelector('[data-action="ps-adjust"]').onclick = () => openLogoPlacement({ quad: s.quad, strength: s.strength });
+    box.querySelector('[data-action="ps-dismiss"]').onclick = () => {
+      state.placementDismissed = s.key;
+      renderEditor();
+    };
+  }
+
+  function placementKey(raw) {
+    return raw?.logoImage && raw?.heroImage ? `${state.current.slug}|${raw.logoImage}|${raw.heroImage}` : null;
+  }
+
+  // Runs the same detect-surface + warp pipeline as the manual "Place logo
+  // on photo" button, but in the background against whatever hero photo and
+  // logo the project currently has (typically straight off an import) and
+  // stores the result as a dismissible suggestion rather than applying it.
+  let placementRunKey = null;
+  async function maybeSuggestPlacement() {
+    const raw = state.current?.raw;
+    const key = placementKey(raw);
+    if (!key || raw.heroPlacementApplied || placementRunKey === key) return;
+    if (state.placementSuggestion?.key === key) return;
+    placementRunKey = key;
+    const slug = state.current.slug;
+    try {
+      const [photo, logoImg] = await Promise.all([
+        loadImageEl(`/projects/${slug}/${raw.heroImage}`),
+        loadImageEl(`/projects/${slug}/${raw.logoImage}`)
+      ]);
+      const cleaned = await LogoPlacement.removeBackground(logoImg);
+      const surfaces = await LogoPlacement.detectSurfaces(photo, { limit: 1 });
+      if (!surfaces.length || placementKey(state.current?.raw) !== key) return; // stale by the time it resolved
+      const dataUrl = await LogoPlacement.render({
+        photo, logo: cleaned, quad: surfaces[0].quad, strength: 'realistic', output: 'dataURL'
+      });
+      if (placementKey(state.current?.raw) !== key) return;
+      state.placementSuggestion = { key, dataUrl, quad: surfaces[0].quad, strength: 'realistic' };
+      renderEditor();
+    } catch (error) {
+      console.error('Placement suggestion failed', error);
+    }
   }
 
   function galleryThumbs() {
@@ -762,7 +850,7 @@
   // physically installed rather than pasted on, then saves the result as
   // the hero image. Auto-suggests a flat placement area but the user can
   // drag the four corners to fit the real surface exactly.
-  async function openLogoPlacement() {
+  async function openLogoPlacement(initial) {
     const raw = state.current.raw || {};
     if (!raw.heroImage || !raw.logoImage) return;
     const slug = state.current.slug;
@@ -776,12 +864,14 @@
     }
     LogoPlacement.openEditor({
       photo, logo,
+      quad: initial?.quad,
+      strength: initial?.strength,
       onSave: async ({ dataUrl }) => {
         const blob = await (await fetch(dataUrl)).blob();
         const form = new FormData();
         form.append('file', blob, 'hero-with-logo.jpg');
         const result = await api(`/api/projects/${slug}/media/hero`, { method: 'POST', body: form });
-        setRaw({ heroImage: result.path });
+        setRaw({ heroImage: result.path, heroPlacementApplied: true });
         await persist();
         renderEditor();
         schedulePreview();

@@ -453,6 +453,18 @@ dialog button.danger:hover { background: #c93a35; }
 .media-slot button:hover { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); }
 .media-slot button.found { border-color: var(--ai); color: var(--ai); }
 .auto-hint { font-size: 9px; color: var(--muted); margin-bottom: 4px; line-height: 1.3; }
+.placement-suggestion {
+  margin-top: 6px;
+  padding: 6px;
+  border: 1.5px dashed var(--ai);
+  border-radius: 9px;
+  background: var(--accent-tint);
+  text-align: left;
+}
+.placement-suggestion .thumb { height: 60px; margin-bottom: 5px; }
+.placement-suggestion .ps-text { font-size: 10px; color: var(--muted); margin-bottom: 5px; line-height: 1.3; }
+.placement-suggestion .ps-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.placement-suggestion button.ghost { background: transparent; border-color: transparent; color: var(--muted); }
 .gallery-empty { font-size: 10.5px; color: var(--muted); display: block; padding: 14px 0; }
 
 .template-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
