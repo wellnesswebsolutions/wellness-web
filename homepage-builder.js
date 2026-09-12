@@ -800,17 +800,31 @@ document.addEventListener('DOMContentLoaded', () => {
       // Colour and font choices only replace styles, keeping the live document,
       // open pages, scroll effects and gallery images in place.
       const next = new DOMParser().parseFromString(html,'text/html');
-      current.querySelector('style').textContent = next.querySelector('style').textContent;
-      const fontLink = current.querySelector('link[rel="stylesheet"]');
-      const nextFont = next.querySelector('link[rel="stylesheet"]');
-      if (fontLink.href !== nextFont.href) fontLink.href = nextFont.href;
-      current.querySelector('meta[name="theme-color"]').content = next.querySelector('meta[name="theme-color"]').content;
       const win = previewFrame.contentWindow;
-      win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
-      const restoredY = win.scrollY;
-      current.fonts.ready.then(() => win.requestAnimationFrame(() => {
-        if (version === previewRenderVersion && Math.abs(win.scrollY-restoredY)<2) win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
-      }));
+      const applyStyles = () => {
+        if (version !== previewRenderVersion) return;
+        current.querySelector('style').textContent = next.querySelector('style').textContent;
+        current.querySelector('meta[name="theme-color"]').content = next.querySelector('meta[name="theme-color"]').content;
+        win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
+      };
+      // Font sheets are added, never swapped, so fonts already visited stay
+      // loaded and switching back is instant. A new font is fetched (sheet and
+      // font files) BEFORE the styles change, so text never flashes through a
+      // fallback face mid-swipe. Capped so a slow network can't stall a step.
+      const href = next.querySelector('link[rel="stylesheet"]')?.href;
+      const have = [...current.querySelectorAll('link[rel="stylesheet"]')].some(link => link.href === href);
+      if (!href || have) { applyStyles(); return; }
+      const link = current.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      const sheetReady = new Promise(resolve => { link.onload = link.onerror = resolve; });
+      current.head.append(link);
+      let families = [];
+      try { families = new URL(href).searchParams.getAll('family').map(f => f.split(':')[0]); } catch (err) { /* not a Google Fonts URL */ }
+      const fontsReady = sheetReady.then(() => Promise.all(families.flatMap(f => [
+        current.fonts.load(`400 1em "${f}"`), current.fonts.load(`700 1em "${f}"`)
+      ])).catch(() => {}));
+      Promise.race([fontsReady, new Promise(resolve => setTimeout(resolve, 1200))]).then(applyStyles);
       return;
     }
     previewFrame.onload = () => {
@@ -931,7 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const current = DEMO_FONTS.findIndex(item => item.id === selectedFont);
       selectedFont = DEMO_FONTS[(current + direction + DEMO_FONTS.length) % DEMO_FONTS.length].id;
       refreshPreview({ appearanceOnly: true });
-      rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false });
+      settleHeroRender();
       updateSwipeIndicators();
       return;
     }
@@ -952,8 +966,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const current = DEMO_LAYOUTS.findIndex(item => item.id === (selectedLayout || fallback));
     selectedLayout = DEMO_LAYOUTS[(current + direction + DEMO_LAYOUTS.length) % DEMO_LAYOUTS.length].id;
     refreshPreview();
-    rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false });
+    settleHeroRender();
     updateSwipeIndicators();
+  }
+  // The branded hero image is a canvas render — far too heavy to redo on
+  // every swipe step. Redraw it once the finger has settled instead.
+  let heroSettleTimer = null;
+  function settleHeroRender() {
+    clearTimeout(heroSettleTimer);
+    heroSettleTimer = setTimeout(() => rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false }), 260);
   }
   function renderSwipeDots(tool, total, index) {
     const dots = mobileRail.querySelector(`.swipe-dots[data-dots="${tool}"]`);
