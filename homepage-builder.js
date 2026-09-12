@@ -871,9 +871,18 @@ document.addEventListener('DOMContentLoaded', () => {
       <button type="button" data-mobile-send="email">Email</button>
     </div>
     <div class="mobile-swipe-rail" aria-label="Website style controls" hidden>
-      <button type="button" data-mobile-swipe="font" aria-label="Swipe to change font"><span>F<br>O<br>N<br>T</span></button>
-      <button type="button" data-mobile-swipe="colour" aria-label="Swipe to change colour"><span>C<br>O<br>L<br>O<br>U<br>R</span></button>
-      <button type="button" data-mobile-swipe="layout" aria-label="Swipe to change template"><span>T<br>E<br>M<br>P<br>L<br>A<br>T<br>E</span></button>
+      <div class="mobile-swipe-tab">
+        <div class="swipe-dots" data-dots="font"></div>
+        <button type="button" data-mobile-swipe="font" aria-label="Swipe to change font"><span>F<br>O<br>N<br>T</span></button>
+      </div>
+      <div class="mobile-swipe-tab">
+        <div class="swipe-dots" data-dots="colour"></div>
+        <button type="button" data-mobile-swipe="colour" aria-label="Swipe to change colour"><span>C<br>O<br>L<br>O<br>U<br>R</span></button>
+      </div>
+      <div class="mobile-swipe-tab">
+        <div class="swipe-dots" data-dots="layout"></div>
+        <button type="button" data-mobile-swipe="layout" aria-label="Swipe to change template"><span>T<br>E<br>M<br>P<br>L<br>A<br>T<br>E</span></button>
+      </div>
     </div>
     <div class="mobile-swipe-zones" aria-label="Swipe the preview to change its style" hidden>
       <button type="button" data-mobile-swipe="font" aria-label="Swipe left or right to change font"></button>
@@ -905,6 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedFont = DEMO_FONTS[(current + direction + DEMO_FONTS.length) % DEMO_FONTS.length].id;
       refreshPreview({ appearanceOnly: true });
       rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false });
+      updateSwipeIndicators();
       return;
     }
     if (tool === 'colour') {
@@ -915,6 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedTones = {...tonesFromHex(hex), mode: 'light'};
       selectedPaletteName = name;
       refreshPreview({ appearanceOnly: true });
+      updateSwipeIndicators();
       return;
     }
     const category = typeInfo(bizTagline.value)?.cat;
@@ -923,8 +934,42 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedLayout = DEMO_LAYOUTS[(current + direction + DEMO_LAYOUTS.length) % DEMO_LAYOUTS.length].id;
     refreshPreview();
     rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false });
+    updateSwipeIndicators();
   }
-  mobileEdit.addEventListener('click', () => setMobileEditor(!builderOverlay.classList.contains('mobile-editor-active')));
+  function renderSwipeDots(tool, total, index) {
+    const dots = mobileRail.querySelector(`.swipe-dots[data-dots="${tool}"]`);
+    if (!dots) return;
+    if (dots.childElementCount !== total) {
+      dots.innerHTML = Array.from({ length: total }, () => '<i></i>').join('');
+    }
+    dots.querySelectorAll('i').forEach((dot, i) => dot.classList.toggle('active', i === index));
+  }
+  function updateSwipeIndicators() {
+    const fontTab = mobileRail.querySelector('[data-mobile-swipe="font"]');
+    const chosenFont = DEMO_FONTS.find(item => item.id === selectedFont);
+    const layoutFont = DEMO_LAYOUTS.find(item => item.id === selectedLayout)?.font;
+    if (fontTab) fontTab.style.fontFamily = chosenFont?.family || layoutFont || '';
+    const colourTab = mobileRail.querySelector('[data-mobile-swipe="colour"]');
+    if (colourTab && selectedTones?.base) {
+      colourTab.style.background = selectedTones.base;
+      const [, , lightness] = hexToHsl(selectedTones.base);
+      colourTab.style.color = lightness > 55 ? '#102039' : '#fff';
+    }
+    const fontIndex = Math.max(DEMO_FONTS.findIndex(item => item.id === selectedFont), 0);
+    renderSwipeDots('font', DEMO_FONTS.length, fontIndex);
+    const choices = Object.values(palettes).flat();
+    const colourIndex = Math.max(choices.findIndex(([, hex]) => hex.toLowerCase() === selectedTones?.base?.toLowerCase()), 0);
+    renderSwipeDots('colour', choices.length, colourIndex);
+    const category = typeInfo(bizTagline.value)?.cat;
+    const fallback = demoLayoutForCategory(category);
+    const layoutIndex = Math.max(DEMO_LAYOUTS.findIndex(item => item.id === (selectedLayout || fallback)), 0);
+    renderSwipeDots('layout', DEMO_LAYOUTS.length, layoutIndex);
+  }
+  mobileEdit.addEventListener('click', () => {
+    const open = !builderOverlay.classList.contains('mobile-editor-active');
+    setMobileEditor(open);
+    if (open) updateSwipeIndicators();
+  });
   mobileSubmit.addEventListener('click', () => {
     const open = mobileChoices.hidden;
     mobileChoices.hidden = !open;
@@ -937,49 +982,99 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileSubmit.setAttribute('aria-expanded', 'false');
     if (action === 'whatsapp') builderChatPill.click();
     if (action === 'email') {
-      const status = document.getElementById('handoffStatus');
+      const businessName = bizNameInput.value.trim();
       const design = selectedDesignSummary();
-      status.textContent = 'Sending your design details…';
+      const message = `Hi, I'd like you to finish my website.
+
+Business: ${businessName}
+Industry: ${bizTagline.value || 'Not provided'}
+Location: ${bizLocation.value.trim() || 'Not provided'}
+Template: ${design.template}
+Font: ${design.font}
+Colour palette: ${design.palette}`;
+      const status = document.getElementById('handoffStatus');
+      status.textContent = 'Opening your email app…';
+      window.location.href = `mailto:wellnesswebsolutions@gmail.com?subject=${encodeURIComponent(`Website preview - ${businessName || 'New enquiry'}`)}&body=${encodeURIComponent(message)}`;
       postLeadWithMedia({
-        Business: bizNameInput.value.trim(), Industry: bizTagline.value || 'Not provided',
+        Business: businessName, Industry: bizTagline.value || 'Not provided',
         Location: bizLocation.value.trim() || 'Not provided', Template: design.template,
         Font: design.font, 'Colour scheme': design.palette
-      }, []).then(sent => { status.textContent = sent ? 'Your design details have been emailed to Tom.' : 'Email could not be sent. Please try WhatsApp.'; });
+      }, []).then(sent => { status.textContent = sent ? 'Your design details have been emailed to Tom.' : 'Please press Send in your email app to reach Tom.'; });
     }
   });
+  const SWIPE_STEP_PX = 34;
   mobileActions.querySelectorAll('[data-mobile-swipe]').forEach(zone => {
     let startX = null;
     let startY = null;
-    let hasSwiped = false;
+    let lastStepX = null;
+    let lastMoveTime = null;
+    let lastMoveX = null;
+    let velocity = 0;
     let pointerId = null;
+    let inertiaFrame = null;
+    const tool = zone.dataset.mobileSwipe;
+    const stepFrom = distance => {
+      let remaining = distance;
+      while (Math.abs(remaining) >= SWIPE_STEP_PX) {
+        cycleMobileStyle(tool, remaining > 0 ? -1 : 1);
+        remaining += remaining > 0 ? -SWIPE_STEP_PX : SWIPE_STEP_PX;
+      }
+      return remaining;
+    };
+    const stopInertia = () => {
+      if (inertiaFrame !== null) cancelAnimationFrame(inertiaFrame);
+      inertiaFrame = null;
+    };
     zone.addEventListener('pointerdown', event => {
+      stopInertia();
       startX = event.clientX;
       startY = event.clientY;
-      hasSwiped = false;
+      lastStepX = event.clientX;
+      lastMoveTime = performance.now();
+      lastMoveX = event.clientX;
+      velocity = 0;
       pointerId = event.pointerId;
       zone.setPointerCapture?.(pointerId);
       event.preventDefault();
     });
     zone.addEventListener('pointermove', event => {
       if (startX === null) return;
-      const deltaX = event.clientX - startX;
       const deltaY = event.clientY - startY;
-      if (!hasSwiped && Math.abs(deltaX) > 32 && Math.abs(deltaX) > Math.abs(deltaY)) {
-        hasSwiped = true;
-        cycleMobileStyle(zone.dataset.mobileSwipe, deltaX > 0 ? -1 : 1);
-      }
+      if (Math.abs(event.clientX - startX) < Math.abs(deltaY)) return;
+      const now = performance.now();
+      const dt = now - lastMoveTime;
+      if (dt > 0) velocity = (event.clientX - lastMoveX) / dt;
+      lastMoveTime = now;
+      lastMoveX = event.clientX;
+      const distance = event.clientX - lastStepX;
+      const remaining = stepFrom(distance);
+      lastStepX = event.clientX - remaining;
     });
     const reset = () => {
       if (pointerId !== null) zone.releasePointerCapture?.(pointerId);
       startX = null;
       startY = null;
-      hasSwiped = false;
+      lastStepX = null;
       pointerId = null;
     };
     zone.addEventListener('pointerup', event => {
       if (startX === null) return;
-      const deltaX = event.clientX - startX;
-      if (!hasSwiped && Math.abs(deltaX) > 24) cycleMobileStyle(zone.dataset.mobileSwipe, deltaX > 0 ? -1 : 1);
+      const totalDelta = event.clientX - startX;
+      if (lastStepX === startX && Math.abs(totalDelta) > 18) {
+        cycleMobileStyle(tool, totalDelta > 0 ? -1 : 1);
+      } else if (Math.abs(velocity) > 0.55) {
+        // Fast flick: keep flying through options after release, apple-picker style.
+        let v = velocity;
+        let accum = 0;
+        const tick = () => {
+          v *= 0.92;
+          if (Math.abs(v) < 0.12) { inertiaFrame = null; return; }
+          accum += v * 16;
+          accum = stepFrom(accum);
+          inertiaFrame = requestAnimationFrame(tick);
+        };
+        inertiaFrame = requestAnimationFrame(tick);
+      }
       reset();
     });
     zone.addEventListener('pointercancel', reset);
