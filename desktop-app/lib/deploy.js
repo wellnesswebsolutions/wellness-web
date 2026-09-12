@@ -64,4 +64,29 @@ async function canDeploy() {
   return canDeployCache.ok;
 }
 
-module.exports = { deployToVercel, projectNameFor, canDeploy, takeOffline };
+// After signing in/out of Vercel from Settings.
+function resetCanDeploy() {
+  canDeployCache = null;
+}
+
+// Points a domain the customer owns at their site's Vercel project (plus
+// www. for a root domain — best effort). Re-adding a domain that's already
+// on this project is fine; the DNS records still have to be set at the
+// registrar, which the Live tab's domain panel shows.
+async function addDomain(slug, domain, withWww) {
+  const project = projectNameFor(slug);
+  await run('vercel', ['project', 'add', project]);
+  for (const name of withWww ? [domain, `www.${domain}`] : [domain]) {
+    const result = await run('vercel', ['domains', 'add', name, project]);
+    const output = `${result.err}\n${result.out}`;
+    if (result.code === 0 || output.includes(project) || name !== domain) continue;
+    const lastLine = output.trim().split('\n').filter(Boolean).pop();
+    throw new Error(lastLine || `vercel domains add exited with code ${result.code}`);
+  }
+}
+
+async function removeDomain(domain) {
+  for (const name of [domain, `www.${domain}`]) await run('vercel', ['domains', 'rm', name, '--yes']);
+}
+
+module.exports = { deployToVercel, projectNameFor, canDeploy, resetCanDeploy, takeOffline, addDomain, removeDomain };

@@ -116,7 +116,7 @@
     if (!opts.sticky) noticeTimer = setTimeout(() => (el.notice.hidden = true), 4500);
   }
 
-  el.gearBtn.onclick = () => { el.settingsDialog.showModal(); refreshSignInStatus(); refreshPlacesStatus(); };
+  el.gearBtn.onclick = () => { el.settingsDialog.showModal(); refreshSignInStatus(); refreshPlacesStatus(); refreshServices(); };
 
   // Optional Google Places API key (lib/places.js) — saving tests it first.
   const placesStatus = document.getElementById('placesStatus');
@@ -165,6 +165,96 @@
   };
   placesInput.addEventListener('keydown', e => { if (e.key === 'Enter') placesSaveBtn.click(); });
   el.closeSettingsBtn.onclick = () => el.settingsDialog.close();
+
+  // Connected services: the Claude and Vercel CLIs (sign in through a
+  // Terminal window, polled until it takes), the Stripe key, and shared
+  // sync (built in, shown for information only).
+  let services = {};
+  let servicePoll = null;
+  const serviceRows = () => [...el.settingsDialog.querySelectorAll('[data-service]')];
+  const stripeForm = document.getElementById('stripeForm');
+  const stripeInput = document.getElementById('stripeKeyInput');
+  async function refreshServices() {
+    try { services = await api('/api/connections'); } catch { return; }
+    for (const row of serviceRows()) {
+      const target = row.dataset.service;
+      const s = services[target] || {};
+      if (s.signedIn) delete row.dataset.waiting;
+      const status = row.querySelector('.account-status');
+      if (!row.dataset.waiting) {
+        status.textContent = s.installed === false ? 'Not installed on this computer'
+          : s.signedIn ? `Connected ✓${s.account ? ` — ${s.account}` : ''}`
+          : target === 'sync' ? (s.state === 'disabled' ? 'Not set up — this copy works on its own' : 'Can’t reach it right now — changes are saved locally')
+          : 'Not connected';
+      }
+      status.classList.toggle('is-signed-in', Boolean(s.signedIn));
+      const btn = row.querySelector('button');
+      if (!btn) continue;
+      btn.textContent = target === 'stripe' ? (s.signedIn ? 'Remove' : 'Add key') : (s.signedIn ? 'Sign out' : 'Sign in');
+      btn.classList.toggle('primary', !s.signedIn);
+      btn.disabled = s.installed === false;
+    }
+    if (services.stripe?.signedIn) stripeForm.hidden = true;
+    if (!serviceRows().some(r => r.dataset.waiting)) { clearInterval(servicePoll); servicePoll = null; }
+  }
+  el.settingsDialog.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-service] button');
+    if (!btn) return;
+    const row = btn.closest('[data-service]');
+    const target = row.dataset.service;
+    const label = row.querySelector('b').textContent;
+    const status = row.querySelector('.account-status');
+    const connected = Boolean(services[target]?.signedIn);
+    if (target === 'stripe' && !connected) {
+      stripeForm.hidden = !stripeForm.hidden;
+      if (!stripeForm.hidden) stripeInput.focus();
+      return;
+    }
+    const why = { claude: 'Edit with AI, imports and AI search won’t work until you sign in again — this also signs Claude Code out on this computer.', vercel: 'Make live and domains won’t work on this computer until you sign in again.', stripe: 'You won’t be able to create payment links until you add a key again.' }[target];
+    if (connected && !await showConfirm(`${target === 'stripe' ? 'Remove the Stripe key' : `Sign out of ${label}`}?`, why, target === 'stripe' ? 'Remove' : 'Sign out')) return;
+    btn.disabled = true;
+    try {
+      if (target === 'stripe') {
+        await api('/api/stripe-key', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey: '' }) });
+      } else if (connected) {
+        await api(`/api/connections/${target}/sign-out`, { method: 'POST' });
+      } else {
+        await api(`/api/connections/${target}/sign-in`, { method: 'POST' });
+        row.dataset.waiting = '1';
+        status.textContent = 'Finish signing in in the Terminal window…';
+        status.classList.remove('is-signed-in');
+        if (!servicePoll) servicePoll = setInterval(refreshServices, 3000);
+      }
+      await refreshServices();
+      if (target === 'vercel') api('/api/can-deploy').then(r => { state.canDeploy = r.canDeploy; renderLiveActions(); }).catch(() => {});
+    } catch (err) {
+      status.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  document.getElementById('stripeSaveBtn').onclick = async e => {
+    const key = stripeInput.value.trim();
+    if (!key) return;
+    const status = el.settingsDialog.querySelector('[data-service="stripe"] .account-status');
+    e.target.disabled = true;
+    status.textContent = 'Checking the key with Stripe…';
+    try {
+      await api('/api/stripe-key', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey: key }) });
+      stripeInput.value = '';
+      await refreshServices();
+    } catch (err) {
+      status.textContent = err.message;
+      status.classList.remove('is-signed-in');
+    }
+    e.target.disabled = false;
+  };
+  stripeInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('stripeSaveBtn').click(); });
+  el.settingsDialog.addEventListener('close', () => {
+    clearInterval(servicePoll);
+    servicePoll = null;
+    serviceRows().forEach(r => delete r.dataset.waiting);
+  });
 
   // Electron's renderer doesn't implement window.prompt()/confirm() (they
   // silently return null/false), so this dialog replaces confirm() with a
@@ -293,7 +383,7 @@
   function renderSidebar() {
     const scrolls = Object.fromEntries([...el.projectList.querySelectorAll('.side-section')]
       .map(s => [s.dataset.section, s.querySelector('.side-section-list').scrollTop]));
-    const list = sortedProjects().filter(p => !isLivePaying(p));
+    const list = sortedProjects().filter(p => !isPaid(p) && !isPending(p));
     const expanded = state.sideExpanded;
     el.projectList.innerHTML = '';
     SIDE_SECTIONS.forEach(section => {
@@ -959,7 +1049,7 @@
     document.getElementById('s_payment').onchange = async e => {
       state.current.paymentStatus = e.target.value;
       await persist();
-      if (e.target.value === 'paid') notify(`"${businessName(state.current)}" is now on the Live tab.`);
+      if (e.target.value !== 'no') notify(`"${businessName(state.current)}" is now on the Live tab${e.target.value === 'pending' ? ', under Pending' : ''}.`);
     };
   }
 
@@ -1371,8 +1461,14 @@
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const imgs = [...doc.querySelectorAll('img')];
     for (const { from, to } of overrides) {
-      imgs.forEach(img => { if (img.getAttribute('src') === from) img.setAttribute('src', `${location.origin}/projects/${slug}/${to}`); });
+      imgs.forEach(img => {
+        if (img.getAttribute('src') !== from) return;
+        // An empty "to" means the photo was removed in edit mode.
+        if (to) img.setAttribute('src', `${location.origin}/projects/${slug}/${to}`);
+        else (img.closest('figure') || img).remove();
+      });
     }
+    doc.querySelectorAll('.gallery').forEach(g => { if (!g.querySelector('img')) g.closest('section')?.remove(); });
     return (/^\s*<!doctype/i.test(html) ? '<!DOCTYPE html>\n' : '') + doc.documentElement.outerHTML;
   }
 
@@ -1496,8 +1592,11 @@
 .bs-tab-bar .bs-tab-del:hover:not(:disabled){background:#ef4444}
 .bs-page-add{padding:5px 11px;border:1.5px dashed #3B82F6;border-radius:999px;background:rgba(59,130,246,.08);color:#3B82F6;font:600 11px -apple-system,sans-serif;cursor:pointer;white-space:nowrap}
 .bs-page-add:hover{background:rgba(59,130,246,.16)}
-.bs-img-btn{position:fixed;z-index:2147483647;transform:translateX(-100%);padding:7px 12px;border:0;border-radius:8px;background:#111827;color:#fff;font:600 12px -apple-system,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.3);cursor:pointer}
-.bs-img-btn:hover{background:#3B82F6}
+.bs-img-btn{position:fixed;z-index:2147483647;transform:translateX(-100%);display:flex;gap:2px;padding:3px;border-radius:9px;background:#111827;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.bs-img-btn[hidden],.bs-img-btn button[hidden]{display:none}
+.bs-img-btn button{padding:6px 11px;border:0;border-radius:6px;background:transparent;color:#fff;font:600 12px -apple-system,sans-serif;cursor:pointer}
+.bs-img-btn button:hover{background:#3B82F6}
+.bs-img-btn .bs-img-del:hover{background:#ef4444}
 img[data-bs-src]{outline:1.5px dashed rgba(59,130,246,.45);outline-offset:-2px}
 </style><script>(()=>{
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','IFRAME','TEXTAREA','INPUT','SELECT','OPTION','TITLE']);
@@ -1549,22 +1648,28 @@ if(nav){
   (meta&&meta.content||'').split(',').filter(Boolean).forEach(id=>addBtn('+ '+(id==='services'?meta.dataset.servicesLabel:(meta.dataset.contactLabel||'Contact')),id));
   addBtn('+ Page');
 }
-// Hovering any photo shows a "Replace photo" button in its corner.
+// Hovering any photo shows Replace / Remove buttons in its corner (Remove
+// only on the hero and gallery photos, where the layout copes without it).
 // elementsFromPoint finds the photo even under overlaid text (the hero).
 document.querySelectorAll('img').forEach(img=>{if(!img.closest('svg'))img.dataset.bsSrc=img.getAttribute('src')||'';});
-const imgBtn=document.createElement('button');imgBtn.type='button';imgBtn.className='bs-img-btn';imgBtn.textContent='Replace photo';imgBtn.hidden=true;
+const imgBtn=document.createElement('div');imgBtn.className='bs-img-btn';imgBtn.hidden=true;
+imgBtn.innerHTML='<button type="button" data-act="replace">Replace photo</button><button type="button" data-act="remove" class="bs-img-del">Remove</button>';
 document.body.appendChild(imgBtn);
 let curImg=null;
-const placeImgBtn=img=>{const r=img.getBoundingClientRect();imgBtn.style.left=(r.right-12)+'px';imgBtn.style.top=(Math.max(r.top,0)+12)+'px';imgBtn.hidden=false;};
+const placeImgBtn=img=>{
+  const r=img.getBoundingClientRect();imgBtn.style.left=(r.right-12)+'px';imgBtn.style.top=(Math.max(r.top,0)+12)+'px';imgBtn.hidden=false;
+  imgBtn.querySelector('[data-act=remove]').hidden=!(img.classList.contains('brand-scene')||img.closest('figure.gallery-demo'));
+};
 document.addEventListener('mousemove',e=>{
-  if(e.target===imgBtn)return;
+  if(imgBtn.contains(e.target))return;
   const img=document.elementsFromPoint(e.clientX,e.clientY).find(n=>n.tagName==='IMG'&&n.dataset.bsSrc!=null);
   if(img){curImg=img;placeImgBtn(img);}else{curImg=null;imgBtn.hidden=true;}
 });
 window.addEventListener('scroll',()=>{if(curImg)placeImgBtn(curImg);},{passive:true});
 imgBtn.addEventListener('click',e=>{
   e.preventDefault();e.stopPropagation();
-  if(curImg)parent.postMessage({type:'bs-img-replace',src:curImg.dataset.bsSrc,hero:curImg.classList.contains('brand-scene')},'*');
+  const b=e.target.closest('button');
+  if(b&&curImg)parent.postMessage({type:b.dataset.act==='remove'?'bs-img-remove':'bs-img-replace',src:curImg.dataset.bsSrc,hero:curImg.classList.contains('brand-scene')},'*');
 });
 window.addEventListener('message',e=>{
   const d=e.data||{};
@@ -1735,6 +1840,32 @@ document.addEventListener('focusout',e=>{
     }
   };
 
+  // "Remove" in edit mode: an uploaded hero goes back to the automatic one;
+  // a gallery upload leaves the gallery; a Google / demo photo is dropped
+  // with an empty override (see applyImageOverrides).
+  async function removePreviewImage(src, hero) {
+    const raw = state.current.raw || {};
+    const slug = state.current.slug;
+    const local = rel => `${location.origin}/projects/${slug}/${rel}`;
+    restoreScrollY = el.preview.contentWindow?.scrollY || 0;
+    if (hero) {
+      if (!raw.heroImage) return notify('That’s the automatic hero picture — use “Replace photo” to put your own in.', { sticky: false });
+      return removeMedia('hero');
+    }
+    const gallery = raw.gallery || [];
+    const list = raw.imageOverrides || [];
+    if (gallery.some(g => local(g) === src)) {
+      setRaw({ gallery: gallery.filter(g => local(g) !== src) });
+    } else if (list.some(o => o.to && local(o.to) === src)) {
+      setRaw({ imageOverrides: list.map(o => (o.to && local(o.to) === src ? { ...o, to: '' } : o)) });
+    } else {
+      setRaw({ imageOverrides: [...list, { from: src, to: '' }] });
+    }
+    await persist();
+    renderEditor();
+    schedulePreview();
+  }
+
   function refreshAfterPageChange() {
     restoreScrollY = el.preview.contentWindow?.scrollY || 0;
     renderPreview();
@@ -1750,6 +1881,7 @@ document.addEventListener('focusout',e=>{
     else if (e.data?.type === 'bs-page-remove') handlePageChange({ remove: String(e.data.page || '') });
     else if (e.data?.type === 'bs-page-rename') handlePageRename(String(e.data.page || ''), String(e.data.to || '').trim());
     else if (e.data?.type === 'bs-img-replace') pickReplacementImage(String(e.data.src || ''), Boolean(e.data.hero));
+    else if (e.data?.type === 'bs-img-remove') removePreviewImage(String(e.data.src || ''), Boolean(e.data.hero));
     else if (e.data?.type === 'bs-page-order' && Array.isArray(e.data.order)) {
       setRaw({ pageOrder: e.data.order.map(String) });
       refreshAfterPageChange();
@@ -2106,17 +2238,60 @@ document.addEventListener('focusout',e=>{
   }
   const businessName = p => p.raw?.name || p.name || p.slug;
   const phoneOf = p => p.raw?.businessProfile?.phone || p.contact?.phone || '';
-  // Paying is what puts a business on the Live tab — with or without a site
-  // built here (customers can be added straight onto that tab).
-  const isLivePaying = p => p.paymentStatus === 'paid';
-  const websiteOf = p => p.liveUrl || p.contact?.existingWebsite || '';
+  // Pending or paid is what puts a business on the Live tab — with or
+  // without a site built here (customers can be added straight onto it).
+  const isPaid = p => p.paymentStatus === 'paid';
+  const isPending = p => p.paymentStatus === 'pending';
+  const websiteOf = p => (p.customDomain ? `https://${p.customDomain}` : '') || p.liveUrl || p.contact?.existingWebsite || '';
 
-  // Only prices that are actually a number contribute to the monthly
-  // total — an agreed price written as free text ("TBC", "£50 + VAT") still
-  // shows on its row, it just can't be summed.
+  // The plans on brightsite.app/pricing. Pro and Prestige can be paid
+  // monthly or yearly; the booking form is a £20/mo add-on on any plan.
+  const PLANS = [
+    { id: 'essential', name: 'Essential', billing: { monthly: { setup: 0, amount: 19 } } },
+    { id: 'pro', name: 'Pro', billing: { monthly: { setup: 199, amount: 15 }, annual: { setup: 99, amount: 180 } } },
+    { id: 'prestige', name: 'Prestige', billing: { monthly: { setup: 299, amount: 15 }, annual: { setup: 149, amount: 180 } } }
+  ];
+  const BOOKING_ADDON = 20;
+  const money = n => `£${Number(n).toFixed(2).replace(/\.00$/, '')}`;
+
+  // What a plan charges: a one-off setup plus one recurring amount. Billed
+  // yearly, the booking add-on is charged yearly too — Stripe needs every
+  // recurring item on one payment link to share an interval.
+  function planCharges(plan) {
+    if (!plan) return null;
+    if (plan.id === 'custom') {
+      const setup = Number(plan.setup) || 0, amount = Number(plan.monthly) || 0;
+      return setup || amount ? { name: 'Custom', setup, amount, interval: 'month' } : null;
+    }
+    const def = PLANS.find(x => x.id === plan.id);
+    if (!def) return null;
+    const annual = plan.billing === 'annual' && Boolean(def.billing.annual);
+    const { setup, amount } = def.billing[annual ? 'annual' : 'monthly'];
+    const booking = plan.booking ? BOOKING_ADDON * (annual ? 12 : 1) : 0;
+    return { name: def.name, setup, amount: amount + booking, interval: annual ? 'year' : 'month', booking: Boolean(plan.booking) };
+  }
+  function planSummary(plan) {
+    const c = planCharges(plan);
+    return c ? `${c.name}${c.booking ? ' + booking form' : ''} · ${money(c.setup)} setup + ${money(c.amount)}/${c.interval === 'year' ? 'yr' : 'mo'}` : '';
+  }
+
+  // A chosen plan wins; otherwise only prices that are actually a number
+  // contribute to the monthly total — an agreed price written as free text
+  // ("TBC", "£50 + VAT") still shows on its row, it just can't be summed.
   function monthlyValue(p) {
+    const c = planCharges(p.plan);
+    if (c) return c.interval === 'year' ? c.amount / 12 : c.amount;
     const amount = parseFloat(String(p.price ?? '').replace(/[^0-9.]/g, ''));
     return Number.isFinite(amount) ? amount : 0;
+  }
+
+  function rememberProject(saved) {
+    const idx = state.projects.findIndex(p => p.slug === saved.slug);
+    if (idx !== -1) state.projects[idx] = saved;
+    // Keep the Businesses tab's in-memory copy in step, so its next save
+    // can't overwrite what was just changed here with a stale object.
+    if (state.current?.slug === saved.slug) replaceCurrent(saved);
+    return saved;
   }
 
   // Saves a patch against any business by slug (not just the open one, the
@@ -2124,58 +2299,302 @@ document.addEventListener('focusout',e=>{
   // so it saves locally first and pushes through Supabase sync exactly the
   // same way.
   async function saveProjectFields(slug, patch) {
-    const saved = await api(`/api/projects/${slug}`, {
+    return rememberProject(await api(`/api/projects/${slug}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch)
-    });
-    const idx = state.projects.findIndex(p => p.slug === slug);
-    if (idx !== -1) state.projects[idx] = saved;
-    // Keep the Businesses tab's in-memory copy in step, so its next save
-    // can't overwrite what was just changed here with a stale object.
-    if (state.current?.slug === slug) replaceCurrent(saved);
-    return saved;
+    }));
   }
 
   function projectBySlug(slug) {
     return state.projects.find(p => p.slug === slug) || null;
   }
 
+  function liveRow(p) {
+    const c = planCharges(p.plan);
+    const price = c ? planSummary(p.plan) + (c.interval === 'year' ? ` (≈ ${money(monthlyValue(p))}/mo)` : '')
+      : p.price ? `${String(p.price).replace(/^£?/, '£')} /mo` : 'No plan chosen';
+    const site = websiteOf(p);
+    const slug = escapeAttr(p.slug);
+    return `
+      <div class="crm-row live-row">
+        <div class="crm-row-main">
+          <span class="crm-name">${escapeHtml(businessName(p))}</span>
+          <span class="crm-stage ${isPaid(p) ? 'stage-paid">Paying' : 'stage-pending">Pending'}</span>
+        </div>
+        <div class="crm-row-meta">
+          <span class="live-price">${escapeHtml(price)}</span>
+          ${site ? `<span class="crm-dim live-url">${escapeHtml(site)}</span>` : '<span class="crm-dim">No website yet</span>'}
+          ${p.paymentLink?.sentAt ? `<span class="crm-dim">Payment link sent ${new Date(p.paymentLink.sentAt).toLocaleDateString('en-GB')}</span>` : ''}
+        </div>
+        ${p.notes ? `<div class="crm-row-note">${escapeHtml(p.notes.trim().replace(/\s+/g, ' '))}</div>` : ''}
+        <div class="crm-row-actions">
+          <button type="button" class="crm-move" data-plan="${slug}">${c ? 'Change plan' : 'Choose plan'}</button>
+          <button type="button" class="crm-move" data-pay="${slug}">Send payment link</button>
+          <button type="button" class="crm-move" data-domain="${slug}">${p.customDomain ? `🌐 ${escapeHtml(p.customDomain)}` : 'Connect domain'}</button>
+          <button type="button" class="crm-move" data-edit="${slug}">Edit website</button>
+          ${site ? `<button type="button" class="crm-move" data-open="${escapeAttr(site)}">Open site ↗</button>` : ''}
+          ${isPaid(p)
+            ? `<button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}">Not paying any more</button>`
+            : `<button type="button" class="crm-move" data-status="paid" data-slug="${slug}">Mark as paid</button>
+               <button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}">Not going ahead</button>`}
+          <button type="button" class="crm-delete" data-delete="${slug}" title="Delete this customer">✕</button>
+        </div>
+      </div>`;
+  }
+
   function renderLive() {
-    const paying = state.projects.filter(isLivePaying);
-    const total = paying.reduce((sum, p) => sum + monthlyValue(p), 0);
+    const paying = state.projects.filter(isPaid);
+    const pending = state.projects.filter(isPending);
+    const sum = list => list.reduce((total, p) => total + monthlyValue(p), 0);
     el.liveTotals.innerHTML = `
       <div class="live-stat"><b>${paying.length}</b><span>paying customer${paying.length === 1 ? '' : 's'}</span></div>
-      <div class="live-stat"><b>£${total.toFixed(2).replace(/\.00$/, '')}</b><span>total monthly value</span></div>
+      <div class="live-stat"><b>${money(sum(paying))}</b><span>total monthly value</span></div>
+      <div class="live-stat"><b>${pending.length} · ${money(sum(pending))}</b><span>pending /mo</span></div>
       <button type="button" class="crm-save live-add-btn" data-add-customer ${state.liveAdding ? 'hidden' : ''}>+ Add customer</button>`;
     const form = state.liveAdding ? `
       <form class="crm-row live-add-form" id="liveAddForm">
         <div class="live-add-grid">
           <div class="field"><label>Business name</label><input name="name" required></div>
-          <div class="field"><label>Monthly price</label><input name="price" placeholder="e.g. 45"></div>
+          <div class="field"><label>Status</label><select name="status"><option value="pending">Pending</option><option value="paid">Paid</option></select></div>
           <div class="field"><label>Website (optional)</label><input name="website" placeholder="https://…"></div>
         </div>
         <button type="submit" class="crm-save">Add customer</button>
         <button type="button" class="crm-move" data-cancel-add>Cancel</button>
       </form>` : '';
-    el.liveList.innerHTML = form + (paying.length ? paying.map(p => `
-      <div class="crm-row live-row">
-        <div class="crm-row-main">
-          <span class="crm-name">${escapeHtml(businessName(p))}</span>
-          <span class="crm-stage stage-paid">Paying</span>
-        </div>
-        <div class="crm-row-meta">
-          <span class="live-price">${p.price ? escapeHtml(String(p.price).replace(/^£?/, '£')) + ' /mo' : 'No price set'}</span>
-          ${websiteOf(p) ? `<span class="crm-dim live-url">${escapeHtml(websiteOf(p))}</span>` : '<span class="crm-dim">No website yet</span>'}
-        </div>
-        ${p.notes ? `<div class="crm-row-note">${escapeHtml(p.notes.trim().replace(/\s+/g, ' '))}</div>` : ''}
-        <div class="crm-row-actions">
-          <button type="button" class="crm-move" data-edit="${escapeAttr(p.slug)}">Edit website</button>
-          ${websiteOf(p) ? `<button type="button" class="crm-move" data-open="${escapeAttr(websiteOf(p))}">Open site ↗</button>` : ''}
-          <button type="button" class="crm-move crm-move-quiet" data-unpay="${escapeAttr(p.slug)}">Not paying any more</button>
-          <button type="button" class="crm-delete" data-delete="${escapeAttr(p.slug)}" title="Delete this customer">✕</button>
-        </div>
-      </div>`).join('')
-      : (state.liveAdding ? '' : `<p class="crm-empty">No paying customers yet. Click “+ Add customer”, or set “Paying?” to Paid on a business in the Businesses tab.</p>`));
+    const half = (title, list, empty) => `
+      <section class="live-half">
+        <div class="live-half-head">${title} <span class="crm-count">${list.length}</span></div>
+        <div class="live-half-list">${list.length ? list.map(liveRow).join('') : `<p class="crm-empty">${empty}</p>`}</div>
+      </section>`;
+    el.liveList.innerHTML = form
+      + half('Pending', pending, 'Nobody pending. Set “Paying?” to Pending on a business in the Businesses tab, or click “+ Add customer”.')
+      + half('Live', paying, 'No paying customers yet. Click “Mark as paid” on a pending customer once they’ve paid.');
     if (state.liveAdding) el.liveList.querySelector('input[name="name"]').focus();
+  }
+
+  // Plan picker: the brightsite.app plans as cards, or a custom price.
+  // Saves the plan and its monthly equivalent as the business's price, so
+  // the Businesses tab and the totals agree.
+  const planDialog = document.getElementById('planDialog');
+  function openPlanDialog(slug) {
+    const p = projectBySlug(slug);
+    if (!p) return;
+    let draft = { ...(p.plan || { id: 'pro', billing: 'monthly', booking: false }) };
+    const render = () => {
+      const def = PLANS.find(x => x.id === draft.id);
+      planDialog.innerHTML = `
+        <h3>Plan for ${escapeHtml(businessName(p))}</h3>
+        <p class="dim">The plans on brightsite.app — click one, or set a custom price.</p>
+        <div class="plan-grid">
+          ${PLANS.map(pl => `<button type="button" class="plan-card ${draft.id === pl.id ? 'selected' : ''}" data-pick="${pl.id}">
+            <b>${pl.name}</b><span>${money(pl.billing.monthly.setup)} setup + ${money(pl.billing.monthly.amount)}/mo</span>
+            ${pl.billing.annual ? `<span class="dim">or ${money(pl.billing.annual.setup)} setup + ${money(pl.billing.annual.amount)}/yr</span>` : ''}</button>`).join('')}
+          <button type="button" class="plan-card ${draft.id === 'custom' ? 'selected' : ''}" data-pick="custom"><b>Custom</b><span>Your own price</span></button>
+        </div>
+        ${draft.id === 'custom' ? `
+          <div class="plan-custom">
+            <label>Setup £<input type="number" min="0" step="1" data-field="setup" value="${escapeAttr(draft.setup ?? '')}"></label>
+            <label>Monthly £<input type="number" min="0" step="0.5" data-field="monthly" value="${escapeAttr(draft.monthly ?? '')}"></label>
+          </div>` : `
+          ${def?.billing.annual ? `<div class="plan-billing">
+            <button type="button" data-billing="monthly" class="${draft.billing !== 'annual' ? 'selected' : ''}">Monthly</button>
+            <button type="button" data-billing="annual" class="${draft.billing === 'annual' ? 'selected' : ''}">Yearly</button></div>` : ''}
+          <label class="plan-addon"><input type="checkbox" data-booking ${draft.booking ? 'checked' : ''}> Booking form (+${money(BOOKING_ADDON)}/mo)</label>`}
+        <p class="plan-total">${escapeHtml(planSummary(draft) || 'Enter a price')}</p>
+        <div class="dialog-actions">
+          ${p.plan ? '<button type="button" class="ghost" data-clear>Clear plan</button>' : ''}
+          <button type="button" class="ghost" data-cancel>Cancel</button>
+          <button type="button" class="primary" data-save>Save plan</button>
+        </div>`;
+    };
+    planDialog.onclick = async e => {
+      const t = e.target.closest('button');
+      if (!t) return;
+      const d = t.dataset;
+      if (d.pick) {
+        draft = d.pick === 'custom'
+          ? { id: 'custom', setup: draft.setup ?? '', monthly: draft.monthly ?? '' }
+          : { id: d.pick, billing: draft.billing || 'monthly', booking: Boolean(draft.booking) };
+        return render();
+      }
+      if (d.billing) { draft.billing = d.billing; return render(); }
+      if ('cancel' in d) return planDialog.close();
+      if ('save' in d || 'clear' in d) {
+        const plan = 'clear' in d ? null : draft;
+        if (plan && !planCharges(plan)) return;
+        t.disabled = true;
+        try {
+          await saveProjectFields(slug, { plan, ...(plan ? { price: String(+monthlyValue({ plan }).toFixed(2)) } : {}) });
+          planDialog.close();
+          renderLive();
+        } catch (err) {
+          notify(friendlyError(err.message), { sticky: false });
+          t.disabled = false;
+        }
+      }
+    };
+    planDialog.onchange = e => { if (e.target.matches('[data-booking]')) { draft.booking = e.target.checked; render(); } };
+    // Custom price inputs update the total without re-rendering, so typing keeps focus.
+    planDialog.oninput = e => {
+      const field = e.target.dataset.field;
+      if (!field) return;
+      draft[field] = e.target.value;
+      planDialog.querySelector('.plan-total').textContent = planSummary(draft) || 'Enter a price';
+    };
+    render();
+    planDialog.showModal();
+  }
+
+  // Payment link: created in Stripe for the customer's plan (reused while
+  // the plan is unchanged), then sent by email, text or WhatsApp.
+  const payDialog = document.getElementById('payDialog');
+  function openPayDialog(slug) {
+    const p = projectBySlug(slug);
+    if (!p) return;
+    const c = planCharges(p.plan);
+    const key = JSON.stringify(c);
+    const email = String(p.contact?.email || '').trim();
+    const phone = phoneOf(p);
+    let link = p.paymentLink?.key === key ? p.paymentLink.url : '';
+    const firstName = String(p.contact?.name || '').trim().split(/\s+/)[0];
+    const message = () => `${firstName ? `Hi ${firstName}` : 'Hi'}, here's the secure payment link for your ${businessName(p)} website (${planSummary(p.plan)}):\n${link}\n\nAny questions at all, just let me know.`;
+    const render = (status = '', ok = false) => {
+      payDialog.innerHTML = `
+        <h3>Payment link — ${escapeHtml(businessName(p))}</h3>
+        ${!c ? `
+          <p class="dim">Choose a plan first, so the link charges the right amount.</p>
+          <div class="dialog-actions"><button type="button" class="ghost" data-cancel>Close</button><button type="button" class="primary" data-choose-plan>Choose plan</button></div>` : `
+          <p class="plan-total">${escapeHtml(planSummary(p.plan))}</p>
+          ${link ? `
+            <div class="pay-link"><input type="text" readonly value="${escapeAttr(link)}"><button type="button" data-copy>Copy</button></div>
+            <div class="pay-send">
+              <button type="button" class="primary" data-email ${email ? '' : 'disabled title="No email saved for this business"'}>Email${email ? ` ${escapeHtml(email)}` : ''}</button>
+              <button type="button" class="primary" data-sms ${phone ? '' : 'disabled title="No phone number saved for this business"'}>Text${phone ? ` ${escapeHtml(phone)}` : ''}</button>
+              <button type="button" data-whatsapp ${phone ? '' : 'disabled'}>WhatsApp</button>
+            </div>` : `<p class="dim">Creates a Stripe payment link: ${c.setup ? `${money(c.setup)} setup today, then ` : ''}${money(c.amount)} every ${c.interval}.</p>`}
+          <p class="dim pay-status ${ok ? 'ok' : ''}">${escapeHtml(status)}</p>
+          <div class="dialog-actions">
+            <button type="button" class="ghost" data-cancel>Close</button>
+            ${link ? '<button type="button" data-create>New link</button>' : '<button type="button" class="primary" data-create>Create Stripe link</button>'}
+          </div>`}`;
+    };
+    payDialog.onclick = async e => {
+      const t = e.target.closest('button');
+      if (!t || t.disabled) return;
+      const d = t.dataset;
+      if ('cancel' in d) { payDialog.close(); return renderLive(); }
+      if ('choosePlan' in d) { payDialog.close(); return openPlanDialog(slug); }
+      if ('copy' in d) { await navigator.clipboard.writeText(link); return render('Copied.', true); }
+      if ('create' in d) {
+        render('Creating the link in Stripe…');
+        try {
+          const result = await api(`/api/projects/${slug}/payment-link`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ planName: c.name + (c.booking ? ' + booking form' : ''), setup: c.setup, amount: c.amount, interval: c.interval, key })
+          });
+          link = result.url;
+          rememberProject(result.project);
+          render('Link ready — send it below.', true);
+        } catch (err) {
+          render(friendlyError(err.message));
+        }
+        return;
+      }
+      const url = 'email' in d ? `mailto:${email}?subject=${encodeURIComponent(`Your ${businessName(p)} website — payment link`)}&body=${encodeURIComponent(message())}`
+        : 'sms' in d ? `sms:${phone.replace(/[^\d+]/g, '')}&body=${encodeURIComponent(message())}`
+        : 'whatsapp' in d ? `https://wa.me/${toWhatsAppNumber(phone)}?text=${encodeURIComponent(message())}` : '';
+      if (!url) return;
+      openExternal(url);
+      try { await saveProjectFields(slug, { paymentLink: { ...(projectBySlug(slug)?.paymentLink || {}), sentAt: new Date().toISOString() } }); } catch {}
+      render('Opened — press send there. Click “Mark as paid” once the payment has gone through.', true);
+    };
+    render();
+    payDialog.showModal();
+  }
+
+  // Connect a domain the customer owns: Vercel adds it to their site's
+  // project, then the DNS records shown here go in at their registrar.
+  const domainDialog = document.getElementById('domainDialog');
+  const TWO_PART_SUFFIX = /\.(co|org|me|ltd|plc|net|ac|gov)\.uk$|\.com\.au$|\.co\.nz$|\.co\.za$/;
+  function cleanDomain(text) {
+    const d = String(text || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/[/?#].*$/, '').replace(/^www\./, '');
+    return /^([a-z0-9-]+\.)+[a-z]{2,}$/.test(d) ? d : '';
+  }
+  const isRootDomain = d => d.split('.').length === (TWO_PART_SUFFIX.test(d) ? 3 : 2);
+  const dnsRecords = d => isRootDomain(d)
+    ? [['A', '@', '76.76.21.21'], ['CNAME', 'www', 'cname.vercel-dns.com']]
+    : [['CNAME', d.split('.')[0], 'cname.vercel-dns.com']];
+  function openDomainDialog(slug) {
+    const render = (status = '', ok = false) => {
+      const p = projectBySlug(slug);
+      if (!p) return domainDialog.close();
+      const domain = p.customDomain || '';
+      domainDialog.innerHTML = `
+        <h3>Domain — ${escapeHtml(businessName(p))}</h3>
+        <p class="dim">Use a domain the customer owns (GoDaddy, 123-reg, IONOS, Namecheap…). Studio adds it to their site, then you add the DNS records below wherever the domain was bought.</p>
+        ${state.canDeploy ? '' : '<p class="pay-status">Sign in to Vercel in Settings (⚙) on this computer to connect domains.</p>'}
+        ${p.liveUrl ? '' : '<p class="dim">This site isn’t live yet — click “Make live” on it too, so there’s something to show at the domain.</p>'}
+        <div class="pay-link">
+          <input type="text" id="domainInput" placeholder="theirbusiness.co.uk" value="${escapeAttr(domain)}" ${state.canDeploy ? '' : 'disabled'}>
+          <button type="button" class="primary" data-connect ${state.canDeploy ? '' : 'disabled'}>${domain ? 'Change' : 'Connect'}</button>
+        </div>
+        ${domain ? `
+          <table class="dns-table">
+            <tr><th>Type</th><th>Name / Host</th><th>Value / Points to</th><th></th></tr>
+            ${dnsRecords(domain).map(([type, name, value]) => `<tr><td>${type}</td><td><code>${escapeHtml(name)}</code></td><td><code>${escapeHtml(value)}</code></td><td><button type="button" data-copy="${escapeAttr(value)}">Copy</button></td></tr>`).join('')}
+          </table>
+          <p class="dim">Delete any other A or CNAME records with the same names. It usually works within an hour, occasionally up to 48.</p>` : ''}
+        <p class="dim pay-status ${ok ? 'ok' : ''}">${escapeHtml(status)}</p>
+        <div class="dialog-actions">
+          ${domain ? '<button type="button" class="ghost" data-remove>Remove domain</button><button type="button" data-check>Check DNS</button>' : ''}
+          <button type="button" class="primary" data-done>Done</button>
+        </div>`;
+    };
+    domainDialog.onclick = async e => {
+      const t = e.target.closest('button');
+      if (!t || t.disabled) return;
+      const d = t.dataset;
+      if ('done' in d) { domainDialog.close(); return renderLive(); }
+      if (d.copy) { await navigator.clipboard.writeText(d.copy); return render('Copied.', true); }
+      if ('connect' in d) {
+        const domain = cleanDomain(document.getElementById('domainInput').value);
+        if (!domain) return render('That doesn’t look like a domain — e.g. theirbusiness.co.uk');
+        t.disabled = true;
+        t.textContent = 'Connecting…';
+        try {
+          rememberProject(await api(`/api/projects/${slug}/domain`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ domain, www: isRootDomain(domain) })
+          }));
+          render(`Added ${domain} to the site. Now add these records at the domain’s registrar.`, true);
+        } catch (err) {
+          render(friendlyError(err.message));
+        }
+        return;
+      }
+      if ('check' in d) {
+        t.disabled = true;
+        t.textContent = 'Checking…';
+        try {
+          const r = await api(`/api/projects/${slug}/domain-check`);
+          render(r.ok ? `${r.domain} points to the site ✓ — the secure padlock (SSL) can take a few more minutes.`
+            : `Not pointing at the site yet${r.found ? ` (it currently points to ${r.found})` : ''}. Check the records, or give it a little longer.`, r.ok);
+        } catch (err) {
+          render(friendlyError(err.message));
+        }
+        return;
+      }
+      if ('remove' in d) {
+        const p = projectBySlug(slug);
+        if (!await showConfirm(`Remove ${p.customDomain}?`, 'The site stops showing at this domain. Its Vercel address keeps working.', 'Remove')) return;
+        try {
+          rememberProject(await api(`/api/projects/${slug}/domain`, { method: 'DELETE' }));
+          render('Domain removed.');
+        } catch (err) {
+          render(friendlyError(err.message));
+        }
+      }
+    };
+    render();
+    domainDialog.showModal();
   }
 
   el.liveTotals.addEventListener('click', e => {
@@ -2191,15 +2610,18 @@ document.addEventListener('focusout',e=>{
       return selectProject(btn.dataset.edit);
     }
     if ('cancelAdd' in btn.dataset) { state.liveAdding = false; return renderLive(); }
+    if (btn.dataset.plan) return openPlanDialog(btn.dataset.plan);
+    if (btn.dataset.pay) return openPayDialog(btn.dataset.pay);
+    if (btn.dataset.domain) return openDomainDialog(btn.dataset.domain);
     if (btn.dataset.delete) {
       const p = projectBySlug(btn.dataset.delete);
       return deleteProject(btn.dataset.delete, p ? businessName(p) : btn.dataset.delete);
     }
-    if (btn.dataset.unpay) {
+    if (btn.dataset.status) {
       btn.disabled = true;
       try {
-        // Goes back to wherever it was before (database or calling list).
-        await saveProjectFields(btn.dataset.unpay, { paymentStatus: 'no' });
+        // "no" sends it back to wherever it was before (database or calling list).
+        await saveProjectFields(btn.dataset.slug, { paymentStatus: btn.dataset.status });
         renderLive();
       } catch (err) {
         notify(friendlyError(err.message), { sticky: false });
@@ -2225,15 +2647,15 @@ document.addEventListener('focusout',e=>{
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name })
       });
       const website = String(data.get('website') || '').trim();
+      const paymentStatus = data.get('status') === 'paid' ? 'paid' : 'pending';
       await saveProjectFields(created.slug, {
-        paymentStatus: 'paid',
-        price: String(data.get('price') || '').trim(),
+        paymentStatus,
         contact: { ...(created.contact || {}), existingWebsite: website }
       });
       state.liveAdding = false;
       await loadProjects();
       renderLive();
-      notify(`Added "${name}" as a paying customer.`);
+      notify(`Added "${name}" as ${paymentStatus === 'paid' ? 'a paying' : 'a pending'} customer — choose their plan next.`);
     } catch (err) {
       notify(friendlyError(err.message), { sticky: false });
       submit.disabled = false;

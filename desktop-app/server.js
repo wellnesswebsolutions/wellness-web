@@ -10,7 +10,9 @@ const browserFetch = require('./lib/browser-fetch');
 const businessSearch = require('./lib/business-search');
 const places = require('./lib/places');
 const sync = require('./lib/supabase-sync');
-const { deployToVercel, canDeploy, takeOffline } = require('./lib/deploy');
+const { deployToVercel, canDeploy, resetCanDeploy, takeOffline, addDomain, removeDomain } = require('./lib/deploy');
+const connections = require('./lib/connections');
+const stripe = require('./lib/stripe');
 const { version: APP_VERSION } = require('./package.json');
 
 const PORT = process.env.PORT || 4173;
@@ -272,6 +274,111 @@ function createApp() {
     res.json({ set: Boolean(apiKey) });
   });
 
+  // Everything else Settings lists as connected: the Claude and Vercel
+  // CLIs, the Stripe key and shared sync (read-only — it's built in).
+  app.get('/api/connections', async (req, res) => {
+    const [claude, vercel] = await Promise.all([connections.status('claude'), connections.status('vercel')]);
+    const syncStatus = sync.getStatus();
+    res.json({
+      claude, vercel, stripe: stripe.status(),
+      sync: { installed: true, signedIn: sync.enabled() && syncStatus.state !== 'offline', account: syncStatus.projectUrl ? new URL(syncStatus.projectUrl).host : '', state: syncStatus.state }
+    });
+  });
+
+  app.post('/api/connections/:target/sign-in', (req, res) => {
+    try {
+      connections.signIn(req.params.target);
+      resetCanDeploy();
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/connections/:target/sign-out', async (req, res) => {
+    try {
+      const result = await connections.signOut(req.params.target);
+      resetCanDeploy();
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // The Stripe key itself is never sent back to the page.
+  app.post('/api/stripe-key', async (req, res) => {
+    const apiKey = String(req.body?.apiKey || '').trim();
+    let account = '';
+    if (apiKey) {
+      try {
+        account = await stripe.testKey(apiKey);
+      } catch (err) {
+        return res.status(400).json({ error: `Stripe rejected that key: ${err.message}` });
+      }
+    }
+    stripe.setKey(apiKey, account);
+    res.json(stripe.status());
+  });
+
+  app.post('/api/projects/:slug/payment-link', async (req, res) => {
+    if (!stripe.getKey()) return res.status(400).json({ error: 'Add your Stripe secret key in Settings (⚙) first.' });
+    const project = storage.readProject(req.params.slug);
+    if (!project) return res.status(404).json({ error: 'Not found' });
+    const { planName, setup, amount, interval, key } = req.body || {};
+    try {
+      const url = await stripe.createPaymentLink({
+        business: project.raw?.name || project.name || project.slug, slug: project.slug,
+        planName: String(planName || 'Website'), setup: Number(setup) || 0, amount: Number(amount) || 0,
+        interval: interval === 'year' ? 'year' : 'month'
+      });
+      const saved = storage.saveProject(project.slug, { paymentLink: { url, key: String(key || ''), createdAt: new Date().toISOString() } });
+      sync.pushOne(saved);
+      res.json({ url, project: saved });
+    } catch (err) {
+      res.status(502).json({ error: err.message });
+    }
+  });
+
+  // A customer's own domain on their site (see lib/deploy.js addDomain).
+  app.post('/api/projects/:slug/domain', async (req, res) => {
+    const domain = String(req.body?.domain || '').trim().toLowerCase();
+    if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(domain)) return res.status(400).json({ error: 'That doesn’t look like a domain.' });
+    try {
+      const before = storage.readProject(req.params.slug);
+      if (!before) return res.status(404).json({ error: 'Not found' });
+      if (before.customDomain && before.customDomain !== domain) await removeDomain(before.customDomain);
+      await addDomain(req.params.slug, domain, Boolean(req.body?.www));
+      const saved = storage.saveProject(req.params.slug, { customDomain: domain });
+      sync.pushOne(saved);
+      res.json(saved);
+    } catch (err) {
+      res.status(502).json({ error: err.message === 'vercel-not-found' ? 'Vercel isn’t installed on this computer — see Settings.' : err.message });
+    }
+  });
+
+  app.delete('/api/projects/:slug/domain', async (req, res) => {
+    try {
+      const before = storage.readProject(req.params.slug);
+      if (before?.customDomain) await removeDomain(before.customDomain);
+      const saved = storage.saveProject(req.params.slug, { customDomain: '' });
+      sync.pushOne(saved);
+      res.json(saved);
+    } catch (err) {
+      res.status(502).json({ error: err.message });
+    }
+  });
+
+  // Asks public DNS (not this Mac's cache) whether the domain points at Vercel yet.
+  app.get('/api/projects/:slug/domain-check', async (req, res) => {
+    const domain = storage.readProject(req.params.slug)?.customDomain;
+    if (!domain) return res.status(400).json({ error: 'No domain connected yet.' });
+    const resolver = new (require('dns').promises.Resolver)();
+    resolver.setServers(['1.1.1.1', '8.8.8.8']);
+    const [a, cname] = await Promise.all([resolver.resolve4(domain).catch(() => []), resolver.resolveCname(domain).catch(() => [])]);
+    const ok = a.some(ip => /^(76\.76\.21\.|216\.198\.79\.)/.test(ip)) || cname.some(c => /vercel-dns/i.test(c));
+    res.json({ domain, ok, found: [...cname, ...a].join(', ') });
+  });
+
   // Renderer-side window.open() is blocked by default in Electron (no
   // window-open handler configured), so links like a WhatsApp click-to-chat
   // URL are opened via the main process's shell.openExternal instead —
@@ -279,7 +386,7 @@ function createApp() {
   // normally would.
   app.post('/api/open-external', (req, res) => {
     const url = String(req.body?.url || '');
-    if (!/^(https:\/\/|mailto:)/.test(url)) return res.status(400).json({ error: 'Only https:// or mailto: links can be opened' });
+    if (!/^(https:\/\/|mailto:|sms:)/.test(url)) return res.status(400).json({ error: 'Only https://, mailto: or sms: links can be opened' });
     if (browserFetch.isElectronMain()) require('electron').shell.openExternal(url);
     res.json({ ok: true });
   });
