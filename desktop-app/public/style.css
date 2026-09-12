@@ -422,6 +422,9 @@ dialog .account-row button:disabled { opacity: 0.6; cursor: default; }
 .ai-live-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 6px; }
 .ai-live-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .ai-chip { padding: 3px 9px; border-radius: 999px; background: var(--accent-tint); color: #1d4fb8; font-size: 12px; font-weight: 500; animation: ai-pop 0.3s cubic-bezier(.2,1.4,.4,1); }
+.ai-chip::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: #8b5cf6; }
+.ai-chip.src-google::before { background: #34a853; }
+.ai-chip.src-facebook::before { background: #1877f2; }
 @keyframes ai-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes ai-pop { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: none; } }
 @keyframes ai-shimmer { from { background-position: 100% 0; } to { background-position: -200% 0; } }

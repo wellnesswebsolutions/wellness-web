@@ -141,4 +141,4 @@ async function signInStatus() {
   return { facebook: fbCookies.length > 0, google: googleCookies.length > 0 };
 }
 
-module.exports = { isElectronMain, renderPage, openSignInWindow, signInStatus, signOut, SESSION_PARTITION };
+module.exports = { isElectronMain, renderPage, openSignInWindow, signInStatus, signOut, SESSION_PARTITION, CHROME_UA };

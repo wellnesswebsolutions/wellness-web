@@ -68,7 +68,30 @@ function runClaudeExtract(pageText, urls) {
 
 const SEARCH_RESULT_CAP = 15;
 
-function buildSearchPrompt(query) {
+// With `known` (businesses Google Maps/Facebook already found — see
+// lib/business-search.js), Claude's job becomes filling their missing
+// details and adding only what they missed, not starting from scratch.
+function buildSearchPrompt(query, known = [], room = SEARCH_RESULT_CAP) {
+  if (known.length) {
+    const list = known.map(k =>
+      `- ${k.name}${k.address ? ` (${k.address})` : ''}${k.missing.length ? ` — missing: ${k.missing.join(', ')}` : ''}`
+    ).join('\n');
+    return `These real businesses matching "${query}" were already found on Google Maps and Facebook:\n${list}\n\n` +
+      `Search the web to:\n` +
+      `1. Fill in the missing details for the businesses above (only details you actually confirm — ` +
+      `a Facebook Page URL must be that exact business's page).\n` +
+      (room > 0
+        ? `2. Find up to ${room} OTHER real, currently-trading businesses matching "${query}" that aren't in ` +
+          `the list above. Never invent one.\n\n`
+        : `Don't add any other businesses.\n\n`) +
+      `Reply with ONLY a JSON array, no prose, no markdown fences. For a business from the list, use its name ` +
+      `exactly as written above and include only the fields you found. Each item:\n` +
+      `{"name": "...", "category": "one of: Hair & Beauty, Aesthetics, Health & Wellness, Fitness, ` +
+      `Automotive, Trades, Home & Garden, Food & Drink, Professional Services, Creative, Pets, Other", ` +
+      `"location": "town/area", "phone": "...", "address": "...", "facebookUrl": "...", "instagram": "...", ` +
+      `"email": "...", "website": "...", "mapsUrl": "..."}\n` +
+      `Omit any field you couldn't find — don't fill it with a placeholder. If you find nothing, reply with [].`;
+  }
   return `Search the web to find real, currently-trading local businesses matching this request: ` +
     `"${query}". Only include businesses you can actually confirm exist — never invent one. Find up ` +
     `to ${SEARCH_RESULT_CAP} of them. For each, include a Facebook Page or Google Maps/Business URL ` +
@@ -85,7 +108,8 @@ function extractJsonArray(text) {
   if (!match) throw new Error('No JSON array in Claude response');
   const parsed = JSON.parse(match[0]);
   if (!Array.isArray(parsed)) throw new Error('Expected a JSON array');
-  return parsed.slice(0, SEARCH_RESULT_CAP);
+  // Room for gap-fill entries for every known business plus new ones.
+  return parsed.slice(0, SEARCH_RESULT_CAP * 2);
 }
 
 const SEARCH_TIMEOUT_MS = 6 * 60 * 1000;
@@ -111,10 +135,10 @@ function sourcesFromToolResult(content) {
 // WebSearch (not WebFetch) whitelisted for this invocation. Runs in
 // stream-json mode so `onEvent` can report each step live — searches run,
 // sites read, and business names as Claude writes its answer.
-function runClaudeSearch(query, onEvent = () => {}) {
+function runClaudeSearch(query, onEvent = () => {}, { known = [], room = SEARCH_RESULT_CAP } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn('claude', [
-      '-p', buildSearchPrompt(query),
+      '-p', buildSearchPrompt(query, known, room),
       '--allowedTools', 'WebSearch',
       '--output-format', 'stream-json', '--verbose', '--include-partial-messages'
     ], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });

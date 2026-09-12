@@ -535,7 +535,10 @@
     if (url) return { mode: 'link', url, url2 };
     const words = trimmed.split(/\s+/).filter(Boolean);
     if (!words.length) return { mode: 'empty' };
-    return words.length >= 5 ? { mode: 'search', query: trimmed } : { mode: 'name', name: trimmed };
+    // "hairdressers in Beverley" / "garages near Hull" read as a search even
+    // when short — a business name rarely has "in <place>" in it.
+    const looksLikeSearch = words.length >= 5 || (words.length >= 3 && /\b(in|near|around)\s+\S/i.test(trimmed));
+    return looksLikeSearch ? { mode: 'search', query: trimmed } : { mode: 'name', name: trimmed };
   }
 
   // Shared by the sidebar's build box and the empty-state one on the start
@@ -553,15 +556,18 @@
     btn.onclick = () => runSmartBuild(input, btn, status);
   }
 
-  // Live "what Claude is doing" feed for AI search — the server streams
-  // newline-delimited JSON events (see /api/ai-search) and each one becomes
-  // a step in the panel: searches run, sites read, notes, names found.
+  // Live feed for business search — the server streams newline-delimited
+  // JSON events (see /api/ai-search) and each one becomes a step in the
+  // panel: Google Maps → websites/Facebook → AI, and names as they're found.
   const SEARCH_TIPS = [
     'Checking each business is real before adding it…',
     'Looking through Facebook pages and Google listings…',
     'Cross-checking names, phone numbers and addresses…',
     'Good searches take a couple of minutes — hang tight…'
   ];
+  const STAGE_ICONS = { google: '📍', facebook: '📘', ai: '✨' };
+  const FIELD_LABELS = { phone: 'phone', facebookUrl: 'Facebook', email: 'email', instagram: 'Instagram', website: 'website', address: 'address' };
+  const SOURCE_LABELS = { google: 'Google Maps', facebook: 'Facebook', ai: 'AI' };
 
   async function runAiSearch(query, anchor) {
     const panel = document.createElement('div');
@@ -569,7 +575,7 @@
     panel.innerHTML = `
       <div class="ai-live-head">
         <span class="ai-orb"></span>
-        <span class="ai-live-phase">Starting Claude…</span>
+        <span class="ai-live-phase">Starting the search…</span>
         <span class="ai-live-time">0:00</span>
       </div>
       <div class="ai-live-query">“${escapeHtml(query)}”</div>
@@ -603,9 +609,23 @@
     };
     let searches = 0;
     let found = 0;
+    const chipNames = new Set();
 
     const onEvent = ev => {
-      if (ev.type === 'thinking') {
+      if (ev.type === 'stage') {
+        // Server-built HTML: only fixed wording plus an escaped query.
+        addStep(STAGE_ICONS[ev.stage] || '•', ev.text, ev.muted ? 'muted' : '');
+        phase(ev.text.replace(/<[^>]+>/g, ''));
+      } else if (ev.type === 'progress') {
+        phase(ev.text);
+        lastActivity = Date.now();
+      } else if (ev.type === 'filled') {
+        const fields = (ev.fields || []).map(f => FIELD_LABELS[f] || f).join(', ');
+        addStep('➕', `<b>${escapeHtml(ev.name)}</b> — ${escapeHtml(fields)} <span class="ai-host">${escapeHtml(SOURCE_LABELS[ev.source] || ev.source)}</span>`, 'muted');
+      } else if (ev.type === 'saved') {
+        phase(`Saved ${ev.count} — still filling gaps…`);
+        loadProjects().catch(() => {});
+      } else if (ev.type === 'thinking') {
         phase(searches ? 'Thinking about what it found…' : 'Planning the search…');
         lastActivity = Date.now();
       } else if (ev.type === 'search') {
@@ -619,12 +639,17 @@
       } else if (ev.type === 'note') {
         addStep('💭', escapeHtml(ev.text), 'note');
       } else if (ev.type === 'found') {
+        // Claude re-lists businesses Google already found when filling gaps.
+        const key = ev.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (chipNames.has(key)) return;
+        chipNames.add(key);
         found++;
-        phase(`Writing up the list — ${found} found…`);
+        phase(`${SOURCE_LABELS[ev.source] || 'AI'} — ${found} found…`);
         const box = $('.ai-live-found');
         box.hidden = false;
         const chip = document.createElement('span');
-        chip.className = 'ai-chip';
+        chip.className = `ai-chip src-${ev.source || 'ai'}`;
+        chip.title = `Found via ${SOURCE_LABELS[ev.source] || 'AI'}`;
         chip.textContent = ev.name;
         box.querySelector('.ai-live-chips').appendChild(chip);
         lastActivity = Date.now();
@@ -691,10 +716,11 @@
         if (status) status.textContent = '';
         const result = await runAiSearch(parsed.query, status);
         await loadProjects();
+        const already = result.skipped ? ` (${result.skipped} already in your list)` : '';
         notify(
           result.projects.length
-            ? `Found ${result.projects.length} business${result.projects.length === 1 ? '' : 'es'} — added to the list.`
-            : "Couldn't find any real businesses matching that.",
+            ? `Found ${result.projects.length} business${result.projects.length === 1 ? '' : 'es'} — added to the list${already}.`
+            : result.skipped ? `Nothing new — all ${result.skipped} are already in your list.` : "Couldn't find any real businesses matching that.",
           { sticky: !result.projects.length }
         );
       }

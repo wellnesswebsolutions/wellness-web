@@ -7,6 +7,7 @@ const { scrapeFacebook, parseGoogleMapsUrl } = require('./lib/scrape');
 const { runClaudeEdit } = require('./lib/ai-edit');
 const { runClaudeLookup, runClaudeExtract, runClaudeSearch } = require('./lib/ai-import');
 const browserFetch = require('./lib/browser-fetch');
+const businessSearch = require('./lib/business-search');
 const sync = require('./lib/supabase-sync');
 const { deployToVercel, canDeploy, takeOffline } = require('./lib/deploy');
 const { version: APP_VERSION } = require('./package.json');
@@ -273,36 +274,100 @@ function createApp() {
   });
 
   // Bulk counterpart to quick-import: one free-text request ("hairdressers
-  // in Beverley") becomes several new, uncontacted businesses. Each is
-  // created exactly like a quick-import result (same fields, same
-  // pipelineStage default), just without a lookup — a plain name and,
-  // where found, a phone/address/link to work from.
+  // in Beverley") becomes several new, uncontacted businesses. Google Maps
+  // is the main source, websites/Facebook fill gaps, and Claude fills
+  // what's still missing and adds anything Google didn't list (see
+  // lib/business-search.js). Businesses already in the list are skipped.
   app.post('/api/ai-search', async (req, res) => {
     const query = String(req.body?.query || '').trim();
     if (!query) return res.status(400).json({ error: 'A search query is required' });
-    // Streamed as newline-delimited JSON: progress events while Claude
+    // Streamed as newline-delimited JSON: progress events as each source
     // works, then one final {type:'done'} or {type:'error'} line.
     res.setHeader('Content-Type', 'application/x-ndjson');
     res.setHeader('Cache-Control', 'no-cache');
     const send = obj => res.write(JSON.stringify(obj) + '\n');
+
+    const existing = storage.listProjects();
+    const skip = name => existing.some(p => businessSearch.sameBusiness(p.raw?.name || p.name, name));
+    const location = businessSearch.locationOf(query);
+    const saved = new Map();
+    // Saved as soon as each layer finishes, so a slow or failed AI step
+    // never loses what Google and Facebook already found.
+    const save = biz => {
+      const project = saved.get(biz) || storage.createProject(biz.name);
+      const businessProfile = { ...(project.raw?.businessProfile || {}) };
+      if (biz.address) businessProfile.address = biz.address;
+      if (biz.phone) businessProfile.phone = biz.phone;
+      if (biz.mapsUrl) businessProfile.mapsUrl = biz.mapsUrl;
+      if (biz.hours?.length) businessProfile.hours = biz.hours;
+      const raw = { ...(project.raw || {}), name: biz.name, tagline: biz.category, location: biz.location || location, businessProfile };
+      const contact = {
+        ...project.contact,
+        phone: biz.phone || project.contact?.phone || '',
+        email: biz.email || project.contact?.email || '',
+        instagram: biz.instagram || project.contact?.instagram || '',
+        facebookUrl: biz.facebookUrl || project.contact?.facebookUrl || '',
+        googleUrl: biz.mapsUrl || project.contact?.googleUrl || '',
+        existingWebsite: biz.website || project.contact?.existingWebsite || ''
+      };
+      const next = storage.saveProject(project.slug, {
+        raw,
+        contact,
+        lastImportUrl: biz.facebookUrl || biz.mapsUrl || '',
+        importImages: biz.images?.length ? biz.images : (project.importImages || []),
+        foundVia: biz.sources
+      });
+      sync.pushOne(next);
+      saved.set(biz, next);
+    };
+
     try {
-      const results = await runClaudeSearch(query, send);
-      send({ type: 'saving', count: results.length });
-      const projects = [];
-      for (const data of results) {
-        if (!data?.name) continue;
-        const project = storage.createProject(data.name);
-        const businessProfile = {};
-        if (data.address) businessProfile.address = data.address;
-        if (data.phone) businessProfile.phone = data.phone;
-        if (data.mapsUrl) businessProfile.mapsUrl = data.mapsUrl;
-        const raw = { name: data.name, tagline: data.category, location: data.location, businessProfile };
-        const contact = data.facebookUrl ? { facebookUrl: data.facebookUrl } : undefined;
-        const saved = storage.saveProject(project.slug, { raw, contact, lastImportUrl: data.facebookUrl || data.mapsUrl || '' });
-        sync.pushOne(saved);
-        projects.push(saved);
+      let businesses = [];
+      let skipped = 0;
+      if (browserFetch.isElectronMain()) {
+        try {
+          ({ businesses, skipped } = await businessSearch.searchGoogleMaps(query, send, { skip }));
+          await businessSearch.fillFromFacebook(businesses, send);
+        } catch (err) {
+          console.error('[business-search] Google/Facebook step failed:', err.message);
+          send({ type: 'stage', stage: 'google', muted: true, text: 'Google Maps search failed — asking AI instead' });
+        }
+        businesses.forEach(save);
+        if (businesses.length) send({ type: 'saved', count: businesses.length });
       }
-      send({ type: 'done', projects, query });
+
+      const gaps = businesses.filter(b => businessSearch.missingFields(b).length);
+      const room = Math.max(0, businessSearch.RESULT_CAP - businesses.length);
+      if (gaps.length || room > 0) {
+        send({
+          type: 'stage', stage: 'ai',
+          text: businesses.length
+            ? `Asking AI to fill ${gaps.length} gap${gaps.length === 1 ? '' : 's'}${room ? ' and find any others' : ''}`
+            : 'Asking AI to search the web'
+        });
+        try {
+          const known = businesses.map(b => ({ name: b.name, address: b.address, missing: businessSearch.missingFields(b) }));
+          const aiResults = await runClaudeSearch(query, send, { known, room });
+          const { updated, added } = businessSearch.mergeAiResults(businesses, aiResults, { skip, location });
+          for (const { biz, fields } of updated) {
+            save(biz);
+            send({ type: 'filled', name: biz.name, fields, source: 'ai' });
+          }
+          for (const biz of added) {
+            businesses.push(biz);
+            save(biz);
+          }
+        } catch (err) {
+          if (!businesses.length) throw err;
+          send({
+            type: 'stage', stage: 'ai', muted: true,
+            text: err.message === 'claude-not-found'
+              ? 'AI isn\'t set up — kept what Google & Facebook found'
+              : 'AI step didn\'t finish — kept what Google & Facebook found'
+          });
+        }
+      }
+      send({ type: 'done', projects: [...saved.values()], query, skipped });
     } catch (err) {
       send({ type: 'error', error: err.message === 'claude-not-found' ? 'claude-not-found' : `Search failed: ${err.message}` });
     }
