@@ -45,12 +45,15 @@
   }
 
   // ---------------------------------------------------------------------
-  // Background removal — for logos exported on a flat (usually white)
-  // background rather than already-transparent PNGs. Samples the four
-  // corners to find the background colour, then removes any pixel within
-  // a colour-distance threshold of it, feathering the edge over a couple of
-  // pixels so the cut doesn't look jagged. Leaves already-transparent PNGs
-  // and busy/photographic logos (no consistent corner colour) untouched.
+  // Background removal — for logos exported (or photographed) on a
+  // background rather than already-transparent PNGs. Seeds a flood fill
+  // from every edge pixel and grows it through neighbours that are close
+  // in colour to their immediate neighbour (not to a single fixed
+  // reference colour), so gradients, vignettes and uneven photo lighting
+  // get keyed out the same as a flat scan would — the fill only stops at
+  // a genuine content edge (logo mark vs. backdrop). Leaves already-
+  // transparent PNGs untouched, and backs out if the result doesn't look
+  // like "backdrop plus a mark" (e.g. a busy, full-bleed photo).
   // ---------------------------------------------------------------------
   async function removeBackground(source, opts) {
     const options = opts || {};
@@ -58,28 +61,74 @@
     const canvas = toCanvas(image);
     const ctx = canvas.getContext('2d');
     const { width, height } = canvas;
-    const data = ctx.getImageData(0, 0, width, height);
-    const px = data.data;
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const px = imageData.data;
 
     // Already has real transparency (a proper cut-out was uploaded) — leave it.
     let hasAlpha = false;
     for (let i = 3; i < px.length; i += 4 * 97) { if (px[i] < 250) { hasAlpha = true; break; } }
     if (hasAlpha) return canvas;
 
-    const corner = (x, y) => { const i = (y * width + x) * 4; return [px[i], px[i + 1], px[i + 2]]; };
-    const samples = [corner(0, 0), corner(width - 1, 0), corner(0, height - 1), corner(width - 1, height - 1)];
-    const [r0, g0, b0] = samples[0];
-    const consistent = samples.every(([r, g, b]) => Math.abs(r - r0) + Math.abs(g - g0) + Math.abs(b - b0) < 36);
-    if (!consistent) return canvas; // no reliable flat background to key out
+    const n = width * height;
+    const idx = (x, y) => y * width + x;
+    const colourAt = i => { const p = i * 4; return [px[p], px[p + 1], px[p + 2]]; };
+    const tolerance = Number.isFinite(options.tolerance) ? options.tolerance : 24;
 
-    const threshold = Number.isFinite(options.threshold) ? options.threshold : 42;
-    const feather = Number.isFinite(options.feather) ? options.feather : 28;
-    for (let i = 0; i < px.length; i += 4) {
-      const dist = Math.abs(px[i] - r0) + Math.abs(px[i + 1] - g0) + Math.abs(px[i + 2] - b0);
-      if (dist < threshold) px[i + 3] = 0;
-      else if (dist < threshold + feather) px[i + 3] = Math.round(px[i + 3] * ((dist - threshold) / feather));
+    const bg = new Uint8Array(n);
+    const queued = new Uint8Array(n);
+    const queue = [];
+    const seed = (x, y) => {
+      const i = idx(x, y);
+      if (queued[i]) return;
+      queued[i] = 1; bg[i] = 1;
+      queue.push(i);
+    };
+    for (let x = 0; x < width; x++) { seed(x, 0); seed(x, height - 1); }
+    for (let y = 0; y < height; y++) { seed(0, y); seed(width - 1, y); }
+
+    let head = 0;
+    const maxSteps = n * 4;
+    for (let steps = 0; head < queue.length && steps < maxSteps; steps++) {
+      const i = queue[head++];
+      const x = i % width, y = (i / width) | 0;
+      const [r0, g0, b0] = colourAt(i);
+      const candidates = [];
+      if (x > 0) candidates.push(idx(x - 1, y));
+      if (x < width - 1) candidates.push(idx(x + 1, y));
+      if (y > 0) candidates.push(idx(x, y - 1));
+      if (y < height - 1) candidates.push(idx(x, y + 1));
+      for (const ni of candidates) {
+        if (queued[ni]) continue;
+        const [r1, g1, b1] = colourAt(ni);
+        if (Math.abs(r1 - r0) + Math.abs(g1 - g0) + Math.abs(b1 - b0) < tolerance) {
+          queued[ni] = 1; bg[ni] = 1;
+          queue.push(ni);
+        }
+      }
     }
-    ctx.putImageData(data, 0, 0);
+
+    // A real logo mark should leave a meaningful chunk of the canvas
+    // untouched; if almost everything (or almost nothing) got keyed out,
+    // this probably isn't a "mark on a backdrop" image — leave it alone.
+    let bgCount = 0;
+    for (let i = 0; i < n; i++) bgCount += bg[i];
+    if (bgCount < n * 0.12 || bgCount > n * 0.985) return canvas;
+
+    for (let i = 0; i < n; i++) { if (bg[i]) px[i * 4 + 3] = 0; }
+
+    // Soften the cut edge by one pixel so it doesn't look jagged.
+    const alphaBefore = new Uint8ClampedArray(n);
+    for (let i = 0; i < n; i++) alphaBefore[i] = px[i * 4 + 3];
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const i = idx(x, y);
+        if (bg[i]) continue;
+        const edgeAdjacent = bg[idx(x - 1, y)] || bg[idx(x + 1, y)] || bg[idx(x, y - 1)] || bg[idx(x, y + 1)];
+        if (edgeAdjacent) px[i * 4 + 3] = Math.round(alphaBefore[i] * 0.8);
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
     return canvas;
   }
 

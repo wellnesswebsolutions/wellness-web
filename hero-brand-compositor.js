@@ -865,8 +865,13 @@
     ctx.globalAlpha = scene.opacity;
     ctx.globalCompositeOperation = scene.blend;
     if (settings.logo) {
-      const logo = await loadImage(settings.logo);
-      const fitted = fitInside(logo.naturalWidth, logo.naturalHeight, box.width, box.height);
+      let logo = await loadImage(settings.logo);
+      if (global.LogoPlacement && typeof global.LogoPlacement.removeBackground === 'function') {
+        try { logo = await global.LogoPlacement.removeBackground(logo); } catch (error) { /* fall back to the raw upload */ }
+      }
+      const logoWidth = logo.naturalWidth || logo.width;
+      const logoHeight = logo.naturalHeight || logo.height;
+      const fitted = fitInside(logoWidth, logoHeight, box.width, box.height);
       const layer = makeLogoLayer(logo, fitted.width, fitted.height, lightInk);
       const x = box.x + (box.width - fitted.width) / 2;
       const y = box.y + (box.height - fitted.height) / 2;
