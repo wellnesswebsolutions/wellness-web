@@ -1545,10 +1545,22 @@ window.addEventListener('message',e=>{
     if(h){h.focus();const r=document.createRange();r.selectNodeContents(h);const s=getSelection();s.removeAllRanges();s.addRange(r);}
   }
 });
-document.addEventListener('click',e=>{
+// Buttons and links are for editing, not clicking: swallow real clicks on
+// them before the site's own handlers see them. Header tabs still switch
+// pages, and our own programmatic a.click() (bs-show-page) is let through.
+window.addEventListener('click',e=>{
   const pb=e.target.closest('.bs-page-add');
-  if(pb){e.preventDefault();e.stopPropagation();parent.postMessage({type:'bs-page-add',restore:pb.dataset.restore||''},'*');return;}
-  if(e.target.closest('a,button'))e.preventDefault();
+  if(pb){e.preventDefault();e.stopImmediatePropagation();parent.postMessage({type:'bs-page-add',restore:pb.dataset.restore||''},'*');return;}
+  if(e.target.closest('.bs-tab-bar'))return;
+  const a=e.target.closest('a,button,[role=button],[onclick]');
+  if(!a)return;
+  e.preventDefault();
+  if(e.isTrusted&&!a.matches('a.nav-link[data-nav]'))e.stopImmediatePropagation();
+},true);
+// Space on an editable button would "press" it instead of typing a space.
+document.addEventListener('keydown',e=>{
+  if(e.key!==' '||!e.target.hasAttribute||!e.target.hasAttribute('data-bs-edit')||!e.target.closest('a,button'))return;
+  e.preventDefault();document.execCommand('insertText',false,' ');
 },true);
 document.addEventListener('submit',e=>e.preventDefault(),true);
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.hasAttribute&&e.target.hasAttribute('data-bs-edit')){e.preventDefault();e.target.blur();}});
