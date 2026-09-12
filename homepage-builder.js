@@ -875,6 +875,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <button type="button" data-mobile-swipe="colour" aria-label="Swipe to change colour"><span>C<br>O<br>L<br>O<br>U<br>R</span></button>
       <button type="button" data-mobile-swipe="layout" aria-label="Swipe to change template"><span>T<br>E<br>M<br>P<br>L<br>A<br>T<br>E</span></button>
     </div>
+    <div class="mobile-swipe-zones" aria-label="Swipe the preview to change its style" hidden>
+      <button type="button" data-mobile-swipe="font" aria-label="Swipe left or right to change font"></button>
+      <button type="button" data-mobile-swipe="colour" aria-label="Swipe left or right to change colour"></button>
+      <button type="button" data-mobile-swipe="layout" aria-label="Swipe left or right to change template"></button>
+    </div>
     <div class="mobile-builder-bottom">
       <button type="button" class="mobile-submit" aria-expanded="false">Submit to designer</button>
       <button type="button" class="mobile-edit" aria-pressed="false"><span>✦</span><b>Edit</b></button>
@@ -884,10 +889,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileEdit = mobileActions.querySelector('.mobile-edit');
   const mobileChoices = mobileActions.querySelector('.mobile-send-choices');
   const mobileRail = mobileActions.querySelector('.mobile-swipe-rail');
+  const mobileSwipeZones = mobileActions.querySelector('.mobile-swipe-zones');
 
   function setMobileEditor(open) {
     builderOverlay.classList.toggle('mobile-editor-active', open);
     mobileRail.hidden = !open;
+    mobileSwipeZones.hidden = !open;
     mobileEdit.setAttribute('aria-pressed', String(open));
     mobileEdit.querySelector('span').textContent = open ? '✓' : '✦';
     mobileEdit.querySelector('b').textContent = open ? 'Swipe screen' : 'Edit';
@@ -940,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, []).then(sent => { status.textContent = sent ? 'Your design details have been emailed to Tom.' : 'Email could not be sent. Please try WhatsApp.'; });
     }
   });
-  mobileRail.querySelectorAll('[data-mobile-swipe]').forEach(zone => {
+  mobileActions.querySelectorAll('[data-mobile-swipe]').forEach(zone => {
     let startX = null;
     zone.addEventListener('pointerdown', event => { startX = event.clientX; });
     zone.addEventListener('pointerup', event => {
