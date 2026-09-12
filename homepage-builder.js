@@ -871,18 +871,9 @@ document.addEventListener('DOMContentLoaded', () => {
       <button type="button" data-mobile-send="email">Email</button>
     </div>
     <div class="mobile-swipe-rail" aria-label="Website style controls" hidden>
-      <div class="mobile-swipe-tab">
-        <div class="swipe-dots" data-dots="font"></div>
-        <button type="button" data-mobile-swipe="font" aria-label="Swipe to change font"><span>F<br>O<br>N<br>T</span></button>
-      </div>
-      <div class="mobile-swipe-tab">
-        <div class="swipe-dots" data-dots="colour"></div>
-        <button type="button" data-mobile-swipe="colour" aria-label="Swipe to change colour"><span>C<br>O<br>L<br>O<br>U<br>R</span></button>
-      </div>
-      <div class="mobile-swipe-tab">
-        <div class="swipe-dots" data-dots="layout"></div>
-        <button type="button" data-mobile-swipe="layout" aria-label="Swipe to change template"><span>T<br>E<br>M<br>P<br>L<br>A<br>T<br>E</span></button>
-      </div>
+      <button type="button" data-mobile-swipe="font" aria-label="Swipe to change font"><div class="swipe-dots" data-dots="font"></div><span>F<br>O<br>N<br>T</span></button>
+      <button type="button" data-mobile-swipe="colour" aria-label="Swipe to change colour"><div class="swipe-dots" data-dots="colour"></div><span>C<br>O<br>L<br>O<br>U<br>R</span></button>
+      <button type="button" data-mobile-swipe="layout" aria-label="Swipe to change template"><div class="swipe-dots" data-dots="layout"></div><span>T<br>E<br>M<br>P<br>L<br>A<br>T<br>E</span></button>
     </div>
     <div class="mobile-swipe-zones" aria-label="Swipe the preview to change its style" hidden>
       <button type="button" data-mobile-swipe="font" aria-label="Swipe left or right to change font"></button>
@@ -908,7 +899,11 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileEdit.querySelector('span').textContent = open ? '✓' : '✦';
     mobileEdit.querySelector('b').textContent = open ? 'Swipe screen' : 'Edit';
   }
+  function mobileHaptic() {
+    try { navigator.vibrate?.(8); } catch (err) { /* unsupported */ }
+  }
   function cycleMobileStyle(tool, direction) {
+    mobileHaptic();
     if (tool === 'font') {
       const current = DEMO_FONTS.findIndex(item => item.id === selectedFont);
       selectedFont = DEMO_FONTS[(current + direction + DEMO_FONTS.length) % DEMO_FONTS.length].id;
@@ -1016,7 +1011,7 @@ Colour palette: ${design.palette}`;
     const stepFrom = distance => {
       let remaining = distance;
       while (Math.abs(remaining) >= SWIPE_STEP_PX) {
-        cycleMobileStyle(tool, remaining > 0 ? -1 : 1);
+        cycleMobileStyle(tool, remaining > 0 ? 1 : -1);
         remaining += remaining > 0 ? -SWIPE_STEP_PX : SWIPE_STEP_PX;
       }
       return remaining;
@@ -1061,7 +1056,7 @@ Colour palette: ${design.palette}`;
       if (startX === null) return;
       const totalDelta = event.clientX - startX;
       if (lastStepX === startX && Math.abs(totalDelta) > 18) {
-        cycleMobileStyle(tool, totalDelta > 0 ? -1 : 1);
+        cycleMobileStyle(tool, totalDelta > 0 ? 1 : -1);
       } else if (Math.abs(velocity) > 0.55) {
         // Fast flick: keep flying through options after release, apple-picker style.
         let v = velocity;

@@ -23,25 +23,23 @@
 @media(max-width:900px){
   .builder-overlay .builder-bar-wrap{display:none}
   .mobile-builder-actions{display:block;pointer-events:none}
-  .mobile-builder-bottom{position:fixed;z-index:63;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:10px;pointer-events:auto}
+  .mobile-builder-bottom{position:fixed;z-index:63;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:auto}
   .mobile-builder-bottom button,.mobile-send-choices button{height:48px;border:1px solid rgba(255,255,255,.34);border-radius:999px;padding:0 16px;font:700 12px/1 var(--body);white-space:nowrap;cursor:pointer;backdrop-filter:blur(18px) saturate(1.25);-webkit-backdrop-filter:blur(18px) saturate(1.25);box-shadow:0 9px 25px rgba(6,18,43,.22)}
-  .mobile-submit,.mobile-edit{flex:1 1 0;max-width:184px;min-width:0}
-  .mobile-submit{color:#fff;background:linear-gradient(135deg,#3b8cff,#2867e3);border-color:#79adff!important}
-  .mobile-edit{display:flex;align-items:center;justify-content:center;gap:7px;overflow:hidden;color:#fff;background:rgba(8,21,47,.62);transition:background .2s}
-  .mobile-edit span{font-size:17px}.mobile-edit b{font:inherit;overflow:hidden;text-overflow:ellipsis}
-  .builder-overlay.mobile-editor-active .mobile-edit{background:rgba(8,21,47,.78);border-color:rgba(255,255,255,.54)}
+  .mobile-submit{width:calc(56vw - 16px);max-width:184px;flex:none;color:#fff;background:linear-gradient(135deg,#3b8cff,#2867e3);border-color:#79adff!important}
+  .mobile-edit{width:78px;flex:none;display:flex;align-items:center;justify-content:center;gap:7px;overflow:hidden;color:#fff;background:rgba(8,21,47,.62);transition:width .3s cubic-bezier(.2,.9,.2,1),background .2s}
+  .mobile-edit span{font-size:17px}.mobile-edit b{font:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .builder-overlay.mobile-editor-active .mobile-edit{width:calc(56vw - 16px);max-width:184px;background:rgba(8,21,47,.78);border-color:rgba(255,255,255,.54)}
   .mobile-send-choices{position:fixed;z-index:64;left:14px;bottom:calc(70px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;pointer-events:auto;animation:mobile-send-in .22s ease-out}
   .mobile-send-choices[hidden]{display:none}.mobile-send-choices button{width:calc(56vw - 16px);max-width:184px;color:#fff;background:rgba(8,21,47,.78)}
   .mobile-send-choices button:first-child{background:rgba(37,211,102,.9)}.mobile-send-choices button:first-child:before{content:'◉';margin-right:8px}.mobile-send-choices button:last-child:before{content:'✉';margin-right:8px}
-  .mobile-swipe-rail{position:fixed;z-index:62;top:calc(var(--header-h,75px) + 18px);bottom:76px;left:14px;width:39px;display:flex;flex-direction:column;justify-content:space-between;gap:9px;pointer-events:auto}
+  .mobile-swipe-rail{position:fixed;z-index:62;top:calc(var(--header-h,75px) + 18px);bottom:76px;left:0;width:39px;display:flex;flex-direction:column;justify-content:space-between;gap:9px;pointer-events:auto}
   .mobile-swipe-rail[hidden]{display:none}
-  .mobile-swipe-tab{position:relative;flex:1;display:flex}
-  .mobile-swipe-rail button{flex:1;width:39px;border:1px solid rgba(255,255,255,.36);border-left:0;border-radius:0 14px 14px 0;background:rgba(236,244,255,.32);box-shadow:6px 0 20px rgba(0,0,0,.09),inset -1px 0 rgba(255,255,255,.18);backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px);color:#102039;display:grid;place-items:center;padding:0;font:700 10px/1.95 var(--body);letter-spacing:.08em;text-transform:uppercase;transform:translateX(-108%);transition:transform .45s cubic-bezier(.2,.9,.2,1),background .25s,color .25s}
+  .mobile-swipe-rail button{position:relative;flex:1;width:39px;border:1px solid rgba(255,255,255,.36);border-left:0;border-radius:0 14px 14px 0;background:rgba(236,244,255,.32);box-shadow:6px 0 20px rgba(0,0,0,.09),inset -1px 0 rgba(255,255,255,.18);backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px);color:#102039;display:grid;place-items:center;padding:0 0 0 9px;font:700 10px/1.95 var(--body);letter-spacing:.08em;text-transform:uppercase;transform:translateX(-108%);transition:transform .45s cubic-bezier(.2,.9,.2,1),background .25s,color .25s}
   .mobile-swipe-rail button span{text-align:center}.builder-overlay.mobile-editor-active .mobile-swipe-rail button{transform:none}
-  .swipe-dots{position:absolute;left:-13px;top:0;bottom:0;width:8px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7px 0;pointer-events:none;opacity:0;transition:opacity .25s}
+  .swipe-dots{position:absolute;left:4px;top:8px;bottom:8px;width:5px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;pointer-events:none;opacity:0;transition:opacity .25s}
   .builder-overlay.mobile-editor-active .swipe-dots{opacity:1}
-  .swipe-dots i{width:3px;height:3px;flex:0 0 auto;border-radius:50%;background:rgba(20,30,50,.28);transition:background .15s,width .15s,height .15s}
-  .swipe-dots i.active{width:5px;height:5px;background:#102039}
+  .swipe-dots i{width:3px;height:3px;flex:0 0 auto;border-radius:50%;background:rgba(0,0,0,.16);transition:background .15s,width .15s,height .15s}
+  .swipe-dots i.active{width:4px;height:4px;background:rgba(0,0,0,.62)}
   /* Full-width gesture bands mirror the three labels at the left. They sit
      over the preview only while edit mode is active, so ordinary browsing and
      scrolling stay native the rest of the time. */
@@ -49,6 +47,13 @@
   .mobile-swipe-zones[hidden]{display:none}.mobile-swipe-zones button{border:0;background:transparent;touch-action:none;cursor:ew-resize}
   .mobile-swipe-zones button:focus-visible{outline:3px solid rgba(255,255,255,.85);outline-offset:-5px}
   .mobile-swipe-rail{z-index:62}
+  /* Edit mode hides the app's own header so the live preview reads as a
+     real full-screen phone, not a page inside a page. */
+  body:has(#builderOverlay.mobile-editor-active) .top{transform:translateY(-100%)}
+  .top{transition:transform .3s cubic-bezier(.2,.9,.2,1)}
+  .builder-overlay.mobile-editor-active .builder-preview{top:0}
+  .builder-overlay.mobile-editor-active .mobile-swipe-rail{top:18px}
+  .builder-overlay.mobile-editor-active .mobile-swipe-zones{top:0}
   @keyframes mobile-send-in{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
 }
 @media(prefers-reduced-motion:reduce){.mobile-edit,.mobile-swipe-rail button{transition:none}.mobile-send-choices{animation:none}}
