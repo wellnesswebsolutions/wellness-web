@@ -918,7 +918,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const choicesOpen = !document.querySelector('.mobile-send-choices')?.hidden;
       if (choicesOpen) wakeMobileBar();
       else bar.classList.add('is-idle');
-    }, 2200);
+    }, 1000);
   }
   mobileActions.addEventListener('pointerdown', wakeMobileBar, { passive: true });
   wakeMobileBar();

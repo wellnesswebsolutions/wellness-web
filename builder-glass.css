@@ -27,7 +27,7 @@
   /* Bottom actions ghost out while the preview sits still so the site is easy
      to see, and come straight back on any scroll, swipe or tap. */
   .mobile-builder-bottom{transition:opacity .18s ease-out}
-  .mobile-builder-bottom.is-idle{opacity:.22;transition:opacity .9s ease}
+  .mobile-builder-bottom.is-idle{opacity:.22;transition:opacity .6s ease}
   .mobile-builder-bottom button,.mobile-send-choices button{height:48px;border:1px solid rgba(255,255,255,.34);border-radius:999px;padding:0 16px;font:700 12px/1 var(--body);white-space:nowrap;cursor:pointer;backdrop-filter:blur(18px) saturate(1.25);-webkit-backdrop-filter:blur(18px) saturate(1.25);box-shadow:0 9px 25px rgba(6,18,43,.22)}
   .mobile-submit{width:calc(56vw - 16px);max-width:184px;flex:none;color:#fff;background:linear-gradient(135deg,#3b8cff,#2867e3);border-color:#79adff!important}
   /* Edit is pinned to the right edge (margin-left:auto) and its active width
