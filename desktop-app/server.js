@@ -8,7 +8,7 @@ const { runClaudeEdit } = require('./lib/ai-edit');
 const { runClaudeLookup, runClaudeExtract, runClaudeSearch } = require('./lib/ai-import');
 const browserFetch = require('./lib/browser-fetch');
 const sync = require('./lib/supabase-sync');
-const { deployToVercel } = require('./lib/deploy');
+const { deployToVercel, canDeploy } = require('./lib/deploy');
 const { version: APP_VERSION } = require('./package.json');
 
 const PORT = process.env.PORT || 4173;
@@ -47,6 +47,7 @@ function createApp() {
   });
 
   app.get('/api/sync-status', (req, res) => res.json(sync.getStatus()));
+  app.get('/api/can-deploy', async (req, res) => res.json({ canDeploy: await canDeploy() }));
   app.get('/api/app-info', (req, res) => res.json({ version: APP_VERSION }));
 
   app.post('/api/projects', (req, res) => {
@@ -376,7 +377,7 @@ function createApp() {
     try {
       const outDir = writeExport(req.params.slug, html);
       const url = await deployToVercel(outDir, req.params.slug);
-      const saved = storage.saveProject(req.params.slug, { liveUrl: url });
+      const saved = storage.saveProject(req.params.slug, { liveUrl: url, deployRequestedAt: '', deployError: '' });
       sync.pushOne(saved);
       res.json({ url });
     } catch (err) {

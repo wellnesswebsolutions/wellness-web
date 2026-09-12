@@ -43,4 +43,15 @@ async function deployToVercel(exportDir, slug) {
   throw new Error(lastLine || `vercel deploy exited with code ${deployed.code}`);
 }
 
-module.exports = { deployToVercel, projectNameFor };
+// Whether this computer has the Vercel CLI installed and signed in. Copies
+// without it (colleagues) send "go live" requests instead, which a copy
+// that can deploy picks up — see public/app.js processDeployRequests().
+let canDeployCache = null;
+async function canDeploy() {
+  if (canDeployCache && Date.now() - canDeployCache.at < 10 * 60 * 1000) return canDeployCache.ok;
+  const result = await run('vercel', ['whoami']).catch(() => ({ code: 1 }));
+  canDeployCache = { ok: result.code === 0, at: Date.now() };
+  return canDeployCache.ok;
+}
+
+module.exports = { deployToVercel, projectNameFor, canDeploy };

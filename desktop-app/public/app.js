@@ -2,7 +2,7 @@
   const state = {
     projects: [], current: null, found: {}, search: '',
     viewport: 'desktop', appFullscreen: false, desktopExpanded: true,
-    tab: 'businesses', liveAdding: false
+    tab: 'businesses', liveAdding: false, canDeploy: true
   };
 
   const el = {
@@ -94,7 +94,11 @@
       if (!state.current) return;
       const row = state.projects.find(p => p.slug === state.current.slug);
       if (row && row.updatedAt !== state.current.updatedAt) {
+        const prevError = state.current.deployError;
         replaceCurrent(await api(`/api/projects/${state.current.slug}`));
+        if (state.current.deployError && state.current.deployError !== prevError) {
+          notify(`Couldn’t go live: ${state.current.deployError}`, { sticky: false });
+        }
         renderEditor();
         renderPreview({ seedDeployed: true });
         renderLiveActions();
@@ -346,9 +350,11 @@
     const liveUrl = state.current?.liveUrl;
     const currentHtml = el.preview.dataset.lastHtml;
     const needsUpdate = Boolean(liveUrl) && currentHtml !== state.current?.deployedHtml;
-    el.deployBtn.textContent = !liveUrl ? 'Make live' : needsUpdate ? 'Update live site' : 'Open live site';
+    const waiting = isDeployPending(state.current);
+    el.deployBtn.textContent = waiting ? 'Waiting to go live…' : !liveUrl ? 'Make live' : needsUpdate ? 'Update live site' : 'Open live site';
+    el.deployBtn.title = waiting ? 'Publishes automatically from the admin’s computer' : (state.current?.deployError ? `Last attempt failed: ${state.current.deployError}` : '');
     el.deployBtn.classList.remove('status-not-live', 'status-deploying', 'status-live', 'status-needs-update');
-    el.deployBtn.classList.add(!liveUrl ? 'status-not-live' : needsUpdate ? 'status-needs-update' : 'status-live');
+    el.deployBtn.classList.add(waiting ? 'status-deploying' : !liveUrl ? 'status-not-live' : needsUpdate ? 'status-needs-update' : 'status-live');
     el.copyLiveBtn.hidden = !liveUrl;
     renderSidebar();
   }
@@ -1132,6 +1138,52 @@
     }
   }
 
+  // The exact page that gets deployed for any business — used for the
+  // open project's preview and for publishing teammates' requests.
+  async function buildSiteHtml(project) {
+    const raw = projectMediaAbsolute(project.raw, project.slug);
+    if (!raw.heroImage) {
+      const auto = await composeAutoHero(project.raw, project.slug);
+      if (auto) raw.heroImage = auto;
+    }
+    return applyTextOverrides(buildDemoHTML(raw), project.raw.textOverrides);
+  }
+
+  // A computer that can deploy (Vercel signed in) publishes any site a
+  // teammate asked to go live, then the new live URL syncs back to them.
+  const isDeployPending = p => Boolean(p?.deployRequestedAt);
+  let processingDeploys = false;
+  async function processDeployRequests() {
+    if (!state.canDeploy || !syncEnabled || processingDeploys) return;
+    processingDeploys = true;
+    try {
+      const pending = (await api('/api/projects')).filter(isDeployPending);
+      for (const p of pending) {
+        try {
+          const html = await buildSiteHtml(p);
+          const result = await api(`/api/projects/${p.slug}/deploy`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html })
+          });
+          if (state.current?.slug === p.slug) {
+            Object.assign(state.current, { liveUrl: result.url, deployRequestedAt: '', deployError: '', deployedHtml: html });
+          }
+          notify(`Published “${businessName(p)}” for a teammate — ${result.url}`);
+        } catch (err) {
+          await saveProjectFields(p.slug, { deployRequestedAt: '', deployError: friendlyError(err.message) }).catch(() => {});
+          notify(`Couldn’t publish “${businessName(p)}”: ${friendlyError(err.message)}`, { sticky: false });
+        }
+      }
+      if (pending.length) {
+        state.projects = await api('/api/projects');
+        renderLiveActions();
+      }
+    } catch { /* best-effort — next tick tries again */ } finally {
+      processingDeploys = false;
+    }
+  }
+  api('/api/can-deploy').then(r => { state.canDeploy = r.canDeploy; renderLiveActions(); }).catch(() => {});
+  setInterval(processDeployRequests, 10000);
+
   async function renderPreview(opts = {}) {
     if (!state.current || !state.current.raw?.name) {
       // Nothing to preview yet (e.g. a brand-new blank project) — clear
@@ -1142,14 +1194,10 @@
       renderLiveActions();
       return;
     }
-    const raw = projectMediaAbsolute(state.current.raw, state.current.slug);
-    if (!raw.heroImage) {
-      const auto = await composeAutoHero(state.current.raw, state.current.slug);
-      if (auto) raw.heroImage = auto;
-    }
-    if (state.current !== null && raw.name !== state.current.raw?.name) return; // project switched mid-render
+    const slug = state.current.slug;
     try {
-      const html = applyTextOverrides(buildDemoHTML(raw), state.current.raw.textOverrides);
+      const html = await buildSiteHtml(state.current);
+      if (state.current?.slug !== slug) return; // project switched mid-render
       if (!opts.keepFrame) el.preview.srcdoc = state.editingText ? html + EDIT_SCRIPT : html;
       el.preview.dataset.lastHtml = html;
       // Freshly opening a project: whatever it currently renders is assumed
@@ -1439,6 +1487,16 @@ document.addEventListener('focusout',e=>{
       return openExternal(state.current.liveUrl);
     }
     if (!state.current || !el.preview.dataset.lastHtml) return alert('Nothing to deploy yet.');
+    // No Vercel on this computer: hand it to a copy that has it, via the
+    // shared data (see processDeployRequests below).
+    if (!state.canDeploy) {
+      if (!syncEnabled) return notify('Can’t send this to go live — shared sync is off.', { sticky: false });
+      if (isDeployPending(state.current)) return notify('Already waiting to go live.', { sticky: false });
+      state.current.deployRequestedAt = new Date().toISOString();
+      state.current.deployError = '';
+      await persist();
+      return notify('Sent to go live — it publishes from the admin’s computer while their app is open.');
+    }
     el.deployBtn.disabled = true;
     el.deployBtn.innerHTML = `<span class="status-spinner light"></span>Deploying…`;
     el.deployBtn.classList.remove('status-not-live', 'status-live', 'status-needs-update');
