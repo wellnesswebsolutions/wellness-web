@@ -65,7 +65,9 @@ async function renderPage(url) {
   });
   try {
     win.webContents.setUserAgent(CHROME_UA);
-    await win.loadURL(url);
+    // Some pages never fire their final load event — cap the wait and read
+    // whatever has rendered.
+    await Promise.race([win.loadURL(url).catch(() => {}), new Promise(r => setTimeout(r, 15000))]);
     // let lazy-loaded photos/reviews settle in
     await new Promise(resolve => setTimeout(resolve, 1800));
     const [text, images, title] = await Promise.all([

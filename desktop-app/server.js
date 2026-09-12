@@ -136,7 +136,34 @@ function createApp() {
     }
   });
 
-  const isGoogleUrl = url => /google\.[a-z.]+\/maps|goo\.gl\/maps|maps\.app\.goo\.gl/i.test(url);
+  // A Google link (Maps place, share.google, goo.gl) is read directly as a
+  // Maps listing — see lib/business-search.js's readGooglePlace — which is
+  // fast and structured. Only the other link (Facebook) needs the slower
+  // render-and-extract pipeline below, and Google's data wins where both
+  // have a field.
+  async function lookupBusiness(url, url2) {
+    const urls = [url, url2].filter(Boolean);
+    const gUrl = urls.find(businessSearch.isGoogleLink);
+    let google = null;
+    if (gUrl && browserFetch.isElectronMain()) {
+      google = await businessSearch.readGooglePlace(gUrl).catch(err => {
+        console.error('[import] Google link read failed:', err.message);
+        return null;
+      });
+    }
+    if (!google?.name) return lookupPages(urls);
+    const rest = urls.filter(u => u !== gUrl);
+    if (!rest.length) return { ...google, method: 'google' };
+    const data = await lookupPages(rest).catch(() => ({}));
+    const found = Object.fromEntries(Object.entries(google).filter(([, v]) => Array.isArray(v) ? v.length : v));
+    return {
+      ...data,
+      ...found,
+      about: data.about,
+      images: [...google.images, ...(data.images || [])].slice(0, 8),
+      method: `google+${data.method || 'none'}`
+    };
+  }
 
   // "Paste a link, get a website" — three layers, each falling back to
   // the next:
@@ -151,8 +178,8 @@ function createApp() {
   //     fetching the URL itself (lib/ai-import.js's runClaudeLookup).
   //  3. If Claude Code isn't installed/signed in at all, fall back to a
   //     plain no-API HTTP fetch + Open Graph/JSON-LD parse (lib/scrape.js).
-  async function lookupBusiness(url, url2) {
-    const urls = [url, url2].filter(Boolean);
+  async function lookupPages(urls) {
+    const [url, url2] = urls;
 
     if (browserFetch.isElectronMain() && urls.length) {
       try {
@@ -185,8 +212,8 @@ function createApp() {
       return { ...data, method: 'claude' };
     } catch (err) {
       if (err.message !== 'claude-not-found') console.error('[ai-import] Claude lookup failed, falling back:', err.message);
-      const fbUrl = urls.find(u => !isGoogleUrl(u));
-      const gUrl = urls.find(u => isGoogleUrl(u));
+      const fbUrl = urls.find(u => !businessSearch.isGoogleLink(u));
+      const gUrl = urls.find(businessSearch.isGoogleLink);
       const [fb, g] = await Promise.all([
         fbUrl ? scrapeFacebook(fbUrl).catch(e => ({ error: e.message })) : null,
         gUrl ? Promise.resolve(parseGoogleMapsUrl(gUrl)) : null

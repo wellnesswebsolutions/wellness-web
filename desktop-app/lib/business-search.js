@@ -309,6 +309,110 @@ async function searchGoogleMaps(query, onEvent, { cap = RESULT_CAP, skip = () =>
   return { businesses, skipped };
 }
 
+// ---------- single pasted Google link ----------
+
+// share.google / goo.gl / maps.app.goo.gl links, Maps place URLs, and the
+// Google Search business panels share links now resolve to.
+const GOOGLE_LINK = /(^|\/\/)(www\.)?(share\.google|goo\.gl|maps\.app\.goo\.gl|google\.[a-z.]+\/(maps|search))/i;
+const isGoogleLink = url => GOOGLE_LINK.test(String(url || ''));
+
+async function resolveLink(url) {
+  if (!/share\.google|goo\.gl/i.test(url)) return url;
+  try {
+    // GET, not HEAD — share.google's middle hop only redirects on a GET.
+    const res = await fetch(url, {
+      redirect: 'follow', signal: AbortSignal.timeout(8000),
+      headers: { 'User-Agent': browserFetch.CHROME_UA }
+    });
+    res.body?.cancel().catch(() => {});
+    return res.url || url;
+  } catch {
+    return url;
+  }
+}
+
+// A pasted Google link → one business's details. Share links land on a
+// Google Search panel (behind a consent wall in a fresh session), so rather
+// than render that, its business name goes through Places or Maps — the same
+// fast, structured path the business search uses.
+async function readGooglePlace(url) {
+  const resolved = await resolveLink(url);
+  let query = '';
+  let kgmid = '';
+  try {
+    const u = new URL(resolved);
+    kgmid = u.searchParams.get('kgmid') || '';
+    query = u.searchParams.get('q') || u.searchParams.get('query') ||
+      decodeURIComponent((u.pathname.match(/\/maps\/(?:place|search)\/([^/@]+)/) || [])[1] || '').replace(/\+/g, ' ');
+  } catch { /* unparseable — nothing to look up */ }
+  query = query.trim();
+  const isPlaceUrl = /\/maps\/place\//.test(resolved);
+
+  const key = places.getKey();
+  if (query && key) {
+    try {
+      const [p] = await places.searchText(query, key, 1);
+      if (p && sameBusiness(p.displayName?.text, query)) {
+        const googleCategory = p.primaryTypeDisplayName?.text || '';
+        return {
+          name: p.displayName?.text || '',
+          category: toAppCategory(googleCategory),
+          phone: p.nationalPhoneNumber || p.internationalPhoneNumber || '',
+          address: p.formattedAddress || '',
+          website: p.websiteUri || '',
+          mapsUrl: p.googleMapsUri || '',
+          hours: places.tidyHours(p.regularOpeningHours?.weekdayDescriptions),
+          images: await places.photoUrls(p, key)
+        };
+      }
+    } catch (err) {
+      console.error('[business-search] Places lookup failed:', err.message);
+    }
+  }
+
+  if (!isPlaceUrl && !query) return null;
+  // A name search can show a results list (often led by a different, nearby
+  // business) before jumping to the exact listing, so wait for the listing
+  // carrying the share link's knowledge-graph id — or failing that, one
+  // whose name matches.
+  const want = kgmid ? encodeURIComponent(kgmid) : '';
+  const norm = `s => String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '')`;
+  const FIND_LISTING = `(() => {
+    const norm = ${norm}, want = ${JSON.stringify(want)}, name = norm(${JSON.stringify(query)});
+    const h1 = document.querySelector('h1')?.innerText;
+    if (location.pathname.includes('/place/') && h1 && (want ? location.href.includes(want) : norm(h1) === name)) return location.href;
+    const rows = [...document.querySelectorAll('[role=feed] a[href*="/maps/place/"]')];
+    const row = rows.find(a => want && a.href.includes(want)) || rows.find(a => norm(a.getAttribute('aria-label')) === name);
+    return row ? row.href : '';
+  })()`;
+  const win = openHiddenWindow();
+  try {
+    await go(win, isPlaceUrl ? resolved : `https://www.google.com/maps/search/${encodeURIComponent(query).replace(/%20/g, '+')}`, 1000);
+    await passGoogleConsent(win);
+    if (!isPlaceUrl) {
+      const listing = await waitFor(win, FIND_LISTING, 12000);
+      if (!listing) return null;
+      if (listing !== win.webContents.getURL()) await go(win, listing, 500);
+    }
+    await waitFor(win, `document.querySelector('h1')?.innerText && (document.querySelector('button[data-item-id="address"]') || document.querySelector('button[data-item-id^="phone:tel:"]'))`, 7000);
+    const place = (await js(win, READ_PLACE, {})) || {};
+    if (!place.name) return null;
+    if (query && !sameBusiness(place.name, query) && !(want && win.webContents.getURL().includes(want))) return null;
+    return {
+      name: place.name,
+      category: toAppCategory(place.category),
+      phone: place.phone || '',
+      address: place.address || '',
+      website: place.website && !/google\.com/.test(place.website) ? place.website : '',
+      mapsUrl: win.webContents.getURL().split('?')[0] || mapsUrl,
+      hours: place.hours || [],
+      images: place.images || []
+    };
+  } finally {
+    win.destroy();
+  }
+}
+
 // ---------- 2. Facebook ----------
 
 // Page URLs come as /slug, /p/Name-12345 (newer pages) or /profile.php?id=.
@@ -479,6 +583,6 @@ function mergeAiResults(businesses, aiResults, { cap = RESULT_CAP, skip = () => 
 }
 
 module.exports = {
-  searchGoogleMaps, fillFromFacebook, mergeAiResults, missingFields,
+  searchGoogleMaps, readGooglePlace, isGoogleLink, fillFromFacebook, mergeAiResults, missingFields,
   sameBusiness, cleanQuery, locationOf, FIELD_LABELS, RESULT_CAP
 };

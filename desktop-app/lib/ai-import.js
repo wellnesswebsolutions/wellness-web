@@ -28,6 +28,15 @@ function extractJson(text) {
   return JSON.parse(match[0]);
 }
 
+// A hung `claude -p` would otherwise leave the import spinning forever.
+function killAfter(child, ms, reject) {
+  const t = setTimeout(() => {
+    child.kill();
+    reject(new Error('Claude Code took too long'));
+  }, ms);
+  child.on('close', () => clearTimeout(t));
+}
+
 function buildExtractPrompt(pageText, urls) {
   return `This is the rendered text of ${urls.join(' and ')} — a business's Facebook Page and/or ` +
     `Google Maps listing, already fetched for you (no need to fetch anything yourself). Extract what's ` +
@@ -50,6 +59,7 @@ function runClaudeExtract(pageText, urls) {
       '-p', buildExtractPrompt(pageText, urls),
       '--output-format', 'text'
     ], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
+    killAfter(child, 90 * 1000, reject);
     let out = '';
     let err = '';
     child.stdout.on('data', d => (out += d));
@@ -229,6 +239,7 @@ function runClaudeLookup(url, url2) {
       '--allowedTools', 'WebFetch',
       '--output-format', 'text'
     ], { stdio: ['ignore', 'pipe', 'pipe'], env: spawnEnv() });
+    killAfter(child, 2 * 60 * 1000, reject);
     let out = '';
     let err = '';
     child.stdout.on('data', d => (out += d));

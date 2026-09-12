@@ -1266,8 +1266,9 @@
       state.current.aiFilled = aiFilled;
       state.current.lastImportUrl = url || url2;
       const contact = { ...(state.current.contact || {}) };
-      if (url) contact.facebookUrl = url;
-      if (url2) contact.googleUrl = url2;
+      for (const link of [url, url2].filter(Boolean)) {
+        contact[/share\.google|goo\.gl|google\.[a-z.]+\/(maps|search)/i.test(link) ? 'googleUrl' : 'facebookUrl'] = link;
+      }
       state.current.contact = contact;
       if (data.images?.length) state.found.hero = data.images[0];
       await persist();
