@@ -870,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <button type="button" data-mobile-send="whatsapp">WhatsApp</button>
       <button type="button" data-mobile-send="email">Email</button>
     </div>
-    <div class="mobile-swipe-rail" aria-label="Website style controls" hidden>
+    <div class="mobile-swipe-rail" aria-label="Website style controls" aria-hidden="true" inert>
       <button type="button" data-mobile-swipe="font" aria-label="Swipe to change font"><div class="swipe-dots" data-dots="font"></div><span>F<br>O<br>N<br>T</span></button>
       <button type="button" data-mobile-swipe="colour" aria-label="Swipe to change colour"><div class="swipe-dots" data-dots="colour"></div><span>C<br>O<br>L<br>O<br>U<br>R</span></button>
       <button type="button" data-mobile-swipe="layout" aria-label="Swipe to change template"><div class="swipe-dots" data-dots="layout"></div><span>T<br>E<br>M<br>P<br>L<br>A<br>T<br>E</span></button>
@@ -893,11 +893,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setMobileEditor(open) {
     builderOverlay.classList.toggle('mobile-editor-active', open);
-    mobileRail.hidden = !open;
+    mobileRail.inert = !open;
+    mobileRail.setAttribute('aria-hidden', String(!open));
     mobileSwipeZones.hidden = !open;
     mobileEdit.setAttribute('aria-pressed', String(open));
     mobileEdit.querySelector('span').textContent = open ? '✓' : '✦';
     mobileEdit.querySelector('b').textContent = open ? 'Swipe screen' : 'Edit';
+    // Restart the soft fade on the swapped label.
+    mobileEdit.classList.remove('label-swap');
+    void mobileEdit.offsetWidth;
+    mobileEdit.classList.add('label-swap');
   }
   function mobileHaptic() {
     try { navigator.vibrate?.(8); } catch (err) { /* unsupported */ }
@@ -997,7 +1002,9 @@ Colour palette: ${design.palette}`;
       }, []).then(sent => { status.textContent = sent ? 'Your design details have been emailed to Tom.' : 'Please press Send in your email app to reach Tom.'; });
     }
   });
-  const SWIPE_STEP_PX = 34;
+  // Finger travel per option. Roughly double the old 34px so a slow drag
+  // steps through fonts/colours deliberately rather than skipping several.
+  const SWIPE_STEP_PX = 68;
   mobileActions.querySelectorAll('[data-mobile-swipe]').forEach(zone => {
     let startX = null;
     let startY = null;
@@ -1055,15 +1062,15 @@ Colour palette: ${design.palette}`;
     zone.addEventListener('pointerup', event => {
       if (startX === null) return;
       const totalDelta = event.clientX - startX;
-      if (lastStepX === startX && Math.abs(totalDelta) > 18) {
+      if (lastStepX === startX && Math.abs(totalDelta) > 28) {
         cycleMobileStyle(tool, totalDelta > 0 ? 1 : -1);
-      } else if (Math.abs(velocity) > 0.55) {
+      } else if (Math.abs(velocity) > 0.9) {
         // Fast flick: keep flying through options after release, apple-picker style.
-        let v = velocity;
+        let v = velocity * 0.7;
         let accum = 0;
         const tick = () => {
-          v *= 0.92;
-          if (Math.abs(v) < 0.12) { inertiaFrame = null; return; }
+          v *= 0.88;
+          if (Math.abs(v) < 0.15) { inertiaFrame = null; return; }
           accum += v * 16;
           accum = stepFrom(accum);
           inertiaFrame = requestAnimationFrame(tick);
