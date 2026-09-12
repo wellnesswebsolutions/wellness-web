@@ -64,9 +64,11 @@
   // it's not configured, "disabled" comes back and the indicator just
   // stays hidden, no visual change from before this feature existed.
   const SYNC_LABELS = { synced: 'Synced', syncing: 'Syncing…', offline: 'Offline — changes will sync later' };
+  let syncEnabled = false;
   async function refreshSyncStatus() {
     try {
       const s = await api('/api/sync-status');
+      syncEnabled = s.state !== 'disabled';
       if (s.state === 'disabled') { el.syncStatus.hidden = true; return; }
       el.syncStatus.hidden = false;
       el.syncStatus.className = `sync-status is-${s.state}`;
@@ -76,6 +78,31 @@
   }
   refreshSyncStatus();
   setInterval(refreshSyncStatus, 5000);
+
+  // Live cross-device refresh: if someone else's edit (a colour, brand name,
+  // etc.) lands in shared sync while this project is open here too, pull it
+  // in without waiting for a manual reopen. Skipped whenever a field inside
+  // the editor is focused, so it never clobbers text someone is mid-typing.
+  async function refreshCurrentProjectIfChanged() {
+    if (!syncEnabled) return;
+    if (state.current && el.editor.contains(document.activeElement)) return;
+    try {
+      // /api/projects pulls remote and merges anything newer into local
+      // storage as a side effect — reuse it so this never duplicates that
+      // pull/merge logic, then just re-render from the now-fresh local copy.
+      state.projects = await api('/api/projects');
+      renderSidebar();
+      if (!state.current) return;
+      const row = state.projects.find(p => p.slug === state.current.slug);
+      if (row && row.updatedAt !== state.current.updatedAt) {
+        replaceCurrent(await api(`/api/projects/${state.current.slug}`));
+        renderEditor();
+        renderPreview({ seedDeployed: true });
+        renderLiveActions();
+      }
+    } catch { /* best-effort — next tick tries again */ }
+  }
+  setInterval(refreshCurrentProjectIfChanged, 5000);
 
   let noticeTimer = null;
   function notify(text, opts = {}) {
