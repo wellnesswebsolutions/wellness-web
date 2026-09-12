@@ -211,7 +211,9 @@ dialog .account-row button:disabled { opacity: 0.6; cursor: default; }
 /* No site open — drop the empty preview pane and let the sidebar/start
    screen use the full window instead of staying squeezed into a narrow
    column beside two empty panes. */
-.layout.no-project { grid-template-columns: 280px 1fr; }
+/* Sidebar stays 220px here too, so the Businesses|Live switch is the same
+   size and place in every state (the Live view's copy matches it). */
+.layout.no-project { grid-template-columns: 220px 1fr; }
 .layout.no-project .preview-pane { display: none; }
 /* In-app "full screen" — expand the preview to the whole window instead
    of a real OS-level fullscreen, which felt jarring for a quick preview.
