@@ -1,6 +1,6 @@
 {
   "name": "brightsite-studio",
-  "version": "0.2.15",
+  "version": "0.2.16",
   "private": true,
   "description": "Personal Mac app for building BrightSite demo websites fast from a Facebook/Google Business link",
   "main": "main.js",
@@ -55,13 +55,23 @@
       }
     ],
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.productivity",
       "icon": "public/icon.png",
       "artifactName": "BrightSite-Studio-${version}-${arch}.${ext}"
     },
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "public/icon.png"
     },
     "nsis": {

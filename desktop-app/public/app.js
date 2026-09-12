@@ -325,6 +325,7 @@
   // ---------------- projects ----------------
   async function loadProjects() {
     state.projects = await api('/api/projects');
+    state.projectsLoaded = true;
     renderSidebar();
     refreshSyncStatus();
   }
@@ -381,6 +382,7 @@
   ];
   const CHEVRON = '<svg class="side-chevron" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
   function renderSidebar() {
+    checkNotifications();
     const scrolls = Object.fromEntries([...el.projectList.querySelectorAll('.side-section')]
       .map(s => [s.dataset.section, s.querySelector('.side-section-list').scrollTop]));
     const list = sortedProjects().filter(p => !isPaid(p) && !isPending(p));
@@ -2244,6 +2246,111 @@ document.addEventListener('focusout',e=>{
   const isPending = p => p.paymentStatus === 'pending';
   const websiteOf = p => (p.customDomain ? `https://${p.customDomain}` : '') || p.liveUrl || p.contact?.existingWebsite || '';
 
+  // ---------------- Notifications (bell) ----------------
+  // Major events only — a business added or deleted, going live or offline,
+  // payment status, plan and domain changes. Worked out by diffing each
+  // fresh project list against the last one seen on this computer, so
+  // changes a teammate makes (arriving via shared sync) show up too.
+  // Edits like a title or address never notify.
+  const NOTIF_KEY = 'bs.notifications';
+  const NOTIF_SNAPSHOT_KEY = 'bs.notifSnapshot';
+  const bellBtn = document.getElementById('bellBtn');
+  const bellBadge = document.getElementById('bellBadge');
+  const notifPanel = document.getElementById('notifPanel');
+  const notifList = document.getElementById('notifList');
+  const readStore = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
+  const writeStore = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ } };
+  let notifications = readStore(NOTIF_KEY, []);
+
+  const snapshotOf = p => ({
+    name: businessName(p), pay: p.paymentStatus || 'no', live: Boolean(p.liveUrl),
+    plan: p.plan ? JSON.stringify(p.plan) : '', domain: p.customDomain || ''
+  });
+
+  function checkNotifications() {
+    if (!state.projectsLoaded) return;
+    const now = Object.fromEntries(state.projects.map(p => [p.slug, snapshotOf(p)]));
+    const before = readStore(NOTIF_SNAPSHOT_KEY, null);
+    writeStore(NOTIF_SNAPSHOT_KEY, now);
+    if (!before) return; // first run on this computer — nothing to compare against
+    const found = [];
+    const add = (slug, icon, text) => found.push({ id: `${Date.now()}-${found.length}`, slug, icon, text, at: new Date().toISOString(), read: false });
+    for (const [slug, cur] of Object.entries(now)) {
+      const old = before[slug];
+      const name = `“${cur.name}”`;
+      if (!old) { add(slug, '✨', `${name} was added`); continue; }
+      if (cur.pay !== old.pay) {
+        if (cur.pay === 'paid') add(slug, '💷', `${name} is now paying`);
+        else if (cur.pay === 'pending') add(slug, '⏳', `${name} is now pending payment`);
+        else add(slug, '⚠️', `${name} is no longer ${old.pay === 'paid' ? 'paying' : 'pending'}`);
+      }
+      if (cur.live !== old.live) add(slug, cur.live ? '🚀' : '⏸', cur.live ? `${name} is now live` : `${name} was taken offline`);
+      if (cur.plan && cur.plan !== old.plan) add(slug, '📋', `${name} ${old.plan ? 'changed plan' : 'chose a plan'}: ${planSummary(JSON.parse(cur.plan)) || 'custom'}`);
+      if (cur.domain && cur.domain !== old.domain) add(slug, '🌐', `${name} connected ${cur.domain}`);
+    }
+    for (const [slug, old] of Object.entries(before)) {
+      if (!now[slug]) add(slug, '🗑', `“${old.name}” was deleted`);
+    }
+    if (!found.length) return;
+    notifications = [...found.reverse(), ...notifications].slice(0, 100);
+    writeStore(NOTIF_KEY, notifications);
+    renderNotifications();
+  }
+
+  function timeAgo(iso) {
+    const mins = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `${hrs} hr${hrs === 1 ? '' : 's'} ago`;
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
+
+  function renderNotifications() {
+    const unread = notifications.filter(n => !n.read).length;
+    bellBadge.hidden = !unread;
+    bellBadge.textContent = unread > 9 ? '9+' : String(unread);
+    if (notifPanel.hidden) return;
+    notifList.innerHTML = notifications.length ? notifications.map(n => `
+      <button type="button" class="notif-item ${n.read ? '' : 'unread'}" data-slug="${escapeHtml(n.slug)}">
+        <span class="notif-icon">${n.icon}</span>
+        <span class="notif-text">${escapeHtml(n.text)}<small>${timeAgo(n.at)}</small></span>
+      </button>`).join('') : '<div class="notif-empty">No notifications yet</div>';
+  }
+
+  function closeNotifications() {
+    if (notifPanel.hidden) return;
+    notifPanel.hidden = true;
+    bellBtn.classList.remove('open');
+    notifications = notifications.map(n => ({ ...n, read: true }));
+    writeStore(NOTIF_KEY, notifications);
+    renderNotifications();
+  }
+
+  bellBtn.onclick = e => {
+    e.stopPropagation();
+    if (!notifPanel.hidden) return closeNotifications();
+    notifPanel.hidden = false;
+    bellBtn.classList.add('open');
+    renderNotifications();
+  };
+  document.getElementById('notifClearBtn').onclick = () => {
+    notifications = [];
+    writeStore(NOTIF_KEY, notifications);
+    renderNotifications();
+  };
+  notifList.addEventListener('click', e => {
+    const item = e.target.closest('.notif-item');
+    const p = item && state.projects.find(x => x.slug === item.dataset.slug);
+    if (!p) return;
+    closeNotifications();
+    if (isPaid(p) || isPending(p)) document.querySelector('.tab-switch [data-tab="live"]')?.click();
+    else selectProject(p.slug);
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.notif-wrap')) closeNotifications(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNotifications(); });
+  renderNotifications();
+
   // The plans on brightsite.app/pricing. Pro and Prestige can be paid
   // monthly or yearly; the booking form is a £20/mo add-on on any plan.
   const PLANS = [
@@ -2288,6 +2395,7 @@ document.addEventListener('focusout',e=>{
   function rememberProject(saved) {
     const idx = state.projects.findIndex(p => p.slug === saved.slug);
     if (idx !== -1) state.projects[idx] = saved;
+    checkNotifications();
     // Keep the Businesses tab's in-memory copy in step, so its next save
     // can't overwrite what was just changed here with a stale object.
     if (state.current?.slug === saved.slug) replaceCurrent(saved);
