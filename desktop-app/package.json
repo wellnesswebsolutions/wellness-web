@@ -41,6 +41,7 @@
           "fresh-templates.js",
           "hero-brand-compositor.js",
           "hero-palette.js",
+          "logo-realistic-placement.js",
           "img/**/*"
         ]
       }
