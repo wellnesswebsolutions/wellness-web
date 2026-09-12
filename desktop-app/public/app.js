@@ -1446,12 +1446,21 @@
   const DEVICE_WIDTHS = { desktop: 1440, mobile: 390 };
   const DEVICE_HEIGHTS = { desktop: 900, mobile: 844 };
   let restoreScrollY = null;
+  // In edit mode a re-render (adding, removing or moving a header page)
+  // reopens whichever page you were on instead of dumping you back on
+  // Home — and a brand-new page opens with its title selected to rename.
+  let previewPage = null; // { slug, page }
+  let pendingTitleFocus = null;
   el.preview.onload = () => {
     fitPreviewFrame();
-    if (restoreScrollY !== null) {
+    const page = state.editingText && previewPage?.slug === state.current?.slug && previewPage.page !== 'home' ? previewPage.page : '';
+    if (page) {
+      el.preview.contentWindow?.postMessage({ type: 'bs-show-page', page, focusTitle: pendingTitleFocus === page, scrollY: restoreScrollY || 0 }, '*');
+    } else if (restoreScrollY !== null) {
       el.preview.contentWindow?.scrollTo(0, restoreScrollY);
-      restoreScrollY = null;
     }
+    restoreScrollY = null;
+    pendingTitleFocus = null;
   };
 
   // ---------------- Manual text editing in the preview ----------------
@@ -1465,8 +1474,12 @@
 [data-bs-edit]{outline:1.5px dashed rgba(59,130,246,.45);outline-offset:3px;border-radius:3px;cursor:text;transition:outline-color .15s,background .15s}
 [data-bs-edit]:hover{outline-color:#3B82F6;background:rgba(59,130,246,.06)}
 [data-bs-edit]:focus{outline:2px solid #3B82F6;background:rgba(59,130,246,.08)}
-.bs-page-x{margin-left:-24px;width:16px;height:16px;padding:0;border:0;border-radius:50%;background:#ef4444;color:#fff;font:700 11px/16px -apple-system,sans-serif;cursor:pointer;transform:translateY(-9px)}
-.bs-page-x:hover{background:#dc2626}
+.bs-tab-bar{position:fixed;z-index:2147483647;transform:translateX(-50%);display:flex;gap:2px;padding:3px;border-radius:9px;background:#111827;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.bs-tab-bar::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px}
+.bs-tab-bar button{width:26px;height:24px;padding:0;border:0;border-radius:6px;background:transparent;color:#fff;font:600 15px/24px -apple-system,sans-serif;cursor:pointer}
+.bs-tab-bar button:hover:not(:disabled){background:rgba(255,255,255,.14)}
+.bs-tab-bar button:disabled{opacity:.3;cursor:default}
+.bs-tab-bar .bs-tab-del:hover:not(:disabled){background:#ef4444}
 .bs-page-add{padding:5px 11px;border:1.5px dashed #3B82F6;border-radius:999px;background:rgba(59,130,246,.08);color:#3B82F6;font:600 11px -apple-system,sans-serif;cursor:pointer;white-space:nowrap}
 .bs-page-add:hover{background:rgba(59,130,246,.16)}
 </style><script>(()=>{
@@ -1479,21 +1492,61 @@ document.querySelectorAll('body *').forEach(el=>{
   el.contentEditable='plaintext-only';
   el.dataset.bsFrom=t;
 });
+document.querySelectorAll('a.nav-link[data-nav]').forEach(a=>{a.dataset.bsPage=a.dataset.nav;});
 const nav=document.querySelector('.site-header .nav');
 if(nav){
-  nav.querySelectorAll('a.nav-link[data-nav]').forEach(a=>{
-    if(a.dataset.nav==='home')return;
-    const x=document.createElement('button');x.type='button';x.className='bs-page-x';x.textContent='×';x.title='Remove this page';x.dataset.page=a.dataset.nav;a.after(x);
+  // Hovering a header tab shows a small toolbar under it: move left/right
+  // or remove. Typing on the tab itself renames it.
+  const tabs=[...nav.querySelectorAll('a.nav-link[data-nav]')];
+  const bar=document.createElement('div');bar.className='bs-tab-bar';bar.hidden=true;
+  bar.innerHTML='<button type="button" data-act="left" title="Move left">‹</button><button type="button" data-act="right" title="Move right">›</button><button type="button" data-act="remove" class="bs-tab-del" title="Remove this page">×</button>';
+  document.body.appendChild(bar);
+  let cur=null,hideT=null;
+  const show=a=>{
+    clearTimeout(hideT);
+    if(a.dataset.nav==='home'){bar.hidden=true;return;}
+    cur=a;const i=tabs.indexOf(a);
+    bar.querySelector('[data-act=left]').disabled=i<=1;
+    bar.querySelector('[data-act=right]').disabled=i>=tabs.length-1;
+    const r=a.getBoundingClientRect();bar.hidden=false;bar.style.left=(r.left+r.width/2)+'px';bar.style.top=(r.bottom+8)+'px';
+  };
+  const hide=()=>{clearTimeout(hideT);hideT=setTimeout(()=>{if(!bar.matches(':hover')&&document.activeElement!==cur)bar.hidden=true;},250);};
+  tabs.forEach(a=>{a.addEventListener('mouseenter',()=>show(a));a.addEventListener('focus',()=>show(a));a.addEventListener('mouseleave',hide);a.addEventListener('blur',hide);});
+  bar.addEventListener('mouseleave',hide);
+  bar.addEventListener('mousedown',e=>e.preventDefault());
+  bar.addEventListener('click',e=>{
+    const b=e.target.closest('button');
+    e.preventDefault();e.stopPropagation();
+    if(!b||b.disabled||!cur)return;
+    const id=cur.dataset.nav;
+    if(b.dataset.act==='remove'){parent.postMessage({type:'bs-page-remove',page:id},'*');return;}
+    const order=tabs.map(t=>t.dataset.nav).filter(x=>x!=='home');
+    const i=order.indexOf(id),j=i+(b.dataset.act==='left'?-1:1);
+    if(j<0||j>=order.length)return;
+    [order[i],order[j]]=[order[j],order[i]];
+    parent.postMessage({type:'bs-page-order',order},'*');
   });
   const before=nav.querySelector('a.button');
-  const addBtn=(label,restore)=>{const b=document.createElement('button');b.type='button';b.className='bs-page-add';b.textContent=label;if(restore)b.dataset.restore=restore;nav.insertBefore(b,before);};
+  const addBtn=(label,restore)=>{const b=document.createElement('button');b.type='button';b.className='bs-page-add';b.textContent=label;b.title=restore?'Bring this page back':'Add a new page';if(restore)b.dataset.restore=restore;nav.insertBefore(b,before);};
   const meta=document.querySelector('meta[name="bs-hidden-pages"]');
-  (meta&&meta.content||'').split(',').filter(Boolean).forEach(id=>addBtn('+ '+(id==='services'?meta.dataset.servicesLabel:'Contact'),id));
+  (meta&&meta.content||'').split(',').filter(Boolean).forEach(id=>addBtn('+ '+(id==='services'?meta.dataset.servicesLabel:(meta.dataset.contactLabel||'Contact')),id));
   addBtn('+ Page');
 }
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type!=='bs-show-page')return;
+  const a=document.querySelector('a[data-nav="'+CSS.escape(d.page)+'"]');
+  if(!a)return;
+  a.click();
+  if(d.scrollY)window.scrollTo(0,d.scrollY);
+  if(d.focusTitle){
+    const h=document.querySelector('.page[data-page="'+CSS.escape(d.page)+'"] .page-intro h2[data-bs-edit]');
+    if(h){h.focus();const r=document.createRange();r.selectNodeContents(h);const s=getSelection();s.removeAllRanges();s.addRange(r);}
+  }
+});
 document.addEventListener('click',e=>{
-  const pb=e.target.closest('.bs-page-x,.bs-page-add');
-  if(pb){e.preventDefault();e.stopPropagation();parent.postMessage(pb.classList.contains('bs-page-x')?{type:'bs-page-remove',page:pb.dataset.page}:{type:'bs-page-add',restore:pb.dataset.restore||''},'*');return;}
+  const pb=e.target.closest('.bs-page-add');
+  if(pb){e.preventDefault();e.stopPropagation();parent.postMessage({type:'bs-page-add',restore:pb.dataset.restore||''},'*');return;}
   if(e.target.closest('a,button'))e.preventDefault();
 },true);
 document.addEventListener('submit',e=>e.preventDefault(),true);
@@ -1503,6 +1556,10 @@ document.addEventListener('focusout',e=>{
   if(!el.hasAttribute||!el.hasAttribute('data-bs-edit'))return;
   const to=el.textContent.trim(),from=el.dataset.bsFrom;
   if(!to){el.textContent=from;return;}
+  if(el.dataset.bsPage){
+    if(to!==from){parent.postMessage({type:'bs-page-rename',page:el.dataset.bsPage,to},'*');document.querySelectorAll('a.nav-link[data-bs-page="'+CSS.escape(el.dataset.bsPage)+'"]').forEach(o=>{o.textContent=to;o.dataset.bsFrom=to;});}
+    return;
+  }
   if(to!==from){parent.postMessage({type:'bs-text-edit',from,to},'*');document.querySelectorAll('[data-bs-edit]').forEach(o=>{if(o.dataset.bsFrom===from){if(o!==el)o.textContent=to;o.dataset.bsFrom=to;}});}
 });
 })();<\/script>`;
@@ -1550,18 +1607,48 @@ document.addEventListener('focusout',e=>{
     const raw = state.current.raw || {};
     const hidden = raw.hiddenPages || [];
     const pages = raw.customPages || [];
+    const slug = state.current.slug;
     if (restore) {
       setRaw({ hiddenPages: hidden.filter(id => id !== restore) });
+      previewPage = { slug, page: restore };
     } else if (add) {
       const titles = new Set(pages.map(p => p.title));
       let title = 'New page';
       for (let n = 2; titles.has(title); n++) title = `New page ${n}`;
-      setRaw({ customPages: [...pages, { id: `page-${Date.now().toString(36)}`, title, body: '' }] });
-    } else if (remove === 'services' || remove === 'contact') {
-      setRaw({ hiddenPages: [...new Set([...hidden, remove])] });
+      const id = `page-${Date.now().toString(36)}`;
+      setRaw({ customPages: [...pages, { id, title, body: '' }] });
+      previewPage = { slug, page: id };
+      pendingTitleFocus = id;
     } else if (remove) {
-      setRaw({ customPages: pages.filter(p => p.id !== remove) });
+      const custom = pages.find(p => p.id === remove);
+      if (custom?.body?.trim() && !confirm(`Delete the “${custom.title}” page and everything written on it?`)) return;
+      if (remove === 'services' || remove === 'contact') {
+        // Built-in pages are only hidden — its "+" button in the nav brings it back.
+        setRaw({ hiddenPages: [...new Set([...hidden, remove])] });
+      } else if (custom) {
+        setRaw({ customPages: pages.filter(p => p.id !== remove), pageOrder: (raw.pageOrder || []).filter(id => id !== remove) });
+      }
+      if (previewPage?.page === remove) previewPage = { slug, page: 'home' };
     }
+    refreshAfterPageChange();
+  }
+
+  // Typing on a header tab renames it: custom pages keep their title on the
+  // page record, built-in tabs (Home/Services/Contact) get a label override.
+  // The frame already shows the new name, so it isn't reloaded.
+  function handlePageRename(page, to) {
+    const raw = state.current.raw || {};
+    if ((raw.customPages || []).some(p => p.id === page)) {
+      setRaw({ customPages: raw.customPages.map(p => (p.id === page ? { ...p, title: to } : p)) });
+    } else {
+      setRaw({ pageTitles: { ...(raw.pageTitles || {}), [page]: to } });
+    }
+    renderPreview({ keepFrame: true });
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { saveTimer = null; persist(); }, 500);
+  }
+
+  function refreshAfterPageChange() {
     restoreScrollY = el.preview.contentWindow?.scrollY || 0;
     renderPreview();
     clearTimeout(saveTimer);
@@ -1570,9 +1657,15 @@ document.addEventListener('focusout',e=>{
 
   window.addEventListener('message', e => {
     if (e.source !== el.preview.contentWindow || !state.current) return;
-    if (e.data?.type === 'bs-text-edit') handleTextEdit(String(e.data.from), String(e.data.to));
+    if (e.data?.source === 'ai-demo') previewPage = { slug: state.current.slug, page: String(e.data.path || 'home') };
+    else if (e.data?.type === 'bs-text-edit') handleTextEdit(String(e.data.from), String(e.data.to));
     else if (e.data?.type === 'bs-page-add') handlePageChange({ add: true, restore: String(e.data.restore || '') });
     else if (e.data?.type === 'bs-page-remove') handlePageChange({ remove: String(e.data.page || '') });
+    else if (e.data?.type === 'bs-page-rename') handlePageRename(String(e.data.page || ''), String(e.data.to || '').trim());
+    else if (e.data?.type === 'bs-page-order' && Array.isArray(e.data.order)) {
+      setRaw({ pageOrder: e.data.order.map(String) });
+      refreshAfterPageChange();
+    }
   });
 
   function setTextEditing(on) {
