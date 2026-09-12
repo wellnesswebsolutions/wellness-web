@@ -1319,6 +1319,7 @@
     const withAbsolute = { ...raw };
     if (raw.logoImage) withAbsolute.logo = `${location.origin}/projects/${slug}/${raw.logoImage}`;
     if (raw.heroImage) withAbsolute.heroImage = `${location.origin}/projects/${slug}/${raw.heroImage}`;
+    if (raw.gallery?.length) withAbsolute.gallery = raw.gallery.map(g => `${location.origin}/projects/${slug}/${g}`);
     return withAbsolute;
   }
 
@@ -1360,7 +1361,19 @@
       const auto = await composeAutoHero(project.raw, project.slug);
       if (auto) raw.heroImage = auto;
     }
-    return applyTextOverrides(buildDemoHTML(raw), project.raw.textOverrides);
+    return applyImageOverrides(applyTextOverrides(buildDemoHTML(raw), project.raw.textOverrides), project.raw.imageOverrides, project.slug);
+  }
+
+  // Photos swapped from edit mode that aren't one of the project's own
+  // gallery uploads (Google / demo photos): original src → uploaded file.
+  function applyImageOverrides(html, overrides, slug) {
+    if (!overrides?.length) return html;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const imgs = [...doc.querySelectorAll('img')];
+    for (const { from, to } of overrides) {
+      imgs.forEach(img => { if (img.getAttribute('src') === from) img.setAttribute('src', `${location.origin}/projects/${slug}/${to}`); });
+    }
+    return (/^\s*<!doctype/i.test(html) ? '<!DOCTYPE html>\n' : '') + doc.documentElement.outerHTML;
   }
 
   // A computer that can deploy (Vercel signed in) publishes any site a
@@ -1483,6 +1496,9 @@
 .bs-tab-bar .bs-tab-del:hover:not(:disabled){background:#ef4444}
 .bs-page-add{padding:5px 11px;border:1.5px dashed #3B82F6;border-radius:999px;background:rgba(59,130,246,.08);color:#3B82F6;font:600 11px -apple-system,sans-serif;cursor:pointer;white-space:nowrap}
 .bs-page-add:hover{background:rgba(59,130,246,.16)}
+.bs-img-btn{position:fixed;z-index:2147483647;transform:translateX(-100%);padding:7px 12px;border:0;border-radius:8px;background:#111827;color:#fff;font:600 12px -apple-system,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.3);cursor:pointer}
+.bs-img-btn:hover{background:#3B82F6}
+img[data-bs-src]{outline:1.5px dashed rgba(59,130,246,.45);outline-offset:-2px}
 </style><script>(()=>{
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','IFRAME','TEXTAREA','INPUT','SELECT','OPTION','TITLE']);
 document.querySelectorAll('body *').forEach(el=>{
@@ -1533,6 +1549,23 @@ if(nav){
   (meta&&meta.content||'').split(',').filter(Boolean).forEach(id=>addBtn('+ '+(id==='services'?meta.dataset.servicesLabel:(meta.dataset.contactLabel||'Contact')),id));
   addBtn('+ Page');
 }
+// Hovering any photo shows a "Replace photo" button in its corner.
+// elementsFromPoint finds the photo even under overlaid text (the hero).
+document.querySelectorAll('img').forEach(img=>{if(!img.closest('svg'))img.dataset.bsSrc=img.getAttribute('src')||'';});
+const imgBtn=document.createElement('button');imgBtn.type='button';imgBtn.className='bs-img-btn';imgBtn.textContent='Replace photo';imgBtn.hidden=true;
+document.body.appendChild(imgBtn);
+let curImg=null;
+const placeImgBtn=img=>{const r=img.getBoundingClientRect();imgBtn.style.left=(r.right-12)+'px';imgBtn.style.top=(Math.max(r.top,0)+12)+'px';imgBtn.hidden=false;};
+document.addEventListener('mousemove',e=>{
+  if(e.target===imgBtn)return;
+  const img=document.elementsFromPoint(e.clientX,e.clientY).find(n=>n.tagName==='IMG'&&n.dataset.bsSrc!=null);
+  if(img){curImg=img;placeImgBtn(img);}else{curImg=null;imgBtn.hidden=true;}
+});
+window.addEventListener('scroll',()=>{if(curImg)placeImgBtn(curImg);},{passive:true});
+imgBtn.addEventListener('click',e=>{
+  e.preventDefault();e.stopPropagation();
+  if(curImg)parent.postMessage({type:'bs-img-replace',src:curImg.dataset.bsSrc,hero:curImg.classList.contains('brand-scene')},'*');
+});
 window.addEventListener('message',e=>{
   const d=e.data||{};
   if(d.type!=='bs-show-page')return;
@@ -1551,7 +1584,7 @@ window.addEventListener('message',e=>{
 window.addEventListener('click',e=>{
   const pb=e.target.closest('.bs-page-add');
   if(pb){e.preventDefault();e.stopImmediatePropagation();parent.postMessage({type:'bs-page-add',restore:pb.dataset.restore||''},'*');return;}
-  if(e.target.closest('.bs-tab-bar'))return;
+  if(e.target.closest('.bs-tab-bar,.bs-img-btn'))return;
   const a=e.target.closest('a,button,[role=button],[onclick]');
   if(!a)return;
   e.preventDefault();
@@ -1661,6 +1694,47 @@ document.addEventListener('focusout',e=>{
     saveTimer = setTimeout(() => { saveTimer = null; persist(); }, 500);
   }
 
+  // "Replace photo" in edit mode. The hero photo goes to the Media
+  // section's hero slot; a photo that's one of the project's gallery
+  // uploads is swapped in the gallery; any other (Google / demo) photo is
+  // uploaded and kept as an original-src → file override.
+  const imagePicker = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*', hidden: true });
+  document.body.appendChild(imagePicker);
+  let pendingImage = null;
+  function pickReplacementImage(src, hero) {
+    pendingImage = { src, hero, slug: state.current.slug };
+    imagePicker.value = '';
+    imagePicker.click();
+  }
+  imagePicker.onchange = async () => {
+    const file = imagePicker.files[0], target = pendingImage;
+    pendingImage = null;
+    if (!file || !target || target.slug !== state.current?.slug) return;
+    restoreScrollY = el.preview.contentWindow?.scrollY || 0;
+    try {
+      if (target.hero) return await uploadMedia('hero', file);
+      const form = new FormData();
+      form.append('file', file);
+      const { path } = await api(`/api/projects/${target.slug}/media/gallery`, { method: 'POST', body: form });
+      const raw = state.current.raw || {};
+      const local = rel => `${location.origin}/projects/${target.slug}/${rel}`;
+      const gallery = raw.gallery || [];
+      const list = raw.imageOverrides || [];
+      if (gallery.some(g => local(g) === target.src)) {
+        setRaw({ gallery: gallery.map(g => (local(g) === target.src ? path : g)) });
+      } else if (list.some(o => local(o.to) === target.src)) {
+        setRaw({ imageOverrides: list.map(o => (local(o.to) === target.src ? { ...o, to: path } : o)) });
+      } else {
+        setRaw({ imageOverrides: [...list, { from: target.src, to: path }] });
+      }
+      await persist();
+      renderEditor();
+      schedulePreview();
+    } catch (err) {
+      notify(friendlyError(err.message));
+    }
+  };
+
   function refreshAfterPageChange() {
     restoreScrollY = el.preview.contentWindow?.scrollY || 0;
     renderPreview();
@@ -1675,6 +1749,7 @@ document.addEventListener('focusout',e=>{
     else if (e.data?.type === 'bs-page-add') handlePageChange({ add: true, restore: String(e.data.restore || '') });
     else if (e.data?.type === 'bs-page-remove') handlePageChange({ remove: String(e.data.page || '') });
     else if (e.data?.type === 'bs-page-rename') handlePageRename(String(e.data.page || ''), String(e.data.to || '').trim());
+    else if (e.data?.type === 'bs-img-replace') pickReplacementImage(String(e.data.src || ''), Boolean(e.data.hero));
     else if (e.data?.type === 'bs-page-order' && Array.isArray(e.data.order)) {
       setRaw({ pageOrder: e.data.order.map(String) });
       refreshAfterPageChange();

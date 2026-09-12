@@ -471,7 +471,10 @@ function createApp() {
     const dir = storage.projectDir(slug);
     const outDir = path.join(dir, 'export');
     fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, 'index.html'), html);
+    // The preview points uploaded photos at this local server; the export
+    // ships its own copy of img/, so make those links relative.
+    const local = new RegExp(`https?://(?:localhost|127\\.0\\.0\\.1):\\d+/projects/${slug.replace(/[^\w-]/g, '\\$&')}/`, 'g');
+    fs.writeFileSync(path.join(outDir, 'index.html'), html.replace(local, ''));
     const srcImg = path.join(dir, 'img');
     const outImg = path.join(outDir, 'img');
     if (fs.existsSync(srcImg)) fs.cpSync(srcImg, outImg, { recursive: true });
