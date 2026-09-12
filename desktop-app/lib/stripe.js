@@ -68,6 +68,7 @@ async function createPaymentLink({ business, slug, planName, setup, amount, inte
   }
   if (!prices.length) throw new Error('This plan has nothing to charge.');
   const params = { 'metadata[brightsite_slug]': slug };
+  if (amount > 0) params['subscription_data[metadata][brightsite_slug]'] = slug;
   prices.forEach((price, i) => {
     params[`line_items[${i}][price]`] = price.id;
     params[`line_items[${i}][quantity]`] = '1';
@@ -75,4 +76,34 @@ async function createPaymentLink({ business, slug, planName, setup, amount, inte
   return (await call('payment_links', params)).url;
 }
 
-module.exports = { getKey, setKey, status, testKey, createPaymentLink };
+// Where each customer's subscription stands, keyed by business slug:
+// 'active', 'cancelling' (cancelled, runs until `until`), 'failed' (payment
+// failing) or 'cancelled'. Found through the payment links Studio made
+// (tagged with brightsite_slug) and the checkouts completed on them.
+const BILLING_RANK = { active: 4, cancelling: 3, failed: 2, cancelled: 1 };
+
+function billingOf(sub) {
+  const until = sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : '';
+  if (['active', 'trialing'].includes(sub.status)) return sub.cancel_at_period_end || sub.cancel_at ? { status: 'cancelling', until } : { status: 'active', until: '' };
+  if (['past_due', 'unpaid', 'incomplete'].includes(sub.status)) return { status: 'failed', until: '' };
+  return { status: 'cancelled', until: sub.ended_at ? new Date(sub.ended_at * 1000).toISOString() : '' };
+}
+
+async function billingBySlug() {
+  if (!getKey()) return {};
+  const out = {};
+  const links = (await call('payment_links?limit=100')).data.filter(l => l.metadata?.brightsite_slug);
+  for (const link of links) {
+    const slug = link.metadata.brightsite_slug;
+    const sessions = (await call(`checkout/sessions?payment_link=${link.id}&status=complete&limit=20&expand[]=data.subscription`)).data;
+    for (const session of sessions) {
+      if (!session.subscription || typeof session.subscription !== 'object') continue;
+      const billing = billingOf(session.subscription);
+      // A customer who re-subscribed has an active one alongside the old one.
+      if (!out[slug] || BILLING_RANK[billing.status] > BILLING_RANK[out[slug].status]) out[slug] = billing;
+    }
+  }
+  return out;
+}
+
+module.exports = { getKey, setKey, status, testKey, createPaymentLink, billingBySlug };

@@ -2264,7 +2264,7 @@ document.addEventListener('focusout',e=>{
 
   const snapshotOf = p => ({
     name: businessName(p), pay: p.paymentStatus || 'no', live: Boolean(p.liveUrl),
-    plan: p.plan ? JSON.stringify(p.plan) : '', domain: p.customDomain || ''
+    plan: p.plan ? JSON.stringify(p.plan) : '', domain: p.customDomain || '', bill: p.billing?.status || ''
   });
 
   function checkNotifications() {
@@ -2284,7 +2284,14 @@ document.addEventListener('focusout',e=>{
         else if (cur.pay === 'pending') add(slug, '⏳', `${name} is now pending payment`);
         else add(slug, '⚠️', `${name} is no longer ${old.pay === 'paid' ? 'paying' : 'pending'}`);
       }
-      if (cur.live !== old.live) add(slug, cur.live ? '🚀' : '⏸', cur.live ? `${name} is now live` : `${name} was taken offline`);
+      if (cur.live !== old.live) {
+        const paying = cur.pay === 'paid' || cur.pay === 'pending';
+        add(slug, cur.live ? '🚀' : paying ? '🔴' : '⏸', cur.live ? `${name} is now live` : paying ? `${name}’s site is offline — a paying customer` : `${name} was taken offline`);
+      }
+      if (cur.bill && cur.bill !== (old.bill || '')) {
+        const text = { cancelling: 'cancelled their subscription', failed: 'has a failed payment', cancelled: 'subscription has ended', active: old.bill ? 'subscription is active again' : '' }[cur.bill];
+        if (text) add(slug, cur.bill === 'active' ? '💷' : '🚨', `${name} ${text}`);
+      }
       if (cur.plan && cur.plan !== old.plan) add(slug, '📋', `${name} ${old.plan ? 'changed plan' : 'chose a plan'}: ${planSummary(JSON.parse(cur.plan)) || 'custom'}`);
       if (cur.domain && cur.domain !== old.domain) add(slug, '🌐', `${name} connected ${cur.domain}`);
     }
@@ -2416,47 +2423,77 @@ document.addEventListener('focusout',e=>{
     return state.projects.find(p => p.slug === slug) || null;
   }
 
+  // Which Live-tab section a customer is in. A Stripe subscription that's
+  // cancelled, cancelling or failing is urgent whatever else is set; an
+  // active one (or a manual "Paid" for customers paying another way) is Live.
+  const LAPSED_BILLING = ['cancelling', 'failed', 'cancelled'];
+  const liveSection = p => LAPSED_BILLING.includes(p.billing?.status) ? 'urgent'
+    : (p.billing?.status === 'active' || isPaid(p)) ? 'live' : 'pending';
+  const siteBuiltHere = p => Boolean(p.raw?.name);
+  // Green = live, red = a site built here that isn't up, grey = no site
+  // of ours (e.g. a customer added with their own existing website).
+  const siteState = p => p.liveUrl ? 'up' : siteBuiltHere(p) ? 'down' : 'none';
+
+  function billingNote(p) {
+    const b = p.billing;
+    if (!b) return '';
+    const date = b.until ? new Date(b.until).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+    if (b.status === 'cancelling') return `Cancelled — ends ${date || 'soon'}`;
+    if (b.status === 'failed') return 'Payment failing';
+    if (b.status === 'cancelled') return `Subscription cancelled${date ? ` ${date}` : ''}`;
+    return '';
+  }
+
+  // One compact line per customer: status dot, name, badge, price, site,
+  // then every action.
   function liveRow(p) {
     const c = planCharges(p.plan);
+    const section = liveSection(p);
     const price = c ? planSummary(p.plan) + (c.interval === 'year' ? ` (≈ ${money(monthlyValue(p))}/mo)` : '')
-      : p.price ? `${String(p.price).replace(/^£?/, '£')} /mo` : 'No plan chosen';
+      : p.price ? `${String(p.price).replace(/^£?/, '£')} /mo` : 'No plan';
     const site = websiteOf(p);
     const slug = escapeAttr(p.slug);
+    const dot = siteState(p);
+    const busy = isDeployPending(p) ? 'Waiting to go live…' : isOfflinePending(p) ? 'Going offline…' : '';
+    const badge = section === 'urgent' ? `<span class="crm-stage stage-urgent">${escapeHtml(billingNote(p))}</span>`
+      : section === 'live' ? '<span class="crm-stage stage-paid">Paying</span>' : '<span class="crm-stage stage-pending">Pending</span>';
+    const dotTitle = dot === 'up' ? 'Site is live' : dot === 'down' ? 'Site is offline' : 'No site built in Studio';
     return `
-      <div class="crm-row live-row">
-        <div class="crm-row-main">
-          <span class="crm-name">${escapeHtml(businessName(p))}</span>
-          <span class="crm-stage ${isPaid(p) ? 'stage-paid">Paying' : 'stage-pending">Pending'}</span>
-        </div>
-        <div class="crm-row-meta">
-          <span class="live-price">${escapeHtml(price)}</span>
-          ${site ? `<span class="crm-dim live-url">${escapeHtml(site)}</span>` : '<span class="crm-dim">No website yet</span>'}
-          ${p.paymentLink?.sentAt ? `<span class="crm-dim">Payment link sent ${new Date(p.paymentLink.sentAt).toLocaleDateString('en-GB')}</span>` : ''}
-        </div>
-        ${p.notes ? `<div class="crm-row-note">${escapeHtml(p.notes.trim().replace(/\s+/g, ' '))}</div>` : ''}
+      <div class="crm-row live-row ${section === 'live' && dot === 'down' ? 'is-offline' : ''}" ${p.notes ? `title="${escapeAttr(p.notes.trim())}"` : ''}>
+        <span class="live-dot is-${dot}" title="${dotTitle}"></span>
+        <span class="crm-name">${escapeHtml(businessName(p))}</span>
+        ${badge}
+        <span class="live-price">${escapeHtml(price)}</span>
+        ${site ? `<button type="button" class="live-url" data-open="${escapeAttr(site)}" title="Open ${escapeAttr(site)}">${escapeHtml(site.replace(/^https?:\/\//, ''))}</button>` : '<span class="crm-dim live-url">No website</span>'}
         <div class="crm-row-actions">
-          <button type="button" class="crm-move" data-plan="${slug}">${c ? 'Change plan' : 'Choose plan'}</button>
-          <button type="button" class="crm-move" data-pay="${slug}">Send payment link</button>
-          <button type="button" class="crm-move" data-domain="${slug}">${p.customDomain ? `🌐 ${escapeHtml(p.customDomain)}` : 'Connect domain'}</button>
-          <button type="button" class="crm-move" data-edit="${slug}">Edit website</button>
-          ${site ? `<button type="button" class="crm-move" data-open="${escapeAttr(site)}">Open site ↗</button>` : ''}
-          ${isPaid(p)
-            ? `<button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}">Not paying any more</button>`
-            : `<button type="button" class="crm-move" data-status="paid" data-slug="${slug}">Mark as paid</button>
-               <button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}">Not going ahead</button>`}
+          ${busy ? `<span class="crm-dim live-busy">${busy}</span>`
+            : p.liveUrl ? `<button type="button" class="crm-move crm-move-quiet" data-offline="${slug}">Take offline</button>`
+            : siteBuiltHere(p) ? `<button type="button" class="crm-move live-go" data-golive="${slug}">Make live</button>` : ''}
+          <button type="button" class="crm-move" data-plan="${slug}">${c ? 'Plan' : 'Choose plan'}</button>
+          <button type="button" class="crm-move" data-pay="${slug}">${section === 'urgent' ? 'Resend payment link' : 'Payment link'}</button>
+          <button type="button" class="crm-move" data-domain="${slug}">${p.customDomain ? '🌐 Domain' : 'Domain'}</button>
+          <button type="button" class="crm-move" data-edit="${slug}">Edit</button>
+          ${section === 'pending'
+            ? `<button type="button" class="crm-move" data-status="paid" data-slug="${slug}">Mark paid</button>
+               <button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}">Not going ahead</button>`
+            : `<button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}" title="Takes them off the Live tab">${section === 'urgent' ? 'Remove' : 'Stopped paying'}</button>`}
           <button type="button" class="crm-delete" data-delete="${slug}" title="Delete this customer">✕</button>
         </div>
       </div>`;
   }
 
   function renderLive() {
-    const paying = state.projects.filter(isPaid);
-    const pending = state.projects.filter(isPending);
+    const onTab = state.projects.filter(p => isPaid(p) || isPending(p));
+    const paying = onTab.filter(p => liveSection(p) === 'live');
+    const pending = onTab.filter(p => liveSection(p) === 'pending');
+    const urgent = onTab.filter(p => liveSection(p) === 'urgent');
+    const offline = paying.filter(p => siteState(p) === 'down');
     const sum = list => list.reduce((total, p) => total + monthlyValue(p), 0);
     el.liveTotals.innerHTML = `
       <div class="live-stat"><b>${paying.length}</b><span>paying customer${paying.length === 1 ? '' : 's'}</span></div>
       <div class="live-stat"><b>${money(sum(paying))}</b><span>total monthly value</span></div>
       <div class="live-stat"><b>${pending.length} · ${money(sum(pending))}</b><span>pending /mo</span></div>
+      ${urgent.length ? `<div class="live-stat is-urgent"><b>${urgent.length} · ${money(sum(urgent))}</b><span>at risk /mo</span></div>` : ''}
       <button type="button" class="crm-save live-add-btn" data-add-customer ${state.liveAdding ? 'hidden' : ''}>+ Add customer</button>`;
     const form = state.liveAdding ? `
       <form class="crm-row live-add-form" id="liveAddForm">
@@ -2468,14 +2505,17 @@ document.addEventListener('focusout',e=>{
         <button type="submit" class="crm-save">Add customer</button>
         <button type="button" class="crm-move" data-cancel-add>Cancel</button>
       </form>` : '';
-    const half = (title, list, empty) => `
-      <section class="live-half">
+    const half = (title, list, empty, cls = '') => `
+      <section class="live-half ${cls}">
         <div class="live-half-head">${title} <span class="crm-count">${list.length}</span></div>
         <div class="live-half-list">${list.length ? list.map(liveRow).join('') : `<p class="crm-empty">${empty}</p>`}</div>
       </section>`;
-    el.liveList.innerHTML = form
+    const alert = offline.length ? `
+      <div class="live-alert">⚠️ <span><b>${offline.length} paying customer${offline.length === 1 ? '’s site is' : 's’ sites are'} offline:</b> ${offline.map(p => escapeHtml(businessName(p))).join(', ')} — click “Make live” to put ${offline.length === 1 ? 'it' : 'them'} back up.</span></div>` : '';
+    el.liveList.innerHTML = form + alert
       + half('Pending', pending, 'Nobody pending. Set “Paying?” to Pending on a business in the Businesses tab, or click “+ Add customer”.')
-      + half('Live', paying, 'No paying customers yet. Click “Mark as paid” on a pending customer once they’ve paid.');
+      + half('Live', paying, 'No paying customers yet. They move here automatically once their Stripe subscription is active, or click “Mark paid”.')
+      + (urgent.length ? half('⚠️ Urgent — stopped paying or cancelled', urgent, '', 'is-urgent') : '');
     if (state.liveAdding) el.liveList.querySelector('input[name="name"]').focus();
   }
 
@@ -2705,6 +2745,82 @@ document.addEventListener('focusout',e=>{
     domainDialog.showModal();
   }
 
+  // Make live / Take offline straight from a Live-tab row — the same
+  // deploy the builder does, building the site's HTML without opening it.
+  // Without Vercel on this computer it's handed to the admin's copy.
+  async function goLiveFromList(slug, btn) {
+    const p = projectBySlug(slug);
+    if (!p) return;
+    if (!state.canDeploy) {
+      if (!syncEnabled) return notify('Can’t send this to go live — shared sync is off.', { sticky: false });
+      await saveProjectFields(slug, { deployRequestedAt: new Date().toISOString(), deployError: '' });
+      renderLive();
+      return notify('Sent to go live — it publishes from the admin’s computer while their app is open.');
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="status-spinner light"></span>Going live…';
+    try {
+      const html = await buildSiteHtml(p);
+      const result = await api(`/api/projects/${slug}/deploy`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ html })
+      });
+      rememberProject(await api(`/api/projects/${slug}`));
+      if (state.current?.slug === slug) state.current.deployedHtml = html;
+      notify(`“${businessName(p)}” is live at ${result.url}`);
+    } catch (err) {
+      notify(friendlyError(err.message), { sticky: false });
+    } finally {
+      renderLive();
+      renderLiveActions();
+    }
+  }
+
+  async function takeOfflineFromList(slug, btn) {
+    const p = projectBySlug(slug);
+    if (!p?.liveUrl) return;
+    const ok = await showConfirm(`Take “${businessName(p)}” offline?`,
+      'The live link stops working until you make it live again — it comes back on the same link.', 'Take offline');
+    if (!ok) return;
+    if (!state.canDeploy) {
+      if (!syncEnabled) return notify('Can’t send this — shared sync is off.', { sticky: false });
+      await saveProjectFields(slug, { offlineRequestedAt: new Date().toISOString() });
+      renderLive();
+      return notify('Sent — it goes offline from the admin’s computer while their app is open.');
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="status-spinner"></span>Taking offline…';
+    try {
+      rememberProject(await api(`/api/projects/${slug}/offline`, { method: 'POST' }));
+      if (state.current?.slug === slug) delete state.current.deployedHtml;
+      notify(`“${businessName(p)}” taken offline.`);
+    } catch (err) {
+      notify(friendlyError(err.message), { sticky: false });
+    } finally {
+      renderLive();
+      renderLiveActions();
+    }
+  }
+
+  // Keeps the Live tab honest: asks Stripe where each subscription stands
+  // (only on the computer with the Stripe key — the result syncs to the
+  // rest) and checks each customer's site is actually still up.
+  async function refreshBilling() {
+    try {
+      const r = await api('/api/billing/refresh', { method: 'POST' });
+      if (!r.changed?.length) return;
+      await loadProjects();
+      if (state.tab === 'live') renderLive();
+    } catch { /* Stripe unreachable or no permission — try again later */ }
+  }
+  async function recheckLiveSites() {
+    const sites = state.projects.filter(p => (isPaid(p) || isPending(p)) && p.liveUrl);
+    const results = await Promise.all(sites.map(p => api(`/api/projects/${p.slug}/check-live`, { method: 'POST' }).catch(() => null)));
+    const gone = results.filter(r => r && !r.liveUrl);
+    gone.forEach(rememberProject);
+    if (gone.length && state.tab === 'live') renderLive();
+  }
+  setInterval(() => { refreshBilling(); recheckLiveSites(); }, 5 * 60 * 1000);
+
   el.liveTotals.addEventListener('click', e => {
     if (e.target.closest('[data-add-customer]')) { state.liveAdding = true; renderLive(); }
   });
@@ -2721,6 +2837,8 @@ document.addEventListener('focusout',e=>{
     if (btn.dataset.plan) return openPlanDialog(btn.dataset.plan);
     if (btn.dataset.pay) return openPayDialog(btn.dataset.pay);
     if (btn.dataset.domain) return openDomainDialog(btn.dataset.domain);
+    if (btn.dataset.golive) return goLiveFromList(btn.dataset.golive, btn);
+    if (btn.dataset.offline) return takeOfflineFromList(btn.dataset.offline, btn);
     if (btn.dataset.delete) {
       const p = projectBySlug(btn.dataset.delete);
       return deleteProject(btn.dataset.delete, p ? businessName(p) : btn.dataset.delete);
@@ -2786,6 +2904,8 @@ document.addEventListener('focusout',e=>{
       // that's all about shared status.
       await loadProjects();
       renderLive();
+      refreshBilling();
+      recheckLiveSites();
     } else {
       fitPreviewFrame();
     }

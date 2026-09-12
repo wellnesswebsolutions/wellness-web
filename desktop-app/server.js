@@ -320,6 +320,30 @@ function createApp() {
     res.json(stripe.status());
   });
 
+  // Checks Stripe for each customer's subscription and saves it on their
+  // record (so teammates without the Stripe key see it through sync). An
+  // active subscription always puts the customer on the Live tab as paying.
+  app.post('/api/billing/refresh', async (req, res) => {
+    if (!stripe.getKey()) return res.json({ skipped: true, changed: [] });
+    try {
+      const bySlug = await stripe.billingBySlug();
+      const changed = [];
+      for (const [slug, billing] of Object.entries(bySlug)) {
+        const project = storage.readProject(slug);
+        if (!project) continue;
+        const patch = {};
+        if (project.billing?.status !== billing.status || (project.billing?.until || '') !== billing.until) patch.billing = billing;
+        if (billing.status === 'active' && project.paymentStatus !== 'paid') patch.paymentStatus = 'paid';
+        if (!Object.keys(patch).length) continue;
+        sync.pushOne(storage.saveProject(slug, patch));
+        changed.push(slug);
+      }
+      res.json({ changed });
+    } catch (err) {
+      res.status(502).json({ error: err.message });
+    }
+  });
+
   app.post('/api/projects/:slug/payment-link', async (req, res) => {
     if (!stripe.getKey()) return res.status(400).json({ error: 'Add your Stripe secret key in Settings (⚙) first.' });
     const project = storage.readProject(req.params.slug);
