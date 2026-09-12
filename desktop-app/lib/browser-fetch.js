@@ -30,17 +30,53 @@ const IS_WIN = process.platform === 'win32';
 const CHROME_UA = IS_WIN
   ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
   : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
-// Google cross-checks a Chrome UA against Chromium's client-hint headers
-// and still flags Electron; Firefox sends no client hints, so Google's
-// sign-in accepts it.
-const GOOGLE_SIGNIN_UA = IS_WIN
-  ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0'
-  : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:128.0) Gecko/20100101 Firefox/128.0';
+// Google's sign-in cross-checks the UA string against the Sec-CH-UA client
+// hint headers AND navigator.userAgentData. Electron's hints list only
+// "Chromium" (no "Google Chrome" brand), so any UA — even a Firefox one,
+// which then contradicts the Chromium hints — gets "Couldn't sign you in".
+// Fix: override all three consistently via the DevTools protocol so the
+// window presents as real Google Chrome of the same engine version.
+const CHROME_MAJOR = (process.versions.chrome || '128').split('.')[0];
+const GOOGLE_SIGNIN_UA = CHROME_UA.replace(/Chrome\/[\d.]+/, `Chrome/${CHROME_MAJOR}.0.0.0`);
+const CHROME_UA_METADATA = {
+  brands: [
+    { brand: 'Chromium', version: CHROME_MAJOR },
+    { brand: 'Google Chrome', version: CHROME_MAJOR },
+    { brand: 'Not;A=Brand', version: '24' }
+  ],
+  fullVersionList: [
+    { brand: 'Chromium', version: `${CHROME_MAJOR}.0.0.0` },
+    { brand: 'Google Chrome', version: `${CHROME_MAJOR}.0.0.0` },
+    { brand: 'Not;A=Brand', version: '24.0.0.0' }
+  ],
+  fullVersion: `${CHROME_MAJOR}.0.0.0`,
+  platform: IS_WIN ? 'Windows' : 'macOS',
+  platformVersion: IS_WIN ? '10.0.0' : '14.0.0',
+  architecture: process.arch === 'arm64' ? 'arm' : 'x86',
+  model: '',
+  mobile: false,
+  bitness: '64',
+  wow64: false
+};
+
+function spoofRealChrome(webContents) {
+  try {
+    webContents.debugger.attach('1.3');
+  } catch {
+    return; // already attached — nothing more we can do
+  }
+  webContents.debugger.sendCommand('Network.setUserAgentOverride', {
+    userAgent: GOOGLE_SIGNIN_UA,
+    platform: IS_WIN ? 'Win32' : 'MacIntel',
+    userAgentMetadata: CHROME_UA_METADATA
+  }).catch(() => {});
+}
 
 const SIGN_IN = {
   google: {
     url: 'https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fwww.google.com%2Fmaps',
     userAgent: GOOGLE_SIGNIN_UA,
+    spoofChrome: true,
     cookieDomain: /(^|\.)google\.[a-z.]+$/
   },
   facebook: {
@@ -102,6 +138,7 @@ function openSignInWindow(target) {
     webPreferences: { session: session.fromPartition(SESSION_PARTITION) }
   });
   win.webContents.setUserAgent(cfg.userAgent);
+  if (cfg.spoofChrome) spoofRealChrome(win.webContents);
   win.loadURL(cfg.url);
   const poll = setInterval(async () => {
     const status = await signInStatus().catch(() => ({}));
