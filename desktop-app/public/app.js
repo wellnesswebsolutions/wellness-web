@@ -2,7 +2,7 @@
   const state = {
     projects: [], current: null, found: {}, search: '',
     viewport: 'desktop', appFullscreen: false, desktopExpanded: true,
-    tab: 'businesses', liveAdding: false, canDeploy: true
+    tab: 'businesses', liveAdding: false, canDeploy: true, sideExpanded: null
   };
 
   const el = {
@@ -231,32 +231,45 @@
     return p.liveUrl ? 'live' : 'not-live';
   }
 
-  // Three equal sections: not yet called, waiting on a reply / ring back,
-  // and anything with a site made live from here. The open project's
-  // liveUrl can be newer than the list's copy (just deployed), so it wins.
-  // Paying customers with no site built here stay on the Live tab only.
-  const liveUrlOf = p => (state.current?.slug === p.slug ? state.current.liveUrl : p.liveUrl);
+  // Sections follow the sales Stage only (never whether a demo is live).
+  // Default: the top three share the panel equally and Not interested is
+  // collapsed to its title at the bottom. Clicking any title grows that
+  // section to the full panel (the rest shrink to titles); clicking it
+  // again goes back. Paying customers live on the Live tab instead.
   const SIDE_SECTIONS = [
-    { id: 'red', label: 'Uncontacted', match: p => !liveUrlOf(p) && isUncontacted(p) },
-    { id: 'yellow', label: 'Waiting / ring back', match: p => !liveUrlOf(p) && !isUncontacted(p) },
-    { id: 'green', label: 'Live sites', match: p => Boolean(liveUrlOf(p)) }
+    { id: 'red', label: 'Uncontacted', stages: ['uncontacted'] },
+    { id: 'yellow', label: 'Waiting / ring back', stages: ['called', 'follow_up', 'interested'] },
+    { id: 'green', label: 'Demo sent', stages: ['demo_sent'] },
+    { id: 'grey', label: 'Not interested', stages: ['not_interested'], collapsedByDefault: true }
   ];
+  const CHEVRON = '<svg class="side-chevron" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
   function renderSidebar() {
-    const scrolls = [...el.projectList.querySelectorAll('.side-section-list')].map(n => n.scrollTop);
-    const list = sortedProjects().filter(p => liveUrlOf(p) || !isLivePaying(p));
+    const scrolls = Object.fromEntries([...el.projectList.querySelectorAll('.side-section')]
+      .map(s => [s.dataset.section, s.querySelector('.side-section-list').scrollTop]));
+    const list = sortedProjects().filter(p => !isLivePaying(p));
+    const expanded = state.sideExpanded;
     el.projectList.innerHTML = '';
-    SIDE_SECTIONS.forEach((section, i) => {
-      const items = list.filter(section.match);
+    SIDE_SECTIONS.forEach(section => {
+      const items = list.filter(p => section.stages.includes(stageOf(p)));
+      const open = expanded ? expanded === section.id : !section.collapsedByDefault;
       const box = document.createElement('section');
-      box.className = `side-section side-${section.id}`;
-      box.innerHTML = `<div class="side-section-head"><span>${section.label}</span><b>${items.length}</b></div><div class="side-section-list"></div>`;
+      box.dataset.section = section.id;
+      box.className = `side-section side-${section.id}${open ? '' : ' is-collapsed'}${expanded === section.id ? ' is-expanded' : ''}`;
+      box.innerHTML = `<button type="button" class="side-section-head" title="${expanded === section.id ? 'Back to all sections' : 'Show this section full height'}"><span>${section.label}</span><b>${items.length}</b>${CHEVRON}</button><div class="side-section-list"></div>`;
       const body = box.querySelector('.side-section-list');
       if (items.length) items.forEach(p => body.appendChild(projectRow(p)));
       else body.innerHTML = `<p class="side-empty">${state.search.trim() ? 'No matches' : 'None yet'}</p>`;
       el.projectList.appendChild(box);
-      body.scrollTop = scrolls[i] || 0;
+      body.scrollTop = scrolls[section.id] || 0;
     });
   }
+  el.projectList.addEventListener('click', e => {
+    const head = e.target.closest('.side-section-head');
+    if (!head) return;
+    const id = head.closest('.side-section').dataset.section;
+    state.sideExpanded = state.sideExpanded === id ? null : id;
+    renderSidebar();
+  });
 
   function projectRow(p) {
     const row = document.createElement('div');
@@ -607,11 +620,13 @@
       </div>
       <div class="import-status" id="importStatus"></div>
 
-      <div class="form-grid">
-        <div class="field"><label>Name</label>
+      <div class="form-grid name-row">
+        <div class="field"><label>Business name</label>
           <input id="f_name" value="${escapeAttr(raw.name || '')}"></div>
-        <div class="field"><label>Category</label>
+        <div class="field field-compact"><label>Category</label>
           <select id="f_category">${categoryOptions(raw.tagline)}</select></div>
+        <div class="field"><label>Name</label>
+          <input id="f_contactName" placeholder="Contact’s name" value="${escapeAttr(state.current.contact?.name || '')}"></div>
       </div>
       <div class="phone-row">
         <div class="field"><label>Phone</label>
@@ -670,6 +685,10 @@
     });
     document.getElementById('f_name').oninput = e => { setRaw({ name: e.target.value }); scheduleSave(); };
     document.getElementById('f_category').onchange = e => { setRaw({ tagline: e.target.value }); scheduleSave(); };
+    document.getElementById('f_contactName').oninput = e => {
+      state.current.contact = { ...(state.current.contact || {}), name: e.target.value };
+      scheduleSave();
+    };
     document.getElementById('f_phone').oninput = e => { setRaw({ businessProfile: { ...profile, phone: e.target.value } }); scheduleSave(); };
     document.getElementById('f_email').oninput = e => {
       state.current.contact = { ...(state.current.contact || {}), email: e.target.value };
@@ -1400,9 +1419,11 @@ document.addEventListener('focusout',e=>{
   function welcomeMessage() {
     const name = businessName(state.current);
     const url = state.current?.liveUrl;
+    const firstName = String(state.current?.contact?.name || '').trim().split(/\s+/)[0];
+    const hi = firstName ? `Hi ${firstName}` : 'Hi';
     return url
-      ? `Hi, thanks for chatting with us today! We've put together a website for ${name} — you can take a look here: ${url}\n\nAny questions at all, just let me know.`
-      : `Hi, thanks for chatting with us today! We'd love to help ${name} with a brand new website — any questions at all, just let me know.`;
+      ? `${hi}, thanks for chatting with us today! We've put together a website for ${name} — you can take a look here: ${url}\n\nAny questions at all, just let me know.`
+      : `${hi}, thanks for chatting with us today! We'd love to help ${name} with a brand new website — any questions at all, just let me know.`;
   }
 
   function openWhatsApp(phone) {
@@ -1645,7 +1666,6 @@ document.addEventListener('focusout',e=>{
     const stage = p.pipelineStage;
     return SALES_STAGES.some(([id]) => id === stage) ? stage : 'uncontacted';
   }
-  const isUncontacted = p => stageOf(p) === 'uncontacted';
   const businessName = p => p.raw?.name || p.name || p.slug;
   const phoneOf = p => p.raw?.businessProfile?.phone || p.contact?.phone || '';
   // Paying is what puts a business on the Live tab — with or without a site

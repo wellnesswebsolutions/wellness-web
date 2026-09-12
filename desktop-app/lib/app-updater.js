@@ -13,8 +13,16 @@
 // failure (offline, GitHub down) is logged to <logs>/updates.log and shown on
 // the button, never blocking the app.
 
+//
+// Unsigned Macs: Squirrel.Mac refuses to install without a Developer ID,
+// so instead the app downloads the release's Mac zip itself, checks its
+// sha512 against latest-mac.yml, unpacks it, and on "install" hands off to
+// a tiny detached script that waits for the app to quit, swaps the .app in
+// place and relaunches it. Same loading-screen flow as Windows.
+
 const { app, ipcMain, shell } = require('electron');
-const { spawnSync } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -48,31 +56,109 @@ function isNoReleaseError(err) {
 // the update and reports it ready, then the install silently never happens.
 // So a Mac only downloads and installs itself when that signature is really
 // there; otherwise it points people at the download page instead.
+const appBundlePath = () => path.resolve(process.execPath, '..', '..', '..');
+
 function canInstallUpdates() {
   if (process.platform === 'win32') return true;
   if (process.platform !== 'darwin') return false;
-  const bundle = path.resolve(process.execPath, '..', '..', '..');
-  const res = spawnSync('codesign', ['-dv', '--verbose=2', bundle], { encoding: 'utf8', timeout: 3000 });
+  const res = spawnSync('codesign', ['-dv', '--verbose=2', appBundlePath()], { encoding: 'utf8', timeout: 3000 });
   return /Authority=Developer ID Application/.test(`${res.stdout || ''}${res.stderr || ''}`);
 }
 
-// Where to download the newest version by hand, read from the same
-// app-update.yml electron-updater uses.
-function releasesPageUrl() {
+// An unsigned Mac can still replace its own .app if it's allowed to write
+// where it's installed (e.g. /Applications for an admin user).
+function canSelfReplaceMac() {
+  if (process.platform !== 'darwin') return false;
+  const bundle = appBundlePath();
+  if (!bundle.endsWith('.app')) return false;
+  try {
+    fs.accessSync(path.dirname(bundle), fs.constants.W_OK);
+    fs.accessSync(bundle, fs.constants.W_OK);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+// owner/repo from the same app-update.yml electron-updater uses.
+function releaseRepo() {
   try {
     const yml = fs.readFileSync(path.join(process.resourcesPath, 'app-update.yml'), 'utf8');
     const owner = /^owner:\s*(\S+)/m.exec(yml)?.[1];
     const repo = /^repo:\s*(\S+)/m.exec(yml)?.[1];
-    return owner && repo ? `https://github.com/${owner}/${repo}/releases/latest` : null;
+    return owner && repo ? { owner, repo } : null;
   } catch (_) {
     return null;
   }
 }
 
+// Where to download the newest version by hand.
+function releasesPageUrl() {
+  const r = releaseRepo();
+  return r ? `https://github.com/${r.owner}/${r.repo}/releases/latest` : null;
+}
+
+async function downloadMacUpdate(info, onProgress) {
+  const r = releaseRepo();
+  const file = (info.files || []).find(f => /\.zip$/.test(f.url));
+  if (!r || !file) throw new Error('No Mac download found in the release');
+  const url = /^https:\/\//.test(file.url) ? file.url : `https://github.com/${r.owner}/${r.repo}/releases/download/v${info.version}/${file.url}`;
+  const dir = path.join(app.getPath('temp'), `brightsite-update-${info.version}`);
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  const zipPath = path.join(dir, 'update.zip');
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Update download failed (${res.status})`);
+  const total = Number(res.headers.get('content-length')) || file.size || 0;
+  const hash = crypto.createHash('sha512');
+  const out = fs.createWriteStream(zipPath);
+  let received = 0;
+  for await (const chunk of res.body) {
+    hash.update(chunk);
+    received += chunk.length;
+    if (!out.write(chunk)) await new Promise(resolve => out.once('drain', resolve));
+    if (total) onProgress(Math.min(100, Math.round((received / total) * 100)));
+  }
+  await new Promise((resolve, reject) => out.end(err => (err ? reject(err) : resolve())));
+  if (file.sha512 && hash.digest('base64') !== file.sha512) throw new Error('Downloaded update failed its integrity check');
+
+  const unzip = spawnSync('ditto', ['-x', '-k', zipPath, dir], { encoding: 'utf8' });
+  if (unzip.status !== 0) throw new Error('Could not unpack the update');
+  const newApp = fs.readdirSync(dir).map(n => path.join(dir, n)).find(p => p.endsWith('.app'));
+  if (!newApp) throw new Error('Update didn’t contain the app');
+  return newApp;
+}
+
+// Runs detached after the app quits: swap the .app in place (restoring the
+// old one if the move fails), clear quarantine, relaunch. Paths arrive as
+// arguments, never interpolated into the script.
+const MAC_SWAP_SCRIPT = `
+pid="$1"; old="$2"; new="$3"
+while kill -0 "$pid" 2>/dev/null; do sleep 0.3; done
+rm -rf "$old.previous"
+if mv "$old" "$old.previous"; then
+  if mv "$new" "$old"; then rm -rf "$old.previous"; else mv "$old.previous" "$old"; fi
+fi
+xattr -dr com.apple.quarantine "$old" 2>/dev/null
+open "$old"
+`;
+
+function installMacUpdate(newApp) {
+  spawn('/bin/bash', ['-c', MAC_SWAP_SCRIPT, 'brightsite-swap', String(process.pid), appBundlePath(), newApp], {
+    detached: true,
+    stdio: 'ignore'
+  }).unref();
+  app.quit();
+}
+
 function initAutoUpdates(getWindow) {
   let autoUpdater = null;
   let pendingVersion = null;
-  const canAutoInstall = app.isPackaged ? canInstallUpdates() : false;
+  let macNewApp = null;
+  const signedInstall = app.isPackaged ? canInstallUpdates() : false;
+  const macSelfUpdate = app.isPackaged && !signedInstall && canSelfReplaceMac();
+  const canAutoInstall = signedInstall || macSelfUpdate;
   const downloadUrl = app.isPackaged ? releasesPageUrl() : null;
   // status: dev | idle | checking | downloading | ready | available | up-to-date | error
   // ('available' = newer version out, but this build can't install it itself)
@@ -121,6 +207,14 @@ function initAutoUpdates(getWindow) {
     if (!autoUpdater || !canAutoInstall || state.status !== 'ready') return;
     log('info', `Installing ${state.newVersion} and restarting`);
     setImmediate(() => {
+      if (macSelfUpdate) {
+        try {
+          installMacUpdate(macNewApp);
+        } catch (err) {
+          log('error', 'Mac self-update install failed', err);
+        }
+        return;
+      }
       try {
         // Silent (no Windows installer wizard) and relaunch afterwards.
         autoUpdater.quitAndInstall(true, true);
@@ -146,7 +240,9 @@ function initAutoUpdates(getWindow) {
     return;
   }
 
-  autoUpdater.autoDownload = canAutoInstall;
+  // Unsigned Macs download the zip themselves (downloadMacUpdate) —
+  // letting Squirrel.Mac do it would fail its signature check.
+  autoUpdater.autoDownload = signedInstall;
   autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.logger = {
     info: (...a) => log('info', ...a),
@@ -158,16 +254,30 @@ function initAutoUpdates(getWindow) {
     },
     debug: () => {}
   };
-  if (!canAutoInstall) log('info', 'This build cannot install updates itself (no Developer ID signature) — will point to the download page');
+  if (macSelfUpdate) log('info', 'Unsigned Mac build — will download and swap in updates itself');
+  else if (!canAutoInstall) log('info', 'This build cannot install updates itself — will point to the download page');
 
   autoUpdater.on('checking-for-update', () => {
     if (state.status !== 'ready') setState({ status: 'checking' });
   });
   autoUpdater.on('update-available', (info) => {
     pendingVersion = info.version;
-    if (canAutoInstall) {
+    if (signedInstall) {
       log('info', `Update available: ${info.version}, downloading`);
       setState({ status: 'downloading', newVersion: pendingVersion, percent: 0 });
+    } else if (macSelfUpdate) {
+      log('info', `Update available: ${info.version}, downloading Mac zip`);
+      setState({ status: 'downloading', newVersion: pendingVersion, percent: 0 });
+      downloadMacUpdate(info, percent => setState({ status: 'downloading', newVersion: pendingVersion, percent }))
+        .then(newApp => {
+          macNewApp = newApp;
+          log('info', `Update ${info.version} downloaded and ready`);
+          setState({ status: 'ready', newVersion: info.version });
+        })
+        .catch(err => {
+          log('error', 'Mac update download failed', err);
+          setState({ status: 'error', message: String(err.message || err).slice(0, 200) });
+        });
     } else {
       log('info', `Update available: ${info.version} — manual download`);
       setState({ status: 'available', newVersion: pendingVersion, downloadUrl });
