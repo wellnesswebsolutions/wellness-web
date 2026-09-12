@@ -8,6 +8,7 @@ const { runClaudeEdit } = require('./lib/ai-edit');
 const { runClaudeLookup, runClaudeExtract, runClaudeSearch } = require('./lib/ai-import');
 const browserFetch = require('./lib/browser-fetch');
 const businessSearch = require('./lib/business-search');
+const places = require('./lib/places');
 const sync = require('./lib/supabase-sync');
 const { deployToVercel, canDeploy, takeOffline } = require('./lib/deploy');
 const { version: APP_VERSION } = require('./package.json');
@@ -223,6 +224,25 @@ function createApp() {
   app.get('/api/sign-in-status', async (req, res) => {
     if (!browserFetch.isElectronMain()) return res.json({ facebook: false, google: false });
     res.json(await browserFetch.signInStatus());
+  });
+
+  // Optional Google Places API key (see lib/places.js). The key itself is
+  // never sent back to the page — only whether one is saved.
+  app.get('/api/places-key', (req, res) => {
+    res.json({ set: Boolean(places.getKey()) });
+  });
+
+  app.post('/api/places-key', async (req, res) => {
+    const apiKey = String(req.body?.apiKey || '').trim();
+    if (apiKey) {
+      try {
+        await places.testKey(apiKey);
+      } catch (err) {
+        return res.status(400).json({ error: `Google rejected that key: ${err.message}` });
+      }
+    }
+    places.setKey(apiKey);
+    res.json({ set: Boolean(apiKey) });
   });
 
   // Renderer-side window.open() is blocked by default in Electron (no

@@ -116,7 +116,54 @@
     if (!opts.sticky) noticeTimer = setTimeout(() => (el.notice.hidden = true), 4500);
   }
 
-  el.gearBtn.onclick = () => { el.settingsDialog.showModal(); refreshSignInStatus(); };
+  el.gearBtn.onclick = () => { el.settingsDialog.showModal(); refreshSignInStatus(); refreshPlacesStatus(); };
+
+  // Optional Google Places API key (lib/places.js) — saving tests it first.
+  const placesStatus = document.getElementById('placesStatus');
+  const placesBtn = document.getElementById('placesBtn');
+  const placesForm = document.getElementById('placesForm');
+  const placesInput = document.getElementById('placesKeyInput');
+  const placesSaveBtn = document.getElementById('placesSaveBtn');
+  let placesSet = false;
+  function showPlaces(set) {
+    placesSet = set;
+    placesStatus.textContent = set ? 'Key saved ✓ — used for business search' : 'Not set — using the Maps website';
+    placesStatus.classList.toggle('is-signed-in', set);
+    placesBtn.textContent = set ? 'Remove' : 'Add key';
+    placesBtn.classList.toggle('primary', !set);
+    if (set) placesForm.hidden = true;
+  }
+  async function refreshPlacesStatus() {
+    try { showPlaces((await api('/api/places-key')).set); } catch {}
+  }
+  const savePlacesKey = apiKey => api('/api/places-key', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey })
+  });
+  placesBtn.onclick = async () => {
+    if (!placesSet) {
+      placesForm.hidden = !placesForm.hidden;
+      if (!placesForm.hidden) placesInput.focus();
+      return;
+    }
+    placesBtn.disabled = true;
+    try { showPlaces((await savePlacesKey('')).set); } catch (err) { placesStatus.textContent = err.message; }
+    placesBtn.disabled = false;
+  };
+  placesSaveBtn.onclick = async () => {
+    const key = placesInput.value.trim();
+    if (!key) return;
+    placesSaveBtn.disabled = true;
+    placesStatus.textContent = 'Testing key with Google…';
+    try {
+      showPlaces((await savePlacesKey(key)).set);
+      placesInput.value = '';
+    } catch (err) {
+      placesStatus.textContent = err.message;
+      placesStatus.classList.remove('is-signed-in');
+    }
+    placesSaveBtn.disabled = false;
+  };
+  placesInput.addEventListener('keydown', e => { if (e.key === 'Enter') placesSaveBtn.click(); });
   el.closeSettingsBtn.onclick = () => el.settingsDialog.close();
 
   // Electron's renderer doesn't implement window.prompt()/confirm() (they

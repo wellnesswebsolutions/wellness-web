@@ -126,6 +126,16 @@
     <div class="account-text"><b>Facebook</b><span class="account-status">Checking…</span></div>
     <button type="button" class="primary">Sign in</button>
   </div>
+  <div class="account-row" id="placesRow">
+    <span class="account-icon places" aria-hidden="true">📍</span>
+    <div class="account-text"><b>Google Places API</b><span class="account-status" id="placesStatus">Checking…</span></div>
+    <button type="button" class="primary" id="placesBtn">Add key</button>
+  </div>
+  <div class="places-key-form" id="placesForm" hidden>
+    <input type="text" id="placesKeyInput" placeholder="Paste your Places API key" autocomplete="off" spellcheck="false">
+    <button type="button" class="primary" id="placesSaveBtn">Save</button>
+  </div>
+  <p class="dim" style="margin-top:8px">Optional. With a key, business search uses Google's official Places API (billed to your Google Cloud account) and falls back to the Maps website if it fails.</p>
   <p class="dim" style="margin-top:14px">Edit with AI uses this computer's Claude Code sign-in automatically.</p>
   <div class="dialog-actions"><button id="closeSettingsBtn">Done</button></div>
 </dialog>

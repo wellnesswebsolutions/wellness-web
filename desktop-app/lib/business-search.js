@@ -13,7 +13,11 @@
 //     known, fills the remaining gaps and adds any businesses Google missed.
 //     server.js runs it after 1–2 are saved, so a slow or missing Claude
 //     never loses what Google and Facebook found.
+//
+// With a Google Places API key saved (lib/places.js), step 1 uses Places
+// instead and only falls back to the Maps website if Places fails.
 const browserFetch = require('./browser-fetch');
+const places = require('./places');
 
 const RESULT_CAP = 15;
 const WORKERS = 3;
@@ -208,8 +212,57 @@ async function listGoogleResults(query, onEvent, cap) {
   }
 }
 
+// With a Places API key saved, Places answers the search directly; any
+// failure (bad key, billing off, quota) drops back to the Maps website.
+async function searchGooglePlaces(q, query, onEvent, { cap, skip }) {
+  const key = places.getKey();
+  onEvent({ type: 'stage', stage: 'google', text: `Searching Google Places for <b>${escapeHtml(q)}</b>` });
+  const found = await places.searchText(q, key, cap * 1.5);
+  const fresh = found.filter(p => !skip(p.displayName?.text || ''));
+  const skipped = found.length - fresh.length;
+  const picked = fresh.slice(0, cap);
+  if (!picked.length) {
+    onEvent({ type: 'stage', stage: 'google', muted: true,
+      text: skipped ? `Everything Google Places listed is already in your list (${skipped})` : 'Google Places found nothing for that' });
+    return { businesses: [], skipped };
+  }
+  onEvent({ type: 'stage', stage: 'google', muted: true,
+    text: `Google Places listed ${picked.length}${skipped ? ` new (${skipped} already in your list)` : ''} — fetching photos` });
+  const location = locationOf(query);
+  const businesses = await Promise.all(picked.map(async p => {
+    const googleCategory = p.primaryTypeDisplayName?.text || '';
+    const biz = {
+      name: p.displayName?.text || '',
+      category: toAppCategory(googleCategory),
+      googleCategory,
+      location,
+      phone: p.nationalPhoneNumber || p.internationalPhoneNumber || '',
+      address: p.formattedAddress || '',
+      website: p.websiteUri || '',
+      mapsUrl: p.googleMapsUri || '',
+      hours: places.tidyHours(p.regularOpeningHours?.weekdayDescriptions),
+      images: await places.photoUrls(p, key),
+      rating: p.rating,
+      reviews: p.userRatingCount,
+      sources: ['google']
+    };
+    onEvent({ type: 'found', name: biz.name, source: 'google' });
+    return biz;
+  }));
+  return { businesses: businesses.filter(b => b.name), skipped };
+}
+
 async function searchGoogleMaps(query, onEvent, { cap = RESULT_CAP, skip = () => false } = {}) {
   const q = cleanQuery(query);
+  if (places.getKey()) {
+    try {
+      return await searchGooglePlaces(q, query, onEvent, { cap, skip });
+    } catch (err) {
+      console.error('[business-search] Places failed:', err.message);
+      onEvent({ type: 'stage', stage: 'google', muted: true,
+        text: `Google Places didn't work (${escapeHtml(err.message)}) — reading the Maps website instead` });
+    }
+  }
   onEvent({ type: 'stage', stage: 'google', text: `Searching Google Maps for <b>${escapeHtml(q)}</b>` });
   const listed = await listGoogleResults(q, onEvent, cap);
   const fresh = listed.filter(r => !r.name || !skip(r.name));
