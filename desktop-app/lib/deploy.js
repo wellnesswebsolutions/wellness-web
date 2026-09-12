@@ -7,7 +7,13 @@
 // so re-deploying after an edit updates the SAME live URL
 // (https://brightsite-<slug>.vercel.app) instead of creating a new one
 // every time.
+//
+// Each site also gets <slug>.brightsite.app. brightsite.app itself stays on
+// GitHub Pages; a wildcard record at name.com (*.brightsite.app CNAME
+// cname.vercel-dns.com) sends every subdomain to Vercel. Until that record
+// exists the site just keeps its vercel.app address, so nothing breaks.
 const { spawn } = require('child_process');
+const dns = require('dns').promises;
 const { spawnEnv } = require('./shell-path');
 
 function projectNameFor(slug) {
@@ -37,10 +43,36 @@ async function deployToVercel(exportDir, slug) {
   await run('vercel', ['project', 'add', projectName]);
 
   const deployed = await run('vercel', ['deploy', exportDir, '--prod', '--yes', '--project', projectName]);
-  if (deployed.code === 0) return `https://${projectName}.vercel.app`;
+  if (deployed.code === 0) return (await addSiteSubdomain(slug, projectName)) || `https://${projectName}.vercel.app`;
 
   const lastLine = deployed.err.trim().split('\n').filter(Boolean).pop();
   throw new Error(lastLine || `vercel deploy exited with code ${deployed.code}`);
+}
+
+const SITE_DOMAIN = 'brightsite.app';
+
+function subdomainFor(slug) {
+  // A DNS label is at most 63 characters.
+  return `${slug.slice(0, 63).replace(/-+$/, '')}.${SITE_DOMAIN}`;
+}
+
+// Asks public DNS (not this Mac's cache) whether a host reaches Vercel.
+async function pointsAtVercel(host) {
+  const resolver = new dns.Resolver();
+  resolver.setServers(['1.1.1.1', '8.8.8.8']);
+  const [cname, a] = await Promise.all([resolver.resolveCname(host).catch(() => []), resolver.resolve4(host).catch(() => [])]);
+  return cname.some(c => /vercel-dns/i.test(c)) || a.some(ip => /^(76\.76\.21\.|216\.198\.79\.)/.test(ip));
+}
+
+// Returns https://<slug>.brightsite.app once it's attached to the project,
+// or '' (keep the vercel.app address) if the wildcard DNS isn't set up yet
+// or Vercel refuses — going live never fails because of this step.
+async function addSiteSubdomain(slug, projectName) {
+  const host = subdomainFor(slug);
+  if (!(await pointsAtVercel(host))) return '';
+  const result = await run('vercel', ['domains', 'add', host, projectName]);
+  const output = `${result.err}\n${result.out}`;
+  return result.code === 0 || output.includes(projectName) ? `https://${host}` : '';
 }
 
 // Removes the site's deployments but keeps its Vercel project, so making
