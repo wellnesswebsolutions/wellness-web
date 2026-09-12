@@ -9,7 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const bizServices = document.getElementById('bizServices');
   const bizPrices = document.getElementById('bizPrices');
   const bizGoal = document.getElementById('bizGoal');
-  const previewFrame = document.getElementById('previewFrame');
+  // `let`: full re-renders double-buffer into a fresh iframe and swap it in.
+  let previewFrame = document.getElementById('previewFrame');
+  let pendingFrame = null;
 
   const builderOverlay = document.getElementById('builderOverlay');
   const builderPreview = document.getElementById('builderPreview');
@@ -222,7 +224,12 @@ document.addEventListener('DOMContentLoaded', () => {
       creatingProgress.style.width = '6%';
       creatingOverlay.classList.remove('final');
       creatingOverlay.setAttribute('aria-hidden', 'false');
-      requestAnimationFrame(() => creatingOverlay.classList.add('active'));
+      // rAF is paused in a backgrounded tab while the timers below still run,
+      // so it could fire after the overlay was already dismissed and pin it
+      // on screen. Only activate if it hasn't been closed in the meantime.
+      requestAnimationFrame(() => {
+        if (creatingOverlay.getAttribute('aria-hidden') === 'false') creatingOverlay.classList.add('active');
+      });
       let i = 0;
       function step() {
         const currentStep = CREATING_STEPS[i];
@@ -803,6 +810,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const win = previewFrame.contentWindow;
       const applyStyles = () => {
         if (version !== previewRenderVersion) return;
+        // Ease colours between choices instead of snapping, only for the
+        // moment of the swap so the site's own transitions are left alone.
+        if (!current.getElementById('bs-swap-ease')) {
+          const ease = current.createElement('style');
+          ease.id = 'bs-swap-ease';
+          ease.textContent = 'html.bs-easing *,html.bs-easing *::before,html.bs-easing *::after{transition:color .28s ease,background-color .28s ease,border-color .28s ease,fill .28s ease,stroke .28s ease!important}';
+          current.head.append(ease);
+        }
+        current.documentElement.classList.add('bs-easing');
+        clearTimeout(win.bsEaseTimer);
+        win.bsEaseTimer = setTimeout(() => current.documentElement.classList.remove('bs-easing'), 420);
         current.querySelector('style').textContent = next.querySelector('style').textContent;
         current.querySelector('meta[name="theme-color"]').content = next.querySelector('meta[name="theme-color"]').content;
         win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
@@ -827,26 +845,49 @@ document.addEventListener('DOMContentLoaded', () => {
       Promise.race([fontsReady, new Promise(resolve => setTimeout(resolve, 1200))]).then(applyStyles);
       return;
     }
-    previewFrame.onload = () => {
-      if (version !== previewRenderVersion) return;
-      previewFrame.classList.remove('is-refreshing');
-      const win = previewFrame.contentWindow;
+    // Double-buffered: the new site loads in a second iframe stacked on top
+    // of the visible one, fades in once it has painted, then replaces it. The
+    // old page stays on screen the whole time, so a template swipe never
+    // flashes white. A newer render discards any buffer still loading.
+    pendingFrame?.remove();
+    const shown = previewFrame;
+    const incoming = shown.cloneNode(false);
+    incoming.removeAttribute('id');
+    incoming.classList.remove('is-refreshing');
+    incoming.classList.add('preview-buffer');
+    pendingFrame = incoming;
+    incoming.onload = () => {
+      if (pendingFrame !== incoming) return;
+      const win = incoming.contentWindow;
       const doc = win.document;
       // Scrolling or touching the site brings the mobile action bar back.
       win.addEventListener('scroll', wakeMobileBar, { capture: true, passive: true });
       doc.addEventListener('touchstart', wakeMobileBar, { passive: true });
       doc.querySelectorAll('.page').forEach(page => {page.hidden = page.dataset.page !== position.page;});
       win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
-      const restoredY = win.scrollY;
-      // Font metrics can settle after the frame loads. Reapply the position
-      // only if the visitor hasn't already started scrolling again.
-      doc.fonts.ready.then(() => win.requestAnimationFrame(() => {
-        if (version === previewRenderVersion && Math.abs(win.scrollY-restoredY)<2) {
-          win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
-        }
+      win.requestAnimationFrame(() => win.requestAnimationFrame(() => {
+        if (pendingFrame !== incoming) return;
+        incoming.classList.add('is-in');
+        setTimeout(() => {
+          if (pendingFrame !== incoming) return;
+          shown.remove();
+          incoming.id = 'previewFrame';
+          incoming.classList.remove('preview-buffer', 'is-in');
+          previewFrame = incoming;
+          pendingFrame = null;
+          const restoredY = win.scrollY;
+          // Font metrics can settle after the frame loads. Reapply the position
+          // only if the visitor hasn't already started scrolling again.
+          doc.fonts.ready.then(() => win.requestAnimationFrame(() => {
+            if (version === previewRenderVersion && Math.abs(win.scrollY-restoredY)<2) {
+              win.scrollTo({left:position.x,top:position.y,behavior:'instant'});
+            }
+          }));
+        }, 190);
       }));
     };
-    previewFrame.srcdoc = html;
+    shown.after(incoming);
+    incoming.srcdoc = html;
   }
 
   function updatePaletteOrb() {
