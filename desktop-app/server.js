@@ -208,9 +208,14 @@ function createApp() {
   // persists across app restarts (see lib/browser-fetch.js).
   app.post('/api/sign-in', (req, res) => {
     if (!browserFetch.isElectronMain()) return res.status(400).json({ error: 'Sign-in windows only work inside the app, not browser mode' });
-    const target = req.body?.target === 'google' ? 'https://accounts.google.com' : 'https://www.facebook.com/login';
-    browserFetch.openSignInWindow(target);
+    browserFetch.openSignInWindow(req.body?.target === 'google' ? 'google' : 'facebook');
     res.json({ ok: true });
+  });
+
+  app.post('/api/sign-out', async (req, res) => {
+    if (!browserFetch.isElectronMain()) return res.status(400).json({ error: 'Signing out only works inside the app, not browser mode' });
+    await browserFetch.signOut(req.body?.target === 'google' ? 'google' : 'facebook');
+    res.json(await browserFetch.signInStatus());
   });
 
   app.get('/api/sign-in-status', async (req, res) => {
@@ -225,7 +230,7 @@ function createApp() {
   // normally would.
   app.post('/api/open-external', (req, res) => {
     const url = String(req.body?.url || '');
-    if (!/^https:\/\//.test(url)) return res.status(400).json({ error: 'Only https:// links can be opened' });
+    if (!/^(https:\/\/|mailto:)/.test(url)) return res.status(400).json({ error: 'Only https:// or mailto: links can be opened' });
     if (browserFetch.isElectronMain()) require('electron').shell.openExternal(url);
     res.json({ ok: true });
   });

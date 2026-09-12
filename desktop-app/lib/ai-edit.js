@@ -44,7 +44,9 @@ async function runClaudeEdit(project, instruction) {
     child.stderr.on('data', d => (err += d));
     child.on('error', () => reject(new Error('Claude Code CLI ("claude") was not found. Install/sign in to Claude Code to use natural-language editing.')));
     child.on('close', code => {
-      if (code !== 0) return reject(new Error(err.trim() || `Claude Code exited with code ${code}`));
+      // Claude Code prints some failures (e.g. "Invalid API key · Please
+      // run /login") to stdout, not stderr — surface whichever has text.
+      if (code !== 0) return reject(new Error((err.trim() || out.trim()).slice(0, 300) || `Claude Code exited with code ${code}`));
       resolve(out);
     });
   });

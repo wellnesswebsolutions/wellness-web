@@ -8,22 +8,29 @@
 // `node server.js` in a terminal fails in the installed .app.
 //
 // Fix: explicitly extend PATH with the common install locations before
-// spawning anything, rather than trusting whatever LaunchServices handed
-// the process.
+// spawning anything, rather than trusting whatever the OS handed the
+// process. Windows uses ';' between entries and names the variable "Path".
 const os = require('os');
+const path = require('path');
 
-const EXTRA_PATHS = [
-  '/opt/homebrew/bin',
-  '/opt/homebrew/sbin',
-  '/usr/local/bin',
-  `${os.homedir()}/.local/bin`,
-  `${os.homedir()}/.local/share/supabase` // supabase CLI installs here on this machine's setup
-];
+const EXTRA_PATHS = process.platform === 'win32'
+  ? [
+      path.join(os.homedir(), '.local', 'bin'), // Claude Code native installer
+      process.env.APPDATA && path.join(process.env.APPDATA, 'npm')
+    ].filter(Boolean)
+  : [
+      '/opt/homebrew/bin',
+      '/opt/homebrew/sbin',
+      '/usr/local/bin',
+      `${os.homedir()}/.local/bin`,
+      `${os.homedir()}/.local/share/supabase` // supabase CLI installs here on this machine's setup
+    ];
 
 function spawnEnv() {
-  const current = process.env.PATH || '';
-  const extra = EXTRA_PATHS.filter(p => !current.includes(p));
-  return { ...process.env, PATH: extra.length ? `${current}:${extra.join(':')}` : current };
+  const key = Object.keys(process.env).find(k => k.toUpperCase() === 'PATH') || 'PATH';
+  const entries = (process.env[key] || '').split(path.delimiter).filter(Boolean);
+  const extra = EXTRA_PATHS.filter(p => !entries.includes(p));
+  return { ...process.env, [key]: [...entries, ...extra].join(path.delimiter) };
 }
 
 module.exports = { spawnEnv };

@@ -22,7 +22,33 @@ function isElectronMain() {
   }
 }
 
-const REAL_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+// Set on the webContents (not just the first loadURL) so every redirect
+// and follow-up page keeps it — otherwise Electron's default UA, which
+// contains "Electron/…", leaks on the second page and Google refuses the
+// sign-in as an "insecure embedded browser".
+const IS_WIN = process.platform === 'win32';
+const CHROME_UA = IS_WIN
+  ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
+  : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+// Google cross-checks a Chrome UA against Chromium's client-hint headers
+// and still flags Electron; Firefox sends no client hints, so Google's
+// sign-in accepts it.
+const GOOGLE_SIGNIN_UA = IS_WIN
+  ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0'
+  : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:128.0) Gecko/20100101 Firefox/128.0';
+
+const SIGN_IN = {
+  google: {
+    url: 'https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fwww.google.com%2Fmaps',
+    userAgent: GOOGLE_SIGNIN_UA,
+    cookieDomain: /(^|\.)google\.[a-z.]+$/
+  },
+  facebook: {
+    url: 'https://www.facebook.com/login',
+    userAgent: CHROME_UA,
+    cookieDomain: /(^|\.)facebook\.com$/
+  }
+};
 
 // scontent* hosts real uploaded photos (profile/cover/posts); static.xx.fbcdn
 // is Facebook's own UI chrome (icons, emoji, decorative webp) — deliberately
@@ -43,7 +69,8 @@ async function renderPage(url) {
     webPreferences: { session: session.fromPartition(SESSION_PARTITION), images: true }
   });
   try {
-    await win.loadURL(url, { userAgent: REAL_USER_AGENT });
+    win.webContents.setUserAgent(CHROME_UA);
+    await win.loadURL(url);
     // let lazy-loaded photos/reviews settle in
     await new Promise(resolve => setTimeout(resolve, 1800));
     const [text, images, title] = await Promise.all([
@@ -62,18 +89,35 @@ async function renderPage(url) {
 
 // Opens a real, visible window so the user can log into Facebook/Google
 // once — the session persists (see SESSION_PARTITION) so every later
-// import benefits from it automatically, invisibly.
-function openSignInWindow(url) {
+// import benefits from it automatically, invisibly. Closes itself as soon
+// as the platform's logged-in cookie appears.
+function openSignInWindow(target) {
   const { BrowserWindow, session } = require('electron');
+  const cfg = SIGN_IN[target];
   const win = new BrowserWindow({
     show: true,
     width: 960,
     height: 820,
-    title: 'Sign in — closes automatically when done',
+    title: `Sign in to ${target === 'google' ? 'Google' : 'Facebook'} — closes by itself once you're in`,
     webPreferences: { session: session.fromPartition(SESSION_PARTITION) }
   });
-  win.loadURL(url, { userAgent: REAL_USER_AGENT });
+  win.webContents.setUserAgent(cfg.userAgent);
+  win.loadURL(cfg.url);
+  const poll = setInterval(async () => {
+    const status = await signInStatus().catch(() => ({}));
+    if (status[target] && !win.isDestroyed()) win.close();
+  }, 1500);
+  win.on('closed', () => clearInterval(poll));
   return win;
+}
+
+async function signOut(target) {
+  const { session } = require('electron');
+  const sess = session.fromPartition(SESSION_PARTITION);
+  const cookies = await sess.cookies.get({});
+  await Promise.all(cookies
+    .filter(c => SIGN_IN[target].cookieDomain.test(c.domain.replace(/^\./, '')))
+    .map(c => sess.cookies.remove(`https://${c.domain.replace(/^\./, '')}${c.path}`, c.name).catch(() => {})));
 }
 
 // Checks the persistent session's cookies for each platform's own
@@ -89,4 +133,4 @@ async function signInStatus() {
   return { facebook: fbCookies.length > 0, google: googleCookies.length > 0 };
 }
 
-module.exports = { isElectronMain, renderPage, openSignInWindow, signInStatus, SESSION_PARTITION };
+module.exports = { isElectronMain, renderPage, openSignInWindow, signInStatus, signOut, SESSION_PARTITION };

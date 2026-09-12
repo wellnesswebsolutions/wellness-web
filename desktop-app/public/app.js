@@ -1,19 +1,17 @@
 (() => {
   const state = {
-    projects: [], current: null, found: {}, stageFilter: 'all', search: '',
+    projects: [], current: null, found: {}, search: '',
     viewport: 'desktop', appFullscreen: false, desktopExpanded: true,
     tab: 'businesses', liveAdding: false
   };
 
   const el = {
-    mainTabs: document.getElementById('mainTabs'),
     builderView: document.getElementById('builderView'),
     liveView: document.getElementById('liveView'),
     liveTotals: document.getElementById('liveTotals'),
     liveList: document.getElementById('liveList'),
     projectList: document.getElementById('projectList'),
     projectSearch: document.getElementById('projectSearch'),
-    stageFilter: document.getElementById('stageFilter'),
     editor: document.getElementById('editor'),
     preview: document.getElementById('preview'),
     previewFrameWrap: document.getElementById('previewFrameWrap'),
@@ -24,6 +22,7 @@
     deployBtn: document.getElementById('deployBtn'),
     copyLiveBtn: document.getElementById('copyLiveBtn'),
     closePreviewBtn: document.getElementById('closePreviewBtn'),
+    editTextBtn: document.getElementById('editTextBtn'),
     notice: document.getElementById('noticeStrip'),
     appVersion: document.getElementById('appVersion'),
     updateBtn: document.getElementById('updateBtn'),
@@ -84,7 +83,7 @@
   // in without waiting for a manual reopen. Skipped whenever a field inside
   // the editor is focused, so it never clobbers text someone is mid-typing.
   async function refreshCurrentProjectIfChanged() {
-    if (!syncEnabled) return;
+    if (!syncEnabled || state.editingText) return;
     if (state.current && el.editor.contains(document.activeElement)) return;
     try {
       // /api/projects pulls remote and merges anything newer into local
@@ -129,30 +128,56 @@
       document.getElementById('confirmCancelBtn').onclick = () => cleanup(false);
     });
   }
+  // While a sign-in window is open the row shows "finish signing in…" and
+  // status is polled, so it flips to "Signed in" the moment it takes.
+  let signIn = { google: false, facebook: false };
+  let signInPoll = null;
+  const accountRows = () => [...el.settingsDialog.querySelectorAll('[data-account]')];
   async function refreshSignInStatus() {
-    try {
-      const status = await api('/api/sign-in-status');
-      const fb = document.getElementById('fbSignInStatus');
-      const google = document.getElementById('googleSignInStatus');
-      fb.textContent = status.facebook ? '✓ Signed in' : 'Not signed in';
-      fb.classList.toggle('is-signed-in', status.facebook);
-      google.textContent = status.google ? '✓ Signed in' : 'Not signed in';
-      google.classList.toggle('is-signed-in', status.google);
-    } catch { /* status is best-effort */ }
+    try { signIn = await api('/api/sign-in-status'); } catch { return; }
+    for (const row of accountRows()) {
+      const on = Boolean(signIn[row.dataset.account]);
+      if (on) delete row.dataset.waiting;
+      const status = row.querySelector('.account-status');
+      if (!row.dataset.waiting) status.textContent = on ? 'Signed in ✓' : 'Not signed in';
+      status.classList.toggle('is-signed-in', on);
+      const btn = row.querySelector('button');
+      btn.textContent = on ? 'Sign out' : 'Sign in';
+      btn.classList.toggle('primary', !on);
+    }
+    if (!accountRows().some(r => r.dataset.waiting)) { clearInterval(signInPoll); signInPoll = null; }
   }
 
-  document.getElementById('signInFacebookBtn').onclick = async () => {
-    await api('/api/sign-in', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'facebook' })
-    }).catch(err => notify(err.message, { sticky: false }));
-    setTimeout(refreshSignInStatus, 4000);
-  };
-  document.getElementById('signInGoogleBtn').onclick = async () => {
-    await api('/api/sign-in', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target: 'google' })
-    }).catch(err => notify(err.message, { sticky: false }));
-    setTimeout(refreshSignInStatus, 4000);
-  };
+  el.settingsDialog.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-account] button');
+    if (!btn) return;
+    const row = btn.closest('[data-account]');
+    const target = row.dataset.account;
+    const status = row.querySelector('.account-status');
+    const post = (path) => api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target }) });
+    btn.disabled = true;
+    try {
+      if (signIn[target]) {
+        await post('/api/sign-out');
+      } else {
+        await post('/api/sign-in');
+        row.dataset.waiting = '1';
+        status.textContent = 'Finish signing in in the new window…';
+        status.classList.remove('is-signed-in');
+        if (!signInPoll) signInPoll = setInterval(refreshSignInStatus, 2000);
+      }
+      await refreshSignInStatus();
+    } catch (err) {
+      status.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  el.settingsDialog.addEventListener('close', () => {
+    clearInterval(signInPoll);
+    signInPoll = null;
+    accountRows().forEach(r => delete r.dataset.waiting);
+  });
 
   // ---------------- projects ----------------
   async function loadProjects() {
@@ -162,8 +187,7 @@
   }
 
   // Red/yellow/green sales-stage colour, not live-deploy status (that's
-  // liveStatusFor below, shown separately as a small icon on the row) —
-  // this is what the sort and the filter dropdown both use.
+  // liveStatusFor below, shown separately as a small icon on the row).
   const STAGE_COLOUR_RANK = { red: 0, yellow: 1, green: 2, grey: 3 };
   function stageColour(p) {
     const stage = stageOf(p);
@@ -179,7 +203,6 @@
       const q = state.search.trim().toLowerCase();
       list = list.filter(p => (p.raw?.name || p.name || p.slug).toLowerCase().includes(q));
     }
-    if (state.stageFilter !== 'all') list = list.filter(p => stageColour(p) === state.stageFilter);
     list.sort((a, b) => {
       const rankDiff = STAGE_COLOUR_RANK[stageColour(a)] - STAGE_COLOUR_RANK[stageColour(b)];
       return rankDiff !== 0 ? rankDiff : (b.createdAt || '').localeCompare(a.createdAt || '');
@@ -202,15 +225,31 @@
     return p.liveUrl ? 'live' : 'not-live';
   }
 
-  // One flat list, red → yellow → green (→ grey), newest first within each
-  // colour. Paying customers live on the Live & Paying tab instead.
+  // Three equal sections: not yet called, waiting on a reply / ring back,
+  // and anything with a site made live from here. The open project's
+  // liveUrl can be newer than the list's copy (just deployed), so it wins.
+  // Paying customers with no site built here stay on the Live tab only.
+  const liveUrlOf = p => (state.current?.slug === p.slug ? state.current.liveUrl : p.liveUrl);
+  const SIDE_SECTIONS = [
+    { id: 'red', label: 'Uncontacted', match: p => !liveUrlOf(p) && isUncontacted(p) },
+    { id: 'yellow', label: 'Waiting / ring back', match: p => !liveUrlOf(p) && !isUncontacted(p) },
+    { id: 'green', label: 'Live sites', match: p => Boolean(liveUrlOf(p)) }
+  ];
   function renderSidebar() {
-    const scrollTop = el.projectList.scrollTop;
-    const list = sortedProjects().filter(p => !isLivePaying(p));
+    const scrolls = [...el.projectList.querySelectorAll('.side-section-list')].map(n => n.scrollTop);
+    const list = sortedProjects().filter(p => liveUrlOf(p) || !isLivePaying(p));
     el.projectList.innerHTML = '';
-    if (list.length) list.forEach(p => el.projectList.appendChild(projectRow(p)));
-    else el.projectList.innerHTML = `<p class="side-empty">${state.search || state.stageFilter !== 'all' ? 'No businesses match.' : 'No businesses yet — add one above.'}</p>`;
-    el.projectList.scrollTop = scrollTop;
+    SIDE_SECTIONS.forEach((section, i) => {
+      const items = list.filter(section.match);
+      const box = document.createElement('section');
+      box.className = `side-section side-${section.id}`;
+      box.innerHTML = `<div class="side-section-head"><i></i><span>${section.label}</span><b>${items.length}</b></div><div class="side-section-list"></div>`;
+      const body = box.querySelector('.side-section-list');
+      if (items.length) items.forEach(p => body.appendChild(projectRow(p)));
+      else body.innerHTML = `<p class="side-empty">${state.search.trim() ? 'No matches' : 'None yet'}</p>`;
+      el.projectList.appendChild(box);
+      body.scrollTop = scrolls[i] || 0;
+    });
   }
 
   function projectRow(p) {
@@ -246,7 +285,6 @@
     return row;
   }
 
-  el.stageFilter.onchange = () => { state.stageFilter = el.stageFilter.value; renderSidebar(); };
   el.projectSearch.oninput = () => { state.search = el.projectSearch.value; renderSidebar(); };
 
   async function deleteProject(slug, displayName) {
@@ -284,6 +322,7 @@
   }
 
   function closeCurrentProject() {
+    if (state.editingText) setTextEditing(false);
     state.current = null;
     state.found = {};
     state.placementSuggestion = null;
@@ -348,10 +387,6 @@
 
   function setRaw(patch) {
     state.current.raw = { ...state.current.raw, ...patch };
-  }
-
-  function aiBadge(field) {
-    return state.current.aiFilled?.includes(field) ? '<span class="badge-ai">AI</span>' : '';
   }
 
   function categoryOptions(selected) {
@@ -556,6 +591,7 @@
 
     el.editor.innerHTML = `
       <div class="sales-block" id="salesBlock"></div>
+      <div class="section-divider"><span>Website</span></div>
       <div class="link-bar compact">
         <input id="f_link" type="text" placeholder="Paste a Facebook or Google Maps link…" value="${escapeAttr(state.current.lastImportUrl || state.current.contact?.facebookUrl || profile.mapsUrl || '')}">
         <button id="importBtn">${state.current.lastImportUrl ? 'Re-fetch' : 'Fetch'}</button>
@@ -571,16 +607,17 @@
       <div class="phone-row">
         <div class="field"><label>Phone</label>
           <input id="f_phone" value="${escapeAttr(profile.phone || '')}"></div>
+        <button id="whatsappBtn" class="contact-btn whatsapp-btn" title="WhatsApp a welcome message" aria-label="Open WhatsApp">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.6.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.3 0-.5s-.6-1.5-.9-2c-.2-.5-.5-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.6.2-1.2.2-1.3-.1-.2-.3-.2-.6-.4z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        </button>
         <div class="field"><label>Email</label>
           <input id="f_email" type="email" value="${escapeAttr(state.current.contact?.email || '')}"></div>
-        <button id="whatsappBtn" class="whatsapp-btn" title="Open WhatsApp chat with this number" aria-label="Open WhatsApp">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.6.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.3 0-.5s-.6-1.5-.9-2c-.2-.5-.5-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.6.2-1.2.2-1.3-.1-.2-.3-.2-.6-.4z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+        <button id="emailBtn" class="contact-btn email-btn" title="Email a welcome message" aria-label="Send email">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>
         </button>
       </div>
       <div class="field"><label>Location / address</label>
         <input id="f_location" value="${escapeAttr(profile.address || raw.location || '')}"></div>
-      <div class="field"><label>About ${aiBadge('about')}</label>
-        <textarea id="f_about">${escapeHtml(profile.about || '')}</textarea></div>
 
       <div class="media-row-3">
         ${mediaSlot('logo', 'Logo')}
@@ -601,14 +638,25 @@
 
       <div class="ai-edit-box">
         <label>Edit with AI</label>
-        <textarea id="aiInstruction" placeholder="e.g. Make the about section warmer and mention it's family-run"></textarea>
-        <button id="aiEditBtn">Apply edit</button>
+        <div class="ai-edit-input">
+          <textarea id="aiInstruction" rows="2" placeholder="e.g. Make the about section warmer and mention it's family-run"></textarea>
+          <button id="aiEditBtn" title="Apply (Enter)" aria-label="Apply edit"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+        </div>
         <div class="ai-edit-status" id="aiEditStatus"></div>
         ${editLogHtml()}
       </div>
     `;
 
     document.getElementById('importBtn').onclick = runImport;
+    const linkInput = document.getElementById('f_link');
+    let linkTimer = null;
+    linkInput.addEventListener('input', () => {
+      clearTimeout(linkTimer);
+      linkTimer = setTimeout(() => {
+        const value = linkInput.value.trim();
+        if (/^https?:\/\//i.test(value) && value !== (state.current.lastImportUrl || '')) runImport();
+      }, 400);
+    });
     document.getElementById('f_name').oninput = e => { setRaw({ name: e.target.value }); scheduleSave(); };
     document.getElementById('f_category').onchange = e => { setRaw({ tagline: e.target.value }); scheduleSave(); };
     document.getElementById('f_phone').oninput = e => { setRaw({ businessProfile: { ...profile, phone: e.target.value } }); scheduleSave(); };
@@ -617,11 +665,11 @@
       scheduleSave();
     };
     document.getElementById('whatsappBtn').onclick = () => openWhatsApp(document.getElementById('f_phone').value);
+    document.getElementById('emailBtn').onclick = () => openEmail(document.getElementById('f_email').value);
     document.getElementById('f_location').oninput = e => {
       setRaw({ location: e.target.value, businessProfile: { ...profile, address: e.target.value } });
       scheduleSave();
     };
-    document.getElementById('f_about').oninput = e => { setRaw({ businessProfile: { ...profile, about: e.target.value } }); scheduleSave(); };
     document.getElementById('templateGrid').addEventListener('click', e => {
       const tile = e.target.closest('.template-tile');
       if (!tile) return;
@@ -657,6 +705,9 @@
     document.getElementById('galleryUploadBtn').onclick = () => document.getElementById('galleryUpload').click();
     document.getElementById('galleryUpload').addEventListener('change', e => uploadGallery(e.target.files));
     document.getElementById('aiEditBtn').onclick = runAiEdit;
+    document.getElementById('aiInstruction').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runAiEdit(); }
+    });
     document.querySelectorAll('.edit-log .undo').forEach(btn => (btn.onclick = () => undoEdit(Number(btn.dataset.i))));
     document.querySelectorAll('.gallery-grid .thumb-remove').forEach(btn => (btn.onclick = () => removeGalleryItem(Number(btn.dataset.i))));
     wireMediaSlot('logo');
@@ -676,6 +727,7 @@
     const options = (list, selected) => list.map(([id, label]) =>
       `<option value="${id}" ${id === selected ? 'selected' : ''}>${label}</option>`).join('');
     box.innerHTML = `
+      <div class="section-heading">Admin <span>Cold calling</span></div>
       <div class="sales-row">
         <div class="field"><label>Stage</label>
           <select id="s_stage">${options(SALES_STAGES, stageOf(p))}</select></div>
@@ -692,7 +744,7 @@
     document.getElementById('s_payment').onchange = async e => {
       state.current.paymentStatus = e.target.value;
       await persist();
-      if (e.target.value === 'paid') notify(`"${businessName(state.current)}" is now on the Live & Paying tab.`);
+      if (e.target.value === 'paid') notify(`"${businessName(state.current)}" is now on the Live tab.`);
     };
   }
 
@@ -701,30 +753,33 @@
     if (!log.length) return '';
     return `<div class="edit-log">${log.slice().reverse().map((entry, idx) => {
       const i = log.length - 1 - idx;
-      return `<div class="entry">"${escapeHtml(entry.instruction)}" <button class="undo" data-i="${i}">Undo</button></div>`;
+      return `<div class="entry"><span>"${escapeHtml(entry.instruction)}"</span><button class="undo" data-i="${i}">Undo</button></div>`;
     }).join('')}</div>`;
   }
 
   async function runAiEdit() {
-    const instruction = document.getElementById('aiInstruction').value.trim();
+    const input = document.getElementById('aiInstruction');
     const status = document.getElementById('aiEditStatus');
     const btn = document.getElementById('aiEditBtn');
-    if (!instruction) return;
+    const instruction = input.value.trim();
+    if (!instruction || btn.disabled) return;
     btn.disabled = true;
-    setLoading(status, 'Asking Claude Code…');
+    input.disabled = true;
+    setLoading(status, 'Asking Claude…');
     try {
+      await flushSave();
       const updated = await api(`/api/projects/${state.current.slug}/ai-edit`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction })
       });
       replaceCurrent(updated);
-      status.textContent = 'Edit applied — you can undo it below if it\'s not right.';
       renderEditor();
       renderPreview();
       renderLiveActions();
+      document.getElementById('aiEditStatus').textContent = 'Done — undo it below if it’s not right.';
     } catch (err) {
-      showTempStatus(status, friendlyError(err.message));
-    } finally {
       btn.disabled = false;
+      input.disabled = false;
+      showTempStatus(status, friendlyError(err.message), 8000);
     }
   }
 
@@ -732,16 +787,14 @@
     const log = state.current.editLog || [];
     const entry = log[index];
     if (!entry) return;
-    // Restore the exact pre-edit values captured server-side when the
-    // edit was applied (see server.js /ai-edit), rather than just
-    // clearing the touched fields.
+    // Restore the exact pre-edit values captured server-side when the edit
+    // was applied (see server.js /ai-edit), not just clear the fields.
     const restoredRaw = { ...state.current.raw, ...(entry.beforeFields || {}) };
     if (entry.beforeProfile && Object.keys(entry.beforeProfile).length) {
       restoredRaw.businessProfile = { ...(restoredRaw.businessProfile || {}), ...entry.beforeProfile };
     }
-    const newLog = log.filter((_, i) => i !== index);
     state.current.raw = restoredRaw;
-    state.current.editLog = newLog;
+    state.current.editLog = log.filter((_, i) => i !== index);
     await persist();
     renderEditor();
     renderPreview();
@@ -762,10 +815,11 @@
     return `
       <div class="media-slot" data-slot="${slot}">
         <label>${label}</label>
-        <div class="thumb" ${thumbStyle}>${path ? `<button class="thumb-remove" data-action="remove" title="Remove">✕</button>` : ''}</div>
+        <div class="thumb ${path ? '' : 'is-empty'}" data-action="pick" ${thumbStyle} title="${path ? 'Replace' : 'Upload'}">${path ? '' : '<span>+ Upload</span>'}</div>
         ${autoHeroHint}
         <div class="actions">
-          <button data-action="upload">${path ? 'Replace' : 'Upload'}</button>
+          ${path ? `<button data-action="upload">Replace</button>
+          <button class="media-remove" data-action="remove" title="Remove" aria-label="Remove">✕</button>` : ''}
           ${found ? `<button data-action="use-found" class="found">Use found</button>` : ''}
           ${canPlaceLogo ? `<button data-action="place-logo" class="found">Place logo on photo</button>` : ''}
         </div>
@@ -855,14 +909,14 @@
   function galleryThumbs() {
     const gallery = state.current.raw?.gallery || [];
     return gallery.map((g, i) => `<div class="thumb" style="background-image:url('/projects/${state.current.slug}/${g}')"><button class="thumb-remove" data-i="${i}" title="Remove">✕</button></div>`).join('')
-      || '<span class="gallery-empty">No gallery images yet.</span>';
+      || '<span class="gallery-empty">No images yet</span>';
   }
 
   function wireMediaSlot(slot) {
     const wrap = document.querySelector(`.media-slot[data-slot="${slot}"]`);
     if (!wrap) return;
     const fileInput = wrap.querySelector('input[type=file]');
-    wrap.querySelector('[data-action="upload"]').onclick = () => fileInput.click();
+    wrap.querySelectorAll('[data-action="upload"], [data-action="pick"]').forEach(b => (b.onclick = () => fileInput.click()));
     fileInput.onchange = () => uploadMedia(slot, fileInput.files[0]);
     const useFound = wrap.querySelector('[data-action="use-found"]');
     if (useFound) useFound.onclick = () => useFoundImage(slot);
@@ -1095,8 +1149,8 @@
     }
     if (state.current !== null && raw.name !== state.current.raw?.name) return; // project switched mid-render
     try {
-      const html = buildDemoHTML(raw);
-      el.preview.srcdoc = html;
+      const html = applyTextOverrides(buildDemoHTML(raw), state.current.raw.textOverrides);
+      if (!opts.keepFrame) el.preview.srcdoc = state.editingText ? html + EDIT_SCRIPT : html;
       el.preview.dataset.lastHtml = html;
       // Freshly opening a project: whatever it currently renders is assumed
       // to match what's live, until an edit changes it.
@@ -1118,7 +1172,101 @@
   // crammed into view.
   const DEVICE_WIDTHS = { desktop: 1440, mobile: 390 };
   const DEVICE_HEIGHTS = { desktop: 900, mobile: 844 };
-  el.preview.onload = fitPreviewFrame;
+  let restoreScrollY = null;
+  el.preview.onload = () => {
+    fitPreviewFrame();
+    if (restoreScrollY !== null) {
+      el.preview.contentWindow?.scrollTo(0, restoreScrollY);
+      restoreScrollY = null;
+    }
+  };
+
+  // ---------------- Manual text editing in the preview ----------------
+  // "Edit" makes every plain text element on the generated page (headings,
+  // subtitles, buttons, paragraphs) directly editable in place. Only the
+  // editing aid is injected into the frame — the deployed/exported HTML
+  // (dataset.lastHtml) never contains it. Edits to the business name or
+  // About text write straight back to those fields; anything else is kept
+  // as a from→to text override applied on top of the generated template.
+  const EDIT_SCRIPT = `<style>
+[data-bs-edit]{outline:1.5px dashed rgba(59,130,246,.45);outline-offset:3px;border-radius:3px;cursor:text;transition:outline-color .15s,background .15s}
+[data-bs-edit]:hover{outline-color:#3B82F6;background:rgba(59,130,246,.06)}
+[data-bs-edit]:focus{outline:2px solid #3B82F6;background:rgba(59,130,246,.08)}
+</style><script>(()=>{
+const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','IFRAME','TEXTAREA','INPUT','SELECT','OPTION','TITLE']);
+document.querySelectorAll('body *').forEach(el=>{
+  if(SKIP.has(el.tagName)||el.closest('svg')||el.children.length)return;
+  const t=el.textContent.trim();
+  if(!t)return;
+  el.setAttribute('data-bs-edit','');
+  el.contentEditable='plaintext-only';
+  el.dataset.bsFrom=t;
+});
+document.addEventListener('click',e=>{if(e.target.closest('a,button'))e.preventDefault();},true);
+document.addEventListener('submit',e=>e.preventDefault(),true);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.hasAttribute&&e.target.hasAttribute('data-bs-edit')){e.preventDefault();e.target.blur();}});
+document.addEventListener('focusout',e=>{
+  const el=e.target;
+  if(!el.hasAttribute||!el.hasAttribute('data-bs-edit'))return;
+  const to=el.textContent.trim(),from=el.dataset.bsFrom;
+  if(!to){el.textContent=from;return;}
+  if(to!==from){parent.postMessage({type:'bs-text-edit',from,to},'*');el.dataset.bsFrom=to;}
+});
+})();<\/script>`;
+
+  function applyTextOverrides(html, overrides) {
+    if (!overrides?.length) return html;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const leaves = [...doc.body.querySelectorAll('*')].filter(n => !n.children.length);
+    for (const { from, to } of overrides) {
+      leaves.forEach(n => { if (n.textContent.trim() === from) n.textContent = to; });
+    }
+    return (/^\s*<!doctype/i.test(html) ? '<!DOCTYPE html>\n' : '') + doc.documentElement.outerHTML;
+  }
+
+  function handleTextEdit(from, to) {
+    const raw = state.current.raw || {};
+    const profile = raw.businessProfile || {};
+    if (raw.name && from.toLowerCase() === raw.name.trim().toLowerCase()) {
+      setRaw({ name: to });
+    } else if (profile.about && from === profile.about.trim()) {
+      setRaw({ businessProfile: { ...profile, about: to } });
+    } else {
+      const list = raw.textOverrides || [];
+      const chained = list.some(o => o.to === from);
+      const next = chained ? list.map(o => (o.to === from ? { ...o, to } : o)) : [...list, { from, to }];
+      setRaw({ textOverrides: next.filter(o => o.from !== o.to) });
+    }
+    // The frame already shows the new text — only refresh the deployable
+    // HTML and save, without reloading the frame mid-edit.
+    renderPreview({ keepFrame: true });
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { saveTimer = null; persist(); }, 500);
+  }
+
+  window.addEventListener('message', e => {
+    if (e.source !== el.preview.contentWindow || e.data?.type !== 'bs-text-edit' || !state.current) return;
+    handleTextEdit(String(e.data.from), String(e.data.to));
+  });
+
+  function setTextEditing(on) {
+    state.editingText = on;
+    el.editTextBtn.classList.toggle('is-editing', on);
+    el.editTextBtn.innerHTML = on ? 'Done' : `${PENCIL_ICON}Edit`;
+    el.editTextBtn.title = on ? 'Finish editing text' : 'Edit text on the page';
+  }
+  const PENCIL_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  el.editTextBtn.onclick = async () => {
+    if (!el.preview.dataset.lastHtml) return;
+    restoreScrollY = el.preview.contentWindow?.scrollY || 0;
+    const turningOff = state.editingText;
+    setTextEditing(!turningOff);
+    if (turningOff) {
+      await flushSave();
+      renderEditor();
+    }
+    renderPreview();
+  };
 
   // Padding the white frame (.preview-frame-border) adds on each side —
   // kept in sync with style.css so the scale math leaves room for it
@@ -1180,10 +1328,25 @@
     return digits;
   }
 
+  function welcomeMessage() {
+    const name = businessName(state.current);
+    const url = state.current?.liveUrl;
+    return url
+      ? `Hi, thanks for chatting with us today! We've put together a website for ${name} — you can take a look here: ${url}\n\nAny questions at all, just let me know.`
+      : `Hi, thanks for chatting with us today! We'd love to help ${name} with a brand new website — any questions at all, just let me know.`;
+  }
+
   function openWhatsApp(phone) {
     const number = toWhatsAppNumber(phone);
     if (!number) return notify('Add a phone number first.', { sticky: false });
-    openExternal(`https://wa.me/${number}`);
+    openExternal(`https://wa.me/${number}?text=${encodeURIComponent(welcomeMessage())}`);
+  }
+
+  function openEmail(email) {
+    const to = String(email || '').trim();
+    if (!/^[^\s@]+@[^\s@]+$/.test(to)) return notify('Add an email address first.', { sticky: false });
+    const subject = `A website for ${businessName(state.current)}`;
+    openExternal(`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(welcomeMessage())}`);
   }
 
   // Electron's renderer blocks window.open() for new windows by default
@@ -1522,7 +1685,7 @@
     if (state.tab === tab) return;
     if (state.tab === 'businesses') await flushSave();
     state.tab = tab;
-    el.mainTabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-switch button[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     el.builderView.hidden = tab !== 'businesses';
     el.liveView.hidden = tab !== 'live';
     if (tab === 'live') {
@@ -1535,8 +1698,8 @@
     }
   }
 
-  el.mainTabs.addEventListener('click', e => {
-    const btn = e.target.closest('button[data-tab]');
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.tab-switch button[data-tab]');
     if (btn) switchTab(btn.dataset.tab);
   });
 
