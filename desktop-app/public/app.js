@@ -1392,6 +1392,10 @@
 [data-bs-edit]{outline:1.5px dashed rgba(59,130,246,.45);outline-offset:3px;border-radius:3px;cursor:text;transition:outline-color .15s,background .15s}
 [data-bs-edit]:hover{outline-color:#3B82F6;background:rgba(59,130,246,.06)}
 [data-bs-edit]:focus{outline:2px solid #3B82F6;background:rgba(59,130,246,.08)}
+.bs-page-x{margin-left:-24px;width:16px;height:16px;padding:0;border:0;border-radius:50%;background:#ef4444;color:#fff;font:700 11px/16px -apple-system,sans-serif;cursor:pointer;transform:translateY(-9px)}
+.bs-page-x:hover{background:#dc2626}
+.bs-page-add{padding:5px 11px;border:1.5px dashed #3B82F6;border-radius:999px;background:rgba(59,130,246,.08);color:#3B82F6;font:600 11px -apple-system,sans-serif;cursor:pointer;white-space:nowrap}
+.bs-page-add:hover{background:rgba(59,130,246,.16)}
 </style><script>(()=>{
 const SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','IFRAME','TEXTAREA','INPUT','SELECT','OPTION','TITLE']);
 document.querySelectorAll('body *').forEach(el=>{
@@ -1402,7 +1406,23 @@ document.querySelectorAll('body *').forEach(el=>{
   el.contentEditable='plaintext-only';
   el.dataset.bsFrom=t;
 });
-document.addEventListener('click',e=>{if(e.target.closest('a,button'))e.preventDefault();},true);
+const nav=document.querySelector('.site-header .nav');
+if(nav){
+  nav.querySelectorAll('a.nav-link[data-nav]').forEach(a=>{
+    if(a.dataset.nav==='home')return;
+    const x=document.createElement('button');x.type='button';x.className='bs-page-x';x.textContent='×';x.title='Remove this page';x.dataset.page=a.dataset.nav;a.after(x);
+  });
+  const before=nav.querySelector('a.button');
+  const addBtn=(label,restore)=>{const b=document.createElement('button');b.type='button';b.className='bs-page-add';b.textContent=label;if(restore)b.dataset.restore=restore;nav.insertBefore(b,before);};
+  const meta=document.querySelector('meta[name="bs-hidden-pages"]');
+  (meta&&meta.content||'').split(',').filter(Boolean).forEach(id=>addBtn('+ '+(id==='services'?meta.dataset.servicesLabel:'Contact'),id));
+  addBtn('+ Page');
+}
+document.addEventListener('click',e=>{
+  const pb=e.target.closest('.bs-page-x,.bs-page-add');
+  if(pb){e.preventDefault();e.stopPropagation();parent.postMessage(pb.classList.contains('bs-page-x')?{type:'bs-page-remove',page:pb.dataset.page}:{type:'bs-page-add',restore:pb.dataset.restore||''},'*');return;}
+  if(e.target.closest('a,button'))e.preventDefault();
+},true);
 document.addEventListener('submit',e=>e.preventDefault(),true);
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.hasAttribute&&e.target.hasAttribute('data-bs-edit')){e.preventDefault();e.target.blur();}});
 document.addEventListener('focusout',e=>{
@@ -1410,7 +1430,7 @@ document.addEventListener('focusout',e=>{
   if(!el.hasAttribute||!el.hasAttribute('data-bs-edit'))return;
   const to=el.textContent.trim(),from=el.dataset.bsFrom;
   if(!to){el.textContent=from;return;}
-  if(to!==from){parent.postMessage({type:'bs-text-edit',from,to},'*');el.dataset.bsFrom=to;}
+  if(to!==from){parent.postMessage({type:'bs-text-edit',from,to},'*');document.querySelectorAll('[data-bs-edit]').forEach(o=>{if(o.dataset.bsFrom===from){if(o!==el)o.textContent=to;o.dataset.bsFrom=to;}});}
 });
 })();<\/script>`;
 
@@ -1424,6 +1444,9 @@ document.addEventListener('focusout',e=>{
     return (/^\s*<!doctype/i.test(html) ? '<!DOCTYPE html>\n' : '') + doc.documentElement.outerHTML;
   }
 
+  // Must match the placeholder fresh-templates.js renders for an empty page.
+  const customPageBody = p => p.body || `Write about “${p.title}” here — click to edit.`;
+
   function handleTextEdit(from, to) {
     const raw = state.current.raw || {};
     const profile = raw.businessProfile || {};
@@ -1431,6 +1454,9 @@ document.addEventListener('focusout',e=>{
       setRaw({ name: to });
     } else if (profile.about && from === profile.about.trim()) {
       setRaw({ businessProfile: { ...profile, about: to } });
+    } else if ((raw.customPages || []).some(p => p.title === from || customPageBody(p) === from)) {
+      setRaw({ customPages: raw.customPages.map(p =>
+        p.title === from ? { ...p, title: to } : customPageBody(p) === from ? { ...p, body: to } : p) });
     } else {
       const list = raw.textOverrides || [];
       const chained = list.some(o => o.to === from);
@@ -1444,9 +1470,36 @@ document.addEventListener('focusout',e=>{
     saveTimer = setTimeout(() => { saveTimer = null; persist(); }, 500);
   }
 
+  // Header pages, changed from the × / "+ Page" controls edit mode adds to
+  // the preview's nav (see EDIT_SCRIPT). Built-in pages are only hidden, so
+  // restoring one brings it back with its content intact.
+  function handlePageChange({ add, restore, remove }) {
+    const raw = state.current.raw || {};
+    const hidden = raw.hiddenPages || [];
+    const pages = raw.customPages || [];
+    if (restore) {
+      setRaw({ hiddenPages: hidden.filter(id => id !== restore) });
+    } else if (add) {
+      const titles = new Set(pages.map(p => p.title));
+      let title = 'New page';
+      for (let n = 2; titles.has(title); n++) title = `New page ${n}`;
+      setRaw({ customPages: [...pages, { id: `page-${Date.now().toString(36)}`, title, body: '' }] });
+    } else if (remove === 'services' || remove === 'contact') {
+      setRaw({ hiddenPages: [...new Set([...hidden, remove])] });
+    } else if (remove) {
+      setRaw({ customPages: pages.filter(p => p.id !== remove) });
+    }
+    restoreScrollY = el.preview.contentWindow?.scrollY || 0;
+    renderPreview();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { saveTimer = null; persist(); }, 500);
+  }
+
   window.addEventListener('message', e => {
-    if (e.source !== el.preview.contentWindow || e.data?.type !== 'bs-text-edit' || !state.current) return;
-    handleTextEdit(String(e.data.from), String(e.data.to));
+    if (e.source !== el.preview.contentWindow || !state.current) return;
+    if (e.data?.type === 'bs-text-edit') handleTextEdit(String(e.data.from), String(e.data.to));
+    else if (e.data?.type === 'bs-page-add') handlePageChange({ add: true, restore: String(e.data.restore || '') });
+    else if (e.data?.type === 'bs-page-remove') handlePageChange({ remove: String(e.data.page || '') });
   });
 
   function setTextEditing(on) {

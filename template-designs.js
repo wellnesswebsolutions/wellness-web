@@ -740,7 +740,7 @@ function templateDesignMotion(layout) {
       const original=document.querySelectorAll('.gallery-demo img')[index],img=original.cloneNode();img.className='noir-photo';img.alt='';img.loading='eager';
       img.addEventListener('error',()=>{img.src=document.querySelector('.brand-scene').src},{once:true});
       const caption=document.createElement('span');caption.textContent=label;tile.append(img,caption);tiles.append(tile);
-      tile.addEventListener('click',event=>{event.preventDefault();if(index===2){document.querySelector('.gallery-section').scrollIntoView({behavior:motionPreference.matches?'instant':'smooth'})}else{document.querySelector('.site-header .nav [data-nav="'+(index===0?'services':'contact')+'"]').click()}});
+      tile.addEventListener('click',event=>{event.preventDefault();if(index===2){document.querySelector('.gallery-section').scrollIntoView({behavior:motionPreference.matches?'instant':'smooth'})}else{document.querySelector('.site-header .nav [data-nav="'+(index===0?'services':'contact')+'"]')?.click()}});
     });
   }
   if(visualStyle==='organic'){const gallery=document.querySelector('.gallery');gallery.tabIndex=0;gallery.setAttribute('role','region');gallery.setAttribute('aria-label','Photo gallery — scroll to explore')}
