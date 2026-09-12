@@ -863,6 +863,93 @@ document.addEventListener('DOMContentLoaded', () => {
   builderChatPill.textContent = 'Send To Designer';
   builderChatPill.className = 'designer-send';
   builderChatPill.hidden = true;
+  const mobileActions = document.createElement('div');
+  mobileActions.className = 'mobile-builder-actions';
+  mobileActions.innerHTML = `
+    <div class="mobile-send-choices" hidden>
+      <button type="button" data-mobile-send="whatsapp">WhatsApp</button>
+      <button type="button" data-mobile-send="email">Email</button>
+    </div>
+    <div class="mobile-swipe-rail" aria-label="Website style controls" hidden>
+      <button type="button" data-mobile-swipe="font" aria-label="Swipe to change font"><span>F<br>O<br>N<br>T</span></button>
+      <button type="button" data-mobile-swipe="colour" aria-label="Swipe to change colour"><span>C<br>O<br>L<br>O<br>U<br>R</span></button>
+      <button type="button" data-mobile-swipe="layout" aria-label="Swipe to change template"><span>T<br>E<br>M<br>P<br>L<br>A<br>T<br>E</span></button>
+    </div>
+    <div class="mobile-builder-bottom">
+      <button type="button" class="mobile-submit" aria-expanded="false">Submit to designer</button>
+      <button type="button" class="mobile-edit" aria-pressed="false"><span>✦</span><b>Edit</b></button>
+    </div>`;
+  builderOverlay.append(mobileActions);
+  const mobileSubmit = mobileActions.querySelector('.mobile-submit');
+  const mobileEdit = mobileActions.querySelector('.mobile-edit');
+  const mobileChoices = mobileActions.querySelector('.mobile-send-choices');
+  const mobileRail = mobileActions.querySelector('.mobile-swipe-rail');
+
+  function setMobileEditor(open) {
+    builderOverlay.classList.toggle('mobile-editor-active', open);
+    mobileRail.hidden = !open;
+    mobileEdit.setAttribute('aria-pressed', String(open));
+    mobileEdit.querySelector('span').textContent = open ? '✓' : '✦';
+    mobileEdit.querySelector('b').textContent = open ? 'Swipe screen' : 'Edit';
+  }
+  function cycleMobileStyle(tool, direction) {
+    if (tool === 'font') {
+      const current = DEMO_FONTS.findIndex(item => item.id === selectedFont);
+      selectedFont = DEMO_FONTS[(current + direction + DEMO_FONTS.length) % DEMO_FONTS.length].id;
+      refreshPreview({ appearanceOnly: true });
+      rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false });
+      return;
+    }
+    if (tool === 'colour') {
+      const choices = Object.values(palettes).flat();
+      const current = choices.findIndex(([, hex]) => hex.toLowerCase() === selectedTones?.base?.toLowerCase());
+      const [name, hex] = choices[(current + direction + choices.length) % choices.length];
+      hasManualPalette = true;
+      selectedTones = {...tonesFromHex(hex), mode: 'light'};
+      selectedPaletteName = name;
+      refreshPreview({ appearanceOnly: true });
+      return;
+    }
+    const category = typeInfo(bizTagline.value)?.cat;
+    const fallback = demoLayoutForCategory(category);
+    const current = DEMO_LAYOUTS.findIndex(item => item.id === (selectedLayout || fallback));
+    selectedLayout = DEMO_LAYOUTS[(current + direction + DEMO_LAYOUTS.length) % DEMO_LAYOUTS.length].id;
+    refreshPreview();
+    rerenderPersonalisedHero({ appearanceOnly: true, refreshSite: false });
+  }
+  mobileEdit.addEventListener('click', () => setMobileEditor(!builderOverlay.classList.contains('mobile-editor-active')));
+  mobileSubmit.addEventListener('click', () => {
+    const open = mobileChoices.hidden;
+    mobileChoices.hidden = !open;
+    mobileSubmit.setAttribute('aria-expanded', String(open));
+  });
+  mobileChoices.addEventListener('click', event => {
+    const action = event.target.closest('[data-mobile-send]')?.dataset.mobileSend;
+    if (!action) return;
+    mobileChoices.hidden = true;
+    mobileSubmit.setAttribute('aria-expanded', 'false');
+    if (action === 'whatsapp') builderChatPill.click();
+    if (action === 'email') {
+      const status = document.getElementById('handoffStatus');
+      const design = selectedDesignSummary();
+      status.textContent = 'Sending your design details…';
+      postLeadWithMedia({
+        Business: bizNameInput.value.trim(), Industry: bizTagline.value || 'Not provided',
+        Location: bizLocation.value.trim() || 'Not provided', Template: design.template,
+        Font: design.font, 'Colour scheme': design.palette
+      }, []).then(sent => { status.textContent = sent ? 'Your design details have been emailed to Tom.' : 'Email could not be sent. Please try WhatsApp.'; });
+    }
+  });
+  mobileRail.querySelectorAll('[data-mobile-swipe]').forEach(zone => {
+    let startX = null;
+    zone.addEventListener('pointerdown', event => { startX = event.clientX; });
+    zone.addEventListener('pointerup', event => {
+      if (startX === null) return;
+      const delta = event.clientX - startX;
+      if (Math.abs(delta) > 24) cycleMobileStyle(zone.dataset.mobileSwipe, delta > 0 ? -1 : 1);
+      startX = null;
+    });
+  });
   const options = controls.querySelector('.builder-options');
   let activeTool = null;
   const palettes = {

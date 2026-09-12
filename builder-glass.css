@@ -15,3 +15,26 @@
 @keyframes options-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:900px){.builder-overlay .builder-bar-wrap{padding:12px 12px calc(12px + env(safe-area-inset-bottom));justify-content:center}.builder-glass-tools{width:min(100%,390px);justify-content:space-between;gap:12px}.glass-circle{width:54px;height:54px}.whatsapp-circle svg{width:40px;height:40px}.builder-options{right:0;width:100%}}
 @media(prefers-reduced-motion:reduce){.glass-circle,.builder-options{animation:none;transition:none}}
+
+/* Phone editor: the preview remains the stage; three slim glass controls slide
+   in from the left only after Edit is requested. Desktop keeps its existing
+   round control set above. */
+.mobile-builder-actions{display:none}
+@media(max-width:900px){
+  .builder-overlay .builder-bar-wrap{display:none}
+  .mobile-builder-actions{display:block;pointer-events:none}
+  .mobile-builder-bottom{position:fixed;z-index:63;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:auto}
+  .mobile-builder-bottom button,.mobile-send-choices button{height:48px;border:1px solid rgba(255,255,255,.34);border-radius:999px;padding:0 16px;font:700 12px/1 var(--body);white-space:nowrap;cursor:pointer;backdrop-filter:blur(18px) saturate(1.25);-webkit-backdrop-filter:blur(18px) saturate(1.25);box-shadow:0 9px 25px rgba(6,18,43,.22)}
+  .mobile-submit{width:calc(56vw - 16px);max-width:184px;color:#fff;background:linear-gradient(135deg,#3b8cff,#2867e3);border-color:#79adff!important}
+  .mobile-edit{width:calc(44vw - 16px);max-width:112px;display:flex;align-items:center;justify-content:center;gap:7px;overflow:hidden;color:#fff;background:rgba(8,21,47,.62);transition:max-width .3s cubic-bezier(.2,.9,.2,1),width .3s cubic-bezier(.2,.9,.2,1),background .2s}
+  .mobile-edit span{font-size:17px}.mobile-edit b{font:inherit}
+  .builder-overlay.mobile-editor-active .mobile-edit{width:calc(56vw - 16px);max-width:184px;background:rgba(8,21,47,.78);border-color:rgba(255,255,255,.54)}
+  .mobile-send-choices{position:fixed;z-index:64;left:14px;bottom:calc(70px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;pointer-events:auto;animation:mobile-send-in .22s ease-out}
+  .mobile-send-choices[hidden]{display:none}.mobile-send-choices button{width:calc(56vw - 16px);max-width:184px;color:#fff;background:rgba(8,21,47,.78)}
+  .mobile-send-choices button:first-child{background:rgba(37,211,102,.9)}.mobile-send-choices button:first-child:before{content:'◉';margin-right:8px}.mobile-send-choices button:last-child:before{content:'✉';margin-right:8px}
+  .mobile-swipe-rail{position:fixed;z-index:62;top:calc(var(--header-h,75px) + 18px);bottom:76px;left:0;width:39px;display:flex;flex-direction:column;justify-content:space-between;gap:9px;pointer-events:auto}
+  .mobile-swipe-rail[hidden]{display:none}.mobile-swipe-rail button{flex:1;border:1px solid rgba(255,255,255,.36);border-left:0;border-radius:0 14px 14px 0;background:rgba(236,244,255,.32);box-shadow:6px 0 20px rgba(0,0,0,.09),inset -1px 0 rgba(255,255,255,.18);backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px);color:#102039;display:grid;place-items:center;padding:0;font:700 10px/1.95 var(--body);letter-spacing:.08em;text-transform:uppercase;transform:translateX(-108%);transition:transform .45s cubic-bezier(.2,.9,.2,1)}
+  .mobile-swipe-rail button span{text-align:center}.builder-overlay.mobile-editor-active .mobile-swipe-rail button{transform:none}
+  @keyframes mobile-send-in{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+}
+@media(prefers-reduced-motion:reduce){.mobile-edit,.mobile-swipe-rail button{transition:none}.mobile-send-choices{animation:none}}
