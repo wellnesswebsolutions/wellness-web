@@ -1248,35 +1248,44 @@ dialog .dns-table button { margin: 0; padding: 4px 10px; font-size: 12px; }
 }
 .crm-delete:hover { background: #fbeceb; border-color: #f3c9c7; color: #c93a35; }
 
-/* Live tab: each customer on one line — details then every action. */
-.live-row { display: flex; align-items: center; gap: 10px; padding: 7px 10px; margin-bottom: 5px; }
-.live-row .crm-name { flex: 0 1 auto; max-width: 220px; }
-.live-row .crm-stage { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.live-row .live-price { flex: none; font-size: 12px; white-space: nowrap; }
-.live-row .live-url { flex: 1 1 60px; min-width: 0; font-size: 12px; text-align: left; }
+/* Clients tab: each customer on one line — details then every action.
+   Fixed columns (and fixed button slots, see liveRow) keep every row's
+   name, badge, price, site and buttons lined up under each other. */
+.live-row { display: grid; grid-template-columns: 9px minmax(110px, 1.3fr) 132px 118px minmax(70px, 1fr) auto; align-items: center; gap: 10px; padding: 7px 10px; margin-bottom: 5px; }
+.live-row .crm-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-row .crm-stage { justify-self: start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-row .live-price { min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-row .live-url { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; text-align: left; }
 .live-row button.live-url { border: none; background: none; padding: 0; font-family: inherit; color: var(--muted); cursor: pointer; }
 .live-row button.live-url:hover { color: var(--accent); text-decoration: underline; }
-.live-row .crm-row-actions { flex: none; flex-wrap: nowrap; margin-top: 0; gap: 5px; }
-.live-row .crm-move { padding: 4px 9px; font-size: 11px; white-space: nowrap; }
+.live-row .crm-row-actions { display: grid; grid-template-columns: 92px 84px 88px 78px 44px 76px 110px 24px; gap: 5px; margin-top: 0; }
+.live-row .crm-move { width: 100%; padding: 4px 6px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 .live-row .crm-delete { margin-left: 0; width: 24px; height: 24px; }
 .live-row .live-go { background: #1f9d55; border-color: #1f9d55; color: #fff; }
 .live-row .live-go:hover { background: #17864a; border-color: #17864a; }
-.live-busy { font-size: 11px; white-space: nowrap; }
+.live-busy { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .live-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #c9c6bd; }
 .live-dot.is-up { background: #1f9d55; box-shadow: 0 0 0 3px #e6f6ec; }
 .live-dot.is-down { background: #e0453f; box-shadow: 0 0 0 3px #fbeceb; }
 .live-row.is-offline, .live-row.is-offline:hover { border-color: #f3c9c7; background: #fffafa; }
+/* Narrower windows: buttons drop to a second line, still in the same
+   fixed slots so they stay lined up. */
 @media (max-width: 1250px) {
-  .live-row { flex-wrap: wrap; }
-  .live-row .crm-row-actions { flex-wrap: wrap; width: 100%; }
+  .live-row { grid-template-columns: 9px minmax(110px, 1.3fr) 132px 118px minmax(70px, 1fr); row-gap: 7px; }
+  .live-row .crm-row-actions { grid-column: 2 / -1; }
 }
 .crm-stage.stage-urgent { background: #fbeceb; color: #c93a35; }
 .live-stat.is-urgent b, .live-stat.is-urgent span { color: #c93a35; }
 .live-alert { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 11px; background: #fbeceb; border: 1.5px solid #f3c9c7; color: #a02f2a; font-size: 12.5px; font-weight: 600; }
 .live-alert b { font-weight: 800; }
 .live-half.is-urgent .live-half-head { color: #c93a35; }
-/* Sections take only the height their rows need; the whole list scrolls. */
-#liveList { overflow-y: auto; }
+/* Pending + Live on top, scrolling on their own. When anyone is urgent the
+   top is capped at half the height and Urgent fills the bottom half, so
+   it's always in view (see renderLive in app.js). */
+#liveList { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+.live-main { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+#liveList.has-urgent .live-main { flex: 0 1 auto; max-height: calc(50% - 6px); }
+.live-urgent { flex: 1 1 0; min-height: 0; overflow-y: auto; padding-top: 12px; border-top: 1.5px solid #f3c9c7; }
 .live-half { flex: none; }
 .live-half-list { overflow: visible; }
 

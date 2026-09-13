@@ -2561,7 +2561,8 @@ document.addEventListener('focusout',e=>{
   }
 
   // One compact line per customer: status dot, name, badge, price, site,
-  // then every action.
+  // then every action. Every row has the same button slots (an empty one
+  // where a button doesn't apply), so the columns line up down the list.
   function liveRow(p) {
     const c = planCharges(p.plan);
     const section = liveSection(p);
@@ -2584,15 +2585,16 @@ document.addEventListener('focusout',e=>{
         <div class="crm-row-actions">
           ${busy ? `<span class="crm-dim live-busy">${busy}</span>`
             : p.liveUrl ? `<button type="button" class="crm-move crm-move-quiet" data-offline="${slug}">Take offline</button>`
-            : siteBuiltHere(p) ? `<button type="button" class="crm-move live-go" data-golive="${slug}">Make live</button>` : ''}
+            : siteBuiltHere(p) ? `<button type="button" class="crm-move live-go" data-golive="${slug}">Make live</button>` : '<span></span>'}
           <button type="button" class="crm-move" data-plan="${slug}">${c ? 'Plan' : 'Choose plan'}</button>
-          <button type="button" class="crm-move" data-pay="${slug}">${section === 'urgent' ? 'Resend payment link' : 'Payment link'}</button>
+          <button type="button" class="crm-move" data-pay="${slug}" title="${section === 'urgent' ? 'Resend the payment link' : 'Send a payment link'}">${section === 'urgent' ? 'Resend link' : 'Payment link'}</button>
           <button type="button" class="crm-move" data-domain="${slug}">${p.customDomain ? '🌐 Domain' : 'Domain'}</button>
           <button type="button" class="crm-move" data-edit="${slug}">Edit</button>
           ${section === 'pending'
             ? `<button type="button" class="crm-move" data-status="paid" data-slug="${slug}">Mark paid</button>
                <button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}">Not going ahead</button>`
-            : `<button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}" title="Takes them off the Clients tab">${section === 'urgent' ? 'Remove' : 'Stopped paying'}</button>`}
+            : `<span></span>
+               <button type="button" class="crm-move crm-move-quiet" data-status="no" data-slug="${slug}" title="Takes them off the Clients tab">${section === 'urgent' ? 'Remove' : 'Stopped paying'}</button>`}
           <button type="button" class="crm-delete" data-delete="${slug}" title="Delete this customer">✕</button>
         </div>
       </div>`;
