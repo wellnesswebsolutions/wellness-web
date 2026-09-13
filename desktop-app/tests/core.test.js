@@ -72,4 +72,21 @@ test('import snapshots are saved and capped at 10', () => {
   assert.deepStrictEqual(latest.urls, ['https://facebook.com/x']);
 });
 
+test('follow-up reminders: due 2 days after an unanswered demo open', () => {
+  const { followUpDue } = require('../public/follow-ups');
+  const now = Date.parse('2026-09-13T12:00:00Z');
+  const views = (...opens) => ({ count: opens.length, last: opens[0], opens });
+  const sent = { pipelineStage: 'demo_sent', paymentStatus: 'no' };
+  assert.strictEqual(followUpDue(sent, views('2026-09-10T12:00:00Z'), now), true);
+  assert.strictEqual(followUpDue(sent, views('2026-09-12T12:00:00Z'), now), false, 'opened only a day ago');
+  assert.strictEqual(followUpDue(sent, views('2026-09-13T09:00:00Z', '2026-09-12T09:00:00Z', '2026-09-10T09:00:00Z'), now), true, 'keeps reopening: clock runs from the first open');
+  assert.strictEqual(followUpDue(sent, null, now), false, 'never opened');
+  assert.strictEqual(followUpDue({ ...sent, pipelineStage: 'interested' }, views('2026-09-10T12:00:00Z'), now), false, 'they replied');
+  assert.strictEqual(followUpDue({ ...sent, paymentStatus: 'pending' }, views('2026-09-10T12:00:00Z'), now), false, 'already a customer');
+  assert.strictEqual(followUpDue({ ...sent, followedUpAt: '2026-09-11T09:00:00Z' }, views('2026-09-10T12:00:00Z'), now), false, 'followed up since');
+  assert.strictEqual(followUpDue({ ...sent, followedUpAt: '2026-09-11T09:00:00Z' }, views('2026-09-12T12:00:00Z', '2026-09-10T12:00:00Z'), now), false, 'opened again after the follow-up, only a day ago');
+  assert.strictEqual(followUpDue({ ...sent, followedUpAt: '2026-09-09T09:00:00Z' }, views('2026-09-10T12:00:00Z'), now), true, 'opened again after an older follow-up');
+  assert.strictEqual(followUpDue(sent, { count: 1, last: '2026-09-10T12:00:00Z' }, now), true, 'older view data with only a last open');
+});
+
 test.after(() => fs.rmSync(tmpHome, { recursive: true, force: true }));

@@ -361,16 +361,46 @@
     try { state.views = (await api('/api/demo-views')) || {}; } catch { return; }
     renderSidebar();
     renderDemoViews();
+    checkFollowUps();
   }
   setInterval(loadDemoViews, 60000);
   const viewsText = v => `Demo opened ${v.count}× · last ${timeAgo(v.last).replace(/^Just/, 'just')}`;
+  // Opened the demo 2+ days ago and still at "Demo sent" (see follow-ups.js).
+  // Clicks of "Followed up" are also kept here, so an autosave that was
+  // already on its way back can't bring the reminder back with stale data.
+  state.followedUp = {};
+  const withFollowUp = p => ({ ...p, followedUpAt: [p.followedUpAt, state.followedUp[p.slug]].filter(Boolean).sort().pop() });
+  const isFollowUpDue = p => FollowUps.followUpDue(withFollowUp(p), state.views[p.slug]);
+  const followUpSince = p => FollowUps.firstUnansweredOpen(withFollowUp(p), state.views[p.slug]);
   function renderDemoViews() {
     const box = document.getElementById('demoViews');
     if (!box || !state.current) return;
     const v = state.views[state.current.slug];
+    const due = isFollowUpDue(state.current);
     box.hidden = !state.current.liveUrl && !v;
-    box.classList.toggle('is-opened', Boolean(v));
-    box.textContent = `👁 ${v ? viewsText(v) : 'Demo not opened yet'}`;
+    box.classList.toggle('is-opened', Boolean(v) && !due);
+    box.classList.toggle('is-due', due);
+    box.textContent = due ? `⏰ Follow up: ${viewsText(v)}, no reply yet ` : `👁 ${v ? viewsText(v) : 'Demo not opened yet'}`;
+    if (!due) return;
+    const done = document.createElement('button');
+    done.type = 'button';
+    done.className = 'follow-up-done';
+    done.textContent = 'Followed up';
+    done.title = 'Clears the reminder until they open the demo again';
+    done.onclick = async () => {
+      const slug = state.current.slug;
+      state.followedUp[slug] = new Date().toISOString();
+      done.disabled = true;
+      try {
+        await saveProjectFields(slug, { followedUpAt: state.followedUp[slug] });
+      } catch (err) {
+        delete state.followedUp[slug];
+        notify(friendlyError(err.message), { sticky: false });
+      }
+      renderSidebar();
+      renderDemoViews();
+    };
+    box.append(done);
   }
 
   // Red/yellow/green sales-stage colour, not live-deploy status (that's
@@ -417,7 +447,10 @@
   // collapsed to its title at the bottom. Clicking any title grows that
   // section to the full panel (the rest shrink to titles); clicking it
   // again goes back. Paying customers live on the Live tab instead.
+  // Follow up sits on top and only appears while something is due; those
+  // businesses leave their usual section until the reminder is cleared.
   const SIDE_SECTIONS = [
+    { id: 'due', label: 'Follow up', stages: ['demo_sent'], followUps: true },
     { id: 'red', label: 'Uncontacted', stages: ['uncontacted'] },
     { id: 'yellow', label: 'Waiting / ring back', stages: ['called', 'follow_up', 'interested'] },
     { id: 'green', label: 'Demo sent', stages: ['demo_sent'] },
@@ -429,10 +462,13 @@
     const scrolls = Object.fromEntries([...el.projectList.querySelectorAll('.side-section')]
       .map(s => [s.dataset.section, s.querySelector('.side-section-list').scrollTop]));
     const list = sortedProjects().filter(p => !isPaid(p) && !isPending(p));
+    // Follow up hides once empty, so don't leave it as the expanded section.
+    if (state.sideExpanded === 'due' && !list.some(isFollowUpDue)) state.sideExpanded = null;
     const expanded = state.sideExpanded;
     el.projectList.innerHTML = '';
     SIDE_SECTIONS.forEach(section => {
-      const items = list.filter(p => section.stages.includes(stageOf(p)));
+      const items = list.filter(p => section.stages.includes(stageOf(p)) && isFollowUpDue(p) === Boolean(section.followUps));
+      if (section.followUps && !items.length) return;
       const open = expanded ? expanded === section.id : !section.collapsedByDefault;
       const box = document.createElement('section');
       box.dataset.section = section.id;
@@ -2359,6 +2395,27 @@ document.addEventListener('focusout',e=>{
     }
     if (!found.length) return;
     notifications = [...found.reverse(), ...notifications].slice(0, 100);
+    writeStore(NOTIF_KEY, notifications);
+    renderNotifications();
+  }
+
+  // One bell reminder each time a business becomes due (keyed by its first
+  // unanswered open). The first run on a computer just remembers what's
+  // already due, so old demos don't all ring at once.
+  const FOLLOW_SEEN_KEY = 'bs.followUpsNotified';
+  function checkFollowUps() {
+    if (!state.projectsLoaded) return;
+    const stored = readStore(FOLLOW_SEEN_KEY, null);
+    const seen = stored || {};
+    const fresh = state.projects.filter(p => isFollowUpDue(p) && seen[p.slug] !== followUpSince(p));
+    fresh.forEach(p => { seen[p.slug] = followUpSince(p); });
+    if (!stored || fresh.length) writeStore(FOLLOW_SEEN_KEY, seen);
+    if (!stored || !fresh.length) return;
+    const at = new Date().toISOString();
+    notifications = [...fresh.map((p, i) => ({
+      id: `${Date.now()}-f${i}`, slug: p.slug, icon: '⏰', at, read: false,
+      text: `Follow up with “${businessName(p)}”: they opened the demo but haven’t replied`
+    })), ...notifications].slice(0, 100);
     writeStore(NOTIF_KEY, notifications);
     renderNotifications();
   }

@@ -243,7 +243,8 @@ function viewBeaconScript(slug) {
     `body:${JSON.stringify(JSON.stringify({ slug }))}})}catch(e){}})();</script>`;
 }
 
-// { slug: { count, last } } — {} if sync is off or the table isn't set up yet.
+// { slug: { count, last, opens } } (opens newest first, used by follow-up
+// reminders) — {} if sync is off or the table isn't set up yet.
 async function pullDemoViews() {
   if (!enabled()) return {};
   try {
@@ -252,8 +253,9 @@ async function pullDemoViews() {
     if (!res.ok) return {};
     const views = {};
     for (const row of await res.json()) {
-      const v = views[row.slug] || (views[row.slug] = { count: 0, last: row.viewed_at });
+      const v = views[row.slug] || (views[row.slug] = { count: 0, last: row.viewed_at, opens: [] });
       v.count += 1;
+      v.opens.push(row.viewed_at);
     }
     return views;
   } catch {
